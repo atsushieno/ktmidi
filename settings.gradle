@@ -1,0 +1,3 @@
+rootProject.name = "KtMidiDemo"
+include ':app'
+include ':ktmidi'
