@@ -1,9 +1,9 @@
 plugins {
-    id 'java'
+    id 'com.android.library'
+    id 'kotlin-android'
     id 'maven-publish'
 }
 
-/*
 android {
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
@@ -32,16 +32,25 @@ android {
         jvmTarget = '1.8'
     }
 }
-*/
 
 afterEvaluate {
     publishing {
         publications {
-            // desktop Java
-            mavenJava(MavenPublication) {
+            // Creates a Maven publication called "release".
+            release(MavenPublication) {
+                // Applies the component for the release build variant.
                 groupId = 'dev.atsushieno'
-                version = "$module_version_name"
-                from components.java
+                version = android.defaultConfig.versionName
+                from components.release
+                artifactId = 'ktmidi'
+            }
+            // Creates a Maven publication called "debug".
+            debug(MavenPublication) {
+                // Applies the component for the release build variant.
+                groupId = 'dev.atsushieno'
+                version = android.defaultConfig.versionName
+                from components.debug
+                artifactId = 'ktmidi'
             }
         }
         repositories {
@@ -60,6 +69,6 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2'
 
     testImplementation 'junit:junit:4.13.2'
-    //androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-    //androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 }
