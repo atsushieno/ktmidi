@@ -274,7 +274,7 @@ class MidiMetaType
         fun getTempo (data : ByteArray, offset: Int) : Int
         {
             if (data.size < offset + 2)
-                throw IndexOutOfBoundsException("data array must be longer than argument offset " + offset + " + 2")
+                throw IndexOutOfBoundsException("data array must be longer than argument offset $offset + 2")
             return (data[offset].toUnsigned() shl 16) + (data [offset + 1].toUnsigned() shl 8) + data [offset + 2]
         }
 
@@ -415,7 +415,7 @@ class MidiEvent // MIDI 1.0 only
         this.extraDataLength = 0
     }
 
-    constructor (type : Int, arg1 : Int, arg2 : Int, extraData : ByteArray?, extraOffset: Int, extraLength: Int)
+    constructor (type : Int, arg1 : Int, arg2 : Int, extraData : ByteArray?, extraOffset: Int = 0, extraLength: Int = 0)
     {
         this.value = type + (arg1 shl 8) + (arg2 shl 16)
         this.extraData = extraData
