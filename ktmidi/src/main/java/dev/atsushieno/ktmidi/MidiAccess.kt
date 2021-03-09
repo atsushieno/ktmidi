@@ -1,7 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import java.io.Closeable
-
 class MidiAccessManager {
     companion object {
         var DEFAULT: MidiAccess = EmptyMidiAccess()
@@ -72,12 +70,12 @@ interface OnMidiReceivedEventListener {
     fun onEventReceived (data : ByteArray, start: Int, length: Int, timestamp : Long)
 }
 
-interface MidiInput : MidiPort, AutoCloseable
+interface MidiInput : MidiPort
 {
     fun setMessageReceivedListener (listener: OnMidiReceivedEventListener)
 }
 
-interface MidiOutput : MidiPort, AutoCloseable
+interface MidiOutput : MidiPort
 {
     fun send (mevent: ByteArray, offset : Int, length: Int, timestamp: Long)
 }
