@@ -152,9 +152,6 @@ class SmfWriterExtension
 
         private fun defaultMetaWriterFunc (lengthMode : Boolean, e : MidiMessage, stream : OutputStream?) : Int
         {
-            if (e.event.extraData == null || stream == null)
-                return 0
-
             if (lengthMode) {
                 // [0x00] 0xFF metaType size ... (note that for more than one meta event it requires step count of 0).
                 val repeatCount : Int = e.event.extraDataLength / 0x7F
@@ -164,9 +161,14 @@ class SmfWriterExtension
                 return repeatCount * (4 + 0x7F) - 1 + if (mod > 0) 4 + mod else 0
             }
 
+            if (e.event.extraData == null || stream == null)
+                return 0
+
             var written = 0
             val total : Int = e . event.extraDataLength
-            while (written < total) {
+            var passed = false // manually rewritten do-while loop...
+            while (!passed || written < total) {
+                passed = true
                 if (written > 0)
                     stream.writeByte(0) // step
                 stream.writeByte(0xFF.toByte())
