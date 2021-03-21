@@ -38,4 +38,13 @@ class MidiMusicUnitTest {
         var events2 = MidiEvent.convert(bytes2, 0, bytes2.size)
         assertEquals(1, events2.count(), "bytes2 count")
     }
+
+    @Test
+    fun unsignedOperations() {
+        val evt = MidiEvent(0xFF, 3, 4, charArrayOf('t', 'e', 's', 't').map { c -> c.toByte()}.toByteArray(), 0)
+        assertEquals(0xFF.toByte(), evt.eventType, "eventType")
+        assertEquals(3, evt.msb, "msb")
+        assertEquals(4, evt.lsb, "lsb")
+        assertEquals(4, evt.extraDataLength, "extraDataLength")
+    }
 }

@@ -399,9 +399,10 @@ class MidiEvent // MIDI 1.0 only
         this.extraDataLength = 0
     }
 
-    constructor (type : Int, arg1 : Int, arg2 : Int, extraData : ByteArray?, extraOffset: Int = 0, extraLength: Int = 0)
+    @ExperimentalUnsignedTypes
+    constructor (type : Int, arg1 : Int, arg2 : Int, extraData : ByteArray?, extraOffset: Int = 0, extraLength: Int = extraData?.size ?: 0)
     {
-        this.value = type + (arg1 shl 8) + (arg2 shl 16)
+        this.value = (type.toUInt() + (arg1.toUInt() shl 8) + (arg2.toUInt() shl 16)).toInt()
         this.extraData = extraData
         this.extraDataOffset = extraOffset
         this.extraDataLength = extraLength
