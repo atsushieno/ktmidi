@@ -5,6 +5,8 @@ interface OnMidiEventListener
     fun onEvent (e: MidiEvent)
 }
 
+expect val defaultMidiAccess : MidiAccess
+
 class MidiAccessManager {
     companion object {
         var DEFAULT: MidiAccess = EmptyMidiAccess()
