@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'dev.atsushieno'
-version = '0.1.4'
+version = '0.1.5'
 
 repositories {
     mavenCentral()
@@ -44,6 +44,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation ('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2')
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.1")
             }
         }
         commonTest {

@@ -3,11 +3,13 @@ package dev.atsushieno.ktmidi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 
+@Deprecated("Use MidiPlayer and MidiPlayerTimer instead")
 interface MidiPlayerTimeManager
 {
     fun waitBy (addedMilliseconds: Int)
 }
 
+@Deprecated("Use MidiPlayer and MidiPlayerTimer instead")
 class SimpleAdjustingMidiPlayerTimeManager : MidiPlayerTimeManager
 {
     var last_started : Long = 0
