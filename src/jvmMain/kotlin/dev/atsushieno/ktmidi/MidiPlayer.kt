@@ -203,7 +203,7 @@ class MidiPlayerClassic : AutoCloseable
         this.output = output
 
         messages = SmfTrackMerger.merge(music).tracks[0].messages
-        player = MidiEventLooperClassic(messages, timeManager, music.deltaTimeSpec.toUnsigned())
+        player = MidiEventLooperClassic(messages, timeManager, music.deltaTimeSpec)
         player.starting = Runnable {
             // all control reset on all channels.
             for (i in 0..15) {
@@ -301,7 +301,7 @@ class MidiPlayerClassic : AutoCloseable
 
     fun getTotalPlayTimeMilliseconds (): Int
     {
-        return MidiMusic.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec.toUnsigned())
+        return MidiMusic.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
     }
 
     override fun close ()

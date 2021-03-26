@@ -44,7 +44,7 @@ class MidiMusic {
 
     val tracks : MutableList<MidiTrack> = ArrayList ()
 
-    var deltaTimeSpec : Byte = 0
+    var deltaTimeSpec : Int = 0
 
     var format : Byte = 0
 
@@ -68,13 +68,13 @@ class MidiMusic {
     {
         if (format != 0.toByte())
             return SmfTrackMerger.merge(this).getTotalPlayTimeMilliseconds ()
-        return getTotalPlayTimeMilliseconds (tracks [0].messages, deltaTimeSpec.toUnsigned())
+        return getTotalPlayTimeMilliseconds (tracks [0].messages, deltaTimeSpec)
     }
 
     fun getTimePositionInMillisecondsForTick (ticks : Int) : Int {
         if (format != 0.toByte())
             return SmfTrackMerger.merge(this).getTimePositionInMillisecondsForTick (ticks)
-        return getPlayTimeMillisecondsAtTick (tracks [0].messages, ticks, deltaTimeSpec.toUnsigned())
+        return getPlayTimeMillisecondsAtTick (tracks [0].messages, ticks, deltaTimeSpec)
     }
 
     init {
@@ -597,7 +597,7 @@ class SmfTrackSplitter(var source: MutableList<MidiMessage>, deltaTimeSpec: Byte
         }
 
         val m = MidiMusic ()
-        m.deltaTimeSpec = delta_time_spec
+        m.deltaTimeSpec = delta_time_spec.toInt()
         for (t in tracks.values)
             m.tracks.add (t.track)
         return m

@@ -198,7 +198,7 @@ class MidiPlayer
         this.output = output
 
         messages = SmfTrackMerger.merge(music).tracks[0].messages
-        looper = MidiEventLooper(messages, timer, music.deltaTimeSpec.toUnsigned())
+        looper = MidiEventLooper(messages, timer, music.deltaTimeSpec)
         looper.starting = Runnable {
             // all control reset on all channels.
             for (i in 0..15) {
@@ -295,7 +295,7 @@ class MidiPlayer
         get () = music.getTimePositionInMillisecondsForTick (playDeltaTime).toLong()
 
     val totalPlayTimeMilliseconds: Int
-        get() = MidiMusic.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec.toUnsigned())
+        get() = MidiMusic.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
 
     fun dispose () {
         looper.stop ()

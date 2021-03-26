@@ -250,7 +250,7 @@ class SmfReader(private var stream: InputStream) {
             throw parseError("Unexpected data size (should be 6)")
         data.format = readInt16().toByte()
         val tracks = readInt16()
-        data.deltaTimeSpec = readInt16().toByte()
+        data.deltaTimeSpec = readInt16().toInt()
         for (i in 0 until tracks)
             data.tracks.add(readTrack())
     }
