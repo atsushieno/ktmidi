@@ -7,16 +7,14 @@ import kotlinx.coroutines.launch
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 
-interface MidiPlayerTimer
-{
-    suspend fun waitBy (addedMilliseconds: Int)
+interface MidiPlayerTimer {
+    suspend fun waitBy(addedMilliseconds: Int)
     fun stop()
 }
 
-class SimpleAdjustingMidiPlayerTimer : MidiPlayerTimer
-{
-    private var lastStarted : Double = 0.0
-    private var nominalTotalMills : Double = 0.0
+class SimpleAdjustingMidiPlayerTimer : MidiPlayerTimer {
+    private var lastStarted: Double = 0.0
+    private var nominalTotalMills: Double = 0.0
 
     @OptIn(ExperimentalTime::class)
     override suspend fun waitBy(addedMilliseconds: Int) {
@@ -38,14 +36,13 @@ class SimpleAdjustingMidiPlayerTimer : MidiPlayerTimer
 }
 
 open class VirtualMidiPlayerTimer : MidiPlayerTimer {
-    var totalWaitedMilliseconds : Long = 0
+    var totalWaitedMilliseconds: Long = 0
     var totalProceededMilliseconds: Long = 0;
     private var shouldTerminate: Boolean = false
-    private var disposed : Boolean = false
-    private var waitJobInLoop : Job? = null
+    private var disposed: Boolean = false
+    private var waitJobInLoop: Job? = null
 
-    override fun stop ()
-    {
+    override fun stop() {
         if (disposed)
             return
         shouldTerminate = true
@@ -63,10 +60,9 @@ open class VirtualMidiPlayerTimer : MidiPlayerTimer {
         totalWaitedMilliseconds += addedMilliseconds
     }
 
-    open fun proceedBy ( addedMilliseconds: Long)
-    {
+    open fun proceedBy(addedMilliseconds: Long) {
         if (addedMilliseconds < 0)
-            throw IllegalArgumentException ("'addedMilliseconds' must be non-negative integer")
+            throw IllegalArgumentException("'addedMilliseconds' must be non-negative integer")
         totalProceededMilliseconds += addedMilliseconds
         waitJobInLoop?.cancel()
     }

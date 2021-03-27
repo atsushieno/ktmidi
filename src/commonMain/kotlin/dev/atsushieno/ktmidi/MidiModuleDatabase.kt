@@ -1,28 +1,24 @@
 package dev.atsushieno.ktmidi
 
-abstract class MidiModuleDatabase
-{
-    abstract fun all (): Iterable<MidiModuleDefinition>
+abstract class MidiModuleDatabase {
+    abstract fun all(): Iterable<MidiModuleDefinition>
 
-    abstract fun resolve (moduleName: String) : MidiModuleDefinition
+    abstract fun resolve(moduleName: String): MidiModuleDefinition
 }
 
-class MergedMidiModuleDatabase : MidiModuleDatabase
-{
-    constructor(sources: Iterable<MidiModuleDatabase>)
-    {
-        list = arrayListOf<MidiModuleDatabase> ()
+class MergedMidiModuleDatabase : MidiModuleDatabase {
+    constructor(sources: Iterable<MidiModuleDatabase>) {
+        list = arrayListOf<MidiModuleDatabase>()
     }
 
     val list: List<MidiModuleDatabase>
 
-    override fun all(): Iterable<MidiModuleDefinition>
-    {
+    override fun all(): Iterable<MidiModuleDefinition> {
         return list.flatMap { d -> d.all() }
     }
 
     override fun resolve(moduleName: String): MidiModuleDefinition {
-        return list.map { d -> d.resolve (moduleName)}.first ()
+        return list.map { d -> d.resolve(moduleName) }.first()
     }
 }
 

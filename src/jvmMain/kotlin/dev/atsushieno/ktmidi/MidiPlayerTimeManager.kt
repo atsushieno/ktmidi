@@ -4,16 +4,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 
 @Deprecated("Use MidiPlayer and MidiPlayerTimer instead")
-interface MidiPlayerTimeManager
-{
-    fun waitBy (addedMilliseconds: Int)
+interface MidiPlayerTimeManager {
+    fun waitBy(addedMilliseconds: Int)
 }
 
 @Deprecated("Use MidiPlayer and MidiPlayerTimer instead")
-class SimpleAdjustingMidiPlayerTimeManager : MidiPlayerTimeManager
-{
-    var last_started : Long = 0
-    var nominal_total_mills : Long = 0
+class SimpleAdjustingMidiPlayerTimeManager : MidiPlayerTimeManager {
+    var last_started: Long = 0
+    var nominal_total_mills: Long = 0
 
     override fun waitBy(addedMilliseconds: Int) {
         if (addedMilliseconds > 0) {

@@ -3,7 +3,7 @@ package dev.atsushieno.ktmidi
 import javax.sound.midi.*
 
 // How can I build this for both Android and Java/JVM?
-actual val defaultMidiAccess : MidiAccess = MidiAccessManager.EMPTY
+actual val defaultMidiAccess: MidiAccess = MidiAccessManager.EMPTY
 
 typealias JvmMidiMessage = javax.sound.midi.MidiMessage
 
@@ -42,17 +42,19 @@ internal abstract class JvmMidiPortDetails(override val id: String, info: MidiDe
     override val version: String? = info.version
 }
 
-private class JvmMidiTransmitterPortDetails(val device: MidiDevice, portIndex: Int, val transmitter: Transmitter) : JvmMidiPortDetails("InPort$portIndex", device.deviceInfo)
+private class JvmMidiTransmitterPortDetails(val device: MidiDevice, portIndex: Int, val transmitter: Transmitter) :
+    JvmMidiPortDetails("InPort$portIndex", device.deviceInfo)
 
-private class JvmMidiReceiverPortDetails(val device: MidiDevice, portIndex: Int, val receiver: Receiver) : JvmMidiPortDetails("OutPort$portIndex", device.deviceInfo)
+private class JvmMidiReceiverPortDetails(val device: MidiDevice, portIndex: Int, val receiver: Receiver) :
+    JvmMidiPortDetails("OutPort$portIndex", device.deviceInfo)
 
-private fun toJvmMidiMessage(data: ByteArray, start: Int, length: Int) : JvmMidiMessage {
+private fun toJvmMidiMessage(data: ByteArray, start: Int, length: Int): JvmMidiMessage {
     if (length <= 0) throw IllegalArgumentException("non-positive length")
-    val arr =  if (start == 0 && length == data.size) data else data.drop(start).take(length - start).toByteArray()
+    val arr = if (start == 0 && length == data.size) data else data.drop(start).take(length - start).toByteArray()
     return when (arr[0]) {
         0xF0.toByte() -> SysexMessage(arr, length)
         0xFF.toByte() -> MetaMessage(arr[1].toInt(), arr.drop(2).toByteArray(), length - 2)
-        else -> ShortMessage(arr[0].toInt(), arr[1].toInt(), if(length > 2) arr[2].toInt() else 0)
+        else -> ShortMessage(arr[0].toInt(), arr[1].toInt(), if (length > 2) arr[2].toInt() else 0)
     }
 }
 
@@ -69,7 +71,7 @@ private class JvmMidiInput(val port: JvmMidiTransmitterPortDetails) : MidiInput 
         port.transmitter.close()
     }
 
-    private var listener : OnMidiReceivedEventListener = object : OnMidiReceivedEventListener{
+    private var listener: OnMidiReceivedEventListener = object : OnMidiReceivedEventListener {
         override fun onEventReceived(data: ByteArray, start: Int, length: Int, timestamp: Long) {
             // do nothing
         }

@@ -1,11 +1,10 @@
 package dev.atsushieno.ktmidi
 
-interface OnMidiEventListener
-{
-    fun onEvent (e: MidiEvent)
+interface OnMidiEventListener {
+    fun onEvent(e: MidiEvent)
 }
 
-expect val defaultMidiAccess : MidiAccess
+expect val defaultMidiAccess: MidiAccess
 
 class MidiAccessManager {
     companion object {
@@ -51,69 +50,62 @@ class MidiConnectionEventArgs
 }
 */
 
-interface MidiPortDetails
-{
-    val id : String
-    val manufacturer : String?
-    val name : String?
-    val version : String?
+interface MidiPortDetails {
+    val id: String
+    val manufacturer: String?
+    val name: String?
+    val version: String?
 }
 
-enum class MidiPortConnectionState
-{
+enum class MidiPortConnectionState {
     OPEN,
     CLOSED,
     PENDING
 }
 
-interface MidiPort
-{
-    val details : MidiPortDetails
-    val connection : MidiPortConnectionState
-    fun close ()
+interface MidiPort {
+    val details: MidiPortDetails
+    val connection: MidiPortConnectionState
+    fun close()
 }
 
 interface OnMidiReceivedEventListener {
-    fun onEventReceived (data : ByteArray, start: Int, length: Int, timestamp : Long)
+    fun onEventReceived(data: ByteArray, start: Int, length: Int, timestamp: Long)
 }
 
-interface MidiInput : MidiPort
-{
-    fun setMessageReceivedListener (listener: OnMidiReceivedEventListener)
+interface MidiInput : MidiPort {
+    fun setMessageReceivedListener(listener: OnMidiReceivedEventListener)
 }
 
-interface MidiOutput : MidiPort
-{
-    fun send (mevent: ByteArray, offset : Int, length: Int, timestamp: Long)
+interface MidiOutput : MidiPort {
+    fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long)
 }
 
-class EmptyMidiAccess : MidiAccess
-{
-    override val inputs : Iterable<MidiPortDetails>
-            get () = arrayListOf(EmptyMidiInput.instance.details)
-    override val outputs : Iterable<MidiPortDetails>
-            get () = arrayListOf(EmptyMidiOutput.instance.details)
+class EmptyMidiAccess : MidiAccess {
+    override val inputs: Iterable<MidiPortDetails>
+        get() = arrayListOf(EmptyMidiInput.instance.details)
+    override val outputs: Iterable<MidiPortDetails>
+        get() = arrayListOf(EmptyMidiOutput.instance.details)
 
     override fun openInputAsync(portId: String): MidiInput {
         if (portId != EmptyMidiInput.instance.details.id)
-            throw IllegalArgumentException ("Port ID ${portId} does not exist.")
+            throw IllegalArgumentException("Port ID ${portId} does not exist.")
         return EmptyMidiInput.instance
     }
 
     override fun openOutputAsync(portId: String): MidiOutput {
         if (portId != EmptyMidiOutput.instance.details.id)
-            throw IllegalArgumentException ("Port ID ${portId} does not exist.")
+            throw IllegalArgumentException("Port ID ${portId} does not exist.")
         return EmptyMidiOutput.instance
     }
 
     //override var stateChanged : Runnable<MidiConnectionEventArgs> = null
 }
 
-abstract class EmptyMidiPort : MidiPort
-{
-    override val details = createDetails ()
+abstract class EmptyMidiPort : MidiPort {
+    override val details = createDetails()
 
-    internal abstract fun createDetails () : MidiPortDetails
+    internal abstract fun createDetails(): MidiPortDetails
 
     override val connection = MidiPortConnectionState.OPEN
 
@@ -122,22 +114,19 @@ abstract class EmptyMidiPort : MidiPort
     }
 }
 
-class EmptyMidiPortDetails(override val id: String, name: String) : MidiPortDetails
-{
+class EmptyMidiPortDetails(override val id: String, name: String) : MidiPortDetails {
     override val manufacturer = "dummy project"
-    override val name : String? = name
+    override val name: String? = name
     override val version = "0.0"
 }
 
-class EmptyMidiInput : EmptyMidiPort(), MidiInput
-{
+class EmptyMidiInput : EmptyMidiPort(), MidiInput {
     companion object {
-        var instance = EmptyMidiInput ()
+        var instance = EmptyMidiInput()
     }
 
-    override fun createDetails (): MidiPortDetails
-    {
-        return EmptyMidiPortDetails ("dummy_in", "Dummy MIDI Input")
+    override fun createDetails(): MidiPortDetails {
+        return EmptyMidiPortDetails("dummy_in", "Dummy MIDI Input")
     }
 
     override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
@@ -145,19 +134,17 @@ class EmptyMidiInput : EmptyMidiPort(), MidiInput
     }
 }
 
-class EmptyMidiOutput : EmptyMidiPort(), MidiOutput
-{
+class EmptyMidiOutput : EmptyMidiPort(), MidiOutput {
     companion object {
         var instance = EmptyMidiOutput()
     }
 
-    override fun send (mevent: ByteArray, offset:Int, length:Int, timestamp:Long) {
+    override fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long) {
         // do nothing.
     }
 
-    override fun createDetails (): MidiPortDetails
-    {
-        return EmptyMidiPortDetails ("dummy_out", "Dummy MIDI Output")
+    override fun createDetails(): MidiPortDetails {
+        return EmptyMidiPortDetails("dummy_out", "Dummy MIDI Output")
     }
 }
 

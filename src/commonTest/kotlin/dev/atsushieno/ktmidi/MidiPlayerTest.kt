@@ -8,22 +8,21 @@ import kotlin.test.assertTrue
 
 class MidiPlayerTest {
 
-     class AlmostVirtualMidiPlayerTimer : VirtualMidiPlayerTimer() {
-         override suspend fun waitBy(addedMilliseconds: Int) {
-             delay (50)
-            super.waitBy (addedMilliseconds)
+    class AlmostVirtualMidiPlayerTimer : VirtualMidiPlayerTimer() {
+        override suspend fun waitBy(addedMilliseconds: Int) {
+            delay(50)
+            super.waitBy(addedMilliseconds)
         }
     }
 
     @Test
-    fun playSimple ()
-    {
-        val vt = VirtualMidiPlayerTimer ()
-        val player = TestHelper.getMidiPlayer (vt)
-        player.play ()
-        vt.proceedBy (200000)
-        player.pause ()
-        player.dispose ()
+    fun playSimple() {
+        val vt = VirtualMidiPlayerTimer()
+        val player = TestHelper.getMidiPlayer(vt)
+        player.play()
+        vt.proceedBy(200000)
+        player.pause()
+        player.dispose()
     }
 
     /*
@@ -51,7 +50,7 @@ class MidiPlayerTest {
     */
 
     @Test
-    fun playbackCompletedToEnd () {
+    fun playbackCompletedToEnd() {
         val vt = VirtualMidiPlayerTimer()
         val music = TestHelper.getMidiMusic()
         val qmsec = MidiMusic.getPlayTimeMillisecondsAtTick(music.tracks[0].messages, 4998, 192)
@@ -82,23 +81,23 @@ class MidiPlayerTest {
     }
 
     @Test
-    fun playbackCompletedToEndAbort () {
-        val vt = VirtualMidiPlayerTimer ()
-        val player = TestHelper.getMidiPlayer (vt)
+    fun playbackCompletedToEndAbort() {
+        val vt = VirtualMidiPlayerTimer()
+        val player = TestHelper.getMidiPlayer(vt)
         var completed = false
         var finished = false
-        player.playbackCompletedToEnd = Runnable { completed = true}
+        player.playbackCompletedToEnd = Runnable { completed = true }
         player.finished = Runnable { finished = true }
-        player.play ()
-        vt.proceedBy (1000)
+        player.play()
+        vt.proceedBy(1000)
 
         // FIXME: this is an ugly spin-wait
         while (player.playDeltaTime < 4988)
             print("")
 
-        player.pause ()
-        player.dispose () // abort in the middle
-        assertFalse( completed, "1 PlaybackCompletedToEnd unexpectedly fired")
-        assertTrue (finished, "2 Finished not fired")
+        player.pause()
+        player.dispose() // abort in the middle
+        assertFalse(completed, "1 PlaybackCompletedToEnd unexpectedly fired")
+        assertTrue(finished, "2 Finished not fired")
     }
 }

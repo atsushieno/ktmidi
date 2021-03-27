@@ -41,7 +41,7 @@ class MidiMusicUnitTest {
 
     @Test
     fun unsignedOperations() {
-        val evt = MidiEvent(0xFF, 3, 4, charArrayOf('t', 'e', 's', 't').map { c -> c.toByte()}.toByteArray(), 0)
+        val evt = MidiEvent(0xFF, 3, 4, charArrayOf('t', 'e', 's', 't').map { c -> c.toByte() }.toByteArray(), 0)
         assertEquals(0xFF.toByte(), evt.eventType, "eventType")
         assertEquals(3, evt.msb, "msb")
         assertEquals(4, evt.lsb, "lsb")

@@ -5,10 +5,13 @@ import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-internal class MidiEventLooperClassic(var messages: List<MidiMessage>, timeManager: MidiPlayerTimeManager, deltaTimeSpec: Int) : AutoCloseable
-{
-    var starting : Runnable? = null
-    var finished : Runnable? = null
+internal class MidiEventLooperClassic(
+    var messages: List<MidiMessage>,
+    timeManager: MidiPlayerTimeManager,
+    deltaTimeSpec: Int
+) : AutoCloseable {
+    var starting: Runnable? = null
+    var finished: Runnable? = null
     var playbackCompletedToEnd: Runnable? = null
 
     private val time_manager: MidiPlayerTimeManager = timeManager
@@ -19,9 +22,9 @@ internal class MidiEventLooperClassic(var messages: List<MidiMessage>, timeManag
 
     private var do_pause: Boolean = false
     private var do_stop: Boolean = false
-    var tempoRatio : Double = 1.0
+    var tempoRatio: Double = 1.0
 
-    var state : PlayerState
+    var state: PlayerState
     private var event_idx = 0
     var currentTempo = MidiMetaType.DEFAULT_TEMPO
     var currentTimeSignature = ByteArray(4)
@@ -30,48 +33,41 @@ internal class MidiEventLooperClassic(var messages: List<MidiMessage>, timeManag
 
     init {
         if (deltaTimeSpec < 0)
-            throw UnsupportedOperationException ("SMPTe-based delta time is not implemented in this player.")
+            throw UnsupportedOperationException("SMPTe-based delta time is not implemented in this player.")
         state = PlayerState.STOPPED
     }
 
-    fun addOnEventReceivedListener(listener: OnMidiEventListener)
-    {
+    fun addOnEventReceivedListener(listener: OnMidiEventListener) {
         event_received_handlers.add(listener)
     }
 
-    fun removeOnEventReceivedListener(listener: OnMidiEventListener)
-    {
+    fun removeOnEventReceivedListener(listener: OnMidiEventListener) {
         event_received_handlers.remove(listener)
     }
 
-    override fun close ()
-    {
+    override fun close() {
         if (state != PlayerState.STOPPED)
-            stop ()
-        mute ()
+            stop()
+        mute()
     }
 
-    fun play ()
-    {
+    fun play() {
         lock.withLock { loop_handle.signal() }
         state = PlayerState.PLAYING
     }
 
-    fun mute ()
-    {
+    fun mute() {
         for (i in 0..15)
-            onEvent (MidiEvent (i + 0xB0, 0x78, 0, null, 0, 0))
+            onEvent(MidiEvent(i + 0xB0, 0x78, 0, null, 0, 0))
     }
 
-    fun pause ()
-    {
+    fun pause() {
         do_pause = true
-        mute ()
+        mute()
     }
 
-    fun playerLoop (plock: ReentrantLock, cond: Condition)
-    {
-        starting?.run ()
+    fun playerLoop(plock: ReentrantLock, cond: Condition) {
+        starting?.run()
 
         event_idx = 0
         playDeltaTime = 0
@@ -98,21 +94,20 @@ internal class MidiEventLooperClassic(var messages: List<MidiMessage>, timeManag
             }
         }
         do_stop = false
-        mute ()
+        mute()
         state = PlayerState.STOPPED
         if (event_idx == messages.size)
-            playbackCompletedToEnd?.run ()
-        finished?.run ()
+            playbackCompletedToEnd?.run()
+        finished?.run()
     }
 
-    fun getContextDeltaTimeInMilliseconds (deltaTime : Int) : Int {
+    fun getContextDeltaTimeInMilliseconds(deltaTime: Int): Int {
         return (currentTempo / 1000 * deltaTime / delta_time_spec / tempoRatio).toInt()
     }
 
-    private fun processMessage (m : MidiMessage)
-    {
+    private fun processMessage(m: MidiMessage) {
         if (seek_processor != null) {
-            val result = seek_processor!!.filterMessage (m)
+            val result = seek_processor!!.filterMessage(m)
             when (result) {
                 SeekFilterResult.PASS_AND_TERMINATE,
                 SeekFilterResult.BLOCK_AND_TERMINATE ->
@@ -122,12 +117,11 @@ internal class MidiEventLooperClassic(var messages: List<MidiMessage>, timeManag
             when (result) {
                 SeekFilterResult.BLOCK,
                 SeekFilterResult.BLOCK_AND_TERMINATE ->
-                return // ignore this event
+                    return // ignore this event
             }
-        }
-        else if (m.deltaTime != 0) {
-            val ms = getContextDeltaTimeInMilliseconds (m.deltaTime)
-            time_manager.waitBy (ms)
+        } else if (m.deltaTime != 0) {
+            val ms = getContextDeltaTimeInMilliseconds(m.deltaTime)
+            time_manager.waitBy(ms)
             playDeltaTime += m.deltaTime
         }
 
@@ -135,66 +129,61 @@ internal class MidiEventLooperClassic(var messages: List<MidiMessage>, timeManag
             if (m.event.msb == MidiMetaType.TEMPO)
                 currentTempo = MidiMetaType.getTempo(m.event.extraData!!, m.event.extraDataOffset)
             else if (m.event.msb == MidiMetaType.TIME_SIGNATURE && m.event.extraDataLength == 4)
-                m.event.extraData!!.copyInto(currentTimeSignature, 0, m.event.extraDataOffset, m.event.extraDataOffset + m.event.extraDataLength)
-        }
-        else
-            onEvent (m.event)
+                m.event.extraData!!.copyInto(
+                    currentTimeSignature,
+                    0,
+                    m.event.extraDataOffset,
+                    m.event.extraDataOffset + m.event.extraDataLength
+                )
+        } else
+            onEvent(m.event)
     }
 
-    private fun onEvent (m: MidiEvent)
-    {
+    private fun onEvent(m: MidiEvent) {
         for (er in event_received_handlers)
             er.onEvent(m)
     }
 
-    fun stop ()
-    {
+    fun stop() {
         if (state != PlayerState.STOPPED) {
             do_stop = true
             lock.withLock { loop_handle.signal() }
-            finished?.run ()
+            finished?.run()
         }
     }
 
     private var seek_processor: SeekProcessor? = null
 
     // not sure about the interface, so make it non-public yet.
-    internal fun seek (seekProcessor: SeekProcessor?, ticks: Int)
-    {
-        seek_processor = seekProcessor ?: SimpleSeekProcessor (ticks)
+    internal fun seek(seekProcessor: SeekProcessor?, ticks: Int) {
+        seek_processor = seekProcessor ?: SimpleSeekProcessor(ticks)
         event_idx = 0
         playDeltaTime = ticks
-        mute ()
+        mute()
     }
 }
 
 // Provides asynchronous player control.
 @Deprecated("Use MidiPlayer instead")
-class MidiPlayerClassic : AutoCloseable
-{
+class MidiPlayerClassic : AutoCloseable {
     constructor(music: MidiMusic)
-        : this (music, MidiAccessManager.EMPTY)
-    {
+            : this(music, MidiAccessManager.EMPTY) {
     }
 
     constructor(music: MidiMusic, access: MidiAccess)
-        : this (music, access, SimpleAdjustingMidiPlayerTimeManager ())
-    {
+            : this(music, access, SimpleAdjustingMidiPlayerTimeManager()) {
     }
 
     constructor(music: MidiMusic, output: MidiOutput)
-        : this (music, output, SimpleAdjustingMidiPlayerTimeManager ())
-    {
+            : this(music, output, SimpleAdjustingMidiPlayerTimeManager()) {
     }
 
     constructor(music: MidiMusic, timeManager: MidiPlayerTimeManager)
-        : this (music, MidiAccessManager.EMPTY, timeManager)
-    {
+            : this(music, MidiAccessManager.EMPTY, timeManager) {
     }
 
     constructor(music: MidiMusic, access: MidiAccess, timeManager: MidiPlayerTimeManager)
-        : this (music, access.openOutputAsync (access.outputs.first ().id), timeManager)
-    {
+            : this(music, access.openOutputAsync(access.outputs.first().id), timeManager) {
         should_dispose_output = true
     }
 
@@ -227,7 +216,7 @@ class MidiPlayerClassic : AutoCloseable
                         if (buffer.size <= m.extraDataLength)
                             buffer = ByteArray(buffer.size * 2)
                         buffer[0] = m.statusByte
-                        m.extraData!!.copyInto(buffer, 1,m.extraDataOffset, m.extraDataLength - 1)
+                        m.extraData!!.copyInto(buffer, 1, m.extraDataOffset, m.extraDataLength - 1)
                         output.send(buffer, 0, m.extraDataLength + 1, 0)
                         return
                     }
@@ -246,17 +235,16 @@ class MidiPlayerClassic : AutoCloseable
         addOnEventReceivedListener(listener)
     }
 
-    fun addOnEventReceivedListener(listener: OnMidiEventListener)
-    {
+    fun addOnEventReceivedListener(listener: OnMidiEventListener) {
         player.addOnEventReceivedListener(listener)
     }
 
-    fun removeOnEventReceivedListener(listener: OnMidiEventListener)
-    {
+    fun removeOnEventReceivedListener(listener: OnMidiEventListener) {
         player.removeOnEventReceivedListener(listener)
     }
 
     private val player: MidiEventLooperClassic
+
     // FIXME: it is still awkward to have it here. Move it into MidiEventLooper.
     private var sync_player_task: Job? = null
     private val output: MidiOutput
@@ -265,67 +253,71 @@ class MidiPlayerClassic : AutoCloseable
 
     private var should_dispose_output: Boolean = false
     private var buffer = ByteArray(0x100)
-    private var channel_mask : BooleanArray? = null
+    private var channel_mask: BooleanArray? = null
 
-    var finished : Runnable?
-        get () = player.finished
-        set (v) { player.finished = v }
+    var finished: Runnable?
+        get() = player.finished
+        set(v) {
+            player.finished = v
+        }
 
-    var playbackCompletedToEnd : Runnable?
-        get () = player.playbackCompletedToEnd
-        set (v) { player.playbackCompletedToEnd = v }
+    var playbackCompletedToEnd: Runnable?
+        get() = player.playbackCompletedToEnd
+        set(v) {
+            player.playbackCompletedToEnd = v
+        }
 
-    val state : PlayerState
-        get () = player.state
+    val state: PlayerState
+        get() = player.state
 
-    var tempoChangeRatio : Double
-        get () = player.tempoRatio
-        set (v) { player.tempoRatio = v }
+    var tempoChangeRatio: Double
+        get() = player.tempoRatio
+        set(v) {
+            player.tempoRatio = v
+        }
 
-    var tempo : Int
-        get () = player.currentTempo
-        set (v) { player.currentTempo = v }
+    var tempo: Int
+        get() = player.currentTempo
+        set(v) {
+            player.currentTempo = v
+        }
 
-    val npm : Int
-        get () = (60.0 / tempo * 1000000.0).toInt()
+    val npm: Int
+        get() = (60.0 / tempo * 1000000.0).toInt()
 
     // You can break the data at your own risk but I take performance precedence.
     val timeSignature
-        get () = player.currentTimeSignature
+        get() = player.currentTimeSignature
 
     val playDeltaTime
-        get () = player.playDeltaTime
+        get() = player.playDeltaTime
 
-    val positionInTime : Long
-        get () = music.getTimePositionInMillisecondsForTick (playDeltaTime).toLong()
+    val positionInTime: Long
+        get() = music.getTimePositionInMillisecondsForTick(playDeltaTime).toLong()
 
-    fun getTotalPlayTimeMilliseconds (): Int
-    {
+    fun getTotalPlayTimeMilliseconds(): Int {
         return MidiMusic.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
     }
 
-    override fun close ()
-    {
-        player.stop ()
+    override fun close() {
+        player.stop()
         if (should_dispose_output)
-            output.close ()
+            output.close()
     }
 
-    private fun startLoop (lock: ReentrantLock, cond: Condition)
-    {
+    private fun startLoop(lock: ReentrantLock, cond: Condition) {
         sync_player_task = GlobalScope.launch {
-            player.playerLoop (lock, cond)
+            player.playerLoop(lock, cond)
             sync_player_task = null
         }
     }
 
-    fun play ()
-    {
+    fun play() {
         when (state) {
             PlayerState.PLAYING -> return // do nothing
-            PlayerState.PAUSED -> { player.play (); return; }
-            PlayerState.STOPPED ->
-            {
+            PlayerState.PAUSED -> {
+                player.play(); return; }
+            PlayerState.STOPPED -> {
                 var lock = ReentrantLock()
                 var cond = lock.newCondition()
                 if (sync_player_task == null)
@@ -336,36 +328,34 @@ class MidiPlayerClassic : AutoCloseable
         }
     }
 
-    fun pause ()
-    {
+    fun pause() {
         when (state) {
-            PlayerState.PLAYING ->  { player.pause (); return;}
+            PlayerState.PLAYING -> {
+                player.pause(); return;
+            }
             else -> return
         }
     }
 
-    fun stop ()
-    {
+    fun stop() {
         when (state) {
             PlayerState.PAUSED,
-            PlayerState.PLAYING -> player.stop ()
+            PlayerState.PLAYING -> player.stop()
         }
     }
 
-    fun seek (ticks: Int)
-    {
-        player.seek (null, ticks)
+    fun seek(ticks: Int) {
+        player.seek(null, ticks)
     }
 
-    fun setChannelMask (channelMask: BooleanArray?)
-    {
+    fun setChannelMask(channelMask: BooleanArray?) {
         if (channelMask != null && channelMask.size != 16)
-            throw IllegalArgumentException ("Unexpected length of channelMask array; it must be an array of 16 elements.")
+            throw IllegalArgumentException("Unexpected length of channelMask array; it must be an array of 16 elements.")
         channel_mask = channelMask
         // additionally send all sound off for the muted channels.
         for (ch in 0..15)
-            if (channelMask == null || channelMask [ch])
-                output.send (arrayOf((0xB0 + ch).toByte(), 120, 0).toByteArray(), 0, 3, 0)
+            if (channelMask == null || channelMask[ch])
+                output.send(arrayOf((0xB0 + ch).toByte(), 120, 0).toByteArray(), 0, 3, 0)
     }
 }
 
