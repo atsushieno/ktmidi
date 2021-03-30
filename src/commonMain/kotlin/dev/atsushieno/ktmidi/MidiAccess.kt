@@ -8,8 +8,7 @@ expect val defaultMidiAccess: MidiAccess
 
 class MidiAccessManager {
     companion object {
-        var DEFAULT: MidiAccess = EmptyMidiAccess()
-        var EMPTY: MidiAccess = DEFAULT
+        val empty: MidiAccess = defaultMidiAccess
     }
 }
 

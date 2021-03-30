@@ -33,7 +33,7 @@ class TestHelper {
             midiMusic: MidiMusic?,
             midiAccess: MidiAccess? = null
         ): MidiPlayer {
-            val access = midiAccess ?: MidiAccessManager.EMPTY
+            val access = midiAccess ?: MidiAccessManager.empty
             val music = midiMusic ?: getMidiMusic()
             val tm = timeManager ?: VirtualMidiPlayerTimer()
             return MidiPlayer(music, access, tm)
@@ -44,7 +44,7 @@ class TestHelper {
             midiAccess: MidiAccess? = null,
             resourceId: String? = null
         ): MidiPlayer {
-            val access = midiAccess ?: MidiAccessManager.EMPTY
+            val access = midiAccess ?: MidiAccessManager.empty
             val music = if (resourceId != null) getMidiMusic(resourceId) else getMidiMusic()
             val tm = timeManager ?: VirtualMidiPlayerTimer()
             return MidiPlayer(music, access, tm)

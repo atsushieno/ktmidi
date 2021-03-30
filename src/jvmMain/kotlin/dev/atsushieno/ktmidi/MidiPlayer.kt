@@ -167,7 +167,7 @@ internal class MidiEventLooperClassic(
 @Deprecated("Use MidiPlayer instead")
 class MidiPlayerClassic : AutoCloseable {
     constructor(music: MidiMusic)
-            : this(music, MidiAccessManager.EMPTY) {
+            : this(music, MidiAccessManager.empty) {
     }
 
     constructor(music: MidiMusic, access: MidiAccess)
@@ -179,7 +179,7 @@ class MidiPlayerClassic : AutoCloseable {
     }
 
     constructor(music: MidiMusic, timeManager: MidiPlayerTimeManager)
-            : this(music, MidiAccessManager.EMPTY, timeManager) {
+            : this(music, MidiAccessManager.empty, timeManager) {
     }
 
     constructor(music: MidiMusic, access: MidiAccess, timeManager: MidiPlayerTimeManager)

@@ -166,7 +166,7 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, timer: MidiPlaye
 // Provides asynchronous player control.
 class MidiPlayer {
     constructor(music: MidiMusic)
-            : this(music, MidiAccessManager.EMPTY)
+            : this(music, MidiAccessManager.empty)
 
     constructor(music: MidiMusic, access: MidiAccess)
             : this(music, access, SimpleAdjustingMidiPlayerTimer())
@@ -175,7 +175,7 @@ class MidiPlayer {
             : this(music, output, SimpleAdjustingMidiPlayerTimer())
 
     constructor(music: MidiMusic, timer: MidiPlayerTimer)
-            : this(music, MidiAccessManager.EMPTY, timer)
+            : this(music, MidiAccessManager.empty, timer)
 
     constructor(music: MidiMusic, access: MidiAccess, timer: MidiPlayerTimer)
             : this(music, access.openOutputAsync(access.outputs.first().id), timer) {

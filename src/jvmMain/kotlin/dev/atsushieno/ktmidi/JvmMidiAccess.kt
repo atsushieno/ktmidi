@@ -3,7 +3,7 @@ package dev.atsushieno.ktmidi
 import javax.sound.midi.*
 
 // How can I build this for both Android and Java/JVM?
-actual val defaultMidiAccess: MidiAccess = MidiAccessManager.EMPTY
+actual val defaultMidiAccess: MidiAccess = MidiAccessManager.empty
 
 typealias JvmMidiMessage = javax.sound.midi.MidiMessage
 
