@@ -7,7 +7,7 @@ actual val defaultMidiAccess: MidiAccess = MidiAccessManager.empty
 
 typealias JvmMidiMessage = javax.sound.midi.MidiMessage
 
-class JvmMidiAccess : MidiAccess {
+class JvmMidiAccess : MidiAccess() {
     override val inputs: Iterable<MidiPortDetails>
         get() = MidiSystem.getMidiDeviceInfo().map { i -> MidiSystem.getMidiDevice(i) }
             .flatMap { d -> d.receivers.map { r -> Pair(d, r) } }
@@ -33,6 +33,14 @@ class JvmMidiAccess : MidiAccess {
         if (!port.device.isOpen)
             port.device.open()
         return JvmMidiOutput(port)
+    }
+
+    override suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput {
+        throw UnsupportedOperationException()
+    }
+
+    override suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput {
+        throw UnsupportedOperationException()
     }
 }
 

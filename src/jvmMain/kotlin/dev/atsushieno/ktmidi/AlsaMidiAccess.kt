@@ -2,67 +2,7 @@ package dev.atsushieno.ktmidi
 
 import dev.atsushieno.alsakt.*
 
-class AlsaMidiAccess() : MidiAccess {
-
-    /*
-    class AlsaMidiAccessExtensionManager : MidiAccessExtensionManager
-    {
-        AlsaMidiPortCreatorExtension port_creator;
-
-        public AlsaMidiAccessExtensionManager (AlsaMidiAccess access)
-        {
-            Access = access;
-            port_creator = new AlsaMidiPortCreatorExtension (this);
-        }
-
-        public AlsaMidiAccess Access { get; private set; }
-
-        public override T GetInstance<T> ()
-        {
-            if (typeof (T) == typeof (MidiPortCreatorExtension))
-            return (T) (object) port_creator;
-            return null;
-        }
-    }
-
-    class AlsaMidiPortCreatorExtension : MidiPortCreatorExtension
-    {
-        AlsaMidiAccessExtensionManager manager;
-
-        public AlsaMidiPortCreatorExtension (AlsaMidiAccessExtensionManager extensionManager)
-        {
-            manager = extensionManager;
-        }
-
-        public override IMidiOutput CreateVirtualInputSender (PortCreatorContext context)
-        {
-            var seq = new AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking);
-            var portNumber = seq.CreateSimplePort (
-                context.PortName ?? "managed-midi virtual in",
-            AlsaMidiAccess.virtual_input_connected_cap,
-            AlsaMidiAccess.midi_port_type);
-            seq.SetClientName (context.ApplicationName ?? "managed-midi input port creator");
-            var port = seq.GetPort (seq.CurrentClientId, portNumber);
-            var details = new AlsaMidiPortDetails (port);
-            SendDelegate send = (buffer, start, length, timestamp) =>
-            seq.Send (portNumber, buffer, start, length);
-            return new SimpleVirtualMidiOutput (details, () => seq.DeleteSimplePort (portNumber)) { OnSend = send };
-        }
-
-        public override IMidiInput CreateVirtualOutputReceiver (PortCreatorContext context)
-        {
-            var seq = new AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking);
-            var portNumber = seq.CreateSimplePort (
-                context.PortName ?? "managed-midi virtual out",
-            AlsaMidiAccess.virtual_output_connected_cap,
-            AlsaMidiAccess.midi_port_type);
-            seq.SetClientName (context.ApplicationName ?? "managed-midi output port creator");
-            var port = seq.GetPort (seq.CurrentClientId, portNumber);
-            var details = new AlsaMidiPortDetails (port);
-            return new SimpleVirtualMidiInput (details, () => seq.DeleteSimplePort (portNumber));
-        }
-    }
-    */
+class AlsaMidiAccess : MidiAccess() {
 
     companion object {
         private const val midi_port_type = AlsaPortType.MidiGeneric or AlsaPortType.Application
@@ -76,9 +16,6 @@ class AlsaMidiAccess() : MidiAccess {
         private const val virtual_output_connected_cap = AlsaPortCapabilities.Write or AlsaPortCapabilities.SubsWrite
         private const val virtual_input_connected_cap = AlsaPortCapabilities.Read or AlsaPortCapabilities.SubsRead
     }
-
-    //val ExtensionManager: MidiAccessExtensionManager
-    //    get()
 
     private fun enumerateMatchingPorts ( seq: AlsaSequencer, cap:  Int) : Iterable<AlsaPortInfo> {
         val clientInfo = AlsaClientInfo().apply { client = -1 }
@@ -134,8 +71,6 @@ class AlsaMidiAccess() : MidiAccess {
     override val outputs : Iterable<MidiPortDetails>
         get() = enumerateAvailableOutputPorts ().map { p -> AlsaMidiPortDetails (p) }
 
-    var stateChanged: (MidiPortDetails) -> Unit = {}
-
     // FIXME: make it suspend fun at some stage (otherwise it is not Async at all...
     override fun openInputAsync (portId: String): MidiInput {
         val sourcePort = inputs.firstOrNull { p -> p.id == portId } as AlsaMidiPortDetails?
@@ -153,6 +88,32 @@ class AlsaMidiAccess() : MidiAccess {
         val appPort = createOutputConnectedPort (seq, destPort.portInfo)
         return AlsaMidiOutput (seq, AlsaMidiPortDetails (appPort), destPort)
     }
+
+    override suspend fun createVirtualInputSender ( context: PortCreatorContext) : MidiOutput {
+        val seq = AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking)
+        val portNumber = seq.createSimplePort (context.portName,
+            virtual_input_connected_cap,
+            midi_port_type)
+        seq.setClientName (context.applicationName)
+        val port = seq.getPort (seq.currentClientId, portNumber)
+        val details =  AlsaMidiPortDetails (port)
+        val send : (ByteArray, Int, Int, Long) -> Unit = { buffer, start, length, timestamp ->
+            seq.send(portNumber, buffer, start, length)
+        }
+        return SimpleVirtualMidiOutput (details) { seq.deleteSimplePort(portNumber) }.apply { onSend = send }
+    }
+
+    override suspend fun createVirtualOutputReceiver ( context:PortCreatorContext): MidiInput {
+        val seq = AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking)
+        val portNumber = seq.createSimplePort (context.portName,
+            virtual_output_connected_cap,
+            midi_port_type)
+        seq.setClientName (context.applicationName)
+        val port = seq.getPort (seq.currentClientId, portNumber)
+        val details = AlsaMidiPortDetails (port)
+        return SimpleVirtualMidiInput (details) { seq.deleteSimplePort(portNumber) }
+    }
+
 }
 
 class AlsaMidiPortDetails(private val port: AlsaPortInfo) : MidiPortDetails {

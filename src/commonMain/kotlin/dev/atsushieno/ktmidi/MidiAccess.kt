@@ -12,42 +12,23 @@ class MidiAccessManager {
     }
 }
 
-interface MidiAccess {
-    val inputs: Iterable<MidiPortDetails>
-    val outputs: Iterable<MidiPortDetails>
+abstract class MidiAccess {
+    abstract val inputs: Iterable<MidiPortDetails>
+    abstract val outputs: Iterable<MidiPortDetails>
 
-    fun openInputAsync(portId: String): MidiInput
-    fun openOutputAsync(portId: String): MidiOutput
-}
+    abstract fun openInputAsync(portId: String): MidiInput
+    abstract fun openOutputAsync(portId: String): MidiOutput
 
-/*
-// In the future we could use default interface members, but we should target earlier frameworks in the meantime.
-interface MidiAccess2 : MidiAccess
-{
-    var extensionManager : MidiAccessExtensionManager
-}
+    open val canDetectStateChanges = false
+    var stateChanged : (MidiPortDetails) -> Unit = {}
 
-abstract class MidiAccessExtensionManager
-{
-    abstract fun <T>getInstance () : T
+    open suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput {
+        throw UnsupportedOperationException()
+    }
+    open suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput {
+        throw UnsupportedOperationException()
+    }
 }
-
-class MidiConnectionStateDetectorExtension
-{
-    var stateChanged : Runnable<MidiConnectionEventArgs>? = null
-}
-
-abstract class MidiPortCreatorExtension
-{
-    abstract fun createInputPort (details: MidiPortDetails ):MidiInput
-    abstract fun createOutputPort (details: MidiPortDetails ):MidiOutput
-}
-
-class MidiConnectionEventArgs
-{
-    var port : MidiPortDetails
-}
-*/
 
 interface MidiPortDetails {
     val id: String
@@ -80,7 +61,60 @@ interface MidiOutput : MidiPort {
     fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long)
 }
 
-class EmptyMidiAccess : MidiAccess {
+// Virtual MIDI port support
+
+abstract class SimpleVirtualMidiPort protected constructor(
+    override val details: MidiPortDetails,
+    private val onDispose: () -> Unit
+) : MidiPort {
+
+    private var state: MidiPortConnectionState = MidiPortConnectionState.OPEN
+
+    override val connection: MidiPortConnectionState
+        get() = state
+
+    override fun close ()
+    {
+        onDispose ()
+        state = MidiPortConnectionState.CLOSED
+    }
+
+}
+
+class SimpleVirtualMidiInput(details: MidiPortDetails, onDispose: () -> Unit) : SimpleVirtualMidiPort(
+    details,
+    onDispose
+), MidiInput
+{
+    private var messageReceived: OnMidiReceivedEventListener? = null
+
+    override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
+        messageReceived = listener
+    }
+}
+
+class SimpleVirtualMidiOutput(details: MidiPortDetails, onDispose: () -> Unit) : SimpleVirtualMidiPort(
+    details,
+    onDispose
+), MidiOutput
+{
+    var onSend: (ByteArray,Int,Int, Long) -> Unit = { _, _, _, _ -> }
+
+    override fun send (mevent: ByteArray, offset: Int, length: Int, timestamp: Long) {
+        onSend (mevent, offset, length, timestamp)
+    }
+}
+
+data class PortCreatorContext(
+    var applicationName: String,
+    var portName: String,
+    var manufacturer: String,
+    var version: String
+)
+
+// MidiAccess implementation.
+
+class EmptyMidiAccess : MidiAccess() {
     override val inputs: Iterable<MidiPortDetails>
         get() = arrayListOf(EmptyMidiInput.instance.details)
     override val outputs: Iterable<MidiPortDetails>
