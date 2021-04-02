@@ -64,11 +64,13 @@ kotlin {
         jsMain {
 
         }
+        /*
         jsTest {
             dependencies {
                 implementation kotlin('test-js')
             }
         }
+        */
         nativeMain {
 
         }
