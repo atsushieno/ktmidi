@@ -6,11 +6,10 @@ plugins {
 }
 
 group = 'dev.atsushieno'
-version = '0.1.8'
+version = '0.1.9'
 
 repositories {
     mavenCentral()
-    mavenLocal()
 }
 
 kotlin {
@@ -55,9 +54,7 @@ kotlin {
             }
         }
         jvmMain {
-            dependencies {
-                implementation 'dev.atsushieno:alsakt:0.1.1'
-            }
+
         }
         jvmTest {
             dependencies {
