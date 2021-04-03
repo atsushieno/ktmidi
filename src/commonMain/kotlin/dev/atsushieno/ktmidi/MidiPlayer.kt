@@ -279,7 +279,7 @@ class MidiPlayer {
             looper.currentTempo = v
         }
 
-    val npm: Int
+    val bpm: Int
         get() = (60.0 / tempo * 1000000.0).toInt()
 
     // You can break the data at your own risk but I take performance precedence.
