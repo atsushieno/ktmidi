@@ -51,6 +51,38 @@ class MidiPlayerTest {
 
     // FIXME: enable this test
     //@Test
+    fun getTimePositionInMillisecondsForTick ()
+    {
+        runBlocking {
+            val vt = VirtualMidiPlayerTimer();
+            val player = TestHelper.getMidiPlayer(vt);
+            player.play();
+            vt.proceedBy(100);
+            player.seek(5000);
+            // FIXME: this is ugly.
+            delay(200);
+            assertEquals(5000, player.playDeltaTime, "1 PlayDeltaTime");
+            assertEquals(12000, player.positionInMilliseconds, "1 PositionInMilliseconds");
+            vt.proceedBy(100);
+            // FIXME: this is ugly.
+            delay(100);
+            // FIXME: not working
+            //assertEquals (5100, player.PlayDeltaTime, "2 PlayDeltaTime");
+            assertEquals(12000, player.positionInMilliseconds, "2 PositionInMilliseconds");
+            player.seek(2000);
+            assertEquals(2000, player.playDeltaTime, "3 PlayDeltaTime");
+            assertEquals(5000, player.positionInMilliseconds, "3 PositionInMilliseconds");
+            vt.proceedBy(100);
+            // FIXME: this is ugly.
+            delay(100);
+            // FIXME: not working
+            //Assert.AreEqual (2100, player.PlayDeltaTime, "4 PlayDeltaTime");
+            assertEquals(5000, player.positionInMilliseconds, "4 PositionInMilliseconds");
+        }
+    }
+
+    // FIXME: enable this test
+    //@Test
     fun playbackCompletedToEnd() {
         val vt = VirtualMidiPlayerTimer()
         val music = TestHelper.getMidiMusic()
