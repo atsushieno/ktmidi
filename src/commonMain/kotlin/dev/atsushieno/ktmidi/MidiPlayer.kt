@@ -28,6 +28,7 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, timer: MidiPlaye
     private val event_received_handlers = arrayListOf<OnMidiEventListener>()
 
     var waitJobInLoop: Job? = null
+    internal var clientNeedsSpinWait = true
 
     init {
         if (deltaTimeSpec < 0)
@@ -75,6 +76,7 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, timer: MidiPlaye
                 waitJobInLoop = GlobalScope.launch {
                     delay(Int.MAX_VALUE.toLong())
                 }
+                clientNeedsSpinWait = false
                 val w = waitJobInLoop
                 w?.join()
                 doWait = false
@@ -100,7 +102,7 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, timer: MidiPlaye
     }
 
     fun getContextDeltaTimeInMilliseconds(deltaTime: Int): Int {
-        return (currentTempo / 1000 * deltaTime / delta_time_spec / tempoRatio).toInt()
+        return (currentTempo.toDouble() / 1000 * deltaTime / delta_time_spec / tempoRatio).toInt()
     }
 
     private suspend fun processMessage(m: MidiMessage) {
@@ -303,6 +305,10 @@ class MidiPlayer {
         sync_player_task = GlobalScope.launch {
             looper.playBlocking()
             sync_player_task = null
+        }
+        var counter = 0
+        while (looper.clientNeedsSpinWait) {
+            counter++ //  spinwait, or overflow
         }
     }
 

@@ -2,6 +2,8 @@
 
 package dev.atsushieno.ktmidi
 
+import kotlin.math.floor
+
 fun Byte.toUnsigned() = if (this < 0) 256 + this else this.toInt()
 
 class MidiMusic {
@@ -28,7 +30,7 @@ class MidiMusic {
                 var t = 0
                 for (m in messages) {
                     val deltaTime = if (t + m.deltaTime < ticks) m.deltaTime else ticks - t
-                    v += (tempo.toDouble() / 1000 * deltaTime / deltaTimeSpec)
+                    v += tempo.toDouble() / 1000 * deltaTime / deltaTimeSpec
                     if (deltaTime != m.deltaTime)
                         break
                     t += m.deltaTime
