@@ -1,10 +1,8 @@
 package dev.atsushieno.ktmidi
 
-import dev.atsushieno.ktmidi.MidiEvent
-import dev.atsushieno.ktmidi.MidiMetaType
 import kotlin.math.round
-import kotlin.test.assertEquals
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 @kotlin.ExperimentalUnsignedTypes
 class MidiMusicUnitTest {
@@ -46,5 +44,13 @@ class MidiMusicUnitTest {
         assertEquals(3, evt.msb, "msb")
         assertEquals(4, evt.lsb, "lsb")
         assertEquals(4, evt.extraDataLength, "extraDataLength")
+    }
+
+    @Test
+    fun midiMusicGetPlayTimeMillisecondsAtTick() {
+        val music= TestHelper.getMidiMusic()
+        assertEquals(0, music.getTimePositionInMillisecondsForTick(0), "tick 0")
+        assertEquals(125, music.getTimePositionInMillisecondsForTick(48), "tick 48")
+        assertEquals(500, music.getTimePositionInMillisecondsForTick(192), "tick 192")
     }
 }

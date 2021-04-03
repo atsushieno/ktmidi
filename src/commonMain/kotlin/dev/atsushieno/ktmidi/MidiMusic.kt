@@ -24,18 +24,18 @@ class MidiMusic {
                 throw UnsupportedOperationException("non-tick based DeltaTime")
             else {
                 var tempo: Int = MidiMetaType.DEFAULT_TEMPO
-                var v = 0
+                var v = 0.0
                 var t = 0
                 for (m in messages) {
-                    val deltaTime = t + if (m.deltaTime < ticks) m.deltaTime else ticks - t
-                    v += (tempo / 1000 * deltaTime / deltaTimeSpec)
+                    val deltaTime = if (t + m.deltaTime < ticks) m.deltaTime else ticks - t
+                    v += (tempo.toDouble() / 1000 * deltaTime / deltaTimeSpec)
                     if (deltaTime != m.deltaTime)
                         break
                     t += m.deltaTime
                     if (m.event.eventType == MidiEventType.META && m.event.msb == MidiMetaType.TEMPO)
                         tempo = MidiMetaType.getTempo(m.event.extraData!!, m.event.extraDataOffset)
                 }
-                return v
+                return v.toInt()
             }
         }
     }
@@ -491,25 +491,25 @@ class SmfTrackMerger(private var source: MidiMusic) {
         // i.e. [AB] at 48 and [CDE] at 0 should be sorted as
         // [CDE] [AB].
 
-        val idxl = ArrayList<Int>(l.size)
-        idxl.add(0)
-        var prev = 0
+        val indexList = mutableListOf<Int>()
+        var prev = -1
         var i = 0
         while (i < l.size) {
             if (l[i].deltaTime != prev) {
-                idxl.add(i)
+                indexList.add(i)
                 prev = l[i].deltaTime
             }
             i++
         }
-        idxl.sortWith(Comparator { i1, i2 -> l[i1].deltaTime - l[i2].deltaTime })
+        val idxOrdered = indexList.sortedBy { i -> l[i].deltaTime }
+        //idxl.sortWith(Comparator { i1, i2 -> l[i1].deltaTime - l[i2].deltaTime })
 
         // now build a new event list based on the sorted blocks.
         val l2 = ArrayList<MidiMessage>(l.size)
         var idx: Int
         i = 0
-        while (i < idxl.size) {
-            idx = idxl[i]
+        while (i < idxOrdered.size) {
+            idx = idxOrdered[i]
             prev = l[idx].deltaTime
             while (idx < l.size && l[idx].deltaTime == prev) {
                 l2.add(l[idx])
