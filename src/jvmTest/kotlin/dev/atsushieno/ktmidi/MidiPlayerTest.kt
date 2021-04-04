@@ -26,7 +26,7 @@ class MidiPlayerTest {
                 vt.proceedBy(200000)
                 delay(200)
                 player.pause()
-                player.dispose()
+                player.close()
             }
             job.join()
         }
@@ -135,12 +135,12 @@ class MidiPlayerTest {
 
             assertEquals(4988, player.playDeltaTime, "PlayDeltaTime")
             player.pause()
-            player.dispose()
+            player.close()
             assertTrue(completed, "5 PlaybackCompletedToEnd not fired")
             assertTrue(finished, "6 Finished not fired")
         } catch(ex: Error) {
             player.stop()
-            player.dispose()
+            player.close()
             throw ex
         }
     }
@@ -158,15 +158,13 @@ class MidiPlayerTest {
             player.play()
             vt.proceedBy(1000)
 
-            // FIXME: insert blocking sleep like 1 sec.
-
             player.pause()
-            player.dispose() // abort in the middle
+            player.close() // abort in the middle
             assertFalse(completed, "1 PlaybackCompletedToEnd unexpectedly fired")
             assertTrue(finished, "2 Finished not fired")
         } catch(ex: Error) {
             player.stop()
-            player.dispose()
+            player.close()
             throw ex
         }
     }

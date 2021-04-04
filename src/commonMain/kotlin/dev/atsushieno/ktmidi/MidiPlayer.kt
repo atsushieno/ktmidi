@@ -27,7 +27,7 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
     private val eventReceivedHandlers = arrayListOf<OnMidiEventListener>()
 
     private var waitJobInLoop: Job? = null
-    internal var clientNeedsSpinWait = true
+    internal var clientNeedsSpinWait = false
 
     init {
         if (deltaTimeSpec < 0)
@@ -44,14 +44,19 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
     }
 
     fun close() {
-        if (state != PlayerState.STOPPED)
+        if (state != PlayerState.STOPPED) {
+            clientNeedsSpinWait = true
+            var counter = 0
             stop()
-        mute()
+            while (clientNeedsSpinWait) {
+                counter++ //  spinwait, or overflow
+            }
+        }
     }
 
     fun play() {
-        waitJobInLoop?.cancel()
         state = PlayerState.PLAYING
+        waitJobInLoop?.cancel()
     }
 
     fun mute() {
@@ -98,6 +103,7 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
         if (eventIdx == messages.size)
             playbackCompletedToEnd?.run()
         finished?.run()
+        clientNeedsSpinWait = false
     }
 
     fun getContextDeltaTimeInMilliseconds(deltaTime: Int): Int {
@@ -148,8 +154,6 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
             doStop = true
 
             waitJobInLoop?.cancel()
-
-            finished?.run()
         }
     }
 
@@ -282,13 +286,14 @@ class MidiPlayer {
     val totalPlayTimeMilliseconds: Int
         get() = MidiMusic.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
 
-    fun dispose() {
+    fun close() {
         looper.close()
         if (should_dispose_output)
             output.close()
     }
 
     private fun startLoop() {
+        looper.clientNeedsSpinWait = true
         sync_player_task = GlobalScope.launch {
             looper.playBlocking()
             sync_player_task = null
