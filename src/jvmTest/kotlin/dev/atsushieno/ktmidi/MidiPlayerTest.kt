@@ -15,8 +15,7 @@ class MidiPlayerTest {
         }
     }
 
-    // FIXME: enable this test
-    //@Test
+    @Test
     fun playSimple() {
         runBlocking {
             val job = launch {
@@ -145,8 +144,7 @@ class MidiPlayerTest {
         }
     }
 
-    // FIXME: enable this test
-    //@Test
+    @Test
     fun playbackCompletedToEndAbort() {
         val vt = VirtualMidiPlayerTimer()
         val player = TestHelper.getMidiPlayer(vt)

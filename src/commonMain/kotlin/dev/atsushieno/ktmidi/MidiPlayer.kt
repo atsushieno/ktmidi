@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi
 
 import kotlinx.coroutines.*
+import kotlin.jvm.Volatile
 
 enum class PlayerState {
     STOPPED,
@@ -27,7 +28,7 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
     private val eventReceivedHandlers = arrayListOf<OnMidiEventListener>()
 
     private var waitJobInLoop: Job? = null
-    internal var clientNeedsSpinWait = false
+    @Volatile internal var clientNeedsSpinWait = false
 
     init {
         if (deltaTimeSpec < 0)
