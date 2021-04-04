@@ -263,48 +263,48 @@ class MidiMetaType {
 
 class MidiMessageType { // MIDI 2.0
     companion object {
-        const val UTILITY: Byte = 0.toByte()
-        const val SYSTEM: Byte = 1.toByte()
-        const val MIDI1: Byte = 2.toByte()
-        const val SYSEX7: Byte = 3.toByte()
-        const val MIDI2: Byte = 4.toByte()
-        const val SYSEX8_MDS: Byte = 5.toByte()
+        const val UTILITY = 0
+        const val SYSTEM = 1
+        const val MIDI1 = 2
+        const val SYSEX7 = 3
+        const val MIDI2 = 4
+        const val SYSEX8_MDS = 5
     }
 }
 
 class MidiCIProtocolBytes { // MIDI 2.0
     companion object {
-        const val TYPE: Byte = 0.toByte()
-        const val VERSION: Byte = 1.toByte()
-        const val EXTENSIONS: Byte = 2.toByte()
+        const val TYPE = 0
+        const val VERSION = 1
+        const val EXTENSIONS = 2
     }
 }
 
 class MidiCIProtocolType { // MIDI 2.0
     companion object {
-        const val MIDI1: Byte = 1.toByte()
-        const val MIDI2: Byte = 2.toByte()
+        const val MIDI1 = 1
+        const val MIDI2 = 2
     }
 }
 
 class MidiCIProtocolValue { // MIDI 2.0
     companion object {
-        const val MIDI1: Byte = 0.toByte()
-        const val MIDI2_V1: Byte = 0.toByte()
+        const val MIDI1 = 0
+        const val MIDI2_V1 = 0
     }
 }
 
 class MidiCIProtocolExtensions { // MIDI 2.0
     companion object {
-        const val JITTER: Byte = 1.toByte()
-        const val LARGER: Byte = 2.toByte()
+        const val JITTER = 1
+        const val LARGER = 2
     }
 }
 
 class MidiPerNoteManagementFlags { // MIDI 2.0
     companion object {
-        const val RESET: Byte = 1.toByte()
-        const val DETACH: Byte = 2.toByte()
+        const val RESET = 1
+        const val DETACH = 2
     }
 }
 
@@ -447,9 +447,65 @@ class MidiEvent // MIDI 1.0 only
         get() = (value and 0x0F).toByte()
 
     override fun toString(): String {
-        return value.toString()
+        return value.toString(16)
     }
 }
+
+// We store UMP in Big Endian this time.
+class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: Int = 0) {
+
+    val groupByte: Int
+        get() = int1 shr 24
+
+    // First half of the 1st. byte
+    // 32bit: UMP category 0 (NOP / Clock), 1 (System) and 2 (MIDI 1.0)
+    // 64bit: UMP category 3 (SysEx7) and 4 (MIDI 2.0)
+    // 128bit: UMP category 5 (SysEx8 and Mixed Data Set)
+    val category: Int
+        get() = (int1 shr 28) and 0x7
+
+    // Second half of the 1st. byte
+    val group: Int
+        get() = (int1 shr 24) and 0xF
+
+    // 2nd. byte
+    val statusByte: Int
+        get() = (int1 shr 16) and 0xFF
+
+    // First half of the 2nd. byte.
+    // This makes sense only for MIDI 1.0, MIDI 2.0, and System messages
+    val eventType: Int
+        get() =
+            when (category) {
+                MidiMessageType.MIDI1, MidiMessageType.MIDI2 -> statusByte and 0xF0
+                else -> statusByte
+            }
+
+    // Second half of the 2nd. byte
+    val channelInGroup: Int // 0..15
+        get() = statusByte and 0xF
+
+    val groupAndChannel: Int // 0..255
+        get() = group shl 4 and channelInGroup
+
+    // 3rd. byte for MIDI 1.0 message
+    val midi1Msb: Int
+        get() = (int1 and 0xFF00) shr 8
+
+    // 4th. byte for MIDI 1.0 message
+    val midi1Lsb: Int
+        get() = (int1 and 0xFF0000) shr 16
+
+    override fun toString(): String {
+        return when(category) {
+            0, 1, 2 -> "[${int1.toString(16)}]"
+            3, 4 -> "[${int1.toString(16)}:${int2.toString(16)}]"
+            else -> "[${int1.toString(16)}:${int2.toString(16)}:${int3.toString(16)}:${int4.toString(16)}]"
+        }
+    }
+}
+
+
 
 class SmfTrackMerger(private var source: MidiMusic) {
     companion object {
