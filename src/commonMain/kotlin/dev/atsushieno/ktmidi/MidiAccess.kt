@@ -38,7 +38,6 @@ interface MidiPortDetails {
 enum class MidiPortConnectionState {
     OPEN,
     CLOSED,
-    PENDING
 }
 
 interface MidiPort {
@@ -120,24 +119,18 @@ class EmptyMidiAccess : MidiAccess() {
 
     override fun openInputAsync(portId: String): MidiInput {
         if (portId != EmptyMidiInput.instance.details.id)
-            throw IllegalArgumentException("Port ID ${portId} does not exist.")
+            throw IllegalArgumentException("Port ID $portId does not exist.")
         return EmptyMidiInput.instance
     }
 
     override fun openOutputAsync(portId: String): MidiOutput {
         if (portId != EmptyMidiOutput.instance.details.id)
-            throw IllegalArgumentException("Port ID ${portId} does not exist.")
+            throw IllegalArgumentException("Port ID $portId does not exist.")
         return EmptyMidiOutput.instance
     }
-
-    //override var stateChanged : Runnable<MidiConnectionEventArgs> = null
 }
 
 abstract class EmptyMidiPort : MidiPort {
-    override val details = createDetails()
-
-    internal abstract fun createDetails(): MidiPortDetails
-
     override val connection = MidiPortConnectionState.OPEN
 
     override fun close() {
@@ -153,12 +146,10 @@ class EmptyMidiPortDetails(override val id: String, name: String) : MidiPortDeta
 
 class EmptyMidiInput : EmptyMidiPort(), MidiInput {
     companion object {
-        var instance = EmptyMidiInput()
+        val instance = EmptyMidiInput()
     }
 
-    override fun createDetails(): MidiPortDetails {
-        return EmptyMidiPortDetails("dummy_in", "Dummy MIDI Input")
-    }
+    override val details: MidiPortDetails = EmptyMidiPortDetails("dummy_in", "Dummy MIDI Input")
 
     override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
         // do nothing, it will receive nothing
@@ -167,15 +158,13 @@ class EmptyMidiInput : EmptyMidiPort(), MidiInput {
 
 class EmptyMidiOutput : EmptyMidiPort(), MidiOutput {
     companion object {
-        var instance = EmptyMidiOutput()
+        val instance = EmptyMidiOutput()
     }
 
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long) {
         // do nothing.
     }
 
-    override fun createDetails(): MidiPortDetails {
-        return EmptyMidiPortDetails("dummy_out", "Dummy MIDI Output")
-    }
+    override val details: MidiPortDetails = EmptyMidiPortDetails("dummy_out", "Dummy MIDI Output")
 }
 
