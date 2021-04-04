@@ -1,6 +1,10 @@
 package dev.atsushieno.ktmidi
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.Runnable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
 import kotlin.jvm.Volatile
 
 enum class PlayerState {
@@ -27,8 +31,9 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
     var playDeltaTime: Int = 0
     private val eventReceivedHandlers = arrayListOf<OnMidiEventListener>()
 
-    private var waitJobInLoop: Job? = null
-    @Volatile internal var clientNeedsSpinWait = false
+    private var eventLoopSemaphore : Semaphore? = null
+    @Volatile var clientNeedsSpinWait = false
+    @Volatile var clientNeedsCloseSpinWait = false
 
     init {
         if (deltaTimeSpec < 0)
@@ -45,19 +50,22 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
     }
 
     fun close() {
+        if(eventLoopSemaphore?.availablePermits == 0)
+            eventLoopSemaphore?.release()
         if (state != PlayerState.STOPPED) {
-            clientNeedsSpinWait = true
-            var counter = 0
+            clientNeedsCloseSpinWait = true
             stop()
-            while (clientNeedsSpinWait) {
-                counter++ //  spinwait, or overflow
+            var dummyCloseCounter = 0
+            while (clientNeedsCloseSpinWait) {
+                if (dummyCloseCounter++ < 0) //  spinwait, or overflow
+                    break
             }
         }
     }
 
     fun play() {
         state = PlayerState.PLAYING
-        waitJobInLoop?.cancel()
+        eventLoopSemaphore?.release()
     }
 
     fun mute() {
@@ -71,43 +79,43 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
     }
 
     suspend fun playBlocking() {
-        starting?.run()
+        try {
+            starting?.run()
 
-        eventIdx = 0
-        playDeltaTime = 0
-        var doWait = true
-        while (true) {
-            if (doWait) {
-                waitJobInLoop = GlobalScope.launch {
-                    delay(Int.MAX_VALUE.toLong())
+            eventIdx = 0
+            playDeltaTime = 0
+            eventLoopSemaphore = Semaphore(1, 0)
+            var doWait = true
+            while (true) {
+                if (doWait) {
+                    eventLoopSemaphore?.acquire()
+                    clientNeedsSpinWait = false
+                    doWait = false
                 }
-                clientNeedsSpinWait = false
-                val w = waitJobInLoop
-                w?.join()
-                doWait = false
+                if (doStop)
+                    break
+                if (doPause) {
+                    doWait = true
+                    doPause = false
+                    state = PlayerState.PAUSED
+                    continue
+                }
+                if (eventIdx == messages.size)
+                    break
+                processMessage(messages[eventIdx++])
             }
-            if (doStop)
-                break
-            if (doPause) {
-                doWait = true
-                doPause = false
-                state = PlayerState.PAUSED
-                continue
-            }
+            doStop = false
+            state = PlayerState.STOPPED
+            mute()
             if (eventIdx == messages.size)
-                break
-            processMessage(messages[eventIdx++])
+                playbackCompletedToEnd?.run()
+            finished?.run()
+        } finally {
+            clientNeedsCloseSpinWait = false
         }
-        doStop = false
-        mute()
-        state = PlayerState.STOPPED
-        if (eventIdx == messages.size)
-            playbackCompletedToEnd?.run()
-        finished?.run()
-        clientNeedsSpinWait = false
     }
 
-    fun getContextDeltaTimeInMilliseconds(deltaTime: Int): Int {
+    private fun getContextDeltaTimeInMilliseconds(deltaTime: Int): Int {
         return (currentTempo.toDouble() / 1000 * deltaTime / deltaTimeSpec / tempoRatio).toInt()
     }
 
@@ -151,11 +159,10 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
     }
 
     fun stop() {
-        if (state != PlayerState.STOPPED) {
+        if (state != PlayerState.STOPPED)
             doStop = true
-
-            waitJobInLoop?.cancel()
-        }
+        if (eventLoopSemaphore?.availablePermits == 0)
+            eventLoopSemaphore?.release()
     }
 
     private var seek_processor: SeekProcessor? = null
@@ -288,6 +295,7 @@ class MidiPlayer {
         get() = MidiMusic.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
 
     fun close() {
+        looper.stop()
         looper.close()
         if (should_dispose_output)
             output.close()
