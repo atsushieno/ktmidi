@@ -451,19 +451,19 @@ class SmfTrackMerger(private var source: MidiMusic) {
     }
 }
 
-open class SmfTrackSplitter(private var source: MutableList<MidiMessage>, private val deltaTimeSpec: Byte) {
+open class SmfTrackSplitter(private val source: MutableList<MidiMessage>, private val deltaTimeSpec: Byte) {
     companion object {
         fun split(source: MutableList<MidiMessage>, deltaTimeSpec: Byte): MidiMusic {
             return SmfTrackSplitter(source, deltaTimeSpec).split()
         }
     }
 
-    private var tracks = HashMap<Int, SplitTrack>()
+    private val tracks = HashMap<Int, SplitTrack>()
 
-    internal class SplitTrack(var trackID: Int) {
+    internal class SplitTrack(val trackID: Int) {
 
         private var totalDeltaTime: Int
-        var track: MidiTrack = MidiTrack()
+        val track: MidiTrack = MidiTrack()
 
         fun addMessage(deltaInsertAt: Int, e: MidiMessage) {
             val e2 = MidiMessage(deltaInsertAt - totalDeltaTime, e.event)

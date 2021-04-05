@@ -205,3 +205,71 @@ class Midi2Music {
         this.format = 1
     }
 }
+
+
+
+open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
+    companion object {
+        fun split(source: MutableList<Ump>): Midi2Music {
+            return Midi2TrackSplitter(source).split()
+        }
+    }
+
+    private var tracks = HashMap<Int, SplitTrack>()
+
+    internal class SplitTrack(val trackID: Int) {
+
+        private var currentTimestamp: Int
+        val track = Midi2Track()
+
+        fun addMessage(timestampInsertAt: Int, e: Ump) {
+            if (currentTimestamp != timestampInsertAt) {
+                val delta = timestampInsertAt - currentTimestamp
+                for (i in 0 until delta / 0x10000)
+                    track.messages.add(Ump((e.int1 and 0x0F000000 or 0x200000) + 0xFFFF))
+                while (delta > 0)
+                    track.messages.add(Ump((e.int1 and 0x0F000000 or 0x200000) + delta % 0x10000))
+            }
+            track.messages.add(e)
+            currentTimestamp = timestampInsertAt
+        }
+
+        init {
+            currentTimestamp = 0
+        }
+    }
+
+    private fun getTrack(track: Int): SplitTrack {
+        var t = tracks[track]
+        if (t == null) {
+            t = SplitTrack(track)
+            tracks[track] = t
+        }
+        return t
+    }
+
+    // Override it to customize track dispatcher. It would be
+    // useful to split note messages out from non-note ones,
+    // to ease data reading.
+    open fun getTrackID(e: Ump) = e.groupAndChannel
+
+    private fun split(): Midi2Music {
+        var totalDeltaTime = 0
+        for (e in source) {
+            if (e.category == MidiMessageType.UTILITY && e.eventType == Midi2SystemMessageType.JR_TIMESTAMP)
+                totalDeltaTime += (e.midi1Msb shl 16) + e.midi1Lsb
+            val id: Int = getTrackID(e)
+            getTrack(id).addMessage(totalDeltaTime, e)
+        }
+
+        val m = Midi2Music()
+        for (t in tracks.values)
+            m.tracks.add(t.track)
+        return m
+    }
+
+    init {
+        val mtr = SplitTrack(-1)
+        tracks[-1] = mtr
+    }
+}
