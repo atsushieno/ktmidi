@@ -13,9 +13,64 @@ enum class PlayerState {
     PAUSED,
 }
 
-internal class MidiEventLooper(var messages: List<MidiMessage>, private val timer: MidiPlayerTimer,
-                               private val deltaTimeSpec: Int
-) {
+internal class Midi1EventLooper(var messages: List<MidiMessage>, private val timer: MidiPlayerTimer,
+                               private val deltaTimeSpec: Int) : MidiEventLooper<MidiMessage>(timer) {
+    init {
+        if (deltaTimeSpec < 0)
+            throw UnsupportedOperationException("SMPTe-based delta time is not implemented in this player.")
+    }
+
+    override fun getContextDeltaTimeInMilliseconds(m: MidiMessage): Int {
+        return (currentTempo.toDouble() / 1000 * m.deltaTime / deltaTimeSpec / tempoRatio).toInt()
+    }
+
+    override fun getDurationOfEvent(m: MidiMessage) = m.deltaTime
+
+    override fun isEventIndexAtEnd(): Boolean = eventIdx == messages.size
+
+    override fun getNextMessage(): MidiMessage = messages[eventIdx]
+
+    override fun updateTempoAndTimeSignatureIfApplicable(m: MidiMessage) {
+        if (m.event.statusByte.toUnsigned() == 0xFF) {
+            if (m.event.msb == MidiMetaType.TEMPO)
+                currentTempo = MidiMetaType.getTempo(m.event.extraData!!, m.event.extraDataOffset)
+            else if (m.event.msb == MidiMetaType.TIME_SIGNATURE && m.event.extraDataLength == 4)
+                m.event.extraData!!.copyInto(
+                    currentTimeSignature,
+                    0,
+                    m.event.extraDataOffset,
+                    m.event.extraDataOffset + m.event.extraDataLength
+                )
+        }
+    }
+
+    private val messageHandlers = mutableListOf<OnMidiMessageListener>()
+
+    fun addOnMessageListener(listener: OnMidiMessageListener) {
+        messageHandlers.add(listener)
+    }
+
+    fun removeOnMessageListener(listener: OnMidiMessageListener) {
+        messageHandlers.remove(listener)
+    }
+
+    override fun onEvent(m: MidiMessage) {
+        for (er in messageHandlers)
+            er.onMessage(m)
+
+    }
+
+    override fun mute() {
+        for (i in 0..15)
+            onEvent(MidiMessage(0, MidiEvent(i + 0xB0, 0x78, 0, null, 0, 0)))
+    }
+}
+
+interface OnMidiMessageListener {
+    fun onMessage(m: MidiMessage)
+}
+
+internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerTimer) {
     var starting: Runnable? = null
     var finished: Runnable? = null
     var playbackCompletedToEnd: Runnable? = null
@@ -25,28 +80,17 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
     var tempoRatio: Double = 1.0
 
     var state: PlayerState
-    private var eventIdx = 0
+    internal var eventIdx = 0
     var currentTempo = MidiMetaType.DEFAULT_TEMPO
     var currentTimeSignature = ByteArray(4)
     var playDeltaTime: Int = 0
-    private val eventReceivedHandlers = arrayListOf<OnMidiEventListener>()
 
     private var eventLoopSemaphore : Semaphore? = null
     @Volatile var clientNeedsSpinWait = false
     @Volatile var clientNeedsCloseSpinWait = false
 
     init {
-        if (deltaTimeSpec < 0)
-            throw UnsupportedOperationException("SMPTe-based delta time is not implemented in this player.")
         state = PlayerState.STOPPED
-    }
-
-    fun addOnEventReceivedListener(listener: OnMidiEventListener) {
-        eventReceivedHandlers.add(listener)
-    }
-
-    fun removeOnEventReceivedListener(listener: OnMidiEventListener) {
-        eventReceivedHandlers.remove(listener)
     }
 
     fun close() {
@@ -68,10 +112,7 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
         eventLoopSemaphore?.release()
     }
 
-    fun mute() {
-        for (i in 0..15)
-            onEvent(MidiEvent(i + 0xB0, 0x78, 0, null, 0, 0))
-    }
+    abstract fun mute()
 
     fun pause() {
         doPause = true
@@ -100,14 +141,14 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
                     state = PlayerState.PAUSED
                     continue
                 }
-                if (eventIdx == messages.size)
+                if (isEventIndexAtEnd())
                     break
-                processMessage(messages[eventIdx++])
+                processMessage(getNextMessage())
             }
             doStop = false
             state = PlayerState.STOPPED
             mute()
-            if (eventIdx == messages.size)
+            if (isEventIndexAtEnd())
                 playbackCompletedToEnd?.run()
             finished?.run()
         } finally {
@@ -115,11 +156,14 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
         }
     }
 
-    private fun getContextDeltaTimeInMilliseconds(deltaTime: Int): Int {
-        return (currentTempo.toDouble() / 1000 * deltaTime / deltaTimeSpec / tempoRatio).toInt()
-    }
+    abstract fun isEventIndexAtEnd() : Boolean
+    abstract fun getNextMessage() : TMessage
+    abstract fun getContextDeltaTimeInMilliseconds(m: TMessage): Int
+    abstract fun getDurationOfEvent(m: TMessage) : Int
+    abstract fun updateTempoAndTimeSignatureIfApplicable(m: TMessage)
+    abstract fun onEvent(m: TMessage)
 
-    private suspend fun processMessage(m: MidiMessage) {
+    private suspend fun processMessage(m: TMessage) {
         if (seek_processor != null) {
             val result = seek_processor!!.filterMessage(m)
             when (result) {
@@ -133,29 +177,17 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
                 SeekFilterResult.BLOCK_AND_TERMINATE ->
                     return // ignore this event
             }
-        } else if (m.deltaTime != 0) {
-            val ms = getContextDeltaTimeInMilliseconds(m.deltaTime)
-            timer.waitBy(ms)
-            playDeltaTime += m.deltaTime
+        } else {
+            val ms = getContextDeltaTimeInMilliseconds(m)
+            if (ms > 0) {
+                timer.waitBy(ms)
+                playDeltaTime += getDurationOfEvent(m)
+            }
         }
 
-        if (m.event.statusByte.toUnsigned() == 0xFF) {
-            if (m.event.msb == MidiMetaType.TEMPO)
-                currentTempo = MidiMetaType.getTempo(m.event.extraData!!, m.event.extraDataOffset)
-            else if (m.event.msb == MidiMetaType.TIME_SIGNATURE && m.event.extraDataLength == 4)
-                m.event.extraData!!.copyInto(
-                    currentTimeSignature,
-                    0,
-                    m.event.extraDataOffset,
-                    m.event.extraDataOffset + m.event.extraDataLength
-                )
-        }
-        onEvent(m.event)
-    }
+        updateTempoAndTimeSignatureIfApplicable(m)
 
-    private fun onEvent(m: MidiEvent) {
-        for (er in eventReceivedHandlers)
-            er.onEvent(m)
+        onEvent(m)
     }
 
     fun stop() {
@@ -165,11 +197,11 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
             eventLoopSemaphore?.release()
     }
 
-    private var seek_processor: SeekProcessor? = null
+    private var seek_processor: SeekProcessor<TMessage>? = null
 
     // not sure about the interface, so make it non-public yet.
-    internal fun seek(seekProcessor: SeekProcessor?, ticks: Int) {
-        seek_processor = seekProcessor ?: SimpleSeekProcessor(ticks)
+    internal fun seek(seekProcessor: SeekProcessor<TMessage>, ticks: Int) {
+        seek_processor = seekProcessor
         eventIdx = 0
         playDeltaTime = ticks
         mute()
@@ -188,7 +220,7 @@ class MidiPlayer {
         this.output = output
 
         messages = SmfTrackMerger.merge(music).tracks[0].messages
-        looper = MidiEventLooper(messages, timer, music.deltaTimeSpec)
+        looper = Midi1EventLooper(messages, timer, music.deltaTimeSpec)
         looper.starting = Runnable {
             // all control reset on all channels.
             for (i in 0..15) {
@@ -199,8 +231,9 @@ class MidiPlayer {
             }
         }
 
-        val listener = object : OnMidiEventListener {
-            override fun onEvent(e: MidiEvent) {
+        val listener = object : OnMidiMessageListener {
+            override fun onMessage(m: MidiMessage) {
+                val e = m.event
                 when (e.eventType) {
                     MidiEventType.NOTE_OFF,
                     MidiEventType.NOTE_ON -> {
@@ -228,18 +261,18 @@ class MidiPlayer {
                 output.send(buffer, 0, size + 1, 0)
             }
         }
-        addOnEventReceivedListener(listener)
+        addOnMessageListener(listener)
     }
 
-    fun addOnEventReceivedListener(listener: OnMidiEventListener) {
-        looper.addOnEventReceivedListener(listener)
+    fun addOnMessageListener(listener: OnMidiMessageListener) {
+        looper.addOnMessageListener(listener)
     }
 
-    fun removeOnEventReceivedListener(listener: OnMidiEventListener) {
-        looper.removeOnEventReceivedListener(listener)
+    fun removeOnMessageListener(listener: OnMidiMessageListener) {
+        looper.removeOnMessageListener(listener)
     }
 
-    private val looper: MidiEventLooper
+    private val looper: Midi1EventLooper
 
     // FIXME: it is still awkward to have it here. Move it into MidiEventLooper.
     private var sync_player_task: Job? = null
@@ -343,7 +376,7 @@ class MidiPlayer {
     }
 
     fun seek(ticks: Int) {
-        looper.seek(null, ticks)
+        looper.seek(SimpleMidi1SeekProcessor(ticks), ticks)
     }
 
     fun setMutedChannels(mutedChannels: Iterable<Int>) {
@@ -355,8 +388,8 @@ class MidiPlayer {
     }
 }
 
-interface SeekProcessor {
-    fun filterMessage(message: MidiMessage): SeekFilterResult
+interface SeekProcessor<TMessage> {
+    fun filterMessage(message: TMessage): SeekFilterResult
 }
 
 enum class SeekFilterResult {
@@ -366,7 +399,7 @@ enum class SeekFilterResult {
     BLOCK_AND_TERMINATE,
 }
 
-internal class SimpleSeekProcessor(ticks: Int) : SeekProcessor {
+internal class SimpleMidi1SeekProcessor(ticks: Int) : SeekProcessor<MidiMessage> {
     private var seek_to: Int = ticks
     private var current: Int = 0
 

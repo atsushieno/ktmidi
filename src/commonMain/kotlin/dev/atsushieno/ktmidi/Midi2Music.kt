@@ -164,7 +164,7 @@ class Midi2Music {
         }.asIterable()
 
         fun getTotalPlayTimeMilliseconds(messages: Iterable<Ump>) =
-            messages.filter { m -> m.isJRTimestamp }.sumBy { m -> m.getJRTimestampValue() }
+            messages.filter { m -> m.isJRTimestamp }.sumBy { m -> m.getJRTimestampValue() } / 31250
     }
 
     val tracks: MutableList<Midi2Track> = mutableListOf()
@@ -201,14 +201,9 @@ class Midi2Music {
         return getTotalPlayTimeMilliseconds(tracks[0].messages)
     }
 
-    /*
     fun getTimePositionInMillisecondsForTick(ticks: Int): Int {
-        // FIXME: implement merger
-        //if (format != 0.toByte())
-        //    return SmfTrackMerger.merge(this).getTimePositionInMillisecondsForTick(ticks)
-        return getPlayTimeMillisecondsAtTick(tracks[0].messages, ticks, deltaTimeSpec)
+        return ticks / 31250
     }
-    */
 
     init {
         this.format = 1
