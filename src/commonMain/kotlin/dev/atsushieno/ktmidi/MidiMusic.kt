@@ -40,7 +40,7 @@ class MidiMusic {
         }
     }
 
-    val tracks: MutableList<MidiTrack> = ArrayList()
+    val tracks: MutableList<MidiTrack> = mutableListOf()
 
     var deltaTimeSpec: Int = 0
 
@@ -368,13 +368,8 @@ class SmfTrackMerger(private var source: MidiMusic) {
         }
     }
 
-    // FIXME: it should rather be implemented to iterate all
-    // tracks with index to messages, pick the track which contains
-    // the nearest event and push the events into the merged queue.
-    // It's simpler, and costs less by removing sort operation
-    // over thousands of events.
     private fun getMergedMessages(): MidiMusic {
-        var l = ArrayList<MidiMessage>()
+        var l = mutableListOf<MidiMessage>()
 
         for (track in source.tracks) {
             var delta = 0
@@ -390,17 +385,15 @@ class SmfTrackMerger(private var source: MidiMusic) {
             return ret
         }
 
-        // Sort() does not always work as expected.
-        // For example, it does not always preserve event
-        // orders on the same channels when the delta time
-        // of event B after event A is 0. It could be sorted
-        // either as A->B or B->A.
+        // Simple sorter does not work as expected.
+        // For example, it does not always preserve event orders on the same channels when the delta time
+        // of event B after event A is 0. It could be sorted either as A->B or B->A, which is no-go for
+        // MIDI messages. For example, "ProgramChange at Xmsec. -> NoteOn at Xmsec." must not be sorted as
+        // "NoteOn at Xmsec. -> ProgramChange at Xmsec.".
         //
-        // To resolve this ieeue, we have to sort "chunk"
-        // of events, not all single events themselves, so
-        // that order of events in the same chunk is preserved
-        // i.e. [AB] at 48 and [CDE] at 0 should be sorted as
-        // [CDE] [AB].
+        // To resolve this ieeue, we have to sort "chunk"  of events, not all single events themselves, so
+        // that order of events in the same chunk is preserved.
+        // i.e. [AB] at 48 and [CDE] at 0 should be sorted as [CDE] [AB].
 
         val indexList = mutableListOf<Int>()
         var prev = -1
@@ -415,7 +408,7 @@ class SmfTrackMerger(private var source: MidiMusic) {
         val idxOrdered = indexList.sortedBy { n -> l[n].deltaTime }
 
         // now build a new event list based on the sorted blocks.
-        val l2 = ArrayList<MidiMessage>(l.size)
+        val l2 = mutableListOf<MidiMessage>()
         var idx: Int
         i = 0
         while (i < idxOrdered.size) {

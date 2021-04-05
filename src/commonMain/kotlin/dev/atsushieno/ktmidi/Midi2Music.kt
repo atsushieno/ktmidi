@@ -137,6 +137,16 @@ class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: Int = 0
     }
 }
 
+val Ump.isJRTimestamp
+    get()= category == MidiMessageType.UTILITY && eventType == Midi2SystemMessageType.JR_TIMESTAMP
+fun Ump.getJRTimestampValue() = if(isJRTimestamp) (midi1Msb shl 16) + midi1Lsb else 0
+fun Ump.createTimestampFor(delta: Int) : Sequence<Ump> = sequence {
+    for (i in 0 until delta / 0x10000)
+        yield(Ump((group shl 24) or 0x20FFFF))
+    while (delta > 0)
+        yield(Ump((group shl 24) + 0x200000 + delta % 0x10000))
+}
+
 class Midi2Track(val messages: MutableList<Ump> = mutableListOf())
 
 class Midi2Music {
@@ -144,8 +154,8 @@ class Midi2Music {
         fun getMetaEventsOfType(messages: Iterable<Ump>, metaType: Int) = sequence {
             var v = 0
             for (m in messages) {
-                if (m.category == MidiMessageType.UTILITY && m.eventType == Midi2SystemMessageType.JR_TIMESTAMP)
-                    v += (m.midi1Msb shl 8) + m.midi1Lsb
+                if (m.isJRTimestamp)
+                    v += m.getJRTimestampValue()
                 // FIXME: We should come up with some solid draft on this, but so far, META events are
                 //  going to be implemented as Sysex7 messages.
                 if (m.category == MidiMessageType.SYSEX7 && m.midi1Msb == MidiEventType.META.toInt() && m.midi1Lsb == metaType)
@@ -154,8 +164,7 @@ class Midi2Music {
         }.asIterable()
 
         fun getTotalPlayTimeMilliseconds(messages: Iterable<Ump>) =
-            messages.filter { m -> m.category == MidiMessageType.UTILITY && m.eventType == Midi2SystemMessageType.JR_TIMESTAMP }
-                .sumBy { m -> (m.midi1Msb shl 8) + m.midi1Lsb }
+            messages.filter { m -> m.isJRTimestamp }.sumBy { m -> m.getJRTimestampValue() }
     }
 
     val tracks: MutableList<Midi2Track> = mutableListOf()
@@ -206,6 +215,89 @@ class Midi2Music {
     }
 }
 
+class Midi2TrackMerger(private var source: Midi2Music) {
+    companion object {
+
+        fun merge(source: Midi2Music): Midi2Music {
+            return Midi2TrackMerger(source).getMergedMessages()
+        }
+    }
+
+    private fun getMergedMessages(): Midi2Music {
+        var l = mutableListOf<Pair<Int,Ump>>()
+
+        for (track in source.tracks) {
+            var absTime = 0
+            for (mev in track.messages) {
+                if (mev.isJRTimestamp)
+                    absTime += mev.getJRTimestampValue()
+                else
+                    l.add(Pair(absTime, mev))
+            }
+        }
+
+        if (l.size == 0)
+            return Midi2Music()
+
+        // Simple sorter does not work as expected.
+        // For example, it does not always preserve event orders on the same channels when the delta time
+        // of event B after event A is 0. It could be sorted either as A->B or B->A, which is no-go for
+        // MIDI messages. For example, "ProgramChange at Xmsec. -> NoteOn at Xmsec." must not be sorted as
+        // "NoteOn at Xmsec. -> ProgramChange at Xmsec.".
+        //
+        // To resolve this ieeue, we have to sort "chunk"  of events, not all single events themselves, so
+        // that order of events in the same chunk is preserved.
+        // i.e. [AB] at 48 and [CDE] at 0 should be sorted as [CDE] [AB].
+
+        val indexList = mutableListOf<Int>()
+        var prev = -1
+        var i = 0
+        while (i < l.size) {
+            if (l[i].first != prev) {
+                indexList.add(i)
+                prev = l[i].first
+            }
+            i++
+        }
+        val idxOrdered = indexList.sortedBy { n -> l[n].first }
+
+        // now build a new event list based on the sorted blocks.
+        val l2 = mutableListOf<Pair<Int,Ump>>()
+        var idx: Int
+        i = 0
+        while (i < idxOrdered.size) {
+            idx = idxOrdered[i]
+            val absTime = l[idx].first
+            while (idx < l.size && l[idx].first == absTime) {
+                l2.add(l[idx])
+                idx++
+            }
+            i++
+        }
+        l = l2
+
+        // now messages should be sorted correctly.
+
+        val l3 = mutableListOf<Ump>()
+        var timeAbs = l[0].first
+        i = 0
+        while (i < l.size) {
+            if (i > 0) {
+                val delta = l[i + 1].first - l[i].first
+                if (delta > 0)
+                    l3.addAll(l[i].second.createTimestampFor(delta))
+                timeAbs += delta
+            }
+            l3.add(l[i].second)
+            i++
+        }
+
+        val m = Midi2Music()
+        m.format = 0
+        m.tracks.add(Midi2Track(l3))
+        return m
+    }
+}
 
 
 open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
@@ -225,10 +317,7 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
         fun addMessage(timestampInsertAt: Int, e: Ump) {
             if (currentTimestamp != timestampInsertAt) {
                 val delta = timestampInsertAt - currentTimestamp
-                for (i in 0 until delta / 0x10000)
-                    track.messages.add(Ump((e.int1 and 0x0F000000 or 0x200000) + 0xFFFF))
-                while (delta > 0)
-                    track.messages.add(Ump((e.int1 and 0x0F000000 or 0x200000) + delta % 0x10000))
+                track.messages.addAll(e.createTimestampFor(delta))
             }
             track.messages.add(e)
             currentTimestamp = timestampInsertAt
@@ -256,8 +345,8 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
     private fun split(): Midi2Music {
         var totalDeltaTime = 0
         for (e in source) {
-            if (e.category == MidiMessageType.UTILITY && e.eventType == Midi2SystemMessageType.JR_TIMESTAMP)
-                totalDeltaTime += (e.midi1Msb shl 16) + e.midi1Lsb
+            if (e.isJRTimestamp)
+                totalDeltaTime += e.getJRTimestampValue()
             val id: Int = getTrackID(e)
             getTrack(id).addMessage(totalDeltaTime, e)
         }
