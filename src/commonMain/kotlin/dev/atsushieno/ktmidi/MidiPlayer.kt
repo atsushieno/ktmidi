@@ -1,17 +1,8 @@
 package dev.atsushieno.ktmidi
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.Runnable
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlin.jvm.Volatile
-
-enum class PlayerState {
-    STOPPED,
-    PLAYING,
-    PAUSED,
-}
 
 internal class Midi1EventLooper(var messages: List<MidiMessage>, private val timer: MidiPlayerTimer,
                                private val deltaTimeSpec: Int) : MidiEventLooper<MidiMessage>(timer) {
@@ -209,18 +200,17 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
 }
 
 // Provides asynchronous player control.
-class MidiPlayer {
+class MidiPlayer : MidiPlayerCommon<MidiMessage> {
     constructor(music: MidiMusic, access: MidiAccess, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer())
-            : this(music, access.openOutputAsync(access.outputs.first().id), timer) {
-        should_dispose_output = true
-    }
+            : this(music, access.openOutputAsync(access.outputs.first().id), timer, true)
 
-    constructor(music: MidiMusic, output: MidiOutput, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer()) {
+    constructor(music: MidiMusic, output: MidiOutput, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer(), shouldDisposeOutput: Boolean = false)
+        : super(output, shouldDisposeOutput, timer) {
+
         this.music = music
-        this.output = output
-
         messages = SmfTrackMerger.merge(music).tracks[0].messages
         looper = Midi1EventLooper(messages, timer, music.deltaTimeSpec)
+
         looper.starting = Runnable {
             // all control reset on all channels.
             for (i in 0..15) {
@@ -264,139 +254,34 @@ class MidiPlayer {
         addOnMessageListener(listener)
     }
 
+    private val music: MidiMusic
+    private var buffer = ByteArray(0x100)
+
     fun addOnMessageListener(listener: OnMidiMessageListener) {
-        looper.addOnMessageListener(listener)
+        (looper as Midi1EventLooper).addOnMessageListener(listener)
     }
 
     fun removeOnMessageListener(listener: OnMidiMessageListener) {
-        looper.removeOnMessageListener(listener)
+        (looper as Midi1EventLooper).removeOnMessageListener(listener)
     }
 
-    private val looper: Midi1EventLooper
-
-    // FIXME: it is still awkward to have it here. Move it into MidiEventLooper.
-    private var sync_player_task: Job? = null
-    private val output: MidiOutput
-    private val messages: MutableList<MidiMessage>
-    private val music: MidiMusic
-
-    private var should_dispose_output: Boolean = false
-    private var buffer = ByteArray(0x100)
-    private var mutedChannels = listOf<Int>()
-
-    var finished: Runnable?
-        get() = looper.finished
-        set(v) {
-            looper.finished = v
-        }
-
-    var playbackCompletedToEnd: Runnable?
-        get() = looper.playbackCompletedToEnd
-        set(v) {
-            looper.playbackCompletedToEnd = v
-        }
-
-    val state: PlayerState
-        get() = looper.state
-
-    var tempoChangeRatio: Double
-        get() = looper.tempoRatio
-        set(v) {
-            looper.tempoRatio = v
-        }
-
-    var tempo: Int
-        get() = looper.currentTempo
-        set(v) {
-            looper.currentTempo = v
-        }
-
-    val bpm: Int
-        get() = (60.0 / tempo * 1000000.0).toInt()
-
-    // You can break the data at your own risk but I take performance precedence.
-    val timeSignature
-        get() = looper.currentTimeSignature
-
-    val playDeltaTime
-        get() = looper.playDeltaTime
-
-    val positionInMilliseconds: Long
+    override val positionInMilliseconds: Long
         get() = music.getTimePositionInMillisecondsForTick(playDeltaTime).toLong()
 
-    val totalPlayTimeMilliseconds: Int
+    override val totalPlayTimeMilliseconds: Int
         get() = MidiMusic.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
 
-    fun close() {
-        looper.stop()
-        looper.close()
-        if (should_dispose_output)
-            output.close()
-    }
-
-    private fun startLoop() {
-        looper.clientNeedsSpinWait = true
-        sync_player_task = GlobalScope.launch {
-            looper.playBlocking()
-            sync_player_task = null
-        }
-        var counter = 0
-        while (looper.clientNeedsSpinWait) {
-            counter++ //  spinwait, or overflow
-        }
-    }
-
-    fun play() {
-        when (state) {
-            PlayerState.PLAYING -> return // do nothing
-            PlayerState.PAUSED -> {
-                looper.play(); return; }
-            PlayerState.STOPPED -> {
-                if (sync_player_task == null)
-                    startLoop()
-                looper.play()
-            }
-        }
-    }
-
-    fun pause() {
-        when (state) {
-            PlayerState.PLAYING -> {
-                looper.pause(); return;
-            }
-            else -> return
-        }
-    }
-
-    fun stop() {
-        when (state) {
-            PlayerState.PAUSED,
-            PlayerState.PLAYING -> looper.stop()
-        }
-    }
-
-    fun seek(ticks: Int) {
+    override fun seek(ticks: Int) {
         looper.seek(SimpleMidi1SeekProcessor(ticks), ticks)
     }
 
-    fun setMutedChannels(mutedChannels: Iterable<Int>) {
+    override fun setMutedChannels(mutedChannels: Iterable<Int>) {
         this.mutedChannels = mutedChannels.toList()
         // additionally send all sound off for the muted channels.
         for (ch in 0..15)
             if (!mutedChannels.contains(ch))
                 output.send(arrayOf((0xB0 + ch).toByte(), 120, 0).toByteArray(), 0, 3, 0)
     }
-}
-
-interface SeekProcessor<TMessage> {
-    fun filterMessage(message: TMessage): SeekFilterResult
-}
-
-enum class SeekFilterResult {
-    PASS,
-    BLOCK,
-    PASS_AND_TERMINATE,
-    BLOCK_AND_TERMINATE,
 }
 
 internal class SimpleMidi1SeekProcessor(ticks: Int) : SeekProcessor<MidiMessage> {
