@@ -56,8 +56,9 @@ class SmfWriter(val stream: MutableList<Byte>) {
                     stream.add(e.event.eventType)
                     if (e.event.extraData != null) {
                         write7BitVariableInteger(e.event.extraDataLength)
-                        stream.addAll(e.event.extraData.slice(
-                            IntRange(e.event.extraDataOffset, e.event.extraDataOffset + e.event.extraDataLength + 1)))
+                        if (e.event.extraDataLength > 0)
+                            stream.addAll(e.event.extraData.slice(
+                                IntRange(e.event.extraDataOffset, e.event.extraDataOffset + e.event.extraDataLength - 1)))
                     }
                 }
                 else -> {
@@ -166,7 +167,8 @@ class SmfWriterExtension {
                 val size = min(0x7F, total - written)
                 stream.add(size.toByte())
                 val offset = e.event.extraDataOffset + written
-                stream.addAll(e.event.extraData.slice(IntRange(offset, offset + size + 1)))
+                if (size > 0)
+                    stream.addAll(e.event.extraData.slice(IntRange(offset, offset + size - 1)))
                 written += size
             }
             return 0
@@ -206,7 +208,8 @@ class SmfWriterExtension {
                 stream.add((size + 8).toByte())
                 stream.addAll("DM:${idx.toString(16)}:".map { c -> c.toByte() }.toTypedArray())
                 val offset = e.event.extraDataOffset + written
-                stream.addAll(e.event.extraData.slice(IntRange(offset, offset + size + 1)))
+                if (size > 0)
+                    stream.addAll(e.event.extraData.slice(IntRange(offset, offset + size - 1)))
                 written += size
             } while (written < total)
             return 0
@@ -219,8 +222,9 @@ class SmfReader(stream: MutableList<Byte>) {
         fun canRead() : Boolean = stream.size < index
         fun read(dst: ByteArray, startOffset: Int, endOffsetInclusive: Int) : Int {
             val len = min(stream.size - index, endOffsetInclusive - 1 - startOffset)
-            stream.slice(IntRange(index, index + len + 1).apply { index += len})
-                .toByteArray().copyInto(dst, startOffset, endOffsetInclusive)
+            if (len > 0)
+                stream.slice(IntRange(index, index + len - 1).apply { index += len})
+                    .toByteArray().copyInto(dst, startOffset, endOffsetInclusive)
             return len
         }
         val position = index
