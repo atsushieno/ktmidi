@@ -149,8 +149,8 @@ internal class MidiEventLooper(var messages: List<MidiMessage>, private val time
                     m.event.extraDataOffset,
                     m.event.extraDataOffset + m.event.extraDataLength
                 )
-        } else
-            onEvent(m.event)
+        }
+        onEvent(m.event)
     }
 
     private fun onEvent(m: MidiEvent) {
