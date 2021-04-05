@@ -215,10 +215,10 @@ class Midi2Music {
     }
 }
 
-class Midi2TrackMerger(private var source: Midi2Music) {
+class Midi2TrackMerger(private var source: Iterable<Midi2Track>) {
     companion object {
 
-        fun merge(source: Midi2Music): Midi2Music {
+        fun merge(source: Iterable<Midi2Track>): Midi2Music {
             return Midi2TrackMerger(source).getMergedMessages()
         }
     }
@@ -226,7 +226,7 @@ class Midi2TrackMerger(private var source: Midi2Music) {
     private fun getMergedMessages(): Midi2Music {
         var l = mutableListOf<Pair<Int,Ump>>()
 
-        for (track in source.tracks) {
+        for (track in source) {
             var absTime = 0
             for (mev in track.messages) {
                 if (mev.isJRTimestamp)
