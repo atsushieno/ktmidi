@@ -151,12 +151,6 @@ class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: Int = 0
 val Ump.isJRTimestamp
     get()= category == MidiMessageType.UTILITY && eventType == Midi2SystemMessageType.JR_TIMESTAMP
 fun Ump.getJRTimestampValue() = if(isJRTimestamp) (midi1Msb shl 16) + midi1Lsb else 0
-fun Ump.createTimestampFor(delta: Int) : Sequence<Ump> = sequence {
-    for (i in 0 until delta / 0x10000)
-        yield(Ump(umpJRTimestamp(group, 0xFFFF)))
-    while (delta > 0)
-        yield(Ump(umpJRTimestamp(group, delta % 0x10000)))
-}
 
 class Midi2Track(val messages: MutableList<Ump> = mutableListOf())
 
@@ -291,7 +285,7 @@ class Midi2TrackMerger(private var source: Iterable<Midi2Track>) {
             if (i > 0) {
                 val delta = l[i + 1].first - l[i].first
                 if (delta > 0)
-                    l3.addAll(l[i].second.createTimestampFor(delta))
+                    l3.addAll(umpJRTimestamps(l[i].second.group, delta.toLong()).map { i -> Ump(i) })
                 timeAbs += delta
             }
             l3.add(l[i].second)
@@ -323,7 +317,7 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
         fun addMessage(timestampInsertAt: Int, e: Ump) {
             if (currentTimestamp != timestampInsertAt) {
                 val delta = timestampInsertAt - currentTimestamp
-                track.messages.addAll(e.createTimestampFor(delta))
+                track.messages.addAll(umpJRTimestamps(e.group, delta.toLong()).map {i -> Ump(i)})
             }
             track.messages.add(e)
             currentTimestamp = timestampInsertAt

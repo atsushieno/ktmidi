@@ -2,10 +2,7 @@
 
 package dev.atsushieno.ktmidi.umpfactory
 
-import dev.atsushieno.ktmidi.Midi2SystemMessageType
-import dev.atsushieno.ktmidi.MidiEventType
-import dev.atsushieno.ktmidi.MidiMessageType
-import dev.atsushieno.ktmidi.toUnsigned
+import dev.atsushieno.ktmidi.*
 import kotlin.experimental.and
 
 private infix fun Byte.shl(n: Int): Int = this.toInt() shl n
@@ -42,13 +39,22 @@ fun umpJRClock(group: Int, senderClockTimeSeconds: Double): Int {
 }
 
 fun umpJRTimestamp(group: Int, senderClockTimestamp16: Int): Int {
+    if (senderClockTimestamp16 > 0xFFFF)
+        throw IllegalArgumentException("Argument timestamp value must be less than 65536. If you need multiple JR timestamps, use umpJRTimestamps() instead.")
     return umpNOOP(group) + (Midi2SystemMessageType.JR_TIMESTAMP shl 16) + senderClockTimestamp16
 }
 
-fun umpJRTimestamp(group: Int, senderClockTimestampSeconds: Double): Int {
-    val value = (senderClockTimestampSeconds * JR_TIMESTAMP_TICKS_PER_SECOND).toInt()
-    return umpNOOP(group) + (Midi2SystemMessageType.JR_TIMESTAMP shl 16) + value
+fun umpJRTimestamp(group: Int, senderClockTimestampSeconds: Double)
+    = umpJRTimestamp(group, ((senderClockTimestampSeconds * JR_TIMESTAMP_TICKS_PER_SECOND).toInt()))
+
+fun umpJRTimestamps(group: Int, senderClockTimestampTicks: Long) : Sequence<Int> = sequence {
+    for (i in 0 until senderClockTimestampTicks / 0x10000)
+        yield(umpJRTimestamp(group, 0xFFFF))
+    yield(umpJRTimestamp(group, (senderClockTimestampTicks % 0x10000).toInt()))
 }
+
+fun umpJRTimestamps(group: Int, senderClockTimestampSeconds: Double)
+     = umpJRTimestamps(group, (senderClockTimestampSeconds * JR_TIMESTAMP_TICKS_PER_SECOND).toLong())
 
 // 4.3 System Common and System Real Time Messages
 fun umpSystemMessage(group: Int, status: Byte, midi1Byte2: Byte, midi1Byte3: Byte): Int {
