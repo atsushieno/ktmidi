@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi
 
+import dev.atsushieno.ktmidi.umpfactory.*
+
 class MidiMessageType { // MIDI 2.0
     companion object {
         const val UTILITY = 0
@@ -40,6 +42,15 @@ class MidiCIProtocolExtensions { // MIDI 2.0
     }
 }
 
+class MidiAttributeType { // MIDI 2.0
+    companion object {
+        const val NONE = 0
+        const val MANUFACTURER_SPECIFIC = 1
+        const val PROFILE_SPECIFIC = 2
+        const val Pitch7_9 = 3
+    }
+}
+
 class MidiPerNoteManagementFlags { // MIDI 2.0
     companion object {
         const val RESET = 1
@@ -50,8 +61,8 @@ class MidiPerNoteManagementFlags { // MIDI 2.0
 class Midi2SystemMessageType {
     companion object {
         const val NOP = 0
-        const val JR_CLOCK = 1
-        const val JR_TIMESTAMP = 2
+        const val JR_CLOCK = 0x10
+        const val JR_TIMESTAMP = 0x20
     }
 }
 
@@ -142,9 +153,9 @@ val Ump.isJRTimestamp
 fun Ump.getJRTimestampValue() = if(isJRTimestamp) (midi1Msb shl 16) + midi1Lsb else 0
 fun Ump.createTimestampFor(delta: Int) : Sequence<Ump> = sequence {
     for (i in 0 until delta / 0x10000)
-        yield(Ump((group shl 24) or 0x20FFFF))
+        yield(Ump(umpJRTimestamp(group, 0xFFFF)))
     while (delta > 0)
-        yield(Ump((group shl 24) + 0x200000 + delta % 0x10000))
+        yield(Ump(umpJRTimestamp(group, delta % 0x10000)))
 }
 
 class Midi2Track(val messages: MutableList<Ump> = mutableListOf())

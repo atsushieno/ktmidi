@@ -2,7 +2,9 @@
 
 package dev.atsushieno.ktmidi
 
-fun Byte.toUnsigned() = if (this < 0) 256 + this else this.toInt()
+fun Byte.toUnsigned() = if (this < 0) 0x100 + this else this.toInt()
+fun Short.toUnsigned() = if (this < 0) 0x10000 + this else this.toInt()
+fun Int.toUnsigned() = if (this < 0) 0x100000000 + this else this.toLong()
 
 class MidiMusic {
     companion object {
