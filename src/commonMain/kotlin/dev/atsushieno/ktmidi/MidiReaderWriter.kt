@@ -217,21 +217,21 @@ class SmfWriterExtension {
     }
 }
 
-class SmfReader(stream: MutableList<Byte>) {
-    private class Reader(private val stream: MutableList<Byte>, private var index: Int) {
-        fun canRead() : Boolean = stream.size < index
-        fun read(dst: ByteArray, startOffset: Int, endOffsetInclusive: Int) : Int {
-            val len = min(stream.size - index, endOffsetInclusive - 1 - startOffset)
-            if (len > 0)
-                stream.slice(IntRange(index, index + len - 1).apply { index += len})
-                    .toByteArray().copyInto(dst, startOffset, endOffsetInclusive)
-            return len
-        }
-        val position = index
-        fun peekByte() : Byte = stream[index]
-        fun readByte() : Byte = stream[index++]
+internal class Reader(private val stream: MutableList<Byte>, private var index: Int) {
+    fun canRead() : Boolean = stream.size < index
+    fun read(dst: ByteArray, startOffset: Int, endOffsetInclusive: Int) : Int {
+        val len = min(stream.size - index, endOffsetInclusive - 1 - startOffset)
+        if (len > 0)
+            stream.slice(IntRange(index, index + len - 1).apply { index += len})
+                .toByteArray().copyInto(dst, startOffset, endOffsetInclusive)
+        return len
     }
+    val position = index
+    fun peekByte() : Byte = stream[index]
+    fun readByte() : Byte = stream[index++]
+}
 
+class SmfReader(stream: MutableList<Byte>) {
     companion object {
         fun read(stream: MutableList<Byte>): MidiMusic {
             val r = SmfReader(stream)
