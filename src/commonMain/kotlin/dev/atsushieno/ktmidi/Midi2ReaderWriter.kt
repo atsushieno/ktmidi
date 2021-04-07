@@ -2,6 +2,7 @@ package dev.atsushieno.ktmidi
 
 // Data Format:
 //   identifier: 0xAAAAAAAAAAAAAAAA (16 bytes)
+//   i32 deltaTimeSpec
 //   i32 numTracks
 //   tracks
 //        identifier: 0xEEEEEEEEEEEEEEEE (16 bytes)
@@ -23,6 +24,7 @@ class Midi2MusicWriter(val stream: MutableList<Byte>) {
     private fun serializeMidi2MusicToBytes(music: Midi2Music) : List<Int> {
         val ret = mutableListOf<Int>()
         (0..3).forEach { _ -> ret.add(0xAAAAAAAA.toInt()) }
+        ret.add(music.deltaTimeSpec)
         ret.add(music.tracks.size)
         for(track in music.tracks) {
             (0..3).forEach { _ -> ret.add(0xEEEEEEEE.toInt()) }
@@ -70,6 +72,7 @@ class Midi2MusicReader(stream: MutableList<Byte>) {
 
     private fun readMusic() {
         expectIdentifier16(0xAA.toByte())
+        music.deltaTimeSpec = readInt32()
         val numTracks = readInt32()
         for(t in 0 until numTracks)
             music.addTrack(readTrack())
