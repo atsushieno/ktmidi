@@ -66,6 +66,13 @@ class Midi2SystemMessageType {
     }
 }
 
+class Midi2MixedDataStatus {
+    companion object {
+        const val HEADER = 8
+        const val PAYLOAD = 9
+    }
+}
+
 class MidiPerNoteRCC // MIDI 2.0
 {
     companion object {
@@ -95,62 +102,15 @@ class MidiPerNoteRCC // MIDI 2.0
 }
 
 // We store UMP in Big Endian this time.
-class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: Int = 0) {
-
-    val groupByte: Int
-        get() = int1 shr 24
-
-    // First half of the 1st. byte
-    // 32bit: UMP category 0 (NOP / Clock), 1 (System) and 2 (MIDI 1.0)
-    // 64bit: UMP category 3 (SysEx7) and 4 (MIDI 2.0)
-    // 128bit: UMP category 5 (SysEx8 and Mixed Data Set)
-    val category: Int
-        get() = (int1 shr 28) and 0x7
-
-    // Second half of the 1st. byte
-    val group: Int
-        get() = (int1 shr 24) and 0xF
-
-    // 2nd. byte
-    val statusByte: Int
-        get() = (int1 shr 16) and 0xFF
-
-    // First half of the 2nd. byte.
-    // This makes sense only for MIDI 1.0, MIDI 2.0, and System messages
-    val eventType: Int
-        get() =
-            when (category) {
-                MidiMessageType.MIDI1, MidiMessageType.MIDI2 -> statusByte and 0xF0
-                else -> statusByte
-            }
-
-    // Second half of the 2nd. byte
-    val channelInGroup: Int // 0..15
-        get() = statusByte and 0xF
-
-    val groupAndChannel: Int // 0..255
-        get() = group shl 4 and channelInGroup
-
-    // 3rd. byte for MIDI 1.0 message
-    val midi1Msb: Int
-        get() = (int1 and 0xFF00) shr 8
-
-    // 4th. byte for MIDI 1.0 message
-    val midi1Lsb: Int
-        get() = (int1 and 0xFF0000) shr 16
-
+data class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: Int = 0) {
     override fun toString(): String {
-        return when(category) {
+        return when(messageType) {
             0, 1, 2 -> "[${int1.toString(16)}]"
             3, 4 -> "[${int1.toString(16)}:${int2.toString(16)}]"
             else -> "[${int1.toString(16)}:${int2.toString(16)}:${int3.toString(16)}:${int4.toString(16)}]"
         }
     }
 }
-
-val Ump.isJRTimestamp
-    get()= category == MidiMessageType.UTILITY && eventType == Midi2SystemMessageType.JR_TIMESTAMP
-fun Ump.getJRTimestampValue() = if(isJRTimestamp) (midi1Msb shl 16) + midi1Lsb else 0
 
 class Midi2Track(val messages: MutableList<Ump> = mutableListOf())
 
@@ -160,16 +120,16 @@ class Midi2Music {
             var v = 0
             for (m in messages) {
                 if (m.isJRTimestamp)
-                    v += m.getJRTimestampValue()
+                    v += m.jrTimestamp
                 // FIXME: We should come up with some solid draft on this, but so far, META events are
                 //  going to be implemented as Sysex7 messages.
-                if (m.category == MidiMessageType.SYSEX7 && m.midi1Msb == MidiEventType.META.toInt() && m.midi1Lsb == metaType)
+                if (m.messageType == MidiMessageType.SYSEX7 && m.midi1Msb == MidiEventType.META.toInt() && m.midi1Lsb == metaType)
                     yield(Pair(v, m))
             }
         }.asIterable()
 
         fun getTotalPlayTimeMilliseconds(messages: Iterable<Ump>) =
-            messages.filter { m -> m.isJRTimestamp }.sumBy { m -> m.getJRTimestampValue() } / 31250
+            messages.filter { m -> m.isJRTimestamp }.sumBy { m -> m.jrTimestamp } / 31250
     }
 
     val tracks: MutableList<Midi2Track> = mutableListOf()
@@ -230,7 +190,7 @@ class Midi2TrackMerger(private var source: Iterable<Midi2Track>) {
             var absTime = 0
             for (mev in track.messages) {
                 if (mev.isJRTimestamp)
-                    absTime += mev.getJRTimestampValue()
+                    absTime += mev.jrTimestamp
                 else
                     l.add(Pair(absTime, mev))
             }
@@ -346,7 +306,7 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
         var totalDeltaTime = 0
         for (e in source) {
             if (e.isJRTimestamp)
-                totalDeltaTime += e.getJRTimestampValue()
+                totalDeltaTime += e.jrTimestamp
             val id: Int = getTrackID(e)
             getTrack(id).addMessage(totalDeltaTime, e)
         }

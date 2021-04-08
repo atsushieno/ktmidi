@@ -9,10 +9,10 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
 
     override fun getContextDeltaTimeInMilliseconds(m: Ump): Int {
         // FIXME: it is a fake implementation, not the right calculation
-        return if(m.isJRTimestamp) (currentTempo.toDouble() / 1000 * m.getJRTimestampValue() / tempoRatio).toInt() else 0
+        return if(m.isJRTimestamp) (currentTempo.toDouble() / 1000 * m.jrTimestamp / tempoRatio).toInt() else 0
     }
 
-    override fun getDurationOfEvent(m: Ump) = if (m.isJRTimestamp) m.getJRTimestampValue() else 0
+    override fun getDurationOfEvent(m: Ump) = if (m.isJRTimestamp) m.jrTimestamp else 0
 
     override fun updateTempoAndTimeSignatureIfApplicable(m: Ump) {
         TODO("Not yet implemented")
@@ -141,7 +141,7 @@ internal class Midi2SimpleSeekProcessor(ticks: Int) : SeekProcessor<Ump> {
     private var current: Int = 0
 
     override fun filterMessage(message: Ump): SeekFilterResult {
-        current += if(message.isJRTimestamp) message.getJRTimestampValue() else 0
+        current += if(message.isJRTimestamp) message.jrTimestamp else 0
         if (current >= seekTo)
             return SeekFilterResult.PASS_AND_TERMINATE
         when (message.eventType.toByte()) {

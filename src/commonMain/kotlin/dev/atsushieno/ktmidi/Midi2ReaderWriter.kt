@@ -30,7 +30,7 @@ class Midi2MusicWriter(val stream: MutableList<Byte>) {
             (0..3).forEach { _ -> ret.add(0xEEEEEEEE.toInt()) }
             ret.add(track.messages.size)
             for (message in track.messages)
-                when (message.category) {
+                when (message.messageType) {
                     5 -> ret.addAll(sequenceOf(message.int1, message.int2, message.int3, message.int4))
                     3, 4 -> ret.addAll(sequenceOf(message.int1, message.int2))
                     else -> ret.add(message.int1)

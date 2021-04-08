@@ -10,8 +10,6 @@ private infix fun Byte.shr(n: Int): Int = this.toInt() shr n
 private infix fun Short.shl(n: Int): Int = this.toInt() shl n
 private infix fun Short.shr(n: Int): Int = this.toInt() shr n
 
-@OptIn(ExperimentalUnsignedTypes::class)
-
 const val JR_TIMESTAMP_TICKS_PER_SECOND = 31250
 const val MIDI_2_0_RESERVED: Byte = 0
 
@@ -132,7 +130,6 @@ fun umpMidi2ChannelMessage8_8_16_16(
     return (int1 shl 32) + int2
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 fun umpMidi2ChannelMessage8_8_32(
     group: Int, code: Byte, channel: Int, byte3: Int, byte4: Int,
     rest32: Long
@@ -366,17 +363,17 @@ fun umpSysexGetPacketCount(numBytes: Int, radix: Int): Int {
     return if (numBytes <= radix) 1 else (numBytes / radix + if (numBytes % radix != 0) 1 else 0)
 }
 
-fun umpReadInt32Bytes(bytes: ByteArray): Int {
+fun umpReadInt32Bytes(bytes: ByteArray, offset: Int = 0): Int {
     var ret: UInt = 0u
     for (i in 0..3)
-        ret += bytes[i].toUInt() shl (7 - i) * 8
+        ret += bytes[i + offset].toUnsigned().toUInt() shl (7 - i) * 8
     return ret.toInt()
 }
 
-fun umpReadInt64Bytes(bytes: List<Byte>): Long {
+fun umpReadInt64Bytes(bytes: List<Byte>, offset: Int): Long {
     var ret: ULong = 0u
     for (i in 0..7)
-        ret += (bytes[i].toUnsigned().toULong() shl ((7 - i) * 8))
+        ret += bytes[i + offset].toUnsigned().toULong() shl ((7 - i) * 8)
     return ret.toLong()
 }
 
@@ -421,8 +418,8 @@ fun umpSysexGetPacketOf(
         i++
         j++
     }
-    val result1 = umpReadInt64Bytes(dst8.asList())
-    val result2 = if (shouldGetResult2) umpReadInt64Bytes(dst8.drop(8)) else 0
+    val result1 = umpReadInt64Bytes(dst8.asList(), 0)
+    val result2 = if (shouldGetResult2) umpReadInt64Bytes(dst8.asList(), 8) else 0
     return Pair(result1, result2)
 }
 
@@ -522,5 +519,73 @@ fun umpSysex8Process(
     for (p in 0 until numPackets) {
         val result = umpSysex8GetPacketOf(group, streamId, length, sysex, p)
         sendUMP128(result.first, result.second, context)
+    }
+}
+
+// Mixed Data Sets
+fun umpMdsGetChunkCount(numTotalBytesInMDS: Int) : Int {
+    val radix = 14 * 0x10000
+    return numTotalBytesInMDS / radix + if (numTotalBytesInMDS % radix != 0) 1 else 0
+}
+
+fun umpMdsGetPayloadCount(numTotalBytesinChunk: Int) : Int {
+    return numTotalBytesinChunk / 14 + if (numTotalBytesinChunk % 14 != 0) 1 else 0
+}
+
+private fun fillShort(dst8: ByteArray, offset: Int, v16: Int) {
+    dst8[offset] = (v16 / 0x100).toByte()
+    dst8[offset + 1] = (v16 % 0x100).toByte()
+}
+
+fun umpMdsGetHeader(group: Byte, mdsId: Byte, numBytesInChunk16: Int, numChunks16: Int, chunkIndex16: Int,
+manufacturerId16: Int, deviceId16: Int, subId16: Int, subId2_16: Int): Pair<Long,Long> {
+    val dst8 = ByteArray(16)
+
+    dst8[0] = ((MidiMessageType.SYSEX8_MDS shl 4) + (group and 0xF)).toByte()
+    dst8[1] = (Midi2MixedDataStatus.HEADER + mdsId).toByte()
+    fillShort(dst8, 2, numBytesInChunk16)
+    fillShort(dst8, 4, numChunks16)
+    fillShort(dst8, 6, chunkIndex16)
+    fillShort(dst8, 8, manufacturerId16)
+    fillShort(dst8, 10, deviceId16)
+    fillShort(dst8, 12, subId16)
+    fillShort(dst8, 14, subId2_16)
+
+    return Pair(umpReadInt64Bytes(dst8.asList(), 0), umpReadInt64Bytes(dst8.asList(), 8))
+}
+
+fun umpMdsGetPayloadOf(group: Byte, mdsId: Byte, numBytes16: Int, srcData:List<Byte>, offset: Int) : Pair<Long, Long> {
+    val dst8 = ByteArray(16)
+
+    dst8[0] = ((MidiMessageType.SYSEX8_MDS shl 4) + (group and 0xF)).toByte()
+    dst8[1] = (Midi2MixedDataStatus.PAYLOAD + mdsId).toByte()
+
+    val radix = 14
+    val size = if (numBytes16 < radix) numBytes16 % radix else radix
+
+    var i = 0
+    var j = offset
+    while (i < size) {
+        dst8[i + 2] = srcData[j]
+        i++
+        j++
+    }
+
+    return Pair(umpReadInt64Bytes(dst8.asList(), 0), umpReadInt64Bytes(dst8.asList(), 8))
+}
+
+typealias UmpMdsHandler = (Long, Long, Int, Int, Any) -> Unit
+
+fun umpMdsProcess(group: Byte, mdsId: Byte, data: List<Byte>, length: Int, sendUmp: UmpMdsHandler, context: Any) {
+    val numChunks = umpMdsGetChunkCount(length)
+    for (c in 0 until numChunks) {
+        val maxChunkSize = 14 * 65535
+        val chunkSize = if (c + 1 == numChunks) length % maxChunkSize else maxChunkSize
+        val numPayloads = umpMdsGetPayloadCount(chunkSize)
+        for (p in 0 until numPayloads) {
+            val offset = 14 * (65536 * c + p)
+            val result = umpMdsGetPayloadOf(group, mdsId, chunkSize, data, offset)
+            sendUmp(result.first, result.second, c, p, context)
+        }
     }
 }
