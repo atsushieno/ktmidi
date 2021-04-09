@@ -147,6 +147,9 @@ class Midi2Music {
                 calc.getTotalPlayTimeMilliseconds(messages, deltaTimeSpec)
             else
                 messages.filter { m -> m.isJRTimestamp }.sumBy { m -> m.jrTimestamp } / 31250
+
+        fun getPlayTimeMillisecondsAtTick(messages: Iterable<Ump>, ticks: Int, deltaTimeSpec: Int) =
+            calc.getPlayTimeMillisecondsAtTick(messages, ticks, deltaTimeSpec)
     }
 
     val tracks: MutableList<Midi2Track> = mutableListOf()
@@ -165,27 +168,26 @@ class Midi2Music {
 
     fun getMetaEventsOfType(metaType: Int): Iterable<Pair<Int,Ump>> {
         if (tracks.size > 1)
-            return Midi2TrackMerger.merge(tracks).getMetaEventsOfType(metaType)
+            return Midi2TrackMerger.merge(this).getMetaEventsOfType(metaType)
         return getMetaEventsOfType(tracks[0].messages, metaType.toByte()).asIterable()
     }
 
-    /*
     fun getTotalTicks(): Int {
-        // FIXME: implement merger
-        //if (tracks.size > 1)
-        //    return Midi2TrackMerger.merge(this).getTotalTicks()
-        return tracks[0].messages.sumBy { m: MidiMessage -> m.deltaTime }
+        if (format != 0.toByte())
+            return Midi2TrackMerger.merge(this).getTotalTicks()
+        return tracks[0].messages.sumBy { m: Ump -> m.jrTimestamp }
     }
-    */
 
     fun getTotalPlayTimeMilliseconds(): Int {
-        if (tracks.size > 1)
-            return Midi2TrackMerger.merge(tracks).getTotalPlayTimeMilliseconds()
+        if (format != 0.toByte())
+            return Midi2TrackMerger.merge(this).getTotalPlayTimeMilliseconds()
         return getTotalPlayTimeMilliseconds(tracks[0].messages, deltaTimeSpec)
     }
 
     fun getTimePositionInMillisecondsForTick(ticks: Int): Int {
-        return ticks / 31250
+        if (format != 0.toByte())
+            return Midi2TrackMerger.merge(this).getTimePositionInMillisecondsForTick(ticks)
+        return getPlayTimeMillisecondsAtTick(tracks[0].messages, ticks, deltaTimeSpec)
     }
 
     init {
@@ -193,10 +195,10 @@ class Midi2Music {
     }
 }
 
-class Midi2TrackMerger(private var source: Iterable<Midi2Track>) {
+class Midi2TrackMerger(private var source: Midi2Music) {
     companion object {
 
-        fun merge(source: Iterable<Midi2Track>): Midi2Music {
+        fun merge(source: Midi2Music): Midi2Music {
             return Midi2TrackMerger(source).getMergedMessages()
         }
     }
@@ -204,7 +206,7 @@ class Midi2TrackMerger(private var source: Iterable<Midi2Track>) {
     private fun getMergedMessages(): Midi2Music {
         var l = mutableListOf<Pair<Int,Ump>>()
 
-        for (track in source) {
+        for (track in source.tracks) {
             var absTime = 0
             for (mev in track.messages) {
                 if (mev.isJRTimestamp)
@@ -263,7 +265,7 @@ class Midi2TrackMerger(private var source: Iterable<Midi2Track>) {
             if (i > 0) {
                 val delta = l[i + 1].first - l[i].first
                 if (delta > 0)
-                    l3.addAll(umpJRTimestamps(l[i].second.group, delta.toLong()).map { i -> Ump(i) })
+                    l3.addAll(umpJRTimestamps(l[i].second.group, delta.toLong()).map { v -> Ump(v) })
                 timeAbs += delta
             }
             l3.add(l[i].second)
@@ -272,6 +274,7 @@ class Midi2TrackMerger(private var source: Iterable<Midi2Track>) {
 
         val m = Midi2Music()
         m.format = 0
+        m.deltaTimeSpec = source.deltaTimeSpec
         m.tracks.add(Midi2Track(l3))
         return m
     }

@@ -53,7 +53,7 @@ class Midi2Player : MidiPlayerCommon<Ump> {
             : super(output, shouldDisposeOutput, timer) {
         this.music = music
 
-        messages = Midi2TrackMerger.merge(music.tracks).tracks[0].messages
+        messages = Midi2TrackMerger.merge(music).tracks[0].messages
         looper = Midi2EventLooper(messages, timer)
         looper.starting = Runnable {
             // FIXME: implement
