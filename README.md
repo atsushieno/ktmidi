@@ -15,7 +15,7 @@ The entire API is still subject to change, and it is actually radically changing
 ## Applications
 
 - [atsushieno/mugene-ng](https://github.com/atsushieno/mugene-ng) is a Music Macro Language compiler that aims to support MIDI 2.0 (as its output format (based on this API) as well as MIDI 1.0 SMF.
-- [atsushieno/notium](https://github.com/atsushieno/mugene-ng) aims to offer the same functionality as mugene-ng, but as an object-oriented Kotlin API.
+- [atsushieno/notium](https://github.com/atsushieno/notium-ng) aims to offer the same functionality as mugene-ng, but as an object-oriented Kotlin API.
 - [atsushieno/kmmk](https://github.com/atsushieno/kmmk) is a virtual MIDI keyboard application that is based on Jetpack Compose and therefore supposed to work on both Android and Java desktop. (still under construction)
 
 ## MIDI 2.0 support
