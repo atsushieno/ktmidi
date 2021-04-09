@@ -53,7 +53,7 @@ internal class Midi1EventLooper(var messages: List<MidiMessage>, private val tim
 
     override fun mute() {
         for (i in 0..15)
-            onEvent(MidiMessage(0, MidiEvent(i + 0xB0, 0x78, 0, null, 0, 0)))
+            onEvent(MidiMessage(0, MidiEvent(i + MidiEventType.CC, MidiCC.ALL_SOUND_OFF.toInt(), 0, null, 0, 0)))
     }
 }
 

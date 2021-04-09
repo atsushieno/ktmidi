@@ -3,20 +3,38 @@ package dev.atsushieno.ktmidi
 import dev.atsushieno.ktmidi.umpfactory.umpMidi1CC
 import kotlinx.coroutines.Runnable
 
-internal class Midi2EventLooper(var messages: List<Ump>, private val timer: MidiPlayerTimer) : MidiEventLooper<Ump>(timer) {
+internal class Midi2EventLooper(var messages: List<Ump>, private val timer: MidiPlayerTimer, private val deltaTimeSpec: Int)
+    : MidiEventLooper<Ump>(timer) {
     override fun isEventIndexAtEnd() = eventIdx == messages.size
 
     override fun getNextMessage() = messages[eventIdx]
 
     override fun getContextDeltaTimeInMilliseconds(m: Ump): Int {
-        // FIXME: it is a fake implementation, not the right calculation
-        return if(m.isJRTimestamp) (currentTempo.toDouble() / 1000 * m.jrTimestamp / tempoRatio).toInt() else 0
+        if (deltaTimeSpec > 0)
+            return if(m.isJRTimestamp) (currentTempo.toDouble() / 1000 * m.jrTimestamp / tempoRatio).toInt() else 0
+        else
+            TODO("Not implemented") // simpler JR Timestamp though
     }
 
     override fun getDurationOfEvent(m: Ump) = if (m.isJRTimestamp) m.jrTimestamp else 0
 
+    private val umpConversionBuffer = ByteArray(16)
+
     override fun updateTempoAndTimeSignatureIfApplicable(m: Ump) {
-        TODO("Not yet implemented")
+        if (m.messageType == MidiMessageType.SYSEX8_MDS && m.eventType == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
+            m.midi1Msb == MidiEventType.META.toInt()) {
+            when (m.midi1Lsb.toByte()) {
+                MidiMetaType.TEMPO -> {
+                    m.saveInto(umpConversionBuffer, 0)
+                    currentTempo = MidiMetaType.getTempo(umpConversionBuffer, 8)
+                }
+                MidiMetaType.TIME_SIGNATURE -> {
+                    m.saveInto(umpConversionBuffer, 0)
+                    umpConversionBuffer.copyInto(currentTimeSignature, 0, 8, 12)
+                }
+                else -> {}
+            }
+        }
     }
 
     private val messageHandlers = mutableListOf<OnMidi2EventListener>()
@@ -37,7 +55,10 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
     }
 
     override fun mute() {
-        TODO("Not yet implemented")
+        // all sound off on all channels.
+        for (group in 0..15)
+            for (ch in 0..15)
+                onEvent(Ump(umpMidi1CC(group, ch, MidiCC.ALL_SOUND_OFF, 0)))
     }
 }
 
@@ -57,13 +78,13 @@ class Midi2Player : MidiPlayerCommon<Ump> {
         val umpConversionBuffer = ByteArray(16)
 
         messages = Midi2TrackMerger.merge(music).tracks[0].messages
-        looper = Midi2EventLooper(messages, timer)
+        looper = Midi2EventLooper(messages, timer, music.deltaTimeSpec)
         looper.starting = Runnable {
             if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
                 for (group in 0..15) {
                     // all control reset on all channels.
                     for (ch in 0..15) {
-                        val ump = Ump(umpMidi1CC(group, ch, MidiCC.RESET_ALL_CONTROLLERS, 9))
+                        val ump = Ump(umpMidi1CC(group, ch, MidiCC.RESET_ALL_CONTROLLERS, 0))
                         ump.saveInto(umpConversionBuffer, 0)
                         output.send(umpConversionBuffer, 0, ump.sizeInBytes, 0)
                     }
@@ -81,39 +102,64 @@ class Midi2Player : MidiPlayerCommon<Ump> {
 
         val listener = object : OnMidi2EventListener {
             override fun onEvent(e: Ump) {
-                when (e.eventType.toByte()) {
-                    MidiEventType.NOTE_OFF,
-                    MidiEventType.NOTE_ON -> {
-                        if (mutedChannels.contains(e.groupAndChannel))
-                            return // ignore messages for the masked channel.
+                when (e.messageType) {
+                    MidiMessageType.SYSEX7 -> {
+                        when (e.eventType) {
+                            Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> {
+                                if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
+                                    e.saveInto(umpConversionBuffer, 0)
+                                    output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
+                                }
+                                else {
+                                    e.saveInto(umpConversionBuffer, 0)
+                                    umpConversionBuffer[1] = 0xF0.toByte()
+                                    // FIXME: verify size and content
+                                    output.send(umpConversionBuffer, 1, e.sizeInBytes, 0)
+                                }
+                            }
+                            else -> TODO("Longer sysex Not yet implemented")
+                        }
                     }
-                    MidiEventType.SYSEX,
-                    MidiEventType.SYSEX_END -> {
-                        // FIXME: implement here
-                        TODO("Not yet implemented")
-                        /*
-                        if (buffer.size <= e.extraDataLength)
-                            buffer = ByteArray(buffer.size * 2)
-                        buffer[0] = e.statusByte
-                        e.extraData!!.copyInto(buffer, 1, e.extraDataOffset, e.extraDataLength - 1)
-                        output.send(buffer, 0, e.extraDataLength + 1, 0)
-                        */
-                        return
+                    MidiMessageType.SYSEX8_MDS -> {
+                        when (e.eventType) {
+                            Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> {
+                                if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
+                                    e.saveInto(umpConversionBuffer, 0)
+                                    output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
+                                }
+                                else
+                                    throw UnsupportedOperationException("MIDI 2.0 SYSEX8/MDS not supported on devices that only support MIDI 1.0 protocol.")
+                            }
+                            else -> TODO("Longer sysex Not yet implemented")
+                        }
                     }
-                    MidiEventType.META -> {
-                        // do nothing.
-                        return
+                    MidiMessageType.MIDI2 -> {
+                        if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
+                            e.saveInto(umpConversionBuffer, 0)
+                            output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
+                        }
+                        else
+                            TODO("Not implemented")
                     }
-                }
-                if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
-                    e.saveInto(umpConversionBuffer, 0)
-                    output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
-                } else {
-                    // all control reset on all channels.
-                    umpConversionBuffer[0] = e.statusByte.toByte()
-                    umpConversionBuffer[1] = e.midi1Msb.toByte()
-                    umpConversionBuffer[2] = e.midi1Lsb.toByte()
-                    output.send(umpConversionBuffer, 0, 3, 0)
+                    MidiMessageType.MIDI1 -> {
+                        when (e.eventType.toByte()) {
+                            MidiEventType.NOTE_OFF,
+                            MidiEventType.NOTE_ON -> {
+                                if (mutedChannels.contains(e.groupAndChannel))
+                                    return // ignore messages for the masked channel.
+                            }
+                        }
+                        if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
+                            e.saveInto(umpConversionBuffer, 0)
+                            output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
+                        } else {
+                            // all control reset on all channels.
+                            umpConversionBuffer[0] = e.statusByte.toByte()
+                            umpConversionBuffer[1] = e.midi1Msb.toByte()
+                            umpConversionBuffer[2] = e.midi1Lsb.toByte()
+                            output.send(umpConversionBuffer, 0, 3, 0)
+                        }
+                    }
                 }
             }
         }
