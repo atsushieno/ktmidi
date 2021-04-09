@@ -66,10 +66,14 @@ class Midi2SystemMessageType {
     }
 }
 
-class Midi2MixedDataStatus {
+class Midi2BinaryChunkStatus {
     companion object {
-        const val HEADER = 8
-        const val PAYLOAD = 9
+        const val SYSEX_IN_ONE_UMP = 0
+        const val SYSEX_START = 0x10
+        const val SYSEX_CONTINUE = 0x20
+        const val SYSEX_END = 0x30
+        const val MDS_HEADER = 0x80
+        const val MDS_PAYLOAD = 0x90
     }
 }
 
@@ -115,28 +119,44 @@ data class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: In
 class Midi2Track(val messages: MutableList<Ump> = mutableListOf())
 
 class Midi2Music {
-    companion object {
-        fun getMetaEventsOfType(messages: Iterable<Ump>, metaType: Int) = sequence {
-            var v = 0
-            for (m in messages) {
-                if (m.isJRTimestamp)
-                    v += m.jrTimestamp
-                // FIXME: We should come up with some solid draft on this, but so far, META events are
-                //  going to be implemented as Sysex7 messages.
-                if (m.messageType == MidiMessageType.SYSEX7 && m.midi1Msb == MidiEventType.META.toInt() && m.midi1Lsb == metaType)
-                    yield(Pair(v, m))
-            }
-        }.asIterable()
+    class UmpDeltaTimeComputer: DeltaTimeComputer<Ump>() {
+        override fun messageToDeltaTime(message: Ump) = if (message.isJRTimestamp) message.jrTimestamp else 0
 
-        fun getTotalPlayTimeMilliseconds(messages: Iterable<Ump>) =
-            messages.filter { m -> m.isJRTimestamp }.sumBy { m -> m.jrTimestamp } / 31250
+        // FIXME: We should come up with some solid draft on this, but so far, META events are
+        //  going to be implemented as Sysex8 messages. Starts with [0xFF MetaType] ...
+        override fun isMetaEventMessage(message: Ump, metaType: Byte)
+            = message.messageType == MidiMessageType.SYSEX8_MDS &&
+                message.eventType == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
+                message.int1 % 0x100 == MidiEventType.META.toInt() &&
+                (message.int2 shr 24) == metaType.toUnsigned()
+
+        // 3 bytes in Sysex8 pseudo meta message
+        override fun getTempoValue(message: Ump)
+            = if (isMetaEventMessage(message, MidiMetaType.TEMPO)) message.int2 % 0x1000000
+            else throw IllegalArgumentException("Attempt to calculate tempo from non-meta UMP")
+    }
+
+    companion object {
+        private val calc = UmpDeltaTimeComputer()
+
+        fun getMetaEventsOfType(messages: Iterable<Ump>, metaType: Byte) =
+            calc.getMetaEventsOfType(messages, metaType)
+
+        fun getTotalPlayTimeMilliseconds(messages: Iterable<Ump>, deltaTimeSpec: Int) =
+            if (deltaTimeSpec > 0)
+                calc.getTotalPlayTimeMilliseconds(messages, deltaTimeSpec)
+            else
+                messages.filter { m -> m.isJRTimestamp }.sumBy { m -> m.jrTimestamp } / 31250
     }
 
     val tracks: MutableList<Midi2Track> = mutableListOf()
 
-    // Not sure if we can support them.
+    // This brings in kind of hack in the UMP content.
+    // When a positive value is explicitly given, then it is interpreted as the same qutantization as what SMF does
+    // and the actual "ticks" in JR Timestamp messages are delta time (i.e. fake), not 1/31250 msec.
     var deltaTimeSpec: Int = 0
 
+    // There is no "format" specifier in this format but we leave it so far.
     var format: Byte = 0
 
     fun addTrack(track: Midi2Track) {
@@ -144,26 +164,24 @@ class Midi2Music {
     }
 
     fun getMetaEventsOfType(metaType: Int): Iterable<Pair<Int,Ump>> {
-        // FIXME: implement merger
-        //if (format != 0.toByte())
-        //    return SmfTrackMerger.merge(this).getMetaEventsOfType(metaType)
-        return getMetaEventsOfType(tracks[0].messages, metaType).asIterable()
+        if (tracks.size > 1)
+            return Midi2TrackMerger.merge(tracks).getMetaEventsOfType(metaType)
+        return getMetaEventsOfType(tracks[0].messages, metaType.toByte()).asIterable()
     }
 
     /*
     fun getTotalTicks(): Int {
         // FIXME: implement merger
-        //if (format != 0.toByte())
-        //    return SmfTrackMerger.merge(this).getTotalTicks()
+        //if (tracks.size > 1)
+        //    return Midi2TrackMerger.merge(this).getTotalTicks()
         return tracks[0].messages.sumBy { m: MidiMessage -> m.deltaTime }
     }
     */
 
     fun getTotalPlayTimeMilliseconds(): Int {
-        // FIXME: implement merger
-        //if (format != 0.toByte())
-        //    return SmfTrackMerger.merge(this).getTotalPlayTimeMilliseconds()
-        return getTotalPlayTimeMilliseconds(tracks[0].messages)
+        if (tracks.size > 1)
+            return Midi2TrackMerger.merge(tracks).getTotalPlayTimeMilliseconds()
+        return getTotalPlayTimeMilliseconds(tracks[0].messages, deltaTimeSpec)
     }
 
     fun getTimePositionInMillisecondsForTick(ticks: Int): Int {

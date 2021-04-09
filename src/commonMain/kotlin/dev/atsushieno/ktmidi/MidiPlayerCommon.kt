@@ -5,6 +5,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
 
+
 abstract class MidiPlayerCommon<TMessage>(internal val output: MidiOutput, private var shouldDisposeOutput: Boolean, timer: MidiPlayerTimer) {
 
     internal lateinit var messages: MutableList<TMessage>

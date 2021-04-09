@@ -542,7 +542,7 @@ manufacturerId16: Int, deviceId16: Int, subId16: Int, subId2_16: Int): Pair<Long
     val dst8 = ByteArray(16)
 
     dst8[0] = ((MidiMessageType.SYSEX8_MDS shl 4) + (group and 0xF)).toByte()
-    dst8[1] = (Midi2MixedDataStatus.HEADER + mdsId).toByte()
+    dst8[1] = (Midi2BinaryChunkStatus.MDS_HEADER + mdsId).toByte()
     fillShort(dst8, 2, numBytesInChunk16)
     fillShort(dst8, 4, numChunks16)
     fillShort(dst8, 6, chunkIndex16)
@@ -558,7 +558,7 @@ fun umpMdsGetPayloadOf(group: Byte, mdsId: Byte, numBytes16: Int, srcData:List<B
     val dst8 = ByteArray(16)
 
     dst8[0] = ((MidiMessageType.SYSEX8_MDS shl 4) + (group and 0xF)).toByte()
-    dst8[1] = (Midi2MixedDataStatus.PAYLOAD + mdsId).toByte()
+    dst8[1] = (Midi2BinaryChunkStatus.MDS_PAYLOAD + mdsId).toByte()
 
     val radix = 14
     val size = if (numBytes16 < radix) numBytes16 % radix else radix

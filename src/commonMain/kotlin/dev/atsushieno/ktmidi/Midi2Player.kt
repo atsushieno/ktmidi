@@ -123,7 +123,7 @@ class Midi2Player : MidiPlayerCommon<Ump> {
         get() = music.getTimePositionInMillisecondsForTick(playDeltaTime).toLong()
 
     override val totalPlayTimeMilliseconds: Int
-        get() = Midi2Music.getTotalPlayTimeMilliseconds(messages)
+        get() = Midi2Music.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
 
     override fun seek(ticks: Int) {
         looper.seek(Midi2SimpleSeekProcessor(ticks), ticks)
