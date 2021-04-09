@@ -214,8 +214,8 @@ class MidiPlayer : MidiPlayerCommon<MidiMessage> {
         looper.starting = Runnable {
             // all control reset on all channels.
             for (i in 0..15) {
-                buffer[0] = (i + 0xB0).toByte()
-                buffer[1] = 0x79
+                buffer[0] = (i + MidiEventType.CC).toByte()
+                buffer[1] = MidiCC.RESET_ALL_CONTROLLERS
                 buffer[2] = 0
                 output.send(buffer, 0, 3, 0)
             }

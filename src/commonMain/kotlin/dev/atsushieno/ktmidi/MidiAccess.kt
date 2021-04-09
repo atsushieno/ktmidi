@@ -42,8 +42,10 @@ enum class MidiPortConnectionState {
 
 interface MidiPort {
     val details: MidiPortDetails
-    val connection: MidiPortConnectionState
+    val connectionState: MidiPortConnectionState
     fun close()
+
+    var midiProtocol: Int
 }
 
 interface OnMidiReceivedEventListener {
@@ -51,11 +53,11 @@ interface OnMidiReceivedEventListener {
 }
 
 interface MidiInput : MidiPort {
-    fun setMessageReceivedListener(listener: OnMidiReceivedEventListener)
+    abstract fun setMessageReceivedListener(listener: OnMidiReceivedEventListener)
 }
 
 interface MidiOutput : MidiPort {
-    fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long)
+    abstract fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long)
 }
 
 // Virtual MIDI port support
@@ -67,7 +69,7 @@ abstract class SimpleVirtualMidiPort protected constructor(
 
     private var state: MidiPortConnectionState = MidiPortConnectionState.OPEN
 
-    override val connection: MidiPortConnectionState
+    override val connectionState: MidiPortConnectionState
         get() = state
 
     override fun close ()
@@ -76,6 +78,9 @@ abstract class SimpleVirtualMidiPort protected constructor(
         state = MidiPortConnectionState.CLOSED
     }
 
+    override var midiProtocol: Int
+        get() = MidiCIProtocolValue.MIDI1
+        set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
 }
 
 class SimpleVirtualMidiInput(details: MidiPortDetails, onDispose: () -> Unit) : SimpleVirtualMidiPort(
@@ -131,11 +136,15 @@ class EmptyMidiAccess : MidiAccess() {
 }
 
 abstract class EmptyMidiPort : MidiPort {
-    override val connection = MidiPortConnectionState.OPEN
+    override val connectionState = MidiPortConnectionState.OPEN
 
     override fun close() {
         // do nothing.
     }
+
+    override var midiProtocol: Int
+        get() = MidiCIProtocolValue.MIDI1
+        set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
 }
 
 class EmptyMidiPortDetails(override val id: String, name: String) : MidiPortDetails {

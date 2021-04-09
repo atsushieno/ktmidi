@@ -1,8 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import dev.atsushieno.ktmidi.umpfactory.umpGetNumBytes
-import dev.atsushieno.ktmidi.umpfactory.umpReadInt32Bytes
-
 val Ump.groupByte: Int
     get() = int1 shr 24
 
@@ -12,6 +9,31 @@ val Ump.groupByte: Int
 // 128bit: UMP message type 5 (SysEx8 and Mixed Data Set)
 val Ump.messageType: Int
     get() = (int1 shr 28) and 0x7
+
+val Ump.sizeInBytes
+    get() = when(messageType) {
+        MidiMessageType.SYSEX8_MDS -> 128
+        MidiMessageType.SYSEX7, MidiMessageType.MIDI2 -> 64
+        else -> 32
+    }
+
+private fun Ump.saveInto(bytes: ByteArray, value: Int, index: Int) {
+    bytes[index] = (value / 0x1000000).toByte()
+    bytes[index + 1] = ((value / 0x10000) % 0x100).toByte()
+    bytes[index + 2] = ((value / 0x100) % 0x100).toByte()
+    bytes[index + 3] = (value % 0x100).toByte()
+}
+
+fun Ump.saveInto(bytes: ByteArray, offset: Int) {
+    val size = sizeInBytes
+    saveInto(bytes, int1, offset)
+    if (size != 32)
+        saveInto(bytes, int2, offset + 8)
+    if (size == 128) {
+        saveInto(bytes, int3, offset + 16)
+        saveInto(bytes, int4, offset + 24)
+    }
+}
 
 // Second half of the 1st. byte
 val Ump.group: Int

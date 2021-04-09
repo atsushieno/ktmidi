@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi
 
+import dev.atsushieno.ktmidi.umpfactory.umpMidi1CC
 import kotlinx.coroutines.Runnable
 
 internal class Midi2EventLooper(var messages: List<Ump>, private val timer: MidiPlayerTimer) : MidiEventLooper<Ump>(timer) {
@@ -53,20 +54,29 @@ class Midi2Player : MidiPlayerCommon<Ump> {
             : super(output, shouldDisposeOutput, timer) {
         this.music = music
 
+        val umpConversionBuffer = ByteArray(16)
+
         messages = Midi2TrackMerger.merge(music).tracks[0].messages
         looper = Midi2EventLooper(messages, timer)
         looper.starting = Runnable {
-            // FIXME: implement
-            TODO("Not yet implemented")
-            /*
-            // all control reset on all channels.
-            for (i in 0..15) {
-                buffer[0] = (i + 0xB0).toByte()
-                buffer[1] = 0x79
-                buffer[2] = 0
-                output.send(buffer, 0, 3, 0)
+            if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
+                for (group in 0..15) {
+                    // all control reset on all channels.
+                    for (ch in 0..15) {
+                        val ump = Ump(umpMidi1CC(group, ch, MidiCC.RESET_ALL_CONTROLLERS, 9))
+                        ump.saveInto(umpConversionBuffer, 0)
+                        output.send(umpConversionBuffer, 0, ump.sizeInBytes, 0)
+                    }
+                }
+            } else {
+                // all control reset on all channels.
+                for (i in 0..15) {
+                    umpConversionBuffer[0] = (i + MidiEventType.CC).toByte()
+                    umpConversionBuffer[1] = MidiCC.RESET_ALL_CONTROLLERS
+                    umpConversionBuffer[2] = 0
+                    output.send(umpConversionBuffer, 0, 3, 0)
+                }
             }
-            */
         }
 
         val listener = object : OnMidi2EventListener {
@@ -95,15 +105,16 @@ class Midi2Player : MidiPlayerCommon<Ump> {
                         return
                     }
                 }
-                // FIXME: implement
-                TODO("Not yet implemented")
-                /*
-                val size = MidiEvent.fixedDataSize(e.statusByte)
-                buffer[0] = e.statusByte
-                buffer[1] = e.msb
-                buffer[2] = e.lsb
-                output.send(buffer, 0, size + 1, 0)
-                */
+                if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
+                    e.saveInto(umpConversionBuffer, 0)
+                    output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
+                } else {
+                    // all control reset on all channels.
+                    umpConversionBuffer[0] = e.statusByte.toByte()
+                    umpConversionBuffer[1] = e.midi1Msb.toByte()
+                    umpConversionBuffer[2] = e.midi1Lsb.toByte()
+                    output.send(umpConversionBuffer, 0, 3, 0)
+                }
             }
         }
         addOnMessageListener(listener)

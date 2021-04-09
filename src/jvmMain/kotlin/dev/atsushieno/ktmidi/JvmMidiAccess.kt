@@ -69,12 +69,16 @@ private class JvmMidiInput(val port: JvmMidiTransmitterPortDetails) : MidiInput 
 
     private val state: MidiPortConnectionState = MidiPortConnectionState.OPEN
 
-    override val connection: MidiPortConnectionState
+    override val connectionState: MidiPortConnectionState
         get() = state
 
     override fun close() {
         port.transmitter.close()
     }
+
+    override var midiProtocol: Int
+        get() = MidiCIProtocolValue.MIDI1
+        set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
 
     private var listener: OnMidiReceivedEventListener = object : OnMidiReceivedEventListener {
         override fun onEventReceived(data: ByteArray, start: Int, length: Int, timestamp: Long) {
@@ -106,8 +110,12 @@ private class JvmMidiOutput(val port: JvmMidiReceiverPortDetails) : MidiOutput {
 
     private val state: MidiPortConnectionState = MidiPortConnectionState.OPEN
 
-    override val connection: MidiPortConnectionState
+    override val connectionState: MidiPortConnectionState
         get() = state
+
+    override var midiProtocol: Int
+        get() = MidiCIProtocolValue.MIDI1
+        set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
 
     override fun close() {
         port.receiver.close()

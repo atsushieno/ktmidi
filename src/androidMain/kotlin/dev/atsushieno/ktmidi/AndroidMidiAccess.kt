@@ -79,13 +79,17 @@ private class OpenDeviceListener(val parent: AndroidMidiAccess, var device: Midi
 private abstract class AndroidPort(override val details: AndroidPortDetails, private val onClose: () -> Unit) : MidiPort {
 
     private var state: MidiPortConnectionState = MidiPortConnectionState.OPEN
-    override val connection: MidiPortConnectionState
+    override val connectionState: MidiPortConnectionState
         get() = state
 
     override fun close() {
         onClose ()
         state = MidiPortConnectionState.CLOSED
     }
+
+    override var midiProtocol: Int
+        get() = MidiCIProtocolValue.MIDI1
+        set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
 }
 
 private class AndroidMidiInput(portDetails: AndroidPortDetails, private val impl: MidiOutputPort)
