@@ -377,13 +377,6 @@ fun umpReadInt64Bytes(bytes: List<Byte>, offset: Int): Long {
     return ret.toLong()
 }
 
-object UmpSysexStatus {
-    const val InOneUmp = 0
-    const val Start = 0x10
-    const val Continue = 0x20
-    const val End = 0x30
-}
-
 fun umpSysexGetPacketOf(
     shouldGetResult2: Boolean, group: Int, numBytes8: Int, srcData: List<Byte>, index: Int,
     messageType: Int, radix: Int, hasStreamId: Boolean, streamId: Byte = 0
@@ -393,19 +386,19 @@ fun umpSysexGetPacketOf(
     val status: Int
     val size: Int
     if (numBytes8 <= radix) {
-        status = UmpSysexStatus.InOneUmp
+        status = Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP
         size = numBytes8 // single packet message
     } else if (index == 0) {
-        status = UmpSysexStatus.Start
+        status = Midi2BinaryChunkStatus.SYSEX_START
         size = radix
     } else {
         val isEnd = index == umpSysexGetPacketCount(numBytes8, radix) - 1
         if (isEnd) {
             size = if (numBytes8 % radix != 0) numBytes8 % radix else radix
-            status = UmpSysexStatus.End
+            status = Midi2BinaryChunkStatus.SYSEX_END
         } else {
             size = radix
-            status = UmpSysexStatus.Continue
+            status = Midi2BinaryChunkStatus.SYSEX_CONTINUE
         }
     }
     dst8[1] = (status + size + if (hasStreamId) 1 else 0).toByte()
