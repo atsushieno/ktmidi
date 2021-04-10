@@ -27,7 +27,7 @@ It would be useful for general MIDI 2.0 software tools such as MIDI 2.0 UMP play
 Here is a list of MIDI 2.0 extensibility in this API:
 
 - `MidiInput` and `MidiOutput` now has `midiProtocol` property which can be get and/or set. When `MidiCIProtocolValue.MIDI2_V1` is specified, then the I/O object is supposed to process UMPs (Universal MIDI Packets).
-- `Midi2Music` is a feature parity with `MidiMusic`, but all the messages are stored as UMPs. However, since SMF concepts of time calculation (namely delta time quantization / specification) is useful, we blend it into UMPs and their JR Timestamp messages are actually fake - they store delta times just like SMF.
+- `Midi2Music` is a feature parity with `MidiMusic`, but all the messages are stored as UMPs. However, since SMF concepts of time calculation (namely delta time quantization / specification) is useful, we optionally blend it into UMPs and their JR Timestamp messages are actually fake - they store delta times just like SMF.
 - `Midi2Player` is a feature parity with `MidiPlayer`.
 - `dev.atsushieno.ktmidi.umpfactory` package contains a bunch of utility functions that are used to construct UMP integer values.
 

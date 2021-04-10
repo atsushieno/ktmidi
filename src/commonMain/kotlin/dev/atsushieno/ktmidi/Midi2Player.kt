@@ -22,15 +22,15 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
 
     override fun updateTempoAndTimeSignatureIfApplicable(m: Ump) {
         if (m.messageType == MidiMessageType.SYSEX8_MDS && m.eventType == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
-            m.midi1Msb == MidiEventType.META.toInt()) {
-            when (m.midi1Lsb.toByte()) {
+            m.int2 % 0x100  == MidiEventType.META.toInt()) {
+            when ((m.int3 / 0x1000000).toByte()) {
                 MidiMetaType.TEMPO -> {
                     m.saveInto(umpConversionBuffer, 0)
-                    currentTempo = MidiMetaType.getTempo(umpConversionBuffer, 8)
+                    currentTempo = MidiMetaType.getTempo(umpConversionBuffer, 12)
                 }
                 MidiMetaType.TIME_SIGNATURE -> {
                     m.saveInto(umpConversionBuffer, 0)
-                    umpConversionBuffer.copyInto(currentTimeSignature, 0, 8, 12)
+                    umpConversionBuffer.copyInto(currentTimeSignature, 0, 12, 16)
                 }
                 else -> {}
             }

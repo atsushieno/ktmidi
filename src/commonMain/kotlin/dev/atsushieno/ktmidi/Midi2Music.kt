@@ -127,12 +127,14 @@ class Midi2Music {
         override fun isMetaEventMessage(message: Ump, metaType: Byte)
             = message.messageType == MidiMessageType.SYSEX8_MDS &&
                 message.eventType == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
-                message.int1 % 0x100 == MidiEventType.META.toInt() &&
-                (message.int2 shr 24) == metaType.toUnsigned()
+                message.int1 % 0x100 == 0 && // first 4 bytes indicate manufacturer ID ... subID2, filled with 0
+                message.int2 / 0x100 == 0 &&
+                message.int2 % 0x100 == MidiEventType.META.toInt() &&
+                (message.int3 shr 24) == metaType.toUnsigned()
 
         // 3 bytes in Sysex8 pseudo meta message
         override fun getTempoValue(message: Ump)
-            = if (isMetaEventMessage(message, MidiMetaType.TEMPO)) message.int2 % 0x1000000
+            = if (isMetaEventMessage(message, MidiMetaType.TEMPO)) message.int3 % 0x1000000
             else throw IllegalArgumentException("Attempt to calculate tempo from non-meta UMP")
     }
 
