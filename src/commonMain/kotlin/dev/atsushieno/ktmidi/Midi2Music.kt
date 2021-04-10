@@ -262,7 +262,7 @@ class Midi2TrackMerger(private var source: Midi2Music) {
         var timeAbs = l[0].first
         i = 0
         while (i < l.size) {
-            if (i > 0) {
+            if (i + 1 < l.size) {
                 val delta = l[i + 1].first - l[i].first
                 if (delta > 0)
                     l3.addAll(umpJRTimestamps(l[i].second.group, delta.toLong()).map { v -> Ump(v) })
@@ -321,14 +321,14 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
     // Override it to customize track dispatcher. It would be
     // useful to split note messages out from non-note ones,
     // to ease data reading.
-    open fun getTrackID(e: Ump) = e.groupAndChannel
+    open fun getTrackId(e: Ump) = e.groupAndChannel
 
     private fun split(): Midi2Music {
         var totalDeltaTime = 0
         for (e in source) {
             if (e.isJRTimestamp)
                 totalDeltaTime += e.jrTimestamp
-            val id: Int = getTrackID(e)
+            val id: Int = getTrackId(e)
             getTrack(id).addMessage(totalDeltaTime, e)
         }
 
@@ -342,4 +342,60 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
         val mtr = SplitTrack(-1)
         tracks[-1] = mtr
     }
+}
+
+class Midi2DeltaTimeConverter private constructor(private val source: Midi2Music) {
+    companion object {
+        fun convertDeltaTimeToJRTimestamp(source: Midi2Music) =
+            if (source.deltaTimeSpec > 0) Midi2DeltaTimeConverter(source).deltaTimetoJRTimestamp() else source
+    }
+
+    fun deltaTimetoJRTimestamp() : Midi2Music {
+        val result = Midi2Music().apply {
+            format = source.format
+            deltaTimeSpec = 0
+        }
+
+        val dtc = Midi2Music.UmpDeltaTimeComputer()
+
+        // first, get all meta events to detect tempo changes for later uses.
+        val allTempoChanges = source.getMetaEventsOfType(MidiMetaType.TEMPO.toInt()).toList()
+
+        for (srcTrack in source.tracks) {
+            val dstTrack = Midi2Track()
+            result.addTrack(dstTrack)
+
+            var currentTicks = 0
+            var currentTempo = MidiMetaType.DEFAULT_TEMPO
+            var nextTempoChangeIndex = 0
+
+            for (ump in srcTrack.messages) {
+                if (ump.isJRTimestamp) {
+                    // There may be tempo changes in other tracks, which affects the total length of a
+                    // timestamp message when it is converted to milliseconds. We have to calculate it
+                    // taking those tempo changes into consideration.
+                    var remainingTicks = ump.jrTimestamp
+                    var durationMs = 0.0
+                    while (nextTempoChangeIndex < allTempoChanges.size && allTempoChanges[nextTempoChangeIndex].first < currentTicks + remainingTicks) {
+                        val ticksUntilNextTempoChange = allTempoChanges[nextTempoChangeIndex].first - currentTicks
+                        durationMs += getContextDeltaTimeInMilliseconds(ticksUntilNextTempoChange, currentTempo, source.deltaTimeSpec)
+                        currentTempo = dtc.getTempoValue(allTempoChanges[nextTempoChangeIndex].second)
+                        nextTempoChangeIndex++
+                        remainingTicks -= ticksUntilNextTempoChange
+                        currentTicks += ticksUntilNextTempoChange
+                    }
+                    durationMs += getContextDeltaTimeInMilliseconds(remainingTicks, currentTempo, source.deltaTimeSpec)
+                    currentTicks += remainingTicks
+                    dstTrack.messages.addAll(umpJRTimestamps(ump.group, durationMs / 1000.0).map { i -> Ump(i)})
+                }
+                else
+                    dstTrack.messages.add(ump)
+            }
+        }
+
+        return result
+    }
+
+    private fun getContextDeltaTimeInMilliseconds(ticksUntilNextTempoChange: Int, currentTempo: Int, deltaTimeSpec: Int) : Double =
+        currentTempo.toDouble() / 1000 * ticksUntilNextTempoChange / deltaTimeSpec
 }
