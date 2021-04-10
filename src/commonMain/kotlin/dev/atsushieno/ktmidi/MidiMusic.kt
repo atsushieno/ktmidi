@@ -293,7 +293,7 @@ open class SmfTrackSplitter(private val source: MutableList<MidiMessage>, privat
     // Override it to customize track dispatcher. It would be
     // useful to split note messages out from non-note ones,
     // to ease data reading.
-    open fun getTrackID(e: MidiMessage): Int {
+    open fun getTrackId(e: MidiMessage): Int {
         return when (e.event.eventType) {
             MidiEventType.META, MidiEventType.SYSEX, MidiEventType.SYSEX_END -> -1
             else -> e.event.channel.toUnsigned()
@@ -304,7 +304,7 @@ open class SmfTrackSplitter(private val source: MutableList<MidiMessage>, privat
         var totalDeltaTime = 0
         for (e in source) {
             totalDeltaTime += e.deltaTime
-            val id: Int = getTrackID(e)
+            val id: Int = getTrackId(e)
             getTrack(id).addMessage(totalDeltaTime, e)
         }
 
