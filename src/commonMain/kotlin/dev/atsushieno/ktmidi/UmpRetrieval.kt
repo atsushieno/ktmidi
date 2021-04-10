@@ -75,7 +75,7 @@ val Ump.midi1Msb: Int
 
 // 4th. byte for MIDI 1.0 message
 val Ump.midi1Lsb: Int
-    get() = (int1 and 0xFF0000) shr 16
+    get() = int1 and 0xFF
 
 val Ump.midi1Note
     get() = midi1Msb
