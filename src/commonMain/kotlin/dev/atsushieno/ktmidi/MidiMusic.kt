@@ -3,7 +3,7 @@
 package dev.atsushieno.ktmidi
 
 class MidiMusic {
-    class SmfDeltaTimeComputer: DeltaTimeComputer<MidiMessage>() {
+    internal class SmfDeltaTimeComputer: DeltaTimeComputer<MidiMessage>() {
         override fun messageToDeltaTime(message: MidiMessage) = message.deltaTime
 
         override fun isMetaEventMessage(message: MidiMessage, metaType: Byte) = message.event.eventType == MidiEventType.META && message.event.msb == metaType
@@ -34,25 +34,25 @@ class MidiMusic {
 
     fun getMetaEventsOfType(metaType: Byte): Iterable<MidiMessage> {
         if (format != 0.toByte())
-            return SmfTrackMerger.merge(this).getMetaEventsOfType(metaType)
+            return mergeTracks().getMetaEventsOfType(metaType)
         return getMetaEventsOfType(tracks[0].messages, metaType).asIterable()
     }
 
     fun getTotalTicks(): Int {
         if (format != 0.toByte())
-            return SmfTrackMerger.merge(this).getTotalTicks()
+            return mergeTracks().getTotalTicks()
         return tracks[0].messages.sumBy { m: MidiMessage -> m.deltaTime }
     }
 
     fun getTotalPlayTimeMilliseconds(): Int {
         if (format != 0.toByte())
-            return SmfTrackMerger.merge(this).getTotalPlayTimeMilliseconds()
+            return mergeTracks().getTotalPlayTimeMilliseconds()
         return getTotalPlayTimeMilliseconds(tracks[0].messages, deltaTimeSpec)
     }
 
     fun getTimePositionInMillisecondsForTick(ticks: Int): Int {
         if (format != 0.toByte())
-            return SmfTrackMerger.merge(this).getTimePositionInMillisecondsForTick(ticks)
+            return mergeTracks().getTimePositionInMillisecondsForTick(ticks)
         return getPlayTimeMillisecondsAtTick(tracks[0].messages, ticks, deltaTimeSpec)
     }
 
@@ -171,16 +171,12 @@ class MidiEvent // MIDI 1.0 only
     }
 }
 
+fun MidiMusic.mergeTracks() : MidiMusic =
+    Midi1TrackMerger(this).getMergedMessages()
 
-class SmfTrackMerger(private var source: MidiMusic) {
-    companion object {
 
-        fun merge(source: MidiMusic): MidiMusic {
-            return SmfTrackMerger(source).getMergedMessages()
-        }
-    }
-
-    private fun getMergedMessages(): MidiMusic {
+internal class Midi1TrackMerger(private var source: MidiMusic) {
+    internal fun getMergedMessages(): MidiMusic {
         var l = mutableListOf<MidiMessage>()
 
         for (track in source.tracks) {
@@ -256,10 +252,13 @@ class SmfTrackMerger(private var source: MidiMusic) {
     }
 }
 
-open class SmfTrackSplitter(private val source: MutableList<MidiMessage>, private val deltaTimeSpec: Byte) {
+fun MidiTrack.splitTracksByChannel(deltaTimeSpec: Byte) : MidiMusic =
+    Midi1TrackSplitter(messages, deltaTimeSpec).split()
+
+open class Midi1TrackSplitter(private val source: MutableList<MidiMessage>, private val deltaTimeSpec: Byte) {
     companion object {
         fun split(source: MutableList<MidiMessage>, deltaTimeSpec: Byte): MidiMusic {
-            return SmfTrackSplitter(source, deltaTimeSpec).split()
+            return Midi1TrackSplitter(source, deltaTimeSpec).split()
         }
     }
 
@@ -300,7 +299,7 @@ open class SmfTrackSplitter(private val source: MutableList<MidiMessage>, privat
         }
     }
 
-    private fun split(): MidiMusic {
+    fun split(): MidiMusic {
         var totalDeltaTime = 0
         for (e in source) {
             totalDeltaTime += e.deltaTime

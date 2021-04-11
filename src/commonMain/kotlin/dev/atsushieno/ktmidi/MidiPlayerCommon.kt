@@ -147,7 +147,7 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
     }
 }
 
-abstract class MidiPlayerCommon<TMessage>(internal val output: MidiOutput, private var shouldDisposeOutput: Boolean, timer: MidiPlayerTimer) {
+abstract class MidiPlayerCommon<TMessage> internal constructor(internal val output: MidiOutput, private var shouldDisposeOutput: Boolean, timer: MidiPlayerTimer) {
 
     internal lateinit var messages: MutableList<TMessage>
     internal lateinit var looper: MidiEventLooper<TMessage>

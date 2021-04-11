@@ -2,7 +2,7 @@ package dev.atsushieno.ktmidi
 
 import javax.sound.midi.*
 
-typealias JvmMidiMessage = javax.sound.midi.MidiMessage
+internal typealias JvmMidiMessage = javax.sound.midi.MidiMessage
 
 class JvmMidiAccess : MidiAccess() {
     override val inputs: Iterable<MidiPortDetails>

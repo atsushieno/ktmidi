@@ -71,7 +71,7 @@ class MidiPlayer : MidiPlayerCommon<MidiMessage> {
         : super(output, shouldDisposeOutput, timer) {
 
         this.music = music
-        messages = SmfTrackMerger.merge(music).tracks[0].messages
+        messages = music.mergeTracks().tracks[0].messages
         looper = Midi1EventLooper(messages, timer, music.deltaTimeSpec)
 
         looper.starting = Runnable {

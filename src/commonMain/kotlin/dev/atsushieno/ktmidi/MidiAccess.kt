@@ -4,11 +4,7 @@ interface OnMidiEventListener {
     fun onEvent(e: MidiEvent)
 }
 
-class MidiAccessManager {
-    companion object {
-        val empty: MidiAccess = EmptyMidiAccess()
-    }
-}
+val emptyMidiAccess = EmptyMidiAccess()
 
 abstract class MidiAccess {
     abstract val inputs: Iterable<MidiPortDetails>
@@ -135,7 +131,7 @@ class EmptyMidiAccess : MidiAccess() {
     }
 }
 
-abstract class EmptyMidiPort : MidiPort {
+internal abstract class EmptyMidiPort : MidiPort {
     override val connectionState = MidiPortConnectionState.OPEN
 
     override fun close() {
@@ -147,13 +143,13 @@ abstract class EmptyMidiPort : MidiPort {
         set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
 }
 
-class EmptyMidiPortDetails(override val id: String, name: String) : MidiPortDetails {
+internal class EmptyMidiPortDetails(override val id: String, name: String) : MidiPortDetails {
     override val manufacturer = "dummy project"
     override val name: String? = name
     override val version = "0.0"
 }
 
-class EmptyMidiInput : EmptyMidiPort(), MidiInput {
+internal class EmptyMidiInput : EmptyMidiPort(), MidiInput {
     companion object {
         val instance = EmptyMidiInput()
     }
@@ -165,7 +161,7 @@ class EmptyMidiInput : EmptyMidiPort(), MidiInput {
     }
 }
 
-class EmptyMidiOutput : EmptyMidiPort(), MidiOutput {
+internal class EmptyMidiOutput : EmptyMidiPort(), MidiOutput {
     companion object {
         val instance = EmptyMidiOutput()
     }

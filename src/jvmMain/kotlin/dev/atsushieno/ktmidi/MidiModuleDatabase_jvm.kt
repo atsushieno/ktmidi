@@ -5,7 +5,8 @@ import java.io.OutputStream
 
 val defaultMidiModuleDatabase = DefaultMidiModuleDatabase()
 
-fun saveMidiModuleDefinition(stream: OutputStream, module: MidiModuleDefinition) {
+// FIXME: implement it and make it public
+internal fun saveMidiModuleDefinition(stream: OutputStream, module: MidiModuleDefinition) {
     throw NotImplementedError()
     //var ds = new DataContractJsonSerializer (typeof (MidiModuleDefinition));
     //ds.WriteObject (stream, this);
@@ -13,7 +14,8 @@ fun saveMidiModuleDefinition(stream: OutputStream, module: MidiModuleDefinition)
 
 // serialization
 
-fun loadMidiModuleDefinition(stream: InputStream): MidiModuleDefinition {
+// FIXME: implement it and make it public
+internal fun loadMidiModuleDefinition(stream: InputStream): MidiModuleDefinition {
     throw NotImplementedError()
     //var ds = new DataContractJsonSerializer (typeof (MidiModuleDefinition));
     //return (MidiModuleDefinition) ds.ReadObject (stream);

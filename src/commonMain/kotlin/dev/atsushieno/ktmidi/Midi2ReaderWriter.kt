@@ -9,19 +9,20 @@ package dev.atsushieno.ktmidi
 //       i32 numUMPs
 //       umps (i32, i64 or i128)
 
-class Midi2MusicWriter(val stream: MutableList<Byte>) {
-    fun writeMusic(music: Midi2Music) {
-        val ints = serializeMidi2MusicToBytes(music)
-        val bytes = ints.flatMap { i32 -> sequence {
-            yield((i32 shr 24).toByte())
-            yield(((i32 shr 16) and 0xFF).toByte())
-            yield(((i32 shr 8) and 0xFF).toByte())
-            yield((i32 and 0xFF).toByte())
-        }.asIterable() }
-        stream.addAll(bytes)
-    }
+fun Midi2Music.write(stream: MutableList<Byte>) {
+    val w = Midi2MusicWriter(stream)
+    val ints = w.serializeMidi2MusicToInts(this)
+    val bytes = ints.flatMap { i32 -> sequence {
+        yield((i32 shr 24).toByte())
+        yield(((i32 shr 16) and 0xFF).toByte())
+        yield(((i32 shr 8) and 0xFF).toByte())
+        yield((i32 and 0xFF).toByte())
+    }.asIterable() }
+    stream.addAll(bytes)
+}
 
-    private fun serializeMidi2MusicToBytes(music: Midi2Music) : List<Int> {
+internal class Midi2MusicWriter(val stream: MutableList<Byte>) {
+    internal fun serializeMidi2MusicToInts(music: Midi2Music) : List<Int> {
         val ret = mutableListOf<Int>()
         (0..3).forEach { _ -> ret.add(0xAAAAAAAA.toInt()) }
         ret.add(music.deltaTimeSpec)
@@ -40,17 +41,14 @@ class Midi2MusicWriter(val stream: MutableList<Byte>) {
     }
 }
 
-class Midi2MusicReader(stream: MutableList<Byte>) {
-    companion object {
-        fun read(stream: MutableList<Byte>): Midi2Music {
-            val r = Midi2MusicReader(stream)
-            r.readMusic()
-            return r.music
-        }
-    }
+fun Midi2Music.read(stream: MutableList<Byte>) {
+    val r = Midi2MusicReader(this, stream)
+    r.readMusic()
+}
+
+internal class Midi2MusicReader(val music: Midi2Music, stream: MutableList<Byte>) {
 
     private val reader: Reader = Reader(stream, 0)
-    var music = Midi2Music()
 
     private fun expectIdentifier16(e: Byte) {
         for (i in 0..15)
@@ -70,7 +68,7 @@ class Midi2MusicReader(stream: MutableList<Byte>) {
         return ret
     }
 
-    private fun readMusic() {
+    internal fun readMusic() {
         expectIdentifier16(0xAA.toByte())
         music.deltaTimeSpec = readInt32()
         val numTracks = readInt32()

@@ -2,107 +2,86 @@ package dev.atsushieno.ktmidi
 
 import dev.atsushieno.ktmidi.umpfactory.*
 
-class MidiMessageType { // MIDI 2.0
-    companion object {
-        const val UTILITY = 0
-        const val SYSTEM = 1
-        const val MIDI1 = 2
-        const val SYSEX7 = 3
-        const val MIDI2 = 4
-        const val SYSEX8_MDS = 5
-    }
+object MidiMessageType { // MIDI 2.0
+    const val UTILITY = 0
+    const val SYSTEM = 1
+    const val MIDI1 = 2
+    const val SYSEX7 = 3
+    const val MIDI2 = 4
+    const val SYSEX8_MDS = 5
 }
 
-class MidiCIProtocolBytes { // MIDI 2.0
-    companion object {
-        const val TYPE = 0
-        const val VERSION = 1
-        const val EXTENSIONS = 2
-    }
+object MidiCIProtocolBytes { // MIDI 2.0
+    const val TYPE = 0
+    const val VERSION = 1
+    const val EXTENSIONS = 2
 }
 
-class MidiCIProtocolType { // MIDI 2.0
-    companion object {
-        const val MIDI1 = 1
-        const val MIDI2 = 2
-    }
+object MidiCIProtocolType { // MIDI 2.0
+    const val MIDI1 = 1
+    const val MIDI2 = 2
 }
 
-class MidiCIProtocolValue { // MIDI 2.0
-    companion object {
-        const val MIDI1 = 0
-        const val MIDI2_V1 = 0
-    }
+object MidiCIProtocolValue { // MIDI 2.0
+    const val MIDI1 = 0
+    const val MIDI2_V1 = 0
 }
 
-class MidiCIProtocolExtensions { // MIDI 2.0
-    companion object {
-        const val JITTER = 1
-        const val LARGER = 2
-    }
+object MidiCIProtocolExtensions { // MIDI 2.0
+    const val JITTER = 1
+    const val LARGER = 2
 }
 
-class MidiAttributeType { // MIDI 2.0
-    companion object {
-        const val NONE = 0
-        const val MANUFACTURER_SPECIFIC = 1
-        const val PROFILE_SPECIFIC = 2
-        const val Pitch7_9 = 3
-    }
+object MidiAttributeType { // MIDI 2.0
+    const val NONE = 0
+    const val MANUFACTURER_SPECIFIC = 1
+    const val PROFILE_SPECIFIC = 2
+    const val Pitch7_9 = 3
 }
 
-class MidiPerNoteManagementFlags { // MIDI 2.0
-    companion object {
-        const val RESET = 1
-        const val DETACH = 2
-    }
+object MidiPerNoteManagementFlags { // MIDI 2.0
+    const val RESET = 1
+    const val DETACH = 2
 }
 
-class Midi2SystemMessageType {
-    companion object {
-        const val NOP = 0
-        const val JR_CLOCK = 0x10
-        const val JR_TIMESTAMP = 0x20
-    }
+object Midi2SystemMessageType {
+    const val NOP = 0
+    const val JR_CLOCK = 0x10
+    const val JR_TIMESTAMP = 0x20
 }
 
-class Midi2BinaryChunkStatus {
-    companion object {
-        const val SYSEX_IN_ONE_UMP = 0
-        const val SYSEX_START = 0x10
-        const val SYSEX_CONTINUE = 0x20
-        const val SYSEX_END = 0x30
-        const val MDS_HEADER = 0x80
-        const val MDS_PAYLOAD = 0x90
-    }
+object Midi2BinaryChunkStatus {
+    const val SYSEX_IN_ONE_UMP = 0
+    const val SYSEX_START = 0x10
+    const val SYSEX_CONTINUE = 0x20
+    const val SYSEX_END = 0x30
+    const val MDS_HEADER = 0x80
+    const val MDS_PAYLOAD = 0x90
 }
 
-class MidiPerNoteRCC // MIDI 2.0
-{
-    companion object {
-        const val MODULATION = 0x01.toByte()
-        const val BREATH = 0x02.toByte()
-        const val PITCH_7_25 = 0x03.toByte()
-        const val VOLUME = 0x07.toByte()
-        const val BALANCE = 0x08.toByte()
-        const val PAN = 0x0A.toByte()
-        const val EXPRESSION = 0x0B.toByte()
-        const val SOUND_CONTROLLER_1 = 0x46.toByte()
-        const val SOUND_CONTROLLER_2 = 0x47.toByte()
-        const val SOUND_CONTROLLER_3 = 0x48.toByte()
-        const val SOUND_CONTROLLER_4 = 0x49.toByte()
-        const val SOUND_CONTROLLER_5 = 0x4A.toByte()
-        const val SOUND_CONTROLLER_6 = 0x4B.toByte()
-        const val SOUND_CONTROLLER_7 = 0x4C.toByte()
-        const val SOUND_CONTROLLER_8 = 0x4D.toByte()
-        const val SOUND_CONTROLLER_9 = 0x4E.toByte()
-        const val SOUND_CONTROLLER_10 = 0x4F.toByte()
-        const val EFFECT_1_DEPTH = 0x5B.toByte() // Reverb Send Level by default
-        const val EFFECT_2_DEPTH = 0x5C.toByte() // formerly Tremolo Depth
-        const val EFFECT_3_DEPTH = 0x5D.toByte() // Chorus Send Level by default
-        const val EFFECT_4_DEPTH = 0x5E.toByte() // formerly Celeste (Detune) Depth
-        const val EFFECT_5_DEPTH = 0x5F.toByte() // formerly Phaser Depth
-    }
+object MidiPerNoteRCC { // MIDI 2.0
+    const val MODULATION = 0x01.toByte()
+    const val BREATH = 0x02.toByte()
+    const val PITCH_7_25 = 0x03.toByte()
+    const val VOLUME = 0x07.toByte()
+    const val BALANCE = 0x08.toByte()
+    const val PAN = 0x0A.toByte()
+    const val EXPRESSION = 0x0B.toByte()
+    const val SOUND_CONTROLLER_1 = 0x46.toByte()
+    const val SOUND_CONTROLLER_2 = 0x47.toByte()
+    const val SOUND_CONTROLLER_3 = 0x48.toByte()
+    const val SOUND_CONTROLLER_4 = 0x49.toByte()
+    const val SOUND_CONTROLLER_5 = 0x4A.toByte()
+    const val SOUND_CONTROLLER_6 = 0x4B.toByte()
+    const val SOUND_CONTROLLER_7 = 0x4C.toByte()
+    const val SOUND_CONTROLLER_8 = 0x4D.toByte()
+    const val SOUND_CONTROLLER_9 = 0x4E.toByte()
+    const val SOUND_CONTROLLER_10 = 0x4F.toByte()
+    const val EFFECT_1_DEPTH = 0x5B.toByte() // Reverb Send Level by default
+    const val EFFECT_2_DEPTH = 0x5C.toByte() // formerly Tremolo Depth
+    const val EFFECT_3_DEPTH = 0x5D.toByte() // Chorus Send Level by default
+    const val EFFECT_4_DEPTH = 0x5E.toByte() // formerly Celeste (Detune) Depth
+    const val EFFECT_5_DEPTH = 0x5F.toByte() // formerly Phaser Depth
 }
 
 // We store UMP in Big Endian this time.
@@ -119,7 +98,7 @@ data class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: In
 class Midi2Track(val messages: MutableList<Ump> = mutableListOf())
 
 class Midi2Music {
-    class UmpDeltaTimeComputer: DeltaTimeComputer<Ump>() {
+    internal class UmpDeltaTimeComputer: DeltaTimeComputer<Ump>() {
         override fun messageToDeltaTime(message: Ump) = if (message.isJRTimestamp) message.jrTimestamp else 0
 
         // FIXME: We should come up with some solid draft on this, but so far, META events are
@@ -170,25 +149,25 @@ class Midi2Music {
 
     fun getMetaEventsOfType(metaType: Int): Iterable<Pair<Int,Ump>> {
         if (tracks.size > 1)
-            return Midi2TrackMerger.merge(this).getMetaEventsOfType(metaType)
+            return mergeTracks().getMetaEventsOfType(metaType)
         return getMetaEventsOfType(tracks[0].messages, metaType.toByte()).asIterable()
     }
 
     fun getTotalTicks(): Int {
         if (format != 0.toByte())
-            return Midi2TrackMerger.merge(this).getTotalTicks()
+            return mergeTracks().getTotalTicks()
         return tracks[0].messages.sumBy { m: Ump -> m.jrTimestamp }
     }
 
     fun getTotalPlayTimeMilliseconds(): Int {
         if (format != 0.toByte())
-            return Midi2TrackMerger.merge(this).getTotalPlayTimeMilliseconds()
+            return mergeTracks().getTotalPlayTimeMilliseconds()
         return getTotalPlayTimeMilliseconds(tracks[0].messages, deltaTimeSpec)
     }
 
     fun getTimePositionInMillisecondsForTick(ticks: Int): Int {
         if (format != 0.toByte())
-            return Midi2TrackMerger.merge(this).getTimePositionInMillisecondsForTick(ticks)
+            return mergeTracks().getTimePositionInMillisecondsForTick(ticks)
         return getPlayTimeMillisecondsAtTick(tracks[0].messages, ticks, deltaTimeSpec)
     }
 
@@ -197,15 +176,11 @@ class Midi2Music {
     }
 }
 
-class Midi2TrackMerger(private var source: Midi2Music) {
-    companion object {
+fun Midi2Music.mergeTracks() : Midi2Music =
+    Midi2TrackMerger(this).getMergedMessages()
 
-        fun merge(source: Midi2Music): Midi2Music {
-            return Midi2TrackMerger(source).getMergedMessages()
-        }
-    }
-
-    private fun getMergedMessages(): Midi2Music {
+internal class Midi2TrackMerger(private var source: Midi2Music) {
+    internal fun getMergedMessages(): Midi2Music {
         var l = mutableListOf<Pair<Int,Ump>>()
 
         for (track in source.tracks) {
@@ -282,6 +257,8 @@ class Midi2TrackMerger(private var source: Midi2Music) {
     }
 }
 
+fun Midi2Track.splitTracksByChannel() : Midi2Music =
+    Midi2TrackSplitter(messages).split()
 
 open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
     companion object {
@@ -325,7 +302,7 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
     // to ease data reading.
     open fun getTrackId(e: Ump) = e.groupAndChannel
 
-    private fun split(): Midi2Music {
+    fun split(): Midi2Music {
         var totalDeltaTime = 0
         for (e in source) {
             if (e.isJRTimestamp)
@@ -346,12 +323,10 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
     }
 }
 
-class Midi2DeltaTimeConverter private constructor(private val source: Midi2Music) {
-    companion object {
-        fun convertDeltaTimeToJRTimestamp(source: Midi2Music) =
-            if (source.deltaTimeSpec > 0) Midi2DeltaTimeConverter(source).deltaTimetoJRTimestamp() else source
-    }
+fun Midi2Music.convertDeltaTimesToJRTimestamps() : Midi2Music =
+    if (deltaTimeSpec > 0) Midi2DeltaTimeConverter(this).deltaTimetoJRTimestamp() else this
 
+internal class Midi2DeltaTimeConverter internal constructor(private val source: Midi2Music) {
     fun deltaTimetoJRTimestamp() : Midi2Music {
         val result = Midi2Music().apply {
             format = source.format

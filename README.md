@@ -31,6 +31,27 @@ Here is a list of MIDI 2.0 extensibility in this API:
 - `Midi2Player` is a feature parity with `MidiPlayer`.
 - `dev.atsushieno.ktmidi.umpfactory` package contains a bunch of utility functions that are used to construct UMP integer values.
 
+### SMF alternative formats
+
+Since there is no comparable standard music file format like SMF for MIDI 2.0, we had to come up with our own. Our `Midi2Player` accepts files in the format described below:
+
+```
+// Data Format:
+//   identifier: 0xAAAAAAAAAAAAAAAA (16 bytes)
+//   i32 deltaTimeSpec
+//   i32 numTracks
+//   tracks
+//        identifier: 0xEEEEEEEEEEEEEEEE (16 bytes)
+//       i32 numUMPs
+//       umps (i32, i64 or i128)
+```
+
+If `deltaTimeSpec` is a positive integer, it works like the value in SMF header chunk. There is no "format" specifier in this format - if "numTracks" is 1 then it is obviously compatible with FORMAT 0.
+
+Also, we have a workaround for META events, now that system message has its own message type with fixed (limited) length - in this format they are stored as SYSEX8 messages with all 0s for manufacturer ID, device ID, and sub IDs.
+
+[mugene-ng](https://github.com/atsushieno/mugene-ng) can generate music files based on this format.
+
 
 ## Historical background
 

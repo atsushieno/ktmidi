@@ -25,11 +25,11 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
             m.int2 % 0x100  == MidiEventType.META.toInt()) {
             when ((m.int3 / 0x1000000).toByte()) {
                 MidiMetaType.TEMPO -> {
-                    m.saveInto(umpConversionBuffer, 0)
+                    m.copyInto(umpConversionBuffer, 0)
                     currentTempo = MidiMetaType.getTempo(umpConversionBuffer, 12)
                 }
                 MidiMetaType.TIME_SIGNATURE -> {
-                    m.saveInto(umpConversionBuffer, 0)
+                    m.copyInto(umpConversionBuffer, 0)
                     umpConversionBuffer.copyInto(currentTimeSignature, 0, 12, 16)
                 }
                 else -> {}
@@ -77,7 +77,7 @@ class Midi2Player : MidiPlayerCommon<Ump> {
 
         val umpConversionBuffer = ByteArray(16)
 
-        messages = Midi2TrackMerger.merge(music).tracks[0].messages
+        messages = music.mergeTracks().tracks[0].messages
         looper = Midi2EventLooper(messages, timer, music.deltaTimeSpec)
         looper.starting = Runnable {
             if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
@@ -85,7 +85,7 @@ class Midi2Player : MidiPlayerCommon<Ump> {
                     // all control reset on all channels.
                     for (ch in 0..15) {
                         val ump = Ump(umpMidi1CC(group, ch, MidiCC.RESET_ALL_CONTROLLERS, 0))
-                        ump.saveInto(umpConversionBuffer, 0)
+                        ump.copyInto(umpConversionBuffer, 0)
                         output.send(umpConversionBuffer, 0, ump.sizeInBytes, 0)
                     }
                 }
@@ -107,11 +107,11 @@ class Midi2Player : MidiPlayerCommon<Ump> {
                         when (e.eventType) {
                             Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> {
                                 if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
-                                    e.saveInto(umpConversionBuffer, 0)
+                                    e.copyInto(umpConversionBuffer, 0)
                                     output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                                 }
                                 else {
-                                    e.saveInto(umpConversionBuffer, 0)
+                                    e.copyInto(umpConversionBuffer, 0)
                                     umpConversionBuffer[1] = 0xF0.toByte()
                                     // FIXME: verify size and content
                                     output.send(umpConversionBuffer, 1, e.sizeInBytes, 0)
@@ -124,7 +124,7 @@ class Midi2Player : MidiPlayerCommon<Ump> {
                         when (e.eventType) {
                             Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> {
                                 if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
-                                    e.saveInto(umpConversionBuffer, 0)
+                                    e.copyInto(umpConversionBuffer, 0)
                                     output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                                 }
                                 else
@@ -135,7 +135,7 @@ class Midi2Player : MidiPlayerCommon<Ump> {
                     }
                     MidiMessageType.MIDI2 -> {
                         if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
-                            e.saveInto(umpConversionBuffer, 0)
+                            e.copyInto(umpConversionBuffer, 0)
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                         }
                         else
@@ -150,7 +150,7 @@ class Midi2Player : MidiPlayerCommon<Ump> {
                             }
                         }
                         if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
-                            e.saveInto(umpConversionBuffer, 0)
+                            e.copyInto(umpConversionBuffer, 0)
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                         } else {
                             // all control reset on all channels.
