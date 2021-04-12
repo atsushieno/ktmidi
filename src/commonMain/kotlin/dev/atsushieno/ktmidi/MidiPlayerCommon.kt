@@ -83,6 +83,7 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
                 if (isEventIndexAtEnd())
                     break
                 processMessage(getNextMessage())
+                eventIdx++
             }
             doStop = false
             state = PlayerState.STOPPED
