@@ -154,7 +154,6 @@ class MidiPlayerTest {
     @Test
     fun playbackCompletedToEndAbort() {
         runBlocking {
-            delay(100)
             val vt = VirtualMidiPlayerTimer()
             val player = TestHelper.getMidiPlayer(vt)
             var completed = false
@@ -165,7 +164,9 @@ class MidiPlayerTest {
                 player.play()
                 vt.proceedBy(1000)
 
+                delay(100) // FIXME: should not be required
                 player.pause()
+                delay(100) // FIXME: should not be required
                 player.close() // abort in the middle
                 delay(100) // FIXME: should not be required
                 assertFalse(completed, "1 PlaybackCompletedToEnd unexpectedly fired")
