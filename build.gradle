@@ -29,12 +29,14 @@ kotlin {
     }
     js(LEGACY) {
         browser {
+            /*
             testTask {
                 useKarma {
                     useChromeHeadless()
                     webpackConfig.cssSupport.enabled = true
                 }
             }
+            */
         }
     }
     iosX64('ios') {
