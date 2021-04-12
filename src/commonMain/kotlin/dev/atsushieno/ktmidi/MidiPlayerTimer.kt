@@ -4,6 +4,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 
@@ -40,23 +41,20 @@ open class VirtualMidiPlayerTimer : MidiPlayerTimer {
     var totalProceededMilliseconds: Long = 0;
     private var shouldTerminate: Boolean = false
     private var disposed: Boolean = false
-    private var waitJobInLoop: Job? = null
+    private val semaphore = Semaphore(1, 0)
 
     override fun stop() {
         if (disposed)
             return
         shouldTerminate = true
-        waitJobInLoop?.cancel()
+        if (semaphore.availablePermits == 0)
+            semaphore.release()
         disposed = true
     }
 
     override suspend fun waitBy(addedMilliseconds: Int) {
-        while (!shouldTerminate && totalWaitedMilliseconds + addedMilliseconds > totalProceededMilliseconds) {
-            waitJobInLoop = GlobalScope.launch {
-                delay(Int.MAX_VALUE.toLong())
-            }
-            waitJobInLoop?.join()
-        }
+        while (!shouldTerminate && totalWaitedMilliseconds + addedMilliseconds > totalProceededMilliseconds)
+            semaphore.acquire()
         totalWaitedMilliseconds += addedMilliseconds
     }
 
@@ -64,6 +62,7 @@ open class VirtualMidiPlayerTimer : MidiPlayerTimer {
         if (addedMilliseconds < 0)
             throw IllegalArgumentException("'addedMilliseconds' must be non-negative integer")
         totalProceededMilliseconds += addedMilliseconds
-        waitJobInLoop?.cancel()
+        if (semaphore.availablePermits == 0)
+            semaphore.release()
     }
 }
