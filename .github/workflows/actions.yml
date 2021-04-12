@@ -1,0 +1,38 @@
+name: build dist
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  linux-build:
+    name: build on linux
+    runs-on: ubuntu-20.04
+    steps:
+    - name: checkout
+      uses: actions/checkout@v1
+      with:
+        submodules: recursive
+    - name: apt update
+      run: |
+        sudo apt-get update
+    - name: set up JDK 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+    - name: apt install
+      run: |
+        echo y | sudo apt-get install doxygen cmake ninja-build libasound2-dev
+    - name: stupid NDK setup workaround for GitHub Actions
+      run: sudo mkdir -p /usr/local/lib/android/sdk/ndk && sudo chmod 777 /usr/local/lib/android/sdk/ndk
+    - name: build
+      run: ./gradlew --warning-mode all build
+    - name: upload artifact
+      if: success()
+      uses: actions/upload-artifact@v2
+      with:
+        name: ktmidi-artifacts
+        path: |
+          build/libs/*.jar
+          build/outputs/aar/*.aar
+
