@@ -66,6 +66,8 @@ class MidiTrack(val messages: MutableList<MidiMessage> = mutableListOf())
 class MidiMessage(val deltaTime: Int, evt: MidiEvent) {
 
     val event: MidiEvent = evt
+
+    override fun toString(): String = "[$deltaTime:$event]"
 }
 
 class MidiEvent // MIDI 1.0 only
