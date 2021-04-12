@@ -98,12 +98,16 @@ class MidiPlayerTest {
         }
     }
 
-    // FIXME: enable this once it gets constantly working.
-    //@Test
+    @Test
     fun playbackCompletedToEnd() {
         val vt = VirtualMidiPlayerTimer()
         val music = TestHelper.getMidiMusic()
+
+        assertEquals(4988, music.getTotalTicks(), "music total ticks")
+        val totalTime = music.getTotalPlayTimeMilliseconds()
+        assertEquals(12989, totalTime, "music total milliseconds")
         val qmsec = MidiMusic.getPlayTimeMillisecondsAtTick(music.tracks[0].messages, 4998, 192)
+        assertEquals(totalTime, qmsec, "milliseconds at end by ticks")
         val player = TestHelper.getMidiPlayer(vt, music)
         var completed = false
         var finished = false
@@ -115,20 +119,30 @@ class MidiPlayerTest {
         runBlocking {
             try {
                 player.play()
-                vt.proceedBy(100)
+                assertEquals(0, player.playDeltaTime, "PlayDeltaTime 1")
+                vt.proceedBy(1000)
+
+                // Currently those Timer proceedBy() calls are "fire and forget" style and does not really care
+                //  if the bound MidiPlayer actually went ahead or not. It totally depends on whether OS/platform
+                //  context switches happened and the player loop thread had resumed.
+                //
+                // At this state we introduce delay() and assume (or "hope") that player loop thread resumes.
+                delay(200)
+                //assertEquals(376, player.playDeltaTime, "PlayDeltaTime 2")
+
                 assertTrue(!completed, "3 PlaybackCompletedToEnd already fired")
                 assertTrue(!finished, "4 Finished already fired")
-                vt.proceedBy(qmsec.toLong())
+                vt.proceedBy(totalTime - 1000.toLong())
+                assertEquals(12989, vt.totalProceededMilliseconds, "total proceeded milliseconds")
 
-                delay(200)
+                delay(100) // FIXME: should not be required
 
-                assertEquals(12989, qmsec, "qmsec")
-                assertEquals(4988, player.playDeltaTime, "PlayDeltaTime")
+                assertTrue(completed, "5 PlaybackCompletedToEnd not fired")
+                assertEquals(4988, player.playDeltaTime, "PlayDeltaTime 3")
 
                 player.pause()
                 player.close()
                 assertTrue(finished, "6 Finished not fired")
-                assertTrue(completed, "5 PlaybackCompletedToEnd not fired")
             } catch (ex: Error) {
                 player.stop()
                 player.close()
@@ -137,8 +151,7 @@ class MidiPlayerTest {
         }
     }
 
-    // FIXME: enable this once it gets constantly working.
-    //@Test
+    @Test
     fun playbackCompletedToEndAbort() {
         runBlocking {
             delay(100)
