@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'dev.atsushieno'
-version = '0.2.2'
+version = '0.2.3'
 
 repositories {
     google()
@@ -26,6 +26,7 @@ kotlin {
         }
     }
     android {
+        publishLibraryVariants("debug")
     }
     js(LEGACY) {
         browser {
@@ -115,6 +116,14 @@ android {
         minSdkVersion 24
         targetSdkVersion 30
     }
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled false
+        }
+    }
 }
 
 afterEvaluate {
@@ -124,6 +133,8 @@ afterEvaluate {
                 groupId = group
                 if (it.name.contains('metadata')) {
                     artifactId = "ktmidi"
+                } else if (it.name.contains('android')) {
+                    artifactId = "ktmidi-android"
                 } else {
                     artifactId = "ktmidi-$name"
                 }
