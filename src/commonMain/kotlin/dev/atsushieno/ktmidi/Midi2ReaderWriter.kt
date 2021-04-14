@@ -41,12 +41,12 @@ internal class Midi2MusicWriter(val stream: MutableList<Byte>) {
     }
 }
 
-fun Midi2Music.read(stream: MutableList<Byte>) {
+fun Midi2Music.read(stream: List<Byte>) {
     val r = Midi2MusicReader(this, stream)
     r.readMusic()
 }
 
-internal class Midi2MusicReader(val music: Midi2Music, stream: MutableList<Byte>) {
+internal class Midi2MusicReader(val music: Midi2Music, stream: List<Byte>) {
 
     private val reader: Reader = Reader(stream, 0)
 
