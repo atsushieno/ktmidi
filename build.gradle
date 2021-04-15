@@ -8,7 +8,7 @@ plugins {
 }
 
 group = 'dev.atsushieno'
-version = '0.2.4'
+version = '0.2.5'
 
 repositories {
     google()
@@ -132,7 +132,7 @@ afterEvaluate {
         publications {
             all {
                 groupId = group
-                if (it.name.contains('metadata')) {
+                if (it.name.contains('kotlinMultiplatform')) {
                     artifactId = "ktmidi"
                 } else if (it.name.contains('android')) {
                     artifactId = "ktmidi-android"
