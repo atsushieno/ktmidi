@@ -63,7 +63,7 @@ internal class Midi2MusicReader(val music: Midi2Music, stream: List<Byte>) {
         for (i in 0..3) {
             if (!reader.canRead())
                 throw IllegalArgumentException("Insufficient stream at music file identifier (at $i:  ${reader.position}")
-            ret += (reader.readByte().toUnsigned() shl (8 * i))
+            ret += (reader.readByte().toUnsigned() shl (8 * (3 - i)))
         }
         return ret
     }

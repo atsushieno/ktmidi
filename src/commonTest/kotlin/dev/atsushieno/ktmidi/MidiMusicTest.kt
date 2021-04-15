@@ -1,5 +1,9 @@
 package dev.atsushieno.ktmidi
 
+import dev.atsushieno.ktmidi.umpfactory.umpJRTimestamp
+import dev.atsushieno.ktmidi.umpfactory.umpJRTimestamps
+import dev.atsushieno.ktmidi.umpfactory.umpMidi2NoteOff
+import dev.atsushieno.ktmidi.umpfactory.umpMidi2NoteOn
 import kotlin.math.round
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -67,8 +71,24 @@ class MidiMusicUnitTest {
             0, 0x90, 0x40, 100,
             0x30, 0x80, 0x40, 0,
             0, 0xFF, 0x2F, 0).map { i -> i.toByte() }.toByteArray()
-        val music = SmfReader.read(expected.toList())
+        val music = MidiMusic().apply { read(expected.toList()) }
         assertEquals(144, music.getTotalTicks(), "total ticks")
+    }
+
+    @Test
+    fun readMidi2Music() {
+        val music = Midi2Music()
+        music.addTrack(Midi2Track())
+        music.tracks[0].messages.addAll(listOf(
+            Ump(umpMidi2NoteOn(0, 1, 0x36, 0, 100 shl 8, 0)),
+            Ump(umpJRTimestamp(0, 31250)),
+            Ump(umpMidi2NoteOff(0, 1, 0x36, 0, 100 shl 8, 0))
+        ))
+        val store = mutableListOf<Byte>()
+        music.write(store)
+        val music2 = Midi2Music().apply { read(store) }
+        assertEquals(music.tracks.size, music2.tracks.size, "tracks")
+        assertEquals(music.tracks[0].messages.size, music2.tracks[0].messages.size, "messages")
     }
 
     // U and L cannot share case-insensitively identical fields for JNI signature...

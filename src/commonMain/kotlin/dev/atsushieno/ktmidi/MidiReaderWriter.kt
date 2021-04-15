@@ -217,7 +217,10 @@ class SmfWriterExtension {
     }
 }
 
-fun MidiMusic.read(stream: List<Byte>) = SmfReader.read(stream)
+fun MidiMusic.read(stream: List<Byte>) {
+    val r = SmfReader(this, stream)
+    r.readMusic()
+}
 
 internal class Reader(private val stream: List<Byte>, private var index: Int) {
     fun canRead() : Boolean = index < stream.size
@@ -233,22 +236,13 @@ internal class Reader(private val stream: List<Byte>, private var index: Int) {
     fun readByte() : Byte = stream[index++]
 }
 
-class SmfReader(stream: List<Byte>) {
-    companion object {
-        fun read(stream: List<Byte>): MidiMusic {
-            val r = SmfReader(stream)
-            r.read()
-            return r.music
-        }
-    }
+internal class SmfReader(val music: MidiMusic, stream: List<Byte>) {
 
     private val reader: Reader = Reader(stream, 0)
 
-    var music = MidiMusic()
-
     private val data = music
 
-    fun read() {
+    fun readMusic() {
         if (readByte() != 'M'.toByte()
             || readByte() != 'T'.toByte()
             || readByte() != 'h'.toByte()

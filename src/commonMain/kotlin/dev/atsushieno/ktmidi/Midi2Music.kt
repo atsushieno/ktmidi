@@ -86,6 +86,12 @@ object MidiPerNoteRCC { // MIDI 2.0
 
 // We store UMP in Big Endian this time.
 data class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: Int = 0) {
+    constructor(long1: Long, long2: Long = 0) : this(
+        (long1 / 0x100000000).toInt(),
+        (long1 % 0x100000000).toInt(),
+        (long2 / 0x100000000).toInt(),
+        (long2 % 0x100000000).toInt())
+
     override fun toString(): String {
         return when(messageType) {
             0, 1, 2 -> "[${int1.toString(16)}]"
