@@ -4,6 +4,7 @@ import kotlin.math.round
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+
 @kotlin.ExperimentalUnsignedTypes
 class MidiMusicUnitTest {
     @Test
@@ -52,5 +53,49 @@ class MidiMusicUnitTest {
         assertEquals(0, music.getTimePositionInMillisecondsForTick(0), "tick 0")
         assertEquals(125, music.getTimePositionInMillisecondsForTick(48), "tick 48")
         assertEquals(500, music.getTimePositionInMillisecondsForTick(192), "tick 192")
+    }
+
+    @Test
+    fun smfReaderRead () {
+        val expected = intArrayOf(
+            U.M, U.T, L.h, L.d, 0, 0, 0, 6, 0, 1, 0, 1, 0, 0x30, // at 14
+            U.M, U.T, L.r, L.k, 0, 0, 0, 0x1C, // at 22
+            0, 0x90, 0x3C, 100,
+            0x30, 0x80, 0x3C, 0,
+            0, 0x90, 0x3E, 100,
+            0x30, 0x80, 0x3E, 0,
+            0, 0x90, 0x40, 100,
+            0x30, 0x80, 0x40, 0,
+            0, 0xFF, 0x2F, 0).map { i -> i.toByte() }.toByteArray()
+        val music = SmfReader.read(expected.toList())
+        assertEquals(144, music.getTotalTicks(), "total ticks")
+    }
+
+    // U and L cannot share case-insensitively identical fields for JNI signature...
+    class U {
+        companion object {
+            val M = 'M'.toInt()
+            val T = 'T'.toInt()
+        }
+    }
+
+    class L {
+        companion object {
+            val h = 'h'.toInt()
+            val d = 'd'.toInt()
+            val r = 'r'.toInt()
+            val k = 'k'.toInt()
+            val e = 'e'.toInt()
+            val s = 's'.toInt()
+            val t = 't'.toInt()
+        }
+    }
+
+    @Test
+    fun convert() {
+        val bytes = intArrayOf(0xF0, 0x0A, 0x41, 0x10, 0x42, 0x12, 0x40, 0, 0x7F, 0, 0x41, 0xF7).map { it.toByte() }.toByteArray() // am too lazy to add cast to byte...
+        val msgs = MidiEvent.convert (bytes, 0, bytes.size).asIterable().toList()
+        assertEquals(1, msgs.size, "message length")
+        assertEquals(bytes.size, msgs.first().extraDataLength)
     }
 }

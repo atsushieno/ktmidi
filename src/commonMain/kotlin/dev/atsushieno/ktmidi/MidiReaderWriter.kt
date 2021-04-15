@@ -220,7 +220,7 @@ class SmfWriterExtension {
 fun MidiMusic.read(stream: List<Byte>) = SmfReader.read(stream)
 
 internal class Reader(private val stream: List<Byte>, private var index: Int) {
-    fun canRead() : Boolean = stream.size < index
+    fun canRead() : Boolean = index < stream.size
     fun read(dst: ByteArray, startOffset: Int, endOffsetInclusive: Int) : Int {
         val len = min(stream.size - index, endOffsetInclusive - 1 - startOffset)
         if (len > 0)
