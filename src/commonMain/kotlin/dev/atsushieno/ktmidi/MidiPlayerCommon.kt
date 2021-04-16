@@ -98,7 +98,7 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
 
     abstract fun isEventIndexAtEnd() : Boolean
     abstract fun getNextMessage() : TMessage
-    abstract fun getContextDeltaTimeInMilliseconds(m: TMessage): Int
+    abstract fun getContextDeltaTimeInSeconds(m: TMessage): Double
     abstract fun getDurationOfEvent(m: TMessage) : Int
     abstract fun updateTempoAndTimeSignatureIfApplicable(m: TMessage)
     abstract fun onEvent(m: TMessage)
@@ -118,9 +118,9 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
                     return // ignore this event
             }
         } else {
-            val ms = getContextDeltaTimeInMilliseconds(m)
+            val ms = getContextDeltaTimeInSeconds(m)
             if (ms > 0) {
-                timer.waitBy(ms)
+                timer.waitBySeconds(ms)
                 playDeltaTime += getDurationOfEvent(m)
             }
         }

@@ -9,9 +9,9 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
 
     override fun getNextMessage() = messages[eventIdx]
 
-    override fun getContextDeltaTimeInMilliseconds(m: Ump): Int {
+    override fun getContextDeltaTimeInSeconds(m: Ump): Double {
         if (deltaTimeSpec > 0)
-            return if(m.isJRTimestamp) (currentTempo.toDouble() / 1000 * m.jrTimestamp / tempoRatio).toInt() else 0
+            return if(m.isJRTimestamp) currentTempo.toDouble() / 1_000_000 * m.jrTimestamp / tempoRatio else 0.0
         else
             TODO("Not implemented") // simpler JR Timestamp though
     }
@@ -23,7 +23,7 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
     override fun updateTempoAndTimeSignatureIfApplicable(m: Ump) {
         if (m.messageType == MidiMessageType.SYSEX8_MDS && m.eventType == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
             m.int2 % 0x100  == MidiEventType.META.toInt()) {
-            when ((m.int3 / 0x1000000).toByte()) {
+            when ((m.int3 / 0x100_00_00).toByte()) {
                 MidiMetaType.TEMPO -> {
                     m.copyInto(umpConversionBuffer, 0)
                     currentTempo = MidiMetaType.getTempo(umpConversionBuffer, 12)

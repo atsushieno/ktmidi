@@ -1,37 +1,33 @@
 package dev.atsushieno.ktmidi
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
-import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
 interface MidiPlayerTimer {
-    suspend fun waitBy(addedMilliseconds: Int)
+    suspend fun waitBySeconds(addedSeconds: Double)
     fun stop()
 }
 
 @OptIn(ExperimentalTime::class)
 class SimpleAdjustingMidiPlayerTimer : MidiPlayerTimer {
     private lateinit var startedTime: TimeMark
-    var nominalTotalMills: Double = 0.0
+    private var nominalTotalSeconds: Double = 0.0
 
-    override suspend fun waitBy(addedMilliseconds: Int) {
-        if (addedMilliseconds > 0) {
-            var delta = addedMilliseconds.toLong()
+    override suspend fun waitBySeconds(addedSeconds: Double) {
+        if (addedSeconds > 0) {
+            var delta = addedSeconds
             if (::startedTime.isInitialized) {
-                val actualTotalMills = startedTime.elapsedNow().inMilliseconds
-                delta -= (actualTotalMills - nominalTotalMills).toLong()
+                val actualTotalSeconds = startedTime.elapsedNow().inSeconds
+                delta -= actualTotalSeconds - nominalTotalSeconds
             } else {
                 startedTime = TimeSource.Monotonic.markNow()
             }
             if (delta > 0)
-                delay(delta)
-            nominalTotalMills += addedMilliseconds
+                delay((delta * 1000).toLong())
+            nominalTotalSeconds += addedSeconds
         }
     }
 
@@ -39,8 +35,8 @@ class SimpleAdjustingMidiPlayerTimer : MidiPlayerTimer {
 }
 
 open class VirtualMidiPlayerTimer : MidiPlayerTimer {
-    var totalWaitedMilliseconds: Long = 0
-    var totalProceededMilliseconds: Long = 0;
+    var totalWaitedSeconds: Double = 0.0
+    var totalProceededSeconds: Double = 0.0
     private var shouldTerminate: Boolean = false
     private var disposed: Boolean = false
     private val semaphore = Semaphore(1, 0)
@@ -54,16 +50,16 @@ open class VirtualMidiPlayerTimer : MidiPlayerTimer {
         disposed = true
     }
 
-    override suspend fun waitBy(addedMilliseconds: Int) {
-        while (!shouldTerminate && totalWaitedMilliseconds + addedMilliseconds > totalProceededMilliseconds)
+    override suspend fun waitBySeconds(addedSeconds: Double) {
+        while (!shouldTerminate && totalWaitedSeconds + addedSeconds > totalProceededSeconds)
             semaphore.acquire()
-        totalWaitedMilliseconds += addedMilliseconds
+        totalWaitedSeconds += addedSeconds
     }
 
-    open fun proceedBy(addedMilliseconds: Long) {
-        if (addedMilliseconds < 0)
-            throw IllegalArgumentException("'addedMilliseconds' must be non-negative integer")
-        totalProceededMilliseconds += addedMilliseconds
+    open fun proceedBySeconds(addedSeconds: Double) {
+        if (addedSeconds < 0)
+            throw IllegalArgumentException("'addedSeconds' must be non-negative value")
+        totalProceededSeconds += addedSeconds
         if (semaphore.availablePermits == 0)
             semaphore.release()
     }

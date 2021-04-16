@@ -11,8 +11,8 @@ internal class Midi1EventLooper(var messages: List<MidiMessage>, private val tim
             throw UnsupportedOperationException("SMPTe-based delta time is not implemented in this player.")
     }
 
-    override fun getContextDeltaTimeInMilliseconds(m: MidiMessage): Int {
-        return (currentTempo.toDouble() / 1000 * m.deltaTime / deltaTimeSpec / tempoRatio).toInt()
+    override fun getContextDeltaTimeInSeconds(m: MidiMessage): Double {
+        return currentTempo.toDouble() / 1_000_000 * m.deltaTime / deltaTimeSpec / tempoRatio
     }
 
     override fun getDurationOfEvent(m: MidiMessage) = m.deltaTime

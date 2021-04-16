@@ -9,9 +9,9 @@ import kotlin.test.assertTrue
 class MidiPlayerTest {
 
     class AlmostVirtualMidiPlayerTimer : VirtualMidiPlayerTimer() {
-        override suspend fun waitBy(addedMilliseconds: Int) {
+        override suspend fun waitBySeconds(addedSeconds: Double) {
             delay(50)
-            super.waitBy(addedMilliseconds)
+            super.waitBySeconds(addedSeconds)
         }
     }
 
@@ -22,7 +22,7 @@ class MidiPlayerTest {
             val vt = VirtualMidiPlayerTimer()
             val player = TestHelper.getMidiPlayer(vt)
             player.play()
-            vt.proceedBy(200000)
+            vt.proceedBySeconds(10.0)
             delay(200)
             player.pause()
             player.close()
@@ -63,14 +63,14 @@ class MidiPlayerTest {
                     val vt = VirtualMidiPlayerTimer()
                     val player = TestHelper.getMidiPlayer(vt)
                     player.play()
-                    vt.proceedBy(100)
+                    vt.proceedBySeconds(0.1)
 
                     player.seek(5000)
                     assertEquals(5000, player.playDeltaTime, "1 PlayDeltaTime")
                     // compare rounded value
                     assertEquals(129, player.positionInMilliseconds.toInt() / 100, "1 PositionInMilliseconds")
 
-                    vt.proceedBy(100)
+                    vt.proceedBySeconds(0.1)
 
                     // does not proceed beyond the last event.
                     assertEquals(5000, player.playDeltaTime, "2 PlayDeltaTime")
@@ -83,7 +83,7 @@ class MidiPlayerTest {
                     // FIXME: not working
                     //assertEquals(5000, player.positionInMilliseconds, "3 PositionInMilliseconds")
 
-                    vt.proceedBy(100)
+                    vt.proceedBySeconds(0.1)
                     // FIXME: not working
                     //assertEquals(2100, player.playDeltaTime, "4 PlayDeltaTime")
                     //assertEquals(5000, player.positionInMilliseconds, "4 PositionInMilliseconds")
@@ -120,7 +120,7 @@ class MidiPlayerTest {
             try {
                 player.play()
                 assertEquals(0, player.playDeltaTime, "PlayDeltaTime 1")
-                vt.proceedBy(1000)
+                vt.proceedBySeconds(1.0)
 
                 // Currently those Timer proceedBy() calls are "fire and forget" style and does not really care
                 //  if the bound MidiPlayer actually went ahead or not. It totally depends on whether OS/platform
@@ -132,8 +132,8 @@ class MidiPlayerTest {
 
                 assertTrue(!completed, "3 PlaybackCompletedToEnd already fired")
                 assertTrue(!finished, "4 Finished already fired")
-                vt.proceedBy(totalTime - 1000.toLong())
-                assertEquals(12989, vt.totalProceededMilliseconds, "total proceeded milliseconds")
+                vt.proceedBySeconds(totalTime / 1000.0 - 1.0 + 0.01) // + 10msec. to ensure that it is not rounded within the total time...
+                assertEquals(12999, (vt.totalProceededSeconds * 1000).toInt(), "total proceeded milliseconds")
 
                 delay(100) // FIXME: should not be required
 
@@ -163,7 +163,7 @@ class MidiPlayerTest {
             player.finished = Runnable { finished = true }
             try {
                 player.play()
-                vt.proceedBy(1000)
+                vt.proceedBySeconds(1.0)
 
                 delay(100) // FIXME: should not be required
                 player.pause()
