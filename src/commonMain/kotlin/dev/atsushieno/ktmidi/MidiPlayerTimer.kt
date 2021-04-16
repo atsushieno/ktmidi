@@ -5,7 +5,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
+import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
 interface MidiPlayerTimer {
@@ -13,19 +15,19 @@ interface MidiPlayerTimer {
     fun stop()
 }
 
+@OptIn(ExperimentalTime::class)
 class SimpleAdjustingMidiPlayerTimer : MidiPlayerTimer {
-    private var lastStarted: Double = 0.0
-    private var nominalTotalMills: Double = 0.0
+    private lateinit var startedTime: TimeMark
+    var nominalTotalMills: Double = 0.0
 
-    @OptIn(ExperimentalTime::class)
     override suspend fun waitBy(addedMilliseconds: Int) {
         if (addedMilliseconds > 0) {
             var delta = addedMilliseconds.toLong()
-            if (lastStarted != 0.0) {
-                val actualTotalMills = TimeSource.Monotonic.markNow().elapsedNow().inMicroseconds - lastStarted
+            if (::startedTime.isInitialized) {
+                val actualTotalMills = startedTime.elapsedNow().inMilliseconds
                 delta -= (actualTotalMills - nominalTotalMills).toLong()
             } else {
-                lastStarted = TimeSource.Monotonic.markNow().elapsedNow().inMicroseconds
+                startedTime = TimeSource.Monotonic.markNow()
             }
             if (delta > 0)
                 delay(delta)
