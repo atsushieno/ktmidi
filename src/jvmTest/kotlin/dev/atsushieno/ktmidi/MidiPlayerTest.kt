@@ -108,15 +108,15 @@ class MidiPlayerTest {
         assertEquals(12989, totalTime, "music total milliseconds")
         val qmsec = MidiMusic.getPlayTimeMillisecondsAtTick(music.tracks[0].messages, 4998, 192)
         assertEquals(totalTime, qmsec, "milliseconds at end by ticks")
-        val player = TestHelper.getMidiPlayer(vt, music)
-        var completed = false
-        var finished = false
-
-        player.playbackCompletedToEnd = Runnable { completed = true }
-        player.finished = Runnable { finished = true }
-        assertTrue(!completed, "1 PlaybackCompletedToEnd already fired")
-        assertTrue(!finished, "2 Finished already fired")
         runBlocking {
+            val player = TestHelper.getMidiPlayer(vt, music)
+            var completed = false
+            var finished = false
+
+            player.playbackCompletedToEnd = Runnable { completed = true }
+            player.finished = Runnable { finished = true }
+            assertTrue(!completed, "1 PlaybackCompletedToEnd already fired")
+            assertTrue(!finished, "2 Finished already fired")
             try {
                 player.play()
                 assertEquals(0, player.playDeltaTime, "PlayDeltaTime 1")

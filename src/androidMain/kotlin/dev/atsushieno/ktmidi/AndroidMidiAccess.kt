@@ -3,6 +3,7 @@ package dev.atsushieno.ktmidi
 import android.app.Service
 import android.media.midi.*
 import android.content.Context
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 
@@ -19,14 +20,14 @@ class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
     override val outputs: Iterable<MidiPortDetails>
         get() = ports.filter { p -> p.portInfo.type == MidiDeviceInfo.PortInfo.TYPE_INPUT }.asIterable()
 
-    override fun openInputAsync(portId: String): MidiInput {
+    override suspend fun openInputAsync(portId: String): MidiInput {
         val ip = inputs.first { i -> i.id == portId } as AndroidPortDetails
         val dev = openDevices.firstOrNull { d -> ip.device.id == d.info.id }
         val l = OpenDeviceListener(this, dev, ip)
         return l.openInput()
     }
 
-    override fun openOutputAsync(portId: String): MidiOutput {
+    override suspend fun openOutputAsync(portId: String): MidiOutput {
         val ip = outputs.first { i -> i.id == portId } as AndroidPortDetails
         val dev = openDevices.firstOrNull { d -> ip.device.id == d.info.id }
         val l = OpenDeviceListener(this, dev, ip)
@@ -48,30 +49,29 @@ private class AndroidPortDetails(val device: MidiDeviceInfo, val portInfo: MidiD
 private class OpenDeviceListener(val parent: AndroidMidiAccess, var device: MidiDevice?, val portToOpen: AndroidPortDetails)
     : MidiManager.OnDeviceOpenedListener {
 
-    fun openInput () : AndroidMidiInput {
+    suspend fun openInput () : AndroidMidiInput {
         return open { dev -> AndroidMidiInput(portToOpen, dev.openOutputPort (portToOpen.portInfo.portNumber)) }
     }
 
-    fun openOutput() : AndroidMidiOutput {
+    suspend fun openOutput() : AndroidMidiOutput {
         return open { dev -> AndroidMidiOutput (portToOpen, dev.openInputPort (portToOpen.portInfo.portNumber)) }
     }
 
-    fun <T>open (resultCreator: (MidiDevice) -> T) : T {
-        runBlocking {
-            if (device == null) {
-                parent.manager.openDevice(portToOpen.device, this@OpenDeviceListener, null)
-                creatorLock.acquire()
-            }
+    suspend fun <T>open (resultCreator: (MidiDevice) -> T) : T {
+        if (device == null) {
+            parent.manager.openDevice(portToOpen.device, this@OpenDeviceListener, null)
+            for (i in 0 until 10)
+                if (device == null)
+                    delay(10)
+            while (device == null)
+                delay(100)
         }
         return resultCreator(device!!)
     }
 
-    private val creatorLock = Semaphore(1, 0)
-
     override fun onDeviceOpened (device:MidiDevice) {
         this.device = device
         parent.openDevices.add (device)
-        creatorLock.release()
     }
 }
 

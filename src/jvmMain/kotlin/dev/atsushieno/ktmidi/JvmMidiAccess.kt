@@ -14,7 +14,7 @@ class JvmMidiAccess : MidiAccess() {
             .flatMap { d -> d.transmitters.map { t -> Pair(d, t) } }
             .mapIndexed { i, p -> JvmMidiTransmitterPortDetails(p.first, i, p.second) }
 
-    override fun openInputAsync(portId: String): MidiInput {
+    override suspend fun openInputAsync(portId: String): MidiInput {
         val port = outputs.firstOrNull { i -> i.id == portId }
         if (port == null || port !is JvmMidiTransmitterPortDetails)
             throw IllegalArgumentException("Output port $portId was not found")
@@ -23,7 +23,7 @@ class JvmMidiAccess : MidiAccess() {
         return JvmMidiInput(port)
     }
 
-    override fun openOutputAsync(portId: String): MidiOutput {
+    override suspend fun openOutputAsync(portId: String): MidiOutput {
         val port = inputs.firstOrNull { i -> i.id == portId }
         if (port == null || port !is JvmMidiReceiverPortDetails)
             throw IllegalArgumentException("Input port $portId was not found")

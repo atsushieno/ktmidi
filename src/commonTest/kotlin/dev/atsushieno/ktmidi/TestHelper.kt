@@ -28,7 +28,7 @@ class TestHelper {
             //return MidiMusic.Read (stream)
         }
 
-        fun getMidiPlayer(
+        suspend fun getMidiPlayer(
             timeManager: MidiPlayerTimer?,
             midiMusic: MidiMusic?,
             midiAccess: MidiAccess? = null
@@ -36,10 +36,10 @@ class TestHelper {
             val access = midiAccess ?: emptyMidiAccess
             val music = midiMusic ?: getMidiMusic()
             val tm = timeManager ?: VirtualMidiPlayerTimer()
-            return MidiPlayer(music, access, tm)
+            return MidiPlayer.create(music, access, tm)
         }
 
-        fun getMidiPlayer(
+        suspend fun getMidiPlayer(
             timeManager: MidiPlayerTimer? = null,
             midiAccess: MidiAccess? = null,
             resourceId: String? = null
@@ -47,7 +47,7 @@ class TestHelper {
             val access = midiAccess ?: emptyMidiAccess
             val music = if (resourceId != null) getMidiMusic(resourceId) else getMidiMusic()
             val tm = timeManager ?: VirtualMidiPlayerTimer()
-            return MidiPlayer(music, access, tm)
+            return MidiPlayer.create(music, access, tm)
         }
     }
 }

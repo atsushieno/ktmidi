@@ -68,8 +68,10 @@ interface OnMidi2EventListener {
 
 // Provides asynchronous player control.
 class Midi2Player : MidiPlayerCommon<Ump> {
-    constructor(music: Midi2Music, access: MidiAccess, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer())
-            : this(music, access.openOutputAsync(access.outputs.first().id), timer, true)
+    companion object {
+        suspend fun create(music: Midi2Music, access: MidiAccess, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer()) =
+            Midi2Player(music, access.openOutputAsync(access.outputs.first().id), timer, true)
+    }
 
     constructor(music: Midi2Music, output: MidiOutput, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer(), shouldDisposeOutput: Boolean = false)
             : super(output, shouldDisposeOutput, timer) {

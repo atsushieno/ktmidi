@@ -10,11 +10,13 @@ abstract class MidiAccess {
     abstract val inputs: Iterable<MidiPortDetails>
     abstract val outputs: Iterable<MidiPortDetails>
 
-    abstract fun openInputAsync(portId: String): MidiInput
-    abstract fun openOutputAsync(portId: String): MidiOutput
+    abstract suspend fun openInputAsync(portId: String): MidiInput
+    abstract suspend fun openOutputAsync(portId: String): MidiOutput
 
     open val canDetectStateChanges = false
     var stateChanged : (MidiPortDetails) -> Unit = {}
+
+    open val canCreateVirtualPort = false
 
     open suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput {
         throw UnsupportedOperationException()
@@ -118,13 +120,13 @@ class EmptyMidiAccess : MidiAccess() {
     override val outputs: Iterable<MidiPortDetails>
         get() = arrayListOf(EmptyMidiOutput.instance.details)
 
-    override fun openInputAsync(portId: String): MidiInput {
+    override suspend fun openInputAsync(portId: String): MidiInput {
         if (portId != EmptyMidiInput.instance.details.id)
             throw IllegalArgumentException("Port ID $portId does not exist.")
         return EmptyMidiInput.instance
     }
 
-    override fun openOutputAsync(portId: String): MidiOutput {
+    override suspend fun openOutputAsync(portId: String): MidiOutput {
         if (portId != EmptyMidiOutput.instance.details.id)
             throw IllegalArgumentException("Port ID $portId does not exist.")
         return EmptyMidiOutput.instance
@@ -154,7 +156,7 @@ internal class EmptyMidiInput : EmptyMidiPort(), MidiInput {
         val instance = EmptyMidiInput()
     }
 
-    override val details: MidiPortDetails = EmptyMidiPortDetails("dummy_in", "Dummy MIDI Input")
+    override val details: MidiPortDetails = EmptyMidiPortDetails("empty_in", "Empty MIDI Input")
 
     override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
         // do nothing, it will receive nothing
@@ -170,6 +172,5 @@ internal class EmptyMidiOutput : EmptyMidiPort(), MidiOutput {
         // do nothing.
     }
 
-    override val details: MidiPortDetails = EmptyMidiPortDetails("dummy_out", "Dummy MIDI Output")
+    override val details: MidiPortDetails = EmptyMidiPortDetails("empty_out", "Empty MIDI Output")
 }
-

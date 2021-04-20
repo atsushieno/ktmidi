@@ -64,8 +64,10 @@ interface OnMidiMessageListener {
 
 // Provides asynchronous player control.
 class MidiPlayer : MidiPlayerCommon<MidiMessage> {
-    constructor(music: MidiMusic, access: MidiAccess, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer())
-            : this(music, access.openOutputAsync(access.outputs.first().id), timer, true)
+    companion object {
+        suspend fun create(music: MidiMusic, access: MidiAccess, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer()) =
+            MidiPlayer(music, access.openOutputAsync(access.outputs.first().id), timer, true)
+    }
 
     constructor(music: MidiMusic, output: MidiOutput, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer(), shouldDisposeOutput: Boolean = false)
         : super(output, shouldDisposeOutput, timer) {
