@@ -129,18 +129,6 @@ android {
 
 afterEvaluate {
     publishing {
-        publications {
-            all {
-                groupId = group
-                if (it.name.contains('kotlinMultiplatform')) {
-                    artifactId = "ktmidi"
-                } else if (it.name.contains('android')) {
-                    artifactId = "ktmidi-android"
-                } else {
-                    artifactId = "ktmidi-$name"
-                }
-            }
-        }
         repositories {
             maven {
                 name = "GitHubPackages"
