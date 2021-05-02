@@ -50,16 +50,31 @@ IMidiAccess and IMidiOutput are the interfaces that provides raw MIDI access, an
 Raw MIDI access separation makes it easy to test MIDI player functionality without any platform-specific hussle, especially with `MidiAccessManager.empty` (NO-OP midi access implementation) and `VirtualMidiPlayerTimer` explained later.
 
 
+## Non-realtime event driven approach
+
+In audio processing world, music playback engine would be implemented in realtime-safe manner. That is, it should not use any thread blockers like mutex, and all MIDI inputs (if any) are processed with audio inputs (if any) at a time.
+
+Since audio processing is based on chunked buffers, MIDI inputs are also buffered in such processing approach.
+
+Our `MidiPlayer` and `Midi2Player` is NOT realtime safe. It is simpler event based implementation that makes use of mutex. We are living with garbage collectors and JIT engines, so expecting realtime safety is awkward.
+
+When Kotlin-Native becomes more popular and usecases becomes much broader, there may be professional realtime need, but until that happens, we wouldn't spend too much effort. (But contributions are of course welcome.)
+
+
 ## Format 0
 
 When dealing with sequential MIDI messages, it is much easier if every MIDI events from all the tracks are unified in one sequence.
 Therefore MidiPlayer first converts the song to "Format 0" which has only one track.
 
+MIDI 2.0 is also covered, we have the same kind of track merger and splitter in the same mindset.
 
-## SMTPe vs. clock count
 
-MidiPlayer basically doesn't support SMTPe. It is primarily used for serializing MIDI device inputs in real time, not for structured music.
+## SMPTE vs. clock count
+
+MidiPlayer basically doesn't support SMPTE. It is primarily used for serializing MIDI device inputs in real time, not for structured music.
 It affects tempo calculation, and so far MidiPlayer aims to provide features for structured music.
+
+(This does not really make sense as our MIDI 2.0 player is based on JR timestamp which is basically finer SMPTE.)
 
 
 ## MidiPlayerTimeManager
