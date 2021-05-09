@@ -8,17 +8,31 @@ ktmidi is a Kotlin Multiplatform library for MIDI Access API and MIDI data proce
 - `MidiMusic` and `Midi2Music` : reflects Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support is not based on standard, as there is nothing like SMF specification for MIDI 2.0 yet.)
 - `MidiPlayer` and `Midi2Player`: basic MIDI player functionality based on customizible scheduler. Not realtime strict (as on GC-ed language / VM), but would suffice for general usage.
 
-For platform MIDI access API, we cover Android MIDI API (in Kotlin), javax.sound.midi API (with limited feature set), and ALSA Sequencer. For dependency resolution reason, ALSA implementation is split from here - see [atsushieno/ktmidi-jvm-desktop](https://github.com/atsushieno/ktmidi-jvm-desktop) project.
+## Using ktmidi
 
-ktmidi builds in Kotlin/JVM, Kotlin/JS and Kotlin/Native (though I only develop with Kotlin/JVM so far).
+To use ktmidi, add the following lines in the `dependencies` section in `build.gradle`:
 
-The entire API is still subject to change, and it is actually radically changing these weeks.
+```
+dependencies {
+    implementation 'dev.atsushieno:ktmidi:+' // replace + with the actual version
+}
+```
+
+ktmidi is released at sonatype and hence available at Maven Central.
 
 ## Applications
 
 - [atsushieno/mugene-ng](https://github.com/atsushieno/mugene-ng) is a Music Macro Language compiler that aims to support MIDI 2.0 (as its output format (based on this API) as well as MIDI 1.0 SMF.
 - [atsushieno/notium](https://github.com/atsushieno/notium-ng) aims to offer the same functionality as mugene-ng, but as an object-oriented Kotlin API.
 - [atsushieno/kmmk](https://github.com/atsushieno/kmmk) is a virtual MIDI keyboard application that is based on Jetpack Compose and therefore supposed to work on both Android and Java desktop. (still under construction)
+
+## Platform Access API
+
+For platform MIDI access API, we cover Android MIDI API (in Kotlin), javax.sound.midi API (with limited feature set), and ALSA Sequencer. For dependency resolution reason, ALSA implementation is split from here - see [atsushieno/ktmidi-jvm-desktop](https://github.com/atsushieno/ktmidi-jvm-desktop) project.
+
+ktmidi builds for Kotlin/JVM, Kotlin/JS and Kotlin/Native (though I only develop with Kotlin/JVM so far).
+
+The entire API is still subject to change, and it had been actually radically changing when development was most active.
 
 ## MIDI 2.0 support
 
@@ -54,6 +68,13 @@ Also, we have a workaround for META events, now that system message has its own 
 
 [mugene-ng](https://github.com/atsushieno/mugene-ng) can generate music files based on this format.
 
+## Design Docs
+
+There are couple of API/implementation design docs:
+
+- [docs/MidiAccess.md](docs/MidiAccess.md)
+- [docs/MidiMusic.md](docs/MidiMusic.md)
+- [docs/MidiPlayer.md](docs/MidiPlayer.md)
 
 ## Historical background
 
