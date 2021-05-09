@@ -1,5 +1,7 @@
 # ktmidi: Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0
 
+![maven repo](https://img.shields.io/maven-central/v/dev.atsushieno/ktmidi)
+
 ktmidi is a Kotlin Multiplatform library for MIDI Access API and MIDI data processing that covers MIDI 1.0 and MIDI 2.0. It implements the following features (and so on):
 
 - `MidiAccess` : MIDI access abstraction API like what Web MIDI API 1.0 is going to provide.
