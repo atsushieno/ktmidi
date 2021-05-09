@@ -5,6 +5,8 @@ plugins {
     id 'org.jetbrains.kotlin.multiplatform' version '1.4.32'
     id 'org.jetbrains.dokka' version '1.4.30'
     id 'maven-publish'
+    id 'signing'
+    id 'io.github.gradle-nexus.publish-plugin' version '1.1.0'
 }
 
 group = 'dev.atsushieno'
@@ -39,6 +41,7 @@ kotlin {
             }
         }
     }
+    /*
     iosX64('ios') {
         binaries {
             framework {
@@ -46,6 +49,7 @@ kotlin {
             }
         }
     }
+    */
     def hostOs = System.getProperty("os.name")
     def isMingwX64 = hostOs.startsWith("Windows")
     KotlinNativeTargetWithTests nativeTarget
@@ -101,12 +105,12 @@ kotlin {
         nativeTest {
 
         }
+        /*
         iosMain {
-
         }
         iosTest {
-
         }
+        */
     }
 }
 
@@ -128,8 +132,39 @@ android {
 }
 
 afterEvaluate {
+
+    tasks.register('javadocJar', Jar) {
+        archiveClassifier.set('javadoc')
+    }
+
     publishing {
+        publications.all {
+            artifact(javadocJar)
+            pom {
+                name.set('ktmidi')
+                description.set('Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0')
+                url.set('https://github.com/atsushieno/ktmidi')
+                scm {
+                    url.set('https://github.com/atsushieno/ktmidi')
+                }
+                licenses {
+                    license {
+                        name.set('the MIT License')
+                        url.set('https://github.com/atsushieno/ktmidi/blob/main/LICENSE')
+                    }
+                }
+                developers {
+                    developer {
+                        id.set('atsushieno')
+                        name.set('Atsushi Eno')
+                        email.set('atsushieno@gmail.com')
+                    }
+                }
+            }
+        }
+
         repositories {
+            /*
             maven {
                 name = "GitHubPackages"
                 url = uri("https://maven.pkg.github.com/atsushieno/ktmidi")
@@ -138,6 +173,21 @@ afterEvaluate {
                     password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
                 }
             }
+            */
+            maven {
+                name = "OSSRH"
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                credentials {
+                    username = System.getenv("OSSRH_USERNAME")
+                    password = System.getenv("OSSRH_PASSWORD")
+                }
+            }
         }
+    }
+
+    apply from: "${rootDir}/publish-root.gradle"
+
+    signing {
+        sign publishing.publications
     }
 }
