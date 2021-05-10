@@ -33,7 +33,7 @@ jobs:
     - name: rewrite build.gradle to require signing
       run: sed -i "s/signing {}/signing { sign publishing.publications }/" build.gradle
     - name: publish
-      run: ./gradlew --warning-mode all publish --max-workers 1 closeAndReleaseSonatypeStagingRepository
+      run: ./gradlew --warning-mode all dokkaHtml publish --max-workers 1 closeAndReleaseSonatypeStagingRepository
       env:
         USERNAME: atsushieno
         GITHUB_TOKEN: ${{ secrets.MAVEN_PAT }}
@@ -43,7 +43,6 @@ jobs:
         SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         SIGNING_SECRET_KEY_RING_FILE: ${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}
         SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
-
     - name: upload artifact
       if: success()
       uses: actions/upload-artifact@v2
@@ -52,4 +51,8 @@ jobs:
         path: |
           build/libs/*.jar
           build/outputs/aar/*.aar
-
+    - name: deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@4.1.2
+      with:
+        branch: gh-pages
+        folder: build/dokka/html
