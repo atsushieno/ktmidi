@@ -185,7 +185,6 @@ afterEvaluate {
 
     apply from: "${rootDir}/publish-root.gradle"
 
-    signing {
-        sign publishing.publications
-    }
+    // keep it as is. It is replaced by CI release builds
+    signing {}
 }
