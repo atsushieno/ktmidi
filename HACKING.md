@@ -16,14 +16,26 @@ Bug reports are welcomed at [GitHub issues](https://github.com/atsushieno/ktmidi
 
 Although when creating PRs please note that:
 
-- by submitting PRs or code/data contributions in any other formats, you are supposed to agree to license under the MIT license
+- by submitting PRs or code/data contributions in any other formats, you are supposed to agree to license your contributions under the MIT license
 - we likely don't accept changes that break CI builds. For example we have iOS build disabled (as it does not build there).
-
-Contributed code may be reformatted by @atsushieno or any possible maintainers.
 
 We also use [GitHub Discussions](https://github.com/atsushieno/ktmidi/discussions) for any public discussions. Troubleshooting, casual feature requests, suggestions (and complaints), usage showcase, release plans etc.
 
 Although at this state the developer is almost only one (@atsushieno) and the project will be driven without promising plans on Discussions.
+
+
+## Code policy
+
+Right now we don't have strict coding convention. But contributed code may be reformatted by @atsushieno or any possible maintainers.
+
+We in general expect new features available on all platforms. But like virtual MIDI port support, features that have limited subset of supported platforms might be added with appropriate abstraction. (Platform-specific implementation does not conclift with this principle.)
+
+We keep trying to minimize dependencies. It is for two reasons:
+
+- foundation libraries like this library should not bring in too many dependencies to avoid possible conflicts with irrelevant libraries each other.
+- extraneous dependencies potentially harm build stability and cross-platform portability.
+
+Sample projects do not have these problems in general and therefore those principles do not apply, but CI builds still have to be kept solid.
 
 
 ## Continuous Integration
