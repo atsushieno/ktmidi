@@ -87,7 +87,9 @@ Also, we have a workaround for META events, now that system message has its own 
 
 ## Docs
 
-Right now there is no published API documentation. Dokka plugin is integrated and you can build API docs by `./gradlew dokkaHtml` and it will be generated locally.
+API documentation is published at: https://atsushieno.github.io/ktmidi/
+
+The documentation can be built using `./gradlew dokkaHtml` and it will be generated locally at `build/dokka/html`.
 
 For hacking and/or contributing to ktmidi, please have a look at [HACKING.md](HACKING.md).
 
