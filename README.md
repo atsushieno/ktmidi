@@ -47,7 +47,7 @@ Here is a list of MIDI 2.0 extensibility in this API:
 - `Midi2Player` is a feature parity with `MidiPlayer`.
 - `dev.atsushieno.ktmidi.umpfactory` package contains a bunch of utility functions that are used to construct UMP integer values.
 
-### SMF alternative formats
+### SMF alternative format
 
 Since there is no comparable standard music file format like SMF for MIDI 2.0, we had to come up with our own. Our `Midi2Player` accepts files in the format described below:
 
@@ -68,7 +68,11 @@ Also, we have a workaround for META events, now that system message has its own 
 
 [mugene-ng](https://github.com/atsushieno/mugene-ng) can generate music files based on this format.
 
-## Design Docs
+## Docs
+
+Right now there is no published API documentation. Dokka plugin is integrated and you can build API docs by `./gradlew dokkaHtml` and it will be generated locally.
+
+For hacking and/or contributing to ktmidi, please have a look at [HACKING.md](HACKING.md).
 
 There are couple of API/implementation design docs:
 
