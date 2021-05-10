@@ -51,7 +51,11 @@ The entire API is still subject to change, and it had been actually radically ch
 
 ## MIDI 2.0 support
 
-ktmidi supports MIDI 2.0. Since you can derive from `MidiAccess` abstract API, you can create your own MIDI access implementation and don't have to wait for platform native API to support MIDI 2.0. Note that MIDI 2.0 support is still an experimental work.
+ktmidi supports MIDI 2.0 in our own manner i.e. it presumes MIDI 2.0 protocol is established elsewhere without resorting to MIDI-CI protocol (so far). If you want to follow MIDI-CI system exclusive messages, establish pair of MIDI input and output and handle message exchanges manually.
+
+ktmidi assumes there are various other use-cases without those message exchanges e.g. use of UMPs in MIDI 2.0-only messaging in apps or audio plugins.
+
+Since you can derive from `MidiAccess` abstract API, you can create your own MIDI access implementation and don't have to wait for platform native API to support MIDI 2.0. Note that MIDI 2.0 support is still an experimental work.
 
 It would be useful for general MIDI 2.0 software tools such as MIDI 2.0 UMP player.
 
