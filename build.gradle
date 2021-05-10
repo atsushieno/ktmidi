@@ -10,7 +10,7 @@ plugins {
 }
 
 group = 'dev.atsushieno'
-version = '0.2.7.6'
+version = '0.2.7.7'
 
 repositories {
     google()
