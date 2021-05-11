@@ -33,6 +33,17 @@ dependencies {
 
 The actual artifact might be platform dependent like `dev.atsushieno:ktmidi-android:+` or `dev.atsushieno:ktmidi-js:+`, depending on the project targets.
 
+If you want to bring better user experience on desktop (which @atsushieno recommends as `javax.sound.midi` on Linux is quite featureless), add `ktmidi-jvm-desktop` too,
+
+
+```
+dependencies {
+    implementation 'dev.atsushieno:ktmidi-jvm-desktop:+' // replace + with the actual version
+}
+```
+
+... and use `AlsaMidiAccess` on Linux. I use `if (File.exists("/dev/snd/seq")) AlsaMidiAccess() else JvmMidiAccess()` to create best `MidiAccess` instance.
+
 ktmidi is released at sonatype and hence available at Maven Central.
 
 ## Applications
