@@ -23,6 +23,18 @@ It implements the following features (and so on):
 
 ## Using ktmidi
 
+Here is an example code excerpt to set up platform MIDI device access, load an SMF from some file, and play it:
+
+```
+// for some complicated reason we don't have simple "default" MidiAccess API instance
+val access = if(File("/dev/snd/seq").exists()) AlsaMidiAccess() else JvmMidiAccess()
+val bytes = Files.readAllBytes(Path.of(fileName)).toList()
+val music = MidiMusic()
+music.read(bytes)
+val player = MidiPlayer(music, access)
+player.play()
+```
+
 To use ktmidi, add the following lines in the `dependencies` section in `build.gradle`:
 
 ```
@@ -46,11 +58,24 @@ dependencies {
 
 ktmidi is released at sonatype and hence available at Maven Central.
 
-## Applications
+## Resources
 
-- [atsushieno/mugene-ng](https://github.com/atsushieno/mugene-ng) is a Music Macro Language compiler that aims to support MIDI 2.0 (as its output format (based on this API) as well as MIDI 1.0 SMF.
-- [atsushieno/notium](https://github.com/atsushieno/notium-ng) aims to offer the same functionality as mugene-ng, but as an object-oriented Kotlin API.
-- [atsushieno/kmmk](https://github.com/atsushieno/kmmk) is a virtual MIDI keyboard application that is based on Jetpack Compose and therefore supposed to work on both Android and Java desktop. (still under construction)
+We use [GitHub issues](https://github.com/atsushieno/ktmidi/issues) for bug reports etc., and [GitHub Discussions boards](https://github.com/atsushieno/ktmidi/discussions/) open to everyone.
+
+For hacking and/or contributing to ktmidi, please have a look at [HACKING.md](HACKING.md).
+
+For Applications that use ktmidi, check out [this Discussions thread](https://github.com/atsushieno/ktmidi/discussions/14).
+
+API documentation is published at: https://atsushieno.github.io/ktmidi/
+
+The documentation can be built using `./gradlew dokkaHtml` and it will be generated locally at `build/dokka/html`.
+
+There are couple of API/implementation design docs:
+
+- [docs/MidiAccess.md](docs/MidiAccess.md)
+- [docs/MidiMusic.md](docs/MidiMusic.md)
+- [docs/MidiPlayer.md](docs/MidiPlayer.md)
+
 
 ## Platform Access API
 
@@ -99,20 +124,6 @@ If `deltaTimeSpec` is a positive integer, it works like the value in SMF header 
 Also, we have a workaround for META events, now that system message has its own message type with fixed (limited) length - in this format they are stored as SYSEX8 messages with all 0s for manufacturer ID, device ID, and sub IDs.
 
 [mugene-ng](https://github.com/atsushieno/mugene-ng) can generate music files based on this format.
-
-## Docs
-
-API documentation is published at: https://atsushieno.github.io/ktmidi/
-
-The documentation can be built using `./gradlew dokkaHtml` and it will be generated locally at `build/dokka/html`.
-
-For hacking and/or contributing to ktmidi, please have a look at [HACKING.md](HACKING.md).
-
-There are couple of API/implementation design docs:
-
-- [docs/MidiAccess.md](docs/MidiAccess.md)
-- [docs/MidiMusic.md](docs/MidiMusic.md)
-- [docs/MidiPlayer.md](docs/MidiPlayer.md)
 
 ## Historical background
 
