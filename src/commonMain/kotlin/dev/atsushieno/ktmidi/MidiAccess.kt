@@ -78,7 +78,7 @@ abstract class SimpleVirtualMidiPort protected constructor(
 
     override var midiProtocol: Int
         get() = MidiCIProtocolValue.MIDI1
-        set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
+        set(v) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
 }
 
 class SimpleVirtualMidiInput(details: MidiPortDetails, onDispose: () -> Unit) : SimpleVirtualMidiPort(
