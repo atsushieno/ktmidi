@@ -50,6 +50,14 @@ kotlin {
         }
     }
     */
+    linuxX64 { // Use your target instead.
+        binaries {
+            staticLib {
+            }
+            sharedLib {
+            }
+        }
+    }
     def hostOs = System.getProperty("os.name")
     def isMingwX64 = hostOs.startsWith("Windows")
     KotlinNativeTargetWithTests nativeTarget
@@ -63,7 +71,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3')
-                implementation('org.jetbrains.kotlinx:kotlinx-datetime:0.1.1')
+                implementation('org.jetbrains.kotlinx:kotlinx-datetime:0.2.0')
             }
         }
         commonTest {
