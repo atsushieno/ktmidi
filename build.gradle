@@ -50,7 +50,7 @@ kotlin {
         }
     }
     */
-    linuxX64 { // Use your target instead.
+    linuxX64('native') { // Use your target instead.
         binaries {
             staticLib {
             }
