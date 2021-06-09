@@ -16,13 +16,10 @@ jobs:
         with:
           username: ${{ secrets.OSSRH_USERNAME }}
           password: ${{ secrets.OSSRH_PASSWORD }}
-          base_url: https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/
           staging_profile_id: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
-          description: created ${{ github.repository }}#${{ github.run_number }}
 
   build-and-upload:
     name: build on ${{ matrix.os }}
-    needs: [create-staging-repository]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -87,15 +84,11 @@ jobs:
         with:
           username: ${{ secrets.OSSRH_USERNAME }}
           password: ${{ secrets.OSSRH_PASSWORD }}
-          base_url: https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/
           staging_repository_id: ${{ needs.create_staging_repository.outputs.repository_id }}
-          description: discarded ${{ github.repository }}#${{ github.run_number }}
       - name: Release
         if: ${{ needs.build-and-upload.result == 'success' }}
-        uses: nexus-actions/release-nexus-staging-repo@v1.2
+        uses: nexus-actions/release-nexus-staging-repo@v1
         with:
           username: ${{ secrets.OSSRH_USERNAME }}
           password: ${{ secrets.OSSRH_PASSWORD }}
-          base_url: https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/
           staging_repository_id: ${{ needs.create_staging_repository.outputs.repository_id }}
-          description: released ${{ github.repository }}#${{ github.run_number }}
