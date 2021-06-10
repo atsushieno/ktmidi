@@ -181,6 +181,7 @@ afterEvaluate {
                     password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
                 }
             }
+            */
             maven {
                 name = "OSSRH"
                 url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
@@ -189,7 +190,6 @@ afterEvaluate {
                     password = System.getenv("OSSRH_PASSWORD")
                 }
             }
-            */
         }
     }
 
