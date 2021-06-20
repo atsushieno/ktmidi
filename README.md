@@ -101,6 +101,7 @@ Here is a list of MIDI 2.0 extensibility in this API:
 - `Midi2Music` is a feature parity with `MidiMusic`, but all the messages are stored as UMPs. However, since SMF concepts of time calculation (namely delta time quantization / specification) is useful, we optionally blend it into UMPs and their JR Timestamp messages are actually fake - they store delta times just like SMF.
 - `Midi2Player` is a feature parity with `MidiPlayer`.
 - `dev.atsushieno.ktmidi.umpfactory` package contains a bunch of utility functions that are used to construct UMP integer values.
+- `dev.atsushieno.ktmidi.ci` package contains a bunch of utility functions that are used to construct MIDI-CI system exclusive packets.
 
 [atsushieno/kmmk](https://github.com) supports "MIDI 2.0 mode" which sends MIDI messages in MIDI 2.0 UMPs. There is also an ongoing experimental project to process MIDI 2.0 UMPs in [audio plugins on Android](https://github.com/atsushieno/android-audio-plugin-framework/tree/main/java/aap-midi-device-service).
 
@@ -130,6 +131,8 @@ Also, we have a workaround for META events, now that system message has its own 
 It started as the Kotlin port of C# [managed-midi](https://github.com/atsushieno/managed-midi) library. Also it started with partial copy of [fluidsynth-midi-service-j](https://github.com/atsushieno/fluidsynth-midi-service-j) project.
 
 However everything in this project went far beyond them and now we are making it usable for MIDI 2.0.
+
+Some of the MIDI 2.0 related bits are ported from [cmidi2](https://github.com/atsushieno/cmidi2) library.
 
 ## License
 
