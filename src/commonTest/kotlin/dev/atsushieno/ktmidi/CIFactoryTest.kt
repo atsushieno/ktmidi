@@ -23,7 +23,7 @@ class CIFactoryTest {
             0x00, 0x02, 0, 0
         )
         val actual1 = MutableList<Byte>(29) { 0 }
-        cmidi2_ci_discovery(
+        midiCIDiscovery(
             actual1, 1, 0x10101010,
             0x123456, 0x1357, 0x2468, 0x1F3F5F7F,
             (CMIDI2_CI_PROTOCOL_NEGOTIATION_SUPPORTED + CMIDI2_CI_PROFILE_CONFIGURATION_SUPPORTED + CMIDI2_CI_PROPERTY_EXCHANGE_SUPPORTED).toByte(),
@@ -33,7 +33,7 @@ class CIFactoryTest {
 
         // Service Discovery Reply
         val actual2 = MutableList<Byte>(29) { 0 }
-        cmidi2_ci_discovery_reply(
+        midiCIDiscoveryReply(
             actual2, 1, 0x10101010, 0x20202020,
             0x123456, 0x1357, 0x2468, 0x1F3F5F7F,
             (CMIDI2_CI_PROTOCOL_NEGOTIATION_SUPPORTED + CMIDI2_CI_PROFILE_CONFIGURATION_SUPPORTED + CMIDI2_CI_PROPERTY_EXCHANGE_SUPPORTED).toByte(),
@@ -49,7 +49,7 @@ class CIFactoryTest {
             0x10, 0x10, 0x10, 0x10, 0x7F, 0x7F, 0x7F, 0x7F, 0x20, 0x20, 0x20, 0x20
         )
         val actual3 = MutableList<Byte>(17) { 0 }
-        cmidi2_ci_discovery_invalidate_muid(actual3, 1, 0x10101010, 0x20202020)
+        midiCIDiscoveryInvalidateMuid(actual3, 1, 0x10101010, 0x20202020)
         assertEquals(expected3, actual3)
 
         // NAK
@@ -58,15 +58,15 @@ class CIFactoryTest {
             0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20
         )
         val actual4 = MutableList<Byte>(13) { 0 }
-        cmidi2_ci_discovery_nak(actual4, 5, 1, 0x10101010, 0x20202020)
+        midiCIDiscoveryNak(actual4, 5, 1, 0x10101010, 0x20202020)
         assertEquals(expected4, actual4)
     }
 
     @Test
     fun testProtocolNegotiationMessages() {
         val infos = mutableListOf(
-            cmidi2_ci_protocol_type_info(1, 0, 0x10, 0, 0),
-            cmidi2_ci_protocol_type_info(2, 0, 0x20, 0, 0)
+            MidiCIProtocolTypeInfo(1, 0, 0x10, 0, 0),
+            MidiCIProtocolTypeInfo(2, 0, 0x20, 0, 0)
         )
 
         // Protocol Negotiation (Inquiry)
@@ -78,7 +78,7 @@ class CIFactoryTest {
             2, 0, 0x20, 0, 0
         )
         val actual1 = MutableList<Byte>(25) { 0 }
-        cmidi2_ci_protocol_negotiation(
+        midiCIProtocolNegotiation(
             actual1, false, 0x10101010, 0x20202020,
             1, 2, infos
         )
@@ -86,7 +86,7 @@ class CIFactoryTest {
 
         // Protocol Negotiation Reply
         val actual2 = MutableList<Byte>(25) { 0 }
-        cmidi2_ci_protocol_negotiation(
+        midiCIProtocolNegotiation(
             actual2, true, 0x10101010, 0x20202020,
             1, 2, infos
         )
@@ -99,7 +99,7 @@ class CIFactoryTest {
             1, 2, 0, 0x20, 0, 0
         )
         val actual3 = MutableList<Byte>(19) { 0 }
-        cmidi2_ci_protocol_set(
+        midiCIProtocolSet(
             actual3, 0x10101010, 0x20202020,
             1, infos[1]
         )
@@ -119,7 +119,7 @@ class CIFactoryTest {
             1
         )
         val actual4 = MutableList<Byte>(14 + 48) { 0 }
-        cmidi2_ci_protocol_test(
+        midiCIProtocolTest(
             actual4, true, 0x10101010, 0x20202020,
             1, testData
         )
@@ -128,7 +128,7 @@ class CIFactoryTest {
 
         // Test New Protocol - Responder to Initiator
         val actual5 = MutableList<Byte>(14 + 48) { 0 }
-        cmidi2_ci_protocol_test(
+        midiCIProtocolTest(
             actual5, false, 0x10101010, 0x20202020,
             1, testData
         )
@@ -141,7 +141,7 @@ class CIFactoryTest {
             1
         )
         val actual6 = MutableList<Byte>(14) { 0 }
-        cmidi2_ci_protocol_confirm_established(actual6, 0x10101010, 0x20202020, 1)
+        midiCIProtocolConfirmEstablished(actual6, 0x10101010, 0x20202020, 1)
         assertEquals(expected6, actual6)
     }
 
@@ -153,12 +153,12 @@ class CIFactoryTest {
             0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20
         )
         val actual1 = MutableList<Byte>(13) { 0 }
-        cmidi2_ci_profile_inquiry(actual1, 5, 0x10101010, 0x20202020)
+        midiCIProfileInquiry(actual1, 5, 0x10101010, 0x20202020)
         assertEquals(expected1, actual1)
 
         // Profile Inquiry Reply
-        val profiles1 = mutableListOf(cmidi2_profile_id(1, 2, 3, 4, 5), cmidi2_profile_id(6, 7, 8, 9, 10))
-        val profiles2 = mutableListOf(cmidi2_profile_id(11, 12, 13, 14, 15), cmidi2_profile_id(16, 17, 18, 19, 20))
+        val profiles1 = mutableListOf(MidiCIProfileId(1, 2, 3, 4, 5), MidiCIProfileId(6, 7, 8, 9, 10))
+        val profiles2 = mutableListOf(MidiCIProfileId(11, 12, 13, 14, 15), MidiCIProfileId(16, 17, 18, 19, 20))
         val expected2 = mutableListOf<Byte>(
             0x7E, 5, 0x0D, 0x21, 1,
             0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
@@ -170,7 +170,7 @@ class CIFactoryTest {
             16, 17, 18, 19, 20
         )
         val actual2 = MutableList<Byte>(35) { 0 }
-        cmidi2_ci_profile_inquiry_reply(
+        midiCIProfileInquiryReply(
             actual2, 5, 0x10101010, 0x20202020,
             2, profiles1, 2, profiles2
         )
@@ -183,7 +183,7 @@ class CIFactoryTest {
             1, 2, 3, 4, 5
         )
         val actual3 = MutableList<Byte>(18) { 0 }
-        cmidi2_ci_profile_set(
+        midiCIProfileSet(
             actual3, 5, true, 0x10101010, 0x20202020,
             profiles1[0]
         )
@@ -191,7 +191,7 @@ class CIFactoryTest {
 
         // Set Profile Off
         val actual4 = MutableList<Byte>(18) { 0 }
-        cmidi2_ci_profile_set(
+        midiCIProfileSet(
             actual4, 5, false, 0x10101010, 0x20202020,
             profiles1[0]
         )
@@ -204,7 +204,7 @@ class CIFactoryTest {
             1, 2, 3, 4, 5
         )
         val actual5 = MutableList<Byte>(18) { 0 }
-        cmidi2_ci_profile_report(
+        midiCIProfileReport(
             actual5, 5, true, 0x10101010,
             profiles1[0]
         )
@@ -212,7 +212,7 @@ class CIFactoryTest {
 
         // Profile Disabled Report
         val actual6 = MutableList<Byte>(18) { 0 }
-        cmidi2_ci_profile_report(
+        midiCIProfileReport(
             actual6, 5, false, 0x10101010,
             profiles1[0]
         )
@@ -228,7 +228,7 @@ class CIFactoryTest {
         )
         val actual7 = MutableList<Byte>(30) { 0 }
         val data = mutableListOf<Byte>(8, 7, 6, 5, 4, 3, 2, 1)
-        cmidi2_ci_profile_specific_data(
+        midiCIProfileSpecificData(
             actual7, 5, 0x10101010, 0x20202020,
             profiles1[0], 8, data
         )
@@ -247,12 +247,12 @@ class CIFactoryTest {
             16
         )
         val actual1 = MutableList<Byte>(14) { 0 }
-        cmidi2_ci_property_get_capabilities(actual1, 5, false, 0x10101010, 0x20202020, 16)
+        midiCIPropertyGetCapabilities(actual1, 5, false, 0x10101010, 0x20202020, 16)
         assertEquals(expected1, actual1)
 
         // Property Inquiry Reply
         val actual2 = MutableList<Byte>(14) { 0 }
-        cmidi2_ci_property_get_capabilities(actual2, 5, true, 0x10101010, 0x20202020, 16)
+        midiCIPropertyGetCapabilities(actual2, 5, true, 0x10101010, 0x20202020, 16)
         assertEquals(0x31, actual2[3])
 
         // Has Property Data
@@ -268,7 +268,7 @@ class CIFactoryTest {
             55, 66, 77, 88, 99
         )
         val actual3 = MutableList<Byte>(31) { 0 }
-        cmidi2_ci_property_common(
+        midiCIPropertyCommon(
             actual3, 5, CMIDI2_CI_SUB_ID_2_PROPERTY_HAS_DATA_INQUIRY,
             0x10101010, 0x20202020,
             2, 4, header, 3, 1, 5, data
@@ -277,7 +277,7 @@ class CIFactoryTest {
 
         // Reply to Has Property Data
         val actual4 = MutableList<Byte>(31) { 0 }
-        cmidi2_ci_property_common(
+        midiCIPropertyCommon(
             actual4, 5, CMIDI2_CI_SUB_ID_2_PROPERTY_HAS_DATA_REPLY,
             0x10101010, 0x20202020,
             2, 4, header, 3, 1, 5, data
@@ -286,7 +286,7 @@ class CIFactoryTest {
 
         // Get Property Data
         val actual5 = MutableList<Byte>(31) { 0 }
-        cmidi2_ci_property_common(
+        midiCIPropertyCommon(
             actual5, 5, CMIDI2_CI_SUB_ID_2_PROPERTY_GET_DATA_INQUIRY,
             0x10101010, 0x20202020,
             2, 4, header, 3, 1, 5, data
@@ -295,7 +295,7 @@ class CIFactoryTest {
 
         // Reply to Get Property Data
         val actual6 = MutableList<Byte>(31) { 0 }
-        cmidi2_ci_property_common(
+        midiCIPropertyCommon(
             actual6, 5, CMIDI2_CI_SUB_ID_2_PROPERTY_GET_DATA_REPLY,
             0x10101010, 0x20202020,
             2, 4, header, 3, 1, 5, data
@@ -304,7 +304,7 @@ class CIFactoryTest {
 
         // Set Property Data
         val actual7 = MutableList<Byte>(31) { 0 }
-        cmidi2_ci_property_common(
+        midiCIPropertyCommon(
             actual7, 5, CMIDI2_CI_SUB_ID_2_PROPERTY_SET_DATA_INQUIRY,
             0x10101010, 0x20202020,
             2, 4, header, 3, 1, 5, data
@@ -313,7 +313,7 @@ class CIFactoryTest {
 
         // Reply to Set Property Data
         val actual8 = MutableList<Byte>(31) { 0 }
-        cmidi2_ci_property_common(
+        midiCIPropertyCommon(
             actual8, 5, CMIDI2_CI_SUB_ID_2_PROPERTY_SET_DATA_REPLY,
             0x10101010, 0x20202020,
             2, 4, header, 3, 1, 5, data
@@ -322,7 +322,7 @@ class CIFactoryTest {
 
         // Subscription
         val actual9 = MutableList<Byte>(31) { 0 }
-        cmidi2_ci_property_common(
+        midiCIPropertyCommon(
             actual9, 5, CMIDI2_CI_SUB_ID_2_PROPERTY_SUBSCRIBE,
             0x10101010, 0x20202020,
             2, 4, header, 3, 1, 5, data
@@ -331,7 +331,7 @@ class CIFactoryTest {
 
         // Reply to Subscription
         val actual10 = MutableList<Byte>(31) { 0 }
-        cmidi2_ci_property_common(
+        midiCIPropertyCommon(
             actual10, 5, CMIDI2_CI_SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY,
             0x10101010, 0x20202020,
             2, 4, header, 3, 1, 5, data
@@ -340,7 +340,7 @@ class CIFactoryTest {
 
         // Notify
         val actual11 = MutableList<Byte>(31) { 0 }
-        cmidi2_ci_property_common(
+        midiCIPropertyCommon(
             actual11, 5, CMIDI2_CI_SUB_ID_2_PROPERTY_NOTIFY,
             0x10101010, 0x20202020,
             2, 4, header, 3, 1, 5, data
