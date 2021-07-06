@@ -10,11 +10,10 @@ plugins {
 }
 
 group = 'dev.atsushieno'
-version = '0.3.1'
+version = '0.3.2'
 
 repositories {
     google()
-    jcenter()
     mavenCentral()
 }
 
@@ -31,7 +30,7 @@ kotlin {
         publishLibraryVariantsGroupedByFlavor = true
         publishLibraryVariants("debug", "release")
     }
-    js(LEGACY) {
+    js(BOTH) {
         browser {
             testTask {
                 useKarma {
@@ -39,6 +38,8 @@ kotlin {
                     webpackConfig.cssSupport.enabled = true
                 }
             }
+        }
+        nodejs {
         }
     }
     /*
