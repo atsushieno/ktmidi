@@ -10,7 +10,7 @@ plugins {
 }
 
 group = 'dev.atsushieno'
-version = '0.3.2'
+version = '0.3.3'
 
 repositories {
     google()
@@ -126,6 +126,7 @@ kotlin {
 android {
     compileSdkVersion 30
     sourceSets.main.manifest.srcFile('src/androidMain/AndroidManifest.xml')
+    sourceSets.test.assets.srcDir("src/commonTest/resources") // kind of hack...
     defaultConfig {
         minSdkVersion 24
         targetSdkVersion 30

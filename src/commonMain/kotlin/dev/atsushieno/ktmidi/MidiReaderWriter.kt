@@ -225,10 +225,11 @@ fun MidiMusic.read(stream: List<Byte>) {
 internal class Reader(private val stream: List<Byte>, private var index: Int) {
     fun canRead() : Boolean = index < stream.size
     fun read(dst: ByteArray, startOffset: Int, endOffsetInclusive: Int) : Int {
-        val len = min(stream.size - index, endOffsetInclusive - 1 - startOffset)
-        if (len > 0)
-            stream.slice(IntRange(index, index + len - 1).apply { index += len})
-                .toByteArray().copyInto(dst, startOffset, endOffsetInclusive)
+        val len = min(stream.size - index, endOffsetInclusive - startOffset)
+        if (len > 0) {
+            stream.subList(index, index + len).toByteArray().copyInto(dst, startOffset, 0, len)
+            index += len
+        }
         return len
     }
     val position = index
@@ -309,7 +310,7 @@ internal class SmfReader(val music: MidiMusic, stream: List<Byte>) {
     private fun readBytes(args: ByteArray) {
         currentTrackSize += args.size
         var start = 0
-        val len = reader.read(args, start, start + args.size - 1)
+        val len = reader.read(args, start, start + args.size)
         if (len < args.size - start)
             throw parseError("The stream is insufficient to read ${args.size} bytes specified in the SMF message. Only $len bytes read.")
     }
