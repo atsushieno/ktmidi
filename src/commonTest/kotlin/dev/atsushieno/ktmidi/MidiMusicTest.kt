@@ -17,7 +17,6 @@ class MidiMusicUnitTest {
         assertEquals(140.0, round(MidiMusic.getSmfBpm(byteArrayOf(6, 0x8A.toByte(), 0xB1.toByte()), 0)), "140")
     }
 
-
     @Test
     fun getFixedSize() {
         assertEquals(2, MidiEvent.fixedDataSize(0x90.toByte()).toInt(), "NoteOn")
@@ -117,5 +116,16 @@ class MidiMusicUnitTest {
         val msgs = MidiEvent.convert (bytes, 0, bytes.size).asIterable().toList()
         assertEquals(1, msgs.size, "message length")
         assertEquals(bytes.size, msgs.first().extraDataLength)
+    }
+
+    @Test
+    fun encode7BitLength() {
+        assertEquals(listOf<Byte>(0), MidiMessage.encode7BitLength(0).toList(), "test1")
+        assertEquals(listOf<Byte>(0x7F), MidiMessage.encode7BitLength(0x7F).toList(), "test2")
+        assertEquals(listOf(0x80.toByte(), 1), MidiMessage.encode7BitLength(0x80).toList(), "test3")
+        assertEquals(listOf(0xFF.toByte(), 1), MidiMessage.encode7BitLength(0xFF).toList(), "test4")
+        assertEquals(listOf(0x80.toByte(), 2), MidiMessage.encode7BitLength(0x100).toList(), "test5")
+        assertEquals(listOf(0xFF.toByte(), 0x7F.toByte()), MidiMessage.encode7BitLength(0x3FFF).toList(), "test6")
+        assertEquals(listOf(0x80.toByte(), 0x80.toByte(), 1), MidiMessage.encode7BitLength(0x4000).toList(), "test7")
     }
 }

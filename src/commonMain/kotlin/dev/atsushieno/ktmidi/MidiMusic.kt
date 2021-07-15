@@ -82,6 +82,17 @@ class MidiMusic {
 class MidiTrack(val messages: MutableList<MidiMessage> = mutableListOf())
 
 class MidiMessage(val deltaTime: Int, evt: MidiEvent) {
+    companion object {
+        fun encode7BitLength(length: Int) =
+            sequence {
+                var v = length
+                while (v >= 0x80) {
+                    yield((v % 0x80 + 0x80).toByte())
+                    v /= 0x80
+                }
+                yield (v.toByte())
+            }
+    }
 
     val event: MidiEvent = evt
 
