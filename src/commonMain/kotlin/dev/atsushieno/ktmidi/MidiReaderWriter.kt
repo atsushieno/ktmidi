@@ -50,7 +50,7 @@ class SmfWriter(val stream: MutableList<Byte>) {
 
         for (e in track.messages) {
             write7BitVariableInteger(e.deltaTime)
-            when (e.event.eventType.toInt()) {
+            when (e.event.eventType.toUnsigned()) {
                 MidiMusic.META_EVENT -> metaEventWriter(false, e, stream)
                 MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> {
                     stream.add(e.event.eventType)
@@ -98,7 +98,7 @@ class SmfWriter(val stream: MutableList<Byte>) {
             size += getVariantLength(e.deltaTime)
 
             // arguments
-            when (e.event.eventType.toInt()) {
+            when (e.event.eventType.toUnsigned()) {
                 MidiMusic.META_EVENT -> size += metaEventWriter(true, e, mutableListOf())
                 MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> {
                     size++

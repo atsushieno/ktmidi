@@ -89,7 +89,7 @@ class MidiPlayer : MidiPlayerCommon<MidiMessage> {
         val listener = object : OnMidiMessageListener {
             override fun onMessage(m: MidiMessage) {
                 val e = m.event
-                when (e.eventType.toInt()) {
+                when (e.eventType.toUnsigned()) {
                     MidiChannelStatus.NOTE_OFF,
                     MidiChannelStatus.NOTE_ON -> {
                         if (mutedChannels.contains(e.channel.toUnsigned()))
@@ -156,7 +156,7 @@ internal class SimpleMidi1SeekProcessor(ticks: Int) : SeekProcessor<MidiMessage>
         current += message.deltaTime
         if (current >= seek_to)
             return SeekFilterResult.PASS_AND_TERMINATE
-        when (message.event.eventType.toInt()) {
+        when (message.event.eventType.toUnsigned()) {
             MidiChannelStatus.NOTE_ON, MidiChannelStatus.NOTE_OFF -> return SeekFilterResult.BLOCK
         }
         return SeekFilterResult.PASS

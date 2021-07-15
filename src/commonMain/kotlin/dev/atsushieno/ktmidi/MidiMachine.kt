@@ -14,7 +14,7 @@ class MidiMachine {
     var channels = Array<MidiMachineChannel>(16) { MidiMachineChannel() }
 
     fun processEvent(evt: MidiEvent) {
-        when (evt.eventType.toInt()) {
+        when (evt.eventType.toUnsigned()) {
             MidiChannelStatus.NOTE_ON ->
                 channels[evt.channel.toUnsigned()].noteVelocity[evt.msb.toUnsigned()] = evt.lsb
 

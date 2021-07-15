@@ -8,7 +8,7 @@ class MidiMusic {
         override fun messageToDeltaTime(message: MidiMessage) = message.deltaTime
 
         override fun isMetaEventMessage(message: MidiMessage, metaType: Int) =
-            message.event.eventType.toInt() == META_EVENT && message.event.msb.toInt() == metaType
+            message.event.eventType.toUnsigned() == META_EVENT && message.event.msb.toInt() == metaType
 
         override fun getTempoValue(message: MidiMessage) = getSmfTempo(message.event.extraData!!, message.event.extraDataOffset)
     }
@@ -154,7 +154,7 @@ class MidiEvent // MIDI 1.0 only
         type: Int,
         arg1: Int,
         arg2: Int,
-        extraData: ByteArray?,
+        extraData: ByteArray? = null,
         extraOffset: Int = 0,
         extraLength: Int = extraData?.size ?: 0
     ) {
@@ -323,7 +323,7 @@ open class Midi1TrackSplitter(private val source: MutableList<MidiMessage>, priv
     // useful to split note messages out from non-note ones,
     // to ease data reading.
     open fun getTrackId(e: MidiMessage): Int {
-        return when (e.event.eventType.toInt()) {
+        return when (e.event.eventType.toUnsigned()) {
             MidiMusic.META_EVENT, MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> -1
             else -> e.event.channel.toUnsigned()
         }
