@@ -12,9 +12,9 @@ import kotlin.test.assertEquals
 @kotlin.ExperimentalUnsignedTypes
 class MidiMusicUnitTest {
     @Test
-    fun getBpm() {
-        assertEquals(120.0, round(MidiMetaType.getBpm(byteArrayOf(7, 0xA1.toByte(), 0x20), 0)), "120")
-        assertEquals(140.0, round(MidiMetaType.getBpm(byteArrayOf(6, 0x8A.toByte(), 0xB1.toByte()), 0)), "140")
+    fun getSmfBpm() {
+        assertEquals(120.0, round(MidiMusic.getSmfBpm(byteArrayOf(7, 0xA1.toByte(), 0x20), 0)), "120")
+        assertEquals(140.0, round(MidiMusic.getSmfBpm(byteArrayOf(6, 0x8A.toByte(), 0xB1.toByte()), 0)), "140")
     }
 
 
@@ -44,7 +44,7 @@ class MidiMusicUnitTest {
 
     @Test
     fun unsignedOperations() {
-        val evt = MidiEvent(0xFF, 3, 4, charArrayOf('t', 'e', 's', 't').map { c -> c.toByte() }.toByteArray(), 0)
+        val evt = MidiEvent(0xFF, 3, 4, charArrayOf('t', 'e', 's', 't').map { c -> c.code.toByte() }.toByteArray(), 0)
         assertEquals(0xFF.toByte(), evt.eventType, "eventType")
         assertEquals(3, evt.msb, "msb")
         assertEquals(4, evt.lsb, "lsb")
@@ -94,20 +94,20 @@ class MidiMusicUnitTest {
     // U and L cannot share case-insensitively identical fields for JNI signature...
     class U {
         companion object {
-            val M = 'M'.toInt()
-            val T = 'T'.toInt()
+            val M = 'M'.code
+            val T = 'T'.code
         }
     }
 
     class L {
         companion object {
-            val h = 'h'.toInt()
-            val d = 'd'.toInt()
-            val r = 'r'.toInt()
-            val k = 'k'.toInt()
-            val e = 'e'.toInt()
-            val s = 's'.toInt()
-            val t = 't'.toInt()
+            val h = 'h'.code
+            val d = 'd'.code
+            val r = 'r'.code
+            val k = 'k'.code
+            val e = 'e'.code
+            val s = 's'.code
+            val t = 't'.code
         }
     }
 

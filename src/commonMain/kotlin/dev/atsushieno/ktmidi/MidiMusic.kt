@@ -3,18 +3,36 @@
 package dev.atsushieno.ktmidi
 
 class MidiMusic {
+
     internal class SmfDeltaTimeComputer: DeltaTimeComputer<MidiMessage>() {
         override fun messageToDeltaTime(message: MidiMessage) = message.deltaTime
 
-        override fun isMetaEventMessage(message: MidiMessage, metaType: Byte) = message.event.eventType == MidiEventType.META && message.event.msb == metaType
+        override fun isMetaEventMessage(message: MidiMessage, metaType: Int) =
+            message.event.eventType.toInt() == META_EVENT && message.event.msb.toInt() == metaType
 
-        override fun getTempoValue(message: MidiMessage) = MidiMetaType.getTempo(message.event.extraData!!, message.event.extraDataOffset)
+        override fun getTempoValue(message: MidiMessage) = getSmfTempo(message.event.extraData!!, message.event.extraDataOffset)
     }
 
     companion object {
+        val DEFAULT_TEMPO = 500000
+
+        const val SYSEX_EVENT = 0xF0
+        const val SYSEX_END = 0xF7
+        const val META_EVENT = 0xFF
+
+        fun getSmfTempo(data: ByteArray, offset: Int): Int {
+            if (data.size < offset + 2)
+                throw IndexOutOfBoundsException("data array must be longer than argument offset $offset + 2")
+            return (data[offset].toUnsigned() shl 16) + (data[offset + 1].toUnsigned() shl 8) + data[offset + 2]
+        }
+
+        fun getSmfBpm(data: ByteArray, offset: Int): Double {
+            return 60000000.0 / getSmfTempo(data, offset)
+        }
+
         private val calc = SmfDeltaTimeComputer()
 
-        fun getMetaEventsOfType(messages: Iterable<MidiMessage>, metaType: Byte)
+        fun getMetaEventsOfType(messages: Iterable<MidiMessage>, metaType: Int)
             = calc.getMetaEventsOfType(messages, metaType).map { p -> MidiMessage(p.first, p.second.event) }
 
         fun getTotalPlayTimeMilliseconds(messages: Iterable<MidiMessage>, deltaTimeSpec: Int) = calc.getTotalPlayTimeMilliseconds(messages, deltaTimeSpec)
@@ -32,7 +50,7 @@ class MidiMusic {
         this.tracks.add(track)
     }
 
-    fun getMetaEventsOfType(metaType: Byte): Iterable<MidiMessage> {
+    fun getMetaEventsOfType(metaType: Int): Iterable<MidiMessage> {
         if (format != 0.toByte())
             return mergeTracks().getMetaEventsOfType(metaType)
         return getMetaEventsOfType(tracks[0].messages, metaType).asIterable()
@@ -41,7 +59,7 @@ class MidiMusic {
     fun getTotalTicks(): Int {
         if (format != 0.toByte())
             return mergeTracks().getTotalTicks()
-        return tracks[0].messages.sumBy { m: MidiMessage -> m.deltaTime }
+        return tracks[0].messages.sumOf { m: MidiMessage -> m.deltaTime }
     }
 
     fun getTotalPlayTimeMilliseconds(): Int {
@@ -121,7 +139,6 @@ class MidiEvent // MIDI 1.0 only
         this.extraDataLength = 0
     }
 
-    @ExperimentalUnsignedTypes
     constructor (
         type: Int,
         arg1: Int,
@@ -148,10 +165,10 @@ class MidiEvent // MIDI 1.0 only
 
     val eventType: Byte
         get() =
-            when (statusByte) {
-                MidiEventType.META,
-                MidiEventType.SYSEX,
-                MidiEventType.SYSEX_END -> this.statusByte
+            when (statusByte.toUnsigned()) {
+                MidiMusic.META_EVENT,
+                MidiMusic.SYSEX_EVENT,
+                MidiMusic.SYSEX_END -> this.statusByte
                 else -> (value and 0xF0).toByte()
             }
 
@@ -295,8 +312,8 @@ open class Midi1TrackSplitter(private val source: MutableList<MidiMessage>, priv
     // useful to split note messages out from non-note ones,
     // to ease data reading.
     open fun getTrackId(e: MidiMessage): Int {
-        return when (e.event.eventType) {
-            MidiEventType.META, MidiEventType.SYSEX, MidiEventType.SYSEX_END -> -1
+        return when (e.event.eventType.toInt()) {
+            MidiMusic.META_EVENT, MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> -1
             else -> e.event.channel.toUnsigned()
         }
     }

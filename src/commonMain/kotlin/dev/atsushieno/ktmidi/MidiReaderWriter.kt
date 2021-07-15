@@ -25,10 +25,10 @@ class SmfWriter(val stream: MutableList<Byte>) {
     }
 
     fun writeHeader(format: Short, tracks: Short, deltaTimeSpec: Short) {
-        stream.add('M'.toByte())
-        stream.add('T'.toByte())
-        stream.add('h'.toByte())
-        stream.add('d'.toByte())
+        stream.add('M'.code.toByte())
+        stream.add('T'.code.toByte())
+        stream.add('h'.code.toByte())
+        stream.add('d'.code.toByte())
         writeShort(0)
         writeShort(6)
         writeShort(format)
@@ -40,19 +40,19 @@ class SmfWriter(val stream: MutableList<Byte>) {
         SmfWriterExtension.DEFAULT_META_EVENT_WRITER
 
     fun writeTrack(track: MidiTrack) {
-        stream.add('M'.toByte())
-        stream.add('T'.toByte())
-        stream.add('r'.toByte())
-        stream.add('k'.toByte())
+        stream.add('M'.code.toByte())
+        stream.add('T'.code.toByte())
+        stream.add('r'.code.toByte())
+        stream.add('k'.code.toByte())
         writeInt(getTrackDataSize(track))
 
         var running_status: Byte = 0
 
         for (e in track.messages) {
             write7BitVariableInteger(e.deltaTime)
-            when (e.event.eventType) {
-                MidiEventType.META -> metaEventWriter(false, e, stream)
-                MidiEventType.SYSEX, MidiEventType.SYSEX_END -> {
+            when (e.event.eventType.toInt()) {
+                MidiMusic.META_EVENT -> metaEventWriter(false, e, stream)
+                MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> {
                     stream.add(e.event.eventType)
                     if (e.event.extraData != null) {
                         write7BitVariableInteger(e.event.extraDataLength)
@@ -98,9 +98,9 @@ class SmfWriter(val stream: MutableList<Byte>) {
             size += getVariantLength(e.deltaTime)
 
             // arguments
-            when (e.event.eventType) {
-                MidiEventType.META -> size += metaEventWriter(true, e, mutableListOf())
-                MidiEventType.SYSEX, MidiEventType.SYSEX_END -> {
+            when (e.event.eventType.toInt()) {
+                MidiMusic.META_EVENT -> size += metaEventWriter(true, e, mutableListOf())
+                MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> {
                     size++
                     if (e.event.extraData != null) {
                         size += getVariantLength(e.event.extraDataLength)
@@ -206,7 +206,7 @@ class SmfWriterExtension {
                 stream.add(e.event.metaType)
                 val size = min(0x77, total - written)
                 stream.add((size + 8).toByte())
-                stream.addAll("DM:${idx.toString(16)}:".map { c -> c.toByte() }.toTypedArray())
+                stream.addAll("DM:${idx.toString(16)}:".map { c -> c.code.toByte() }.toTypedArray())
                 val offset = e.event.extraDataOffset + written
                 if (size > 0)
                     stream.addAll(e.event.extraData.slice(IntRange(offset, offset + size - 1)))
@@ -244,10 +244,10 @@ internal class SmfReader(val music: MidiMusic, stream: List<Byte>) {
     private val data = music
 
     fun readMusic() {
-        if (readByte() != 'M'.toByte()
-            || readByte() != 'T'.toByte()
-            || readByte() != 'h'.toByte()
-            || readByte() != 'd'.toByte()
+        if (readByte() != 'M'.code.toByte()
+            || readByte() != 'T'.code.toByte()
+            || readByte() != 'h'.code.toByte()
+            || readByte() != 'd'.code.toByte()
         )
             throw parseError("MThd is expected")
         if (readInt32() != 6)
@@ -262,10 +262,10 @@ internal class SmfReader(val music: MidiMusic, stream: List<Byte>) {
     private fun readTrack(): MidiTrack {
         val tr = MidiTrack()
         if (
-            readByte() != 'M'.toByte()
-            || readByte() != 'T'.toByte()
-            || readByte() != 'r'.toByte()
-            || readByte() != 'k'.toByte()
+            readByte() != 'M'.code.toByte()
+            || readByte() != 'T'.code.toByte()
+            || readByte() != 'r'.code.toByte()
+            || readByte() != 'k'.code.toByte()
         )
             throw parseError("MTrk is expected")
         val trackSize = readInt32()
@@ -289,8 +289,8 @@ internal class SmfReader(val music: MidiMusic, stream: List<Byte>) {
         runningStatus = if (b < 0x80) runningStatus else readByte().toUnsigned()
         val len: Int
         when (runningStatus) {
-            MidiEventType.SYSEX.toUnsigned(), MidiEventType.SYSEX_END.toUnsigned(), MidiEventType.META.toUnsigned() -> {
-                val metaType = if (runningStatus == MidiEventType.META.toUnsigned()) readByte() else 0
+            MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END, MidiMusic.META_EVENT -> {
+                val metaType = if (runningStatus == MidiMusic.META_EVENT) readByte() else 0
                 len = readVariableLength()
                 val args = ByteArray(len)
                 if (len > 0)

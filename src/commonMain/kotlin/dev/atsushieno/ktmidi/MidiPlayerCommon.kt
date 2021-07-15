@@ -18,7 +18,7 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
 
     var state: PlayerState
     internal var eventIdx = 0
-    var currentTempo = MidiMetaType.DEFAULT_TEMPO
+    var currentTempo = MidiMusic.DEFAULT_TEMPO
     var currentTimeSignature = ByteArray(4)
     var playDeltaTime: Int = 0
 
@@ -106,17 +106,11 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
     private suspend fun processMessage(m: TMessage) {
         if (seek_processor != null) {
             val result = seek_processor!!.filterMessage(m)
-            when (result) {
-                SeekFilterResult.PASS_AND_TERMINATE,
-                SeekFilterResult.BLOCK_AND_TERMINATE ->
-                    seek_processor = null
-            }
+            if (result == SeekFilterResult.PASS_AND_TERMINATE || result == SeekFilterResult.BLOCK_AND_TERMINATE)
+                seek_processor = null
 
-            when (result) {
-                SeekFilterResult.BLOCK,
-                SeekFilterResult.BLOCK_AND_TERMINATE ->
-                    return // ignore this event
-            }
+            if (result == SeekFilterResult.BLOCK || result == SeekFilterResult.BLOCK_AND_TERMINATE)
+                return // ignore this event
         } else {
             val ms = getContextDeltaTimeInSeconds(m)
             if (ms > 0) {
@@ -237,10 +231,8 @@ abstract class MidiPlayerCommon<TMessage> internal constructor(internal val outp
     }
 
     fun stop() {
-        when (state) {
-            PlayerState.PAUSED,
-            PlayerState.PLAYING -> looper.stop()
-        }
+        if (state == PlayerState.PAUSED || state == PlayerState.PLAYING)
+            looper.stop()
     }
 
     abstract fun seek(ticks: Int)

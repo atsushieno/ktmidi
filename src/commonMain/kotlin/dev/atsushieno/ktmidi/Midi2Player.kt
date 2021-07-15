@@ -22,11 +22,11 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
 
     override fun updateTempoAndTimeSignatureIfApplicable(m: Ump) {
         if (m.messageType == MidiMessageType.SYSEX8_MDS && m.eventType == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
-            m.int2 % 0x100  == MidiEventType.META.toInt()) {
-            when ((m.int3 / 0x100_00_00).toByte()) {
+            m.int2 % 0x100  == MidiMusic.META_EVENT) {
+            when ((m.int3 / 0x100_00_00)) {
                 MidiMetaType.TEMPO -> {
                     m.copyInto(umpConversionBuffer, 0)
-                    currentTempo = MidiMetaType.getTempo(umpConversionBuffer, 12)
+                    currentTempo = MidiMusic.getSmfTempo(umpConversionBuffer, 12)
                 }
                 MidiMetaType.TIME_SIGNATURE -> {
                     m.copyInto(umpConversionBuffer, 0)
@@ -58,7 +58,7 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
         // all sound off on all channels.
         for (group in 0..15)
             for (ch in 0..15)
-                onEvent(Ump(umpMidi1CC(group, ch, MidiCC.ALL_SOUND_OFF, 0)))
+                onEvent(Ump(umpMidi1CC(group, ch, MidiCC.ALL_SOUND_OFF.toByte(), 0)))
     }
 }
 
@@ -86,7 +86,7 @@ class Midi2Player : MidiPlayerCommon<Ump> {
                 for (group in 0..15) {
                     // all control reset on all channels.
                     for (ch in 0..15) {
-                        val ump = Ump(umpMidi1CC(group, ch, MidiCC.RESET_ALL_CONTROLLERS, 0))
+                        val ump = Ump(umpMidi1CC(group, ch, MidiCC.RESET_ALL_CONTROLLERS.toByte(), 0))
                         ump.copyInto(umpConversionBuffer, 0)
                         output.send(umpConversionBuffer, 0, ump.sizeInBytes, 0)
                     }
@@ -94,8 +94,8 @@ class Midi2Player : MidiPlayerCommon<Ump> {
             } else {
                 // all control reset on all channels.
                 for (i in 0..15) {
-                    umpConversionBuffer[0] = (i + MidiEventType.CC).toByte()
-                    umpConversionBuffer[1] = MidiCC.RESET_ALL_CONTROLLERS
+                    umpConversionBuffer[0] = (i + MidiChannelStatus.CC).toByte()
+                    umpConversionBuffer[1] = MidiCC.RESET_ALL_CONTROLLERS.toByte()
                     umpConversionBuffer[2] = 0
                     output.send(umpConversionBuffer, 0, 3, 0)
                 }
@@ -144,9 +144,9 @@ class Midi2Player : MidiPlayerCommon<Ump> {
                             TODO("Not implemented")
                     }
                     MidiMessageType.MIDI1 -> {
-                        when (e.eventType.toByte()) {
-                            MidiEventType.NOTE_OFF,
-                            MidiEventType.NOTE_ON -> {
+                        when (e.eventType) {
+                            MidiChannelStatus.NOTE_OFF,
+                            MidiChannelStatus.NOTE_ON -> {
                                 if (mutedChannels.contains(e.groupAndChannel))
                                     return // ignore messages for the masked channel.
                             }
@@ -203,8 +203,8 @@ internal class Midi2SimpleSeekProcessor(ticks: Int) : SeekProcessor<Ump> {
         current += if(message.isJRTimestamp) message.jrTimestamp else 0
         if (current >= seekTo)
             return SeekFilterResult.PASS_AND_TERMINATE
-        when (message.eventType.toByte()) {
-            MidiEventType.NOTE_ON, MidiEventType.NOTE_OFF -> return SeekFilterResult.BLOCK
+        when (message.eventType) {
+            MidiChannelStatus.NOTE_ON, MidiChannelStatus.NOTE_OFF -> return SeekFilterResult.BLOCK
         }
         return SeekFilterResult.PASS
     }

@@ -8,13 +8,13 @@ class TestHelper {
             music.deltaTimeSpec = 192
             var track = MidiTrack()
             var ch = 1
-            track.messages.add(MidiMessage(188, MidiEvent(MidiEventType.PROGRAM + ch, 1, 0, null, 0, 0)))
+            track.messages.add(MidiMessage(188, MidiEvent(MidiChannelStatus.PROGRAM + ch, 1, 0, null, 0, 0)))
             for (i in 0 until 100) {
                 track.messages.add(
-                    MidiMessage(4, MidiEvent(MidiEventType.NOTE_ON + ch, 60, 120, null, 0, 0))
+                    MidiMessage(4, MidiEvent(MidiChannelStatus.NOTE_ON + ch, 60, 120, null, 0, 0))
                 )
                 track.messages.add(
-                    MidiMessage(44, MidiEvent(MidiEventType.NOTE_OFF + ch, 60, 0, null, 0, 0))
+                    MidiMessage(44, MidiEvent(MidiChannelStatus.NOTE_OFF + ch, 60, 0, null, 0, 0))
                 )
             }
 

@@ -60,12 +60,12 @@ val Ump.groupAndChannel: Int // 0..255
     get() = group shl 4 and channelInGroup
 
 val Ump.isJRClock
-    get() = messageType == MidiMessageType.UTILITY && eventType == Midi2SystemMessageType.JR_CLOCK
+    get() = messageType == MidiMessageType.UTILITY && eventType == MidiUtilityStatus.JR_CLOCK
 val Ump.jrClock
     get() = if (isJRClock) (midi1Msb shl 8) + midi1Lsb else 0
 
 val Ump.isJRTimestamp
-    get()= messageType == MidiMessageType.UTILITY && eventType == Midi2SystemMessageType.JR_TIMESTAMP
+    get()= messageType == MidiMessageType.UTILITY && eventType == MidiUtilityStatus.JR_TIMESTAMP
 val Ump.jrTimestamp
     get() = if(isJRTimestamp) (midi1Msb shl 8) + midi1Lsb else 0
 

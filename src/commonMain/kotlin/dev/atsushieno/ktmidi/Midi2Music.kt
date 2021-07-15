@@ -2,88 +2,6 @@ package dev.atsushieno.ktmidi
 
 import dev.atsushieno.ktmidi.umpfactory.*
 
-object MidiMessageType { // MIDI 2.0
-    const val UTILITY = 0
-    const val SYSTEM = 1
-    const val MIDI1 = 2
-    const val SYSEX7 = 3
-    const val MIDI2 = 4
-    const val SYSEX8_MDS = 5
-}
-
-object MidiCIProtocolBytes { // MIDI 2.0
-    const val TYPE = 0
-    const val VERSION = 1
-    const val EXTENSIONS = 2
-}
-
-object MidiCIProtocolType { // MIDI 2.0
-    const val MIDI1 = 1
-    const val MIDI2 = 2
-}
-
-object MidiCIProtocolValue { // MIDI 2.0
-    const val MIDI1 = 0
-    const val MIDI2_V1 = 0
-}
-
-object MidiCIProtocolExtensions { // MIDI 2.0
-    const val JITTER = 1
-    const val LARGER = 2
-}
-
-object MidiAttributeType { // MIDI 2.0
-    const val NONE = 0
-    const val MANUFACTURER_SPECIFIC = 1
-    const val PROFILE_SPECIFIC = 2
-    const val Pitch7_9 = 3
-}
-
-object MidiPerNoteManagementFlags { // MIDI 2.0
-    const val RESET = 1
-    const val DETACH = 2
-}
-
-object Midi2SystemMessageType {
-    const val NOP = 0
-    const val JR_CLOCK = 0x10
-    const val JR_TIMESTAMP = 0x20
-}
-
-object Midi2BinaryChunkStatus {
-    const val SYSEX_IN_ONE_UMP = 0
-    const val SYSEX_START = 0x10
-    const val SYSEX_CONTINUE = 0x20
-    const val SYSEX_END = 0x30
-    const val MDS_HEADER = 0x80
-    const val MDS_PAYLOAD = 0x90
-}
-
-object MidiPerNoteRCC { // MIDI 2.0
-    const val MODULATION = 0x01.toByte()
-    const val BREATH = 0x02.toByte()
-    const val PITCH_7_25 = 0x03.toByte()
-    const val VOLUME = 0x07.toByte()
-    const val BALANCE = 0x08.toByte()
-    const val PAN = 0x0A.toByte()
-    const val EXPRESSION = 0x0B.toByte()
-    const val SOUND_CONTROLLER_1 = 0x46.toByte()
-    const val SOUND_CONTROLLER_2 = 0x47.toByte()
-    const val SOUND_CONTROLLER_3 = 0x48.toByte()
-    const val SOUND_CONTROLLER_4 = 0x49.toByte()
-    const val SOUND_CONTROLLER_5 = 0x4A.toByte()
-    const val SOUND_CONTROLLER_6 = 0x4B.toByte()
-    const val SOUND_CONTROLLER_7 = 0x4C.toByte()
-    const val SOUND_CONTROLLER_8 = 0x4D.toByte()
-    const val SOUND_CONTROLLER_9 = 0x4E.toByte()
-    const val SOUND_CONTROLLER_10 = 0x4F.toByte()
-    const val EFFECT_1_DEPTH = 0x5B.toByte() // Reverb Send Level by default
-    const val EFFECT_2_DEPTH = 0x5C.toByte() // formerly Tremolo Depth
-    const val EFFECT_3_DEPTH = 0x5D.toByte() // Chorus Send Level by default
-    const val EFFECT_4_DEPTH = 0x5E.toByte() // formerly Celeste (Detune) Depth
-    const val EFFECT_5_DEPTH = 0x5F.toByte() // formerly Phaser Depth
-}
-
 // We store UMP in Big Endian this time.
 data class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: Int = 0) {
     constructor(long1: Long, long2: Long = 0) : this(
@@ -109,13 +27,13 @@ class Midi2Music {
 
         // FIXME: We should come up with some solid draft on this, but so far, META events are
         //  going to be implemented as Sysex8 messages. Starts with [0xFF MetaType] ...
-        override fun isMetaEventMessage(message: Ump, metaType: Byte)
+        override fun isMetaEventMessage(message: Ump, metaType: Int)
             = message.messageType == MidiMessageType.SYSEX8_MDS &&
                 message.eventType == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
                 message.int1 % 0x100 == 0 && // first 4 bytes indicate manufacturer ID ... subID2, filled with 0
                 message.int2 / 0x100 == 0 &&
-                message.int2 % 0x100 == MidiEventType.META.toInt() &&
-                (message.int3 shr 24) == metaType.toUnsigned()
+                message.int2 % 0x100 == MidiMusic.META_EVENT &&
+                (message.int3 shr 24) == metaType
 
         // 3 bytes in Sysex8 pseudo meta message
         override fun getTempoValue(message: Ump)
@@ -126,14 +44,14 @@ class Midi2Music {
     companion object {
         private val calc = UmpDeltaTimeComputer()
 
-        fun getMetaEventsOfType(messages: Iterable<Ump>, metaType: Byte) =
+        fun getMetaEventsOfType(messages: Iterable<Ump>, metaType: Int) =
             calc.getMetaEventsOfType(messages, metaType)
 
         fun getTotalPlayTimeMilliseconds(messages: Iterable<Ump>, deltaTimeSpec: Int) =
             if (deltaTimeSpec > 0)
                 calc.getTotalPlayTimeMilliseconds(messages, deltaTimeSpec)
             else
-                messages.filter { m -> m.isJRTimestamp }.sumBy { m -> m.jrTimestamp } / 31250
+                messages.filter { m -> m.isJRTimestamp }.sumOf { m -> m.jrTimestamp } / 31250
 
         fun getPlayTimeMillisecondsAtTick(messages: Iterable<Ump>, ticks: Int, deltaTimeSpec: Int) =
             calc.getPlayTimeMillisecondsAtTick(messages, ticks, deltaTimeSpec)
@@ -156,13 +74,13 @@ class Midi2Music {
     fun getMetaEventsOfType(metaType: Int): Iterable<Pair<Int,Ump>> {
         if (tracks.size > 1)
             return mergeTracks().getMetaEventsOfType(metaType)
-        return getMetaEventsOfType(tracks[0].messages, metaType.toByte()).asIterable()
+        return getMetaEventsOfType(tracks[0].messages, metaType).asIterable()
     }
 
     fun getTotalTicks(): Int {
         if (format != 0.toByte())
             return mergeTracks().getTotalTicks()
-        return tracks[0].messages.sumBy { m: Ump -> m.jrTimestamp }
+        return tracks[0].messages.sumOf { m: Ump -> m.jrTimestamp }
     }
 
     fun getTotalPlayTimeMilliseconds(): Int {
@@ -349,7 +267,7 @@ internal class Midi2DeltaTimeConverter internal constructor(private val source: 
             result.addTrack(dstTrack)
 
             var currentTicks = 0
-            var currentTempo = MidiMetaType.DEFAULT_TEMPO
+            var currentTempo = MidiMusic.DEFAULT_TEMPO
             var nextTempoChangeIndex = 0
 
             for (ump in srcTrack.messages) {

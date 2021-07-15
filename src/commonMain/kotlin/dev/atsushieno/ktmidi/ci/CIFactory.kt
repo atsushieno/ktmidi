@@ -106,13 +106,13 @@ fun midiCIDiscoveryCommon(
     deviceManufacturer3Bytes: Int, deviceFamily: Short, deviceFamilyModelNumber: Short,
     softwareRevisionLevel: Int, ciCategorySupported: Byte, receivableMaxSysExSize: Int
 ) {
-    midiCIMessageCommon(buf, 0x7F, sysexSubId2, versionAndFormat, sourceMUID!!, destinationMUID!!)
+    midiCIMessageCommon(buf, 0x7F, sysexSubId2, versionAndFormat, sourceMUID, destinationMUID)
     midiCiDirectUint32At(
         buf, 13,
         deviceManufacturer3Bytes.toInt()
     ) // the last byte is extraneous, but will be overwritten next.
-    midiCiDirectUint16At(buf, 16, deviceFamily!!)
-    midiCiDirectUint16At(buf, 18, deviceFamilyModelNumber!!)
+    midiCiDirectUint16At(buf, 16, deviceFamily)
+    midiCiDirectUint16At(buf, 18, deviceFamilyModelNumber)
     // LAMESPEC: Software Revision Level does not mention in which endianness this field is stored.
     midiCiDirectUint32At(buf, 20, softwareRevisionLevel.toInt())
     buf[24] = ciCategorySupported

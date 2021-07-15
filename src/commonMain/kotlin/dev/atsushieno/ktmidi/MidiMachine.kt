@@ -11,20 +11,20 @@ class MidiMachine {
         event_received_handlers.remove(listener)
     }
 
-    var channels = Array<MidiMachineChannel>(16, { i -> MidiMachineChannel() })
+    var channels = Array<MidiMachineChannel>(16) { MidiMachineChannel() }
 
     fun processEvent(evt: MidiEvent) {
-        when (evt.eventType) {
-            MidiEventType.NOTE_ON ->
+        when (evt.eventType.toInt()) {
+            MidiChannelStatus.NOTE_ON ->
                 channels[evt.channel.toUnsigned()].noteVelocity[evt.msb.toUnsigned()] = evt.lsb
 
-            MidiEventType.NOTE_OFF ->
+            MidiChannelStatus.NOTE_OFF ->
                 channels[evt.channel.toUnsigned()].noteVelocity[evt.msb.toUnsigned()] = 0
-            MidiEventType.PAF ->
+            MidiChannelStatus.PAF ->
                 channels[evt.channel.toUnsigned()].pafVelocity[evt.msb.toUnsigned()] = evt.lsb
-            MidiEventType.CC -> {
+            MidiChannelStatus.CC -> {
                 // FIXME: handle RPNs and NRPNs by DTE
-                when (evt.msb) {
+                when (evt.msb.toInt()) {
                     MidiCC.NRPN_MSB,
                     MidiCC.NRPN_LSB ->
                         channels[evt.channel.toUnsigned()].dteTarget = DteTarget.NRPN
@@ -43,11 +43,11 @@ class MidiMachine {
                 }
                 channels[evt.channel.toUnsigned()].controls[evt.msb.toUnsigned()] = evt.lsb
             }
-            MidiEventType.PROGRAM ->
+            MidiChannelStatus.PROGRAM ->
                 channels[evt.channel.toUnsigned()].program = evt.msb
-            MidiEventType.CAF ->
+            MidiChannelStatus.CAF ->
                 channels[evt.channel.toUnsigned()].caf = evt.msb
-            MidiEventType.PITCH ->
+            MidiChannelStatus.PITCH_BEND ->
                 channels[evt.channel.toUnsigned()].pitchbend = ((evt.msb.toUnsigned() shl 7) + evt.lsb).toShort()
         }
         for (receiver in event_received_handlers)
@@ -68,18 +68,18 @@ class MidiMachineChannel {
     private var dte_target_value: Byte = 0
 
     val rpnTarget: Short
-        get() = ((controls[MidiCC.RPN_MSB.toUnsigned()].toUnsigned() shl 7) + controls[MidiCC.RPN_LSB.toUnsigned()]).toShort()
+        get() = ((controls[MidiCC.RPN_MSB].toUnsigned() shl 7) + controls[MidiCC.RPN_LSB]).toShort()
 
 
     fun processDte(value: Byte, isMsb: Boolean) {
         var arr: ShortArray
         when (dteTarget) {
             DteTarget.RPN -> {
-                dte_target_value = controls[(if (isMsb) MidiCC.RPN_MSB else MidiCC.RPN_LSB).toUnsigned()]
+                dte_target_value = controls[(if (isMsb) MidiCC.RPN_MSB else MidiCC.RPN_LSB)]
                 arr = rpns
             }
             DteTarget.NRPN -> {
-                dte_target_value = controls[(if (isMsb) MidiCC.NRPN_MSB else MidiCC.NRPN_LSB).toUnsigned()]
+                dte_target_value = controls[(if (isMsb) MidiCC.NRPN_MSB else MidiCC.NRPN_LSB)]
                 arr = nrpns
             }
         }

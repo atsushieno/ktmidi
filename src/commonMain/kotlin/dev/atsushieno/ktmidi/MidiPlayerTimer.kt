@@ -20,7 +20,7 @@ class SimpleAdjustingMidiPlayerTimer : MidiPlayerTimer {
         if (addedSeconds > 0) {
             var delta = addedSeconds
             if (::startedTime.isInitialized) {
-                val actualTotalSeconds = startedTime.elapsedNow().inSeconds
+                val actualTotalSeconds = startedTime.elapsedNow().inWholeMicroseconds / 1_000_000.0
                 delta -= actualTotalSeconds - nominalTotalSeconds
             } else {
                 startedTime = TimeSource.Monotonic.markNow()

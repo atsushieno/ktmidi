@@ -23,9 +23,9 @@ internal class Midi1EventLooper(var messages: List<MidiMessage>, private val tim
 
     override fun updateTempoAndTimeSignatureIfApplicable(m: MidiMessage) {
         if (m.event.statusByte.toUnsigned() == 0xFF) {
-            if (m.event.msb == MidiMetaType.TEMPO)
-                currentTempo = MidiMetaType.getTempo(m.event.extraData!!, m.event.extraDataOffset)
-            else if (m.event.msb == MidiMetaType.TIME_SIGNATURE && m.event.extraDataLength == 4)
+            if (m.event.msb.toInt() == MidiMetaType.TEMPO)
+                currentTempo = MidiMusic.getSmfTempo(m.event.extraData!!, m.event.extraDataOffset)
+            else if (m.event.msb.toInt() == MidiMetaType.TIME_SIGNATURE && m.event.extraDataLength == 4)
                 m.event.extraData!!.copyInto(
                     currentTimeSignature,
                     0,
@@ -53,7 +53,7 @@ internal class Midi1EventLooper(var messages: List<MidiMessage>, private val tim
 
     override fun mute() {
         for (i in 0..15)
-            onEvent(MidiMessage(0, MidiEvent(i + MidiEventType.CC, MidiCC.ALL_SOUND_OFF.toInt(), 0, null, 0, 0)))
+            onEvent(MidiMessage(0, MidiEvent(i + MidiChannelStatus.CC, MidiCC.ALL_SOUND_OFF, 0, null, 0, 0)))
     }
 }
 
@@ -79,8 +79,8 @@ class MidiPlayer : MidiPlayerCommon<MidiMessage> {
         looper.starting = Runnable {
             // all control reset on all channels.
             for (i in 0..15) {
-                buffer[0] = (i + MidiEventType.CC).toByte()
-                buffer[1] = MidiCC.RESET_ALL_CONTROLLERS
+                buffer[0] = (i + MidiChannelStatus.CC).toByte()
+                buffer[1] = MidiCC.RESET_ALL_CONTROLLERS.toByte()
                 buffer[2] = 0
                 output.send(buffer, 0, 3, 0)
             }
@@ -89,14 +89,13 @@ class MidiPlayer : MidiPlayerCommon<MidiMessage> {
         val listener = object : OnMidiMessageListener {
             override fun onMessage(m: MidiMessage) {
                 val e = m.event
-                when (e.eventType) {
-                    MidiEventType.NOTE_OFF,
-                    MidiEventType.NOTE_ON -> {
+                when (e.eventType.toInt()) {
+                    MidiChannelStatus.NOTE_OFF,
+                    MidiChannelStatus.NOTE_ON -> {
                         if (mutedChannels.contains(e.channel.toUnsigned()))
                             return // ignore messages for the masked channel.
                     }
-                    MidiEventType.SYSEX,
-                    MidiEventType.SYSEX_END -> {
+                    MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> {
                         if (buffer.size <= e.extraDataLength)
                             buffer = ByteArray(buffer.size * 2)
                         buffer[0] = e.statusByte
@@ -104,7 +103,7 @@ class MidiPlayer : MidiPlayerCommon<MidiMessage> {
                         output.send(buffer, 0, e.extraDataLength + 1, 0)
                         return
                     }
-                    MidiEventType.META -> {
+                    MidiMusic.META_EVENT -> {
                         // do nothing.
                         return
                     }
@@ -157,8 +156,8 @@ internal class SimpleMidi1SeekProcessor(ticks: Int) : SeekProcessor<MidiMessage>
         current += message.deltaTime
         if (current >= seek_to)
             return SeekFilterResult.PASS_AND_TERMINATE
-        when (message.event.eventType) {
-            MidiEventType.NOTE_ON, MidiEventType.NOTE_OFF -> return SeekFilterResult.BLOCK
+        when (message.event.eventType.toInt()) {
+            MidiChannelStatus.NOTE_ON, MidiChannelStatus.NOTE_OFF -> return SeekFilterResult.BLOCK
         }
         return SeekFilterResult.PASS
     }

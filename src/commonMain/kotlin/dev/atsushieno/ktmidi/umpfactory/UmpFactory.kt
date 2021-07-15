@@ -28,18 +28,18 @@ fun umpNOOP(group: Int): Int {
 }
 
 fun umpJRClock(group: Int, senderClockTime16: Int): Int {
-    return umpNOOP(group) + (Midi2SystemMessageType.JR_CLOCK shl 16) + senderClockTime16
+    return umpNOOP(group) + (MidiUtilityStatus.JR_CLOCK shl 16) + senderClockTime16
 }
 
 fun umpJRClock(group: Int, senderClockTimeSeconds: Double): Int {
     val value = (senderClockTimeSeconds * JR_TIMESTAMP_TICKS_PER_SECOND).toInt()
-    return umpNOOP(group) + (Midi2SystemMessageType.JR_CLOCK shl 16) + value
+    return umpNOOP(group) + (MidiUtilityStatus.JR_CLOCK shl 16) + value
 }
 
 fun umpJRTimestamp(group: Int, senderClockTimestamp16: Int): Int {
     if (senderClockTimestamp16 > 0xFFFF)
         throw IllegalArgumentException("Argument timestamp value must be less than 65536. If you need multiple JR timestamps, use umpJRTimestamps() instead.")
-    return umpNOOP(group) + (Midi2SystemMessageType.JR_TIMESTAMP shl 16) + senderClockTimestamp16
+    return umpNOOP(group) + (MidiUtilityStatus.JR_TIMESTAMP shl 16) + senderClockTimestamp16
 }
 
 fun umpJRTimestamp(group: Int, senderClockTimestampSeconds: Double)
@@ -65,33 +65,33 @@ fun umpMidi1Message(group: Int, code: Byte, channel: Int, byte3: Byte, byte4: By
 }
 
 fun umpMidi1NoteOff(group: Int, channel: Int, note: Byte, velocity: Byte): Int {
-    return umpMidi1Message(group, MidiEventType.NOTE_OFF, channel, note and 0x7F, velocity and 0x7F)
+    return umpMidi1Message(group, MidiChannelStatus.NOTE_OFF.toByte(), channel, note and 0x7F, velocity and 0x7F)
 }
 
 fun umpMidi1NoteOn(group: Int, channel: Int, note: Byte, velocity: Byte): Int {
-    return umpMidi1Message(group, MidiEventType.NOTE_ON, channel, note and 0x7F, velocity and 0x7F)
+    return umpMidi1Message(group, MidiChannelStatus.NOTE_ON.toByte(), channel, note and 0x7F, velocity and 0x7F)
 }
 
 fun umpMidi1PAf(group: Int, channel: Int, note: Byte, data: Byte): Int {
-    return umpMidi1Message(group, MidiEventType.PAF, channel, note and 0x7F, data and 0x7F)
+    return umpMidi1Message(group, MidiChannelStatus.PAF.toByte(), channel, note and 0x7F, data and 0x7F)
 }
 
 fun umpMidi1CC(group: Int, channel: Int, index: Byte, data: Byte): Int {
-    return umpMidi1Message(group, MidiEventType.CC, channel, index and 0x7F, data and 0x7F)
+    return umpMidi1Message(group, MidiChannelStatus.CC.toByte(), channel, index and 0x7F, data and 0x7F)
 }
 
 fun umpMidi1Program(group: Int, channel: Int, program: Byte): Int {
-    return umpMidi1Message(group, MidiEventType.PROGRAM, channel, program and 0x7F, MIDI_2_0_RESERVED)
+    return umpMidi1Message(group, MidiChannelStatus.PROGRAM.toByte(), channel, program and 0x7F, MIDI_2_0_RESERVED)
 }
 
 fun umpMidi1CAf(group: Int, channel: Int, data: Byte): Int {
-    return umpMidi1Message(group, MidiEventType.CAF, channel, data and 0x7F, MIDI_2_0_RESERVED)
+    return umpMidi1Message(group, MidiChannelStatus.CAF.toByte(), channel, data and 0x7F, MIDI_2_0_RESERVED)
 }
 
 fun umpMidi1PitchBendDirect(group: Int, channel: Int, data: Short): Int {
     return umpMidi1Message(
         group,
-        MidiEventType.PITCH,
+        MidiChannelStatus.PITCH_BEND.toByte(),
         channel,
         (data.toInt() and 0x7F).toByte(),
         (data shr 7 and 0x7F).toByte()
@@ -99,14 +99,14 @@ fun umpMidi1PitchBendDirect(group: Int, channel: Int, data: Short): Int {
 }
 
 fun umpMidi1PitchBendSplit(group: Int, channel: Int, dataLSB: Byte, dataMSB: Byte): Int {
-    return umpMidi1Message(group, MidiEventType.PITCH, channel, dataLSB and 0x7F, dataMSB and 0x7F)
+    return umpMidi1Message(group, MidiChannelStatus.PITCH_BEND.toByte(), channel, dataLSB and 0x7F, dataMSB and 0x7F)
 }
 
 fun umpMidi1PitchBend(group: Int, channel: Int, data: Short): Int {
     val u = data + 8192
     return umpMidi1Message(
         group,
-        MidiEventType.PITCH,
+        MidiChannelStatus.PITCH_BEND.toByte(),
         channel,
         (u and 0x7F).toByte(),
         (u shr 7 and 0x7F).toByte()
@@ -118,27 +118,27 @@ fun umpMidi1PitchBend(group: Int, channel: Int, data: Short): Int {
 // Instead, argument names explicitly give their types.
 
 fun umpMidi2ChannelMessage8_8_16_16(
-    group: Int, code: Byte, channel: Int, byte3: Int, byte4: Int,
+    group: Int, code: Int, channel: Int, byte3: Int, byte4: Int,
     short1: Int, short2: Int
 ): Long {
     val int1 = ((MidiMessageType.MIDI2 shl 28) +
             ((group and 0xF) shl 24) +
-            (((code.toUnsigned() and 0xF0) + (channel and 0xF)) shl 16) +
+            (((code and 0xF0) + (channel and 0xF)) shl 16) +
             (byte3 shl 8) + byte4
-            ).toUnsigned()
+            ).toLong()
     val int2 = (((short1.toUnsigned() and 0xFFFF) shl 16) + (short2.toUnsigned() and 0xFFFF))
     return (int1 shl 32) + int2
 }
 
 fun umpMidi2ChannelMessage8_8_32(
-    group: Int, code: Byte, channel: Int, byte3: Int, byte4: Int,
+    group: Int, code: Int, channel: Int, byte3: Int, byte4: Int,
     rest32: Long
 ): Long {
     val int1 = ((MidiMessageType.MIDI2 shl 28) +
             (group and 0xF shl 24) +
-            ((code.toUnsigned() and 0xF0) + (channel and 0xF) shl 16) +
+            ((code and 0xF0) + (channel and 0xF) shl 16) +
             (byte3 shl 8) + byte4
-            ).toUnsigned()
+            ).toLong()
     return ((int1 shl 32).toULong() + rest32.toULong()).toLong()
 }
 
@@ -166,7 +166,7 @@ fun umpMidi2NoteOff(
 ): Long {
     return umpMidi2ChannelMessage8_8_16_16(
         group,
-        MidiEventType.NOTE_OFF,
+        MidiChannelStatus.NOTE_OFF,
         channel,
         note and 0x7F, attributeType8.toInt(), velocity16, attributeData16
     )
@@ -182,7 +182,7 @@ fun umpMidi2NoteOn(
 ): Long {
     return umpMidi2ChannelMessage8_8_16_16(
         group,
-        MidiEventType.NOTE_ON,
+        MidiChannelStatus.NOTE_ON,
         channel,
         note and 0x7F, attributeType8.toInt(), velocity16, attributeData16
     )
@@ -191,7 +191,7 @@ fun umpMidi2NoteOn(
 fun umpMidi2PAf(group: Int, channel: Int, note: Int, data32: Long): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.PAF,
+        MidiChannelStatus.PAF,
         channel,
         note and 0x7F, MIDI_2_0_RESERVED.toInt(), data32
     )
@@ -200,7 +200,7 @@ fun umpMidi2PAf(group: Int, channel: Int, note: Int, data32: Long): Long {
 fun umpMidi2PerNoteRCC(group: Int, channel: Int, note: Int, index8: Int, data32: Long): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.PER_NOTE_RCC,
+        MidiChannelStatus.PER_NOTE_RCC,
         channel,
         note and 0x7F, index8, data32
     )
@@ -209,7 +209,7 @@ fun umpMidi2PerNoteRCC(group: Int, channel: Int, note: Int, index8: Int, data32:
 fun umpMidi2PerNoteACC(group: Int, channel: Int, note: Int, index8: Int, data32: Long): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.PER_NOTE_ACC,
+        MidiChannelStatus.PER_NOTE_ACC,
         channel,
         note and 0x7F, index8, data32
     )
@@ -218,7 +218,7 @@ fun umpMidi2PerNoteACC(group: Int, channel: Int, note: Int, index8: Int, data32:
 fun umpMidi2PerNoteManagement(group: Int, channel: Int, note: Int, optionFlags: Int): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.PER_NOTE_MANAGEMENT,
+        MidiChannelStatus.PER_NOTE_MANAGEMENT,
         channel,
         note and 0x7F, optionFlags and 3, 0
     )
@@ -227,7 +227,7 @@ fun umpMidi2PerNoteManagement(group: Int, channel: Int, note: Int, optionFlags: 
 fun umpMidi2CC(group: Int, channel: Int, index8: Int, data32: Long): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.CC,
+        MidiChannelStatus.CC,
         channel,
         index8 and 0x7F, MIDI_2_0_RESERVED.toInt(), data32
     )
@@ -242,7 +242,7 @@ fun umpMidi2RPN(
 ): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.RPN,
+        MidiChannelStatus.RPN,
         channel,
         bankAkaMSB8 and 0x7F, indexAkaLSB8 and 0x7F, dataAkaDTE32
     )
@@ -257,7 +257,7 @@ fun umpMidi2NRPN(
 ): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.NRPN,
+        MidiChannelStatus.NRPN,
         channel,
         bankAkaMSB8 and 0x7F, indexAkaLSB8 and 0x7F, dataAkaDTE32
     )
@@ -272,7 +272,7 @@ fun umpMidi2RelativeRPN(
 ): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.RELATIVE_RPN,
+        MidiChannelStatus.RELATIVE_RPN,
         channel,
         bankAkaMSB8 and 0x7F, indexAkaLSB8 and 0x7F, dataAkaDTE32
     )
@@ -287,7 +287,7 @@ fun umpMidi2RelativeNRPN(
 ): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.RELATIVE_NRPN,
+        MidiChannelStatus.RELATIVE_NRPN,
         channel,
         bankAkaMSB8 and 0x7F, indexAkaLSB8 and 0x7F, dataAkaDTE32
     )
@@ -303,7 +303,7 @@ fun umpMidi2Program(
 ): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.PROGRAM,
+        MidiChannelStatus.PROGRAM,
         channel,
         MIDI_2_0_RESERVED.toInt(),
         optionFlags and 1,
@@ -314,7 +314,7 @@ fun umpMidi2Program(
 fun umpMidi2CAf(group: Int, channel: Int, data32: Long): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.CAF,
+        MidiChannelStatus.CAF,
         channel,
         MIDI_2_0_RESERVED.toInt(),
         MIDI_2_0_RESERVED.toInt(),
@@ -325,7 +325,7 @@ fun umpMidi2CAf(group: Int, channel: Int, data32: Long): Long {
 fun umpMidi2PitchBendDirect(group: Int, channel: Int, data32: Long): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.PITCH,
+        MidiChannelStatus.PITCH_BEND,
         channel,
         MIDI_2_0_RESERVED.toInt(),
         MIDI_2_0_RESERVED.toInt(),
@@ -340,7 +340,7 @@ fun umpMidi2PitchBend(group: Int, channel: Int, data32: Long): Long {
 fun umpMidi2PerNotePitchBendDirect(group: Int, channel: Int, note: Int, data32: Long): Long {
     return umpMidi2ChannelMessage8_8_32(
         group,
-        MidiEventType.PER_NOTE_PITCH,
+        MidiChannelStatus.PER_NOTE_PITCH_BEND,
         channel,
         note and 0x7F, MIDI_2_0_RESERVED.toInt(), data32
     )
