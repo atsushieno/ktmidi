@@ -33,7 +33,7 @@ jobs:
     - name: rewrite build.gradle to require signing
       run: |
         sed -i "s/signing {}/signing { sign publishing.publications }/" ktmidi/build.gradle
-        sed -i "s/signing {}/signing { sign publishing.publications }/" ktmidi/ktmidi-jvm-desktop/build.gradle
+        sed -i "s/signing {}/signing { sign publishing.publications }/" ktmidi-jvm-desktop/build.gradle
     - name: publish
       run: ./gradlew --warning-mode all dokkaHtml :ktmidi:publishToMavenLocal publish # --max-workers 1 closeAndReleaseSonatypeStagingRepository
       env:
