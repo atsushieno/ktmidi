@@ -31,7 +31,9 @@ jobs:
         GPG_KEY_CONTENTS: ${{ secrets.GPG_KEY_CONTENTS }}
         SIGNING_SECRET_KEY_RING_FILE: ${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}
     - name: rewrite build.gradle to require signing
-      run: sed -i "s/signing {}/signing { sign publishing.publications }/" build.gradle
+      run: |
+        sed -i "s/signing {}/signing { sign publishing.publications }/" ktmidi/build.gradle
+        sed -i "s/signing {}/signing { sign publishing.publications }/" ktmidi/ktmidi-jvm-desktop/build.gradle
     - name: publish
       run: ./gradlew --warning-mode all dokkaHtml :ktmidi:publishToMavenLocal publish # --max-workers 1 closeAndReleaseSonatypeStagingRepository
       env:
