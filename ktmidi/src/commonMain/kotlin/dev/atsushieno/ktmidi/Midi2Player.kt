@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import dev.atsushieno.ktmidi.umpfactory.umpMidi1CC
 import kotlinx.coroutines.Runnable
 
 internal class Midi2EventLooper(var messages: List<Ump>, private val timer: MidiPlayerTimer, private val deltaTimeSpec: Int)
@@ -58,7 +57,7 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
         // all sound off on all channels.
         for (group in 0..15)
             for (ch in 0..15)
-                onEvent(Ump(umpMidi1CC(group, ch, MidiCC.ALL_SOUND_OFF.toByte(), 0)))
+                onEvent(Ump(UmpFactory.midi1CC(group, ch, MidiCC.ALL_SOUND_OFF.toByte(), 0)))
     }
 }
 
@@ -86,7 +85,7 @@ class Midi2Player : MidiPlayerCommon<Ump> {
                 for (group in 0..15) {
                     // all control reset on all channels.
                     for (ch in 0..15) {
-                        val ump = Ump(umpMidi1CC(group, ch, MidiCC.RESET_ALL_CONTROLLERS.toByte(), 0))
+                        val ump = Ump(UmpFactory.midi1CC(group, ch, MidiCC.RESET_ALL_CONTROLLERS.toByte(), 0))
                         ump.copyInto(umpConversionBuffer, 0)
                         output.send(umpConversionBuffer, 0, ump.sizeInBytes, 0)
                     }

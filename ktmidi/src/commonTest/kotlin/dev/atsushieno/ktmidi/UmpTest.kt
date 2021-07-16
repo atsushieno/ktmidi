@@ -1,7 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import dev.atsushieno.ktmidi.umpfactory.umpMidi2NoteOff
-import dev.atsushieno.ktmidi.umpfactory.umpMidi2NoteOn
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -9,7 +7,7 @@ import kotlin.test.assertEquals
 class UmpTest {
     @Test
     fun testToAndFromBytes() {
-        val l1 = umpMidi2NoteOn(1, 2, 0x30, 0, 0xF000, 0)
+        val l1 = UmpFactory.midi2NoteOn(1, 2, 0x30, 0, 0xF000, 0)
         val bytes1 = Ump(l1).toBytes()
         val expected1 = arrayOf(0, 0x30, 0x92, 0x41, 0, 0, 0x00, 0xF0).map { b -> b.toByte() }.toByteArray()
         assertContentEquals(expected1, bytes1, "toBytes 1")
@@ -20,7 +18,7 @@ class UmpTest {
         assertEquals(0x90, u1s[0].eventType, "fromBytes 1 => eventType")
         assertEquals(0x30, u1s[0].midi2Note, "fromBytes 1 => note")
         assertEquals(0xF000, u1s[0].midi2Velocity16, "fromBytes 1 => velocity16")
-        val l2 = umpMidi2NoteOff(1, 2, 0x30, 0, 0, 0)
+        val l2 = UmpFactory.midi2NoteOff(1, 2, 0x30, 0, 0, 0)
         val bytes2 = Ump(l2).toBytes()
         val expected2 = arrayOf(0, 0x30, 0x82, 0x41, 0, 0, 0, 0).map { b -> b.toByte() }.toByteArray()
         assertContentEquals(expected2, bytes2, "toBytes 2")

@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import dev.atsushieno.ktmidi.umpfactory.*
 import io.ktor.utils.io.core.*
 
 // We store UMP in Big Endian this time.
@@ -202,7 +201,7 @@ internal class Midi2TrackMerger(private var source: Midi2Music) {
             if (i + 1 < l.size) {
                 val delta = l[i + 1].first - l[i].first
                 if (delta > 0)
-                    l3.addAll(umpJRTimestamps(l[i].second.group, delta.toLong()).map { v -> Ump(v) })
+                    l3.addAll(UmpFactory.jrTimestamps(l[i].second.group, delta.toLong()).map { v -> Ump(v) })
                 timeAbs += delta
             }
             l3.add(l[i].second)
@@ -237,7 +236,7 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
         fun addMessage(timestampInsertAt: Int, e: Ump) {
             if (currentTimestamp != timestampInsertAt) {
                 val delta = timestampInsertAt - currentTimestamp
-                track.messages.addAll(umpJRTimestamps(e.group, delta.toLong()).map {i -> Ump(i)})
+                track.messages.addAll(UmpFactory.jrTimestamps(e.group, delta.toLong()).map { i -> Ump(i)})
             }
             track.messages.add(e)
             currentTimestamp = timestampInsertAt
@@ -323,7 +322,7 @@ internal class Midi2DeltaTimeConverter internal constructor(private val source: 
                     }
                     durationMs += getContextDeltaTimeInMilliseconds(remainingTicks, currentTempo, source.deltaTimeSpec)
                     currentTicks += remainingTicks
-                    dstTrack.messages.addAll(umpJRTimestamps(ump.group, durationMs / 1000.0).map { i -> Ump(i)})
+                    dstTrack.messages.addAll(UmpFactory.jrTimestamps(ump.group, durationMs / 1000.0).map { i -> Ump(i)})
                 }
                 else
                     dstTrack.messages.add(ump)
