@@ -5,6 +5,7 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
     }
+
     resolutionStrategy {
         eachPlugin {
             if (requested.id.namespace == 'com.android' || requested.id.name == 'kotlin-android-extensions') {
@@ -14,4 +15,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'ktmidi'
+rootProject.name = 'ktmidi-project'
+include ("ktmidi", "ktmidi-jvm-desktop")

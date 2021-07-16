@@ -26,7 +26,7 @@ jobs:
     - name: stupid NDK setup workaround for GitHub Actions
       run: sudo mkdir -p /usr/local/lib/android/sdk/ndk && sudo chmod 777 /usr/local/lib/android/sdk/ndk
     - name: build
-      run: ./gradlew --warning-mode all build
+      run: ./gradlew --warning-mode all :ktmidi:build :ktmidi-jvm-desktop:build
     - name: upload artifact
       if: success()
       uses: actions/upload-artifact@v2

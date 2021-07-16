@@ -33,7 +33,7 @@ jobs:
     - name: rewrite build.gradle to require signing
       run: sed -i "s/signing {}/signing { sign publishing.publications }/" build.gradle
     - name: publish
-      run: ./gradlew --warning-mode all dokkaHtml publish # --max-workers 1 closeAndReleaseSonatypeStagingRepository
+      run: ./gradlew --warning-mode all dokkaHtml :ktmidi:publishToMavenLocal publish # --max-workers 1 closeAndReleaseSonatypeStagingRepository
       env:
         USERNAME: atsushieno
         GITHUB_TOKEN: ${{ secrets.MAVEN_PAT }}

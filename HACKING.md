@@ -3,11 +3,27 @@
 
 ## Project structure
 
-ktmidi is composed of one single Kotlin Multiplatform (MPP) project.
+The project is named as `ktmidi-project` in `settings.gradle`, and in this `ktmidi-project` project there are two modules:
+
+- `ktmidi` - the core module
+- `ktmidi-jvm-desktop` - contains ALSA implementation
+
+`ktmidi` is composed of one single Kotlin Multiplatform (MPP) project.
 
 Most of the features are implemented in `commonMain`, and some "platform"-specific parts such as `AndroidMidiAccess` or `JvmMidiAccess` are implemented in respective source directories (`androidMain`, `jvmMain`, etc.).
 
 Tests are somewhat different - majority of the tests are still in `commonTest`, but some tests that depend on synchronized execution via `runBlocking` are not runnable with KotlinJS, so they are (so far) in `jvmTest`.
+
+
+## Build complexity
+
+Due to the limitation on Kotlin Multiplatform project, we cannot simply reference `ktmidi` or `ktmidi-jvm` as `implementation` in `ktmidi-jvm-desktop`. So we have to build them separately, in order:
+
+```
+./gradlew :ktmidi:publishToMavenLocal build
+```
+
+Also note that `ktmidi-jvm-desktop` always resolves types from the ones in "Maven Repository". This impacts our hacking on ktmidi-jvm-desktop. It is annoying, but still better than having it in the split repository...
 
 
 ## Project development management
@@ -42,5 +58,5 @@ Sample projects do not have these problems in general and therefore those princi
 
 At this state, we use GitHub Actions to verify builds, and publish Maven packages to Maven Central via SonaType, as well as GitHub Packages (supplemental). It is maintained by @atsushieno. Pull requests are built as well, and release pipelines run by git tags (though it is manually released at Nexus Repository Manager at this state).
 
-Builds are run on ubuntu-20.04 machine, and that brings in some limitations e.g. we don't really support platform native libraries even if they are needed.
+Builds are run on ubuntu-20.04 machine, and that brings in some limitations e.g. we don't really support platform native libraries even if they are needed. It is partly due to an issue in the build infrastructure: https://github.com/atsushieno/ktmidi/issues/13
 

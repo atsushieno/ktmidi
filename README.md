@@ -11,7 +11,8 @@ It implements the following features (and so on):
 - MIDI 1.0 and 2.0 UMPs everywhere.
 - `MidiAccess` : MIDI access abstraction API like what Web MIDI API 1.0 is going to provide.
   - There are actual implementations for some platform specific MIDI API within this library, and you can implement your own backend if you need.
-  - Unlike `javax.sound.midi` API, this API also covers creating virtual ports wherever possible. [`ktmidi-jvm-desktop`](https://github.com/atsushieno/ktmidi-jvm-desktop) actually contains ALSA MIDI Access implementation that supports it. (Unsupported platforms are left unsupported.)
+  - Unlike `javax.sound.midi` API, this API also covers creating virtual ports wherever possible.
+    - `ktmidi-jvm-desktop` module actually contains ALSA MIDI Access implementation that supports it. (Unsupported platforms are left unsupported.)
 - `MidiMusic` and `Midi2Music` : reflects Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support is not based on standard, as there is nothing like SMF specification for MIDI 2.0 yet.)
   - No strongly-typed message types (something like NoteOnMessage, NoteOffMessage, and so on). There is no point of defining strongly-typed messages for each mere MIDI status byte - you wouldn't need message type abstraction.
   - No worries, there are MidiCC, MidiRpnType, MidiMetaType, MidiEvent fields (of `Byte` or `Int`) and more, so that you don't have to remember the actual constants.
@@ -79,7 +80,9 @@ There are couple of API/implementation design docs:
 
 ## Platform Access API
 
-For platform MIDI access API, we cover Android MIDI API (in Kotlin), javax.sound.midi API (with limited feature set), and ALSA Sequencer. For dependency resolution reason, ALSA implementation is split from here - see [atsushieno/ktmidi-jvm-desktop](https://github.com/atsushieno/ktmidi-jvm-desktop) project.
+For platform MIDI access API, we cover Android MIDI API (in Kotlin), javax.sound.midi API (with limited feature set) and ALSA Sequencer.
+
+For dependency resolution reason, ALSA implementation is split from `ktmidi-jvm` and formed as `ktmidi-jvm-desktop`.
 
 ktmidi builds for Kotlin/JVM, Kotlin/JS and Kotlin/Native (though I only develop with Kotlin/JVM so far).
 
@@ -133,6 +136,8 @@ It started as the Kotlin port of C# [managed-midi](https://github.com/atsushieno
 However everything in this project went far beyond them and now we are making it usable for MIDI 2.0.
 
 Some of the MIDI 2.0 related bits are ported from [cmidi2](https://github.com/atsushieno/cmidi2) library.
+
+Historically `ktmidi-jvm-desktop` used to reside in [its own repository](https://github.com/atsushieno/ktmidi-jvm-desktop) to avoid complicated dependency resolution, so there would be some outdated information that tells it was isolated from this project/repository.
 
 ## License
 

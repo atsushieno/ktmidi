@@ -1,0 +1,98 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.5.10'
+    id 'maven-publish'
+    id 'signing'
+}
+
+dependencies {
+    // LAMESPEC: At this moment there is no way to reference MPP as "project('ktmidi')" in Gradle.
+    // WE build this module separately.
+    implementation 'dev.atsushieno:ktmidi-jvm:0.3.4'
+    implementation 'dev.atsushieno:alsakt:0.1.4.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-datetime:0.2.0'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit'
+}
+
+test {
+    useJUnit()
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = '1.8'
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = '1.8'
+}
+
+afterEvaluate {
+
+    tasks.register('javadocJar', Jar) {
+        archiveClassifier.set('javadoc')
+        from javadoc.destinationDir
+    }
+    tasks.register('sourceJar', Jar) {
+        archiveClassifier.set('sources')
+        from sourceSets.main.allSource
+    }
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                artifact(javadocJar)
+                artifact(sourceJar)
+
+                pom {
+                    name.set('ktmidi-jvm-desktop')
+                    description.set('Kotlin library for MIDI 1.0 and MIDI 2.0 - ALSA')
+                    url.set('https://github.com/atsushieno/ktmidi-jvm-desktop')
+                    scm {
+                        url.set('https://github.com/atsushieno/ktmidi-jvm-desktop')
+                    }
+                    licenses {
+                        license {
+                            name.set('the MIT License')
+                            url.set('https://github.com/atsushieno/ktmidi-jvm-desktop/blob/main/LICENSE')
+                        }
+                    }
+                    developers {
+                        developer {
+                            id.set('atsushieno')
+                            name.set('Atsushi Eno')
+                            email.set('atsushieno@gmail.com')
+                        }
+                    }
+                }
+
+                groupId = group
+                artifactId = "ktmidi-jvm-desktop"
+                from components.java
+            }
+        }
+
+        repositories {
+            /*
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/atsushieno/ktmidi")
+                credentials {
+                    username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                    password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+                }
+            }
+            */
+            maven {
+                name = "OSSRH"
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                credentials {
+                    username = System.getenv("OSSRH_USERNAME")
+                    password = System.getenv("OSSRH_PASSWORD")
+                }
+            }
+        }
+    }
+
+    // keep it as is. It is replaced by CI release builds
+    signing {}
+}
