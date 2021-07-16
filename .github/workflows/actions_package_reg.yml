@@ -51,8 +51,9 @@ jobs:
       with:
         name: ktmidi-artifacts
         path: |
-          build/libs/*.jar
-          build/outputs/aar/*.aar
+          ktmidi/build/libs/*.jar
+          ktmidi/build/outputs/aar/*.aar
+          ktmidi-jvm-desktop/build/libs/*.jar
     - name: deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@4.1.2
       with:
