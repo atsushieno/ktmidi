@@ -7,7 +7,10 @@ plugins {
 dependencies {
     // LAMESPEC: At this moment there is no way to reference MPP as "project('ktmidi')" in Gradle.
     // WE build this module separately.
-    implementation 'dev.atsushieno:ktmidi-jvm:0.3.4'
+    // Also note that you cannot simply "gradle sync" this project on Android Studio as it will fail to resolve
+    // ktmidi-jvm at first until it is published to MavenLocal.
+    // Always run ./gradle :ktmidi:publishToMavenLocal first.
+    implementation "dev.atsushieno:ktmidi-jvm:$version"
     implementation 'dev.atsushieno:alsakt:0.1.4.3'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-datetime:0.2.0'

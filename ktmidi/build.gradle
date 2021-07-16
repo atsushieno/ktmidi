@@ -8,9 +8,6 @@ plugins {
     id 'signing'
 }
 
-group = 'dev.atsushieno'
-version = '0.3.4'
-
 repositories {
     google()
     mavenCentral()
