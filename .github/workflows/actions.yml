@@ -28,7 +28,7 @@ jobs:
     - name: build
       run: ./gradlew --warning-mode all :ktmidi:publishToMavenLocal build
     - name: print log
-      if: !success()
+      if: failure()
       run: |
         cat ktmidi-jvm-desktop/build/reports/tests/test/index.html
     - name: upload artifact
