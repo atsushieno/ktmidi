@@ -27,10 +27,14 @@ jobs:
       run: sudo mkdir -p /usr/local/lib/android/sdk/ndk && sudo chmod 777 /usr/local/lib/android/sdk/ndk
     - name: build
       run: ./gradlew --warning-mode all :ktmidi:publishToMavenLocal build
-    - name: print log
+    - name: upload build failure logs
       if: failure()
-      run: |
-        cat ktmidi-jvm-desktop/build/reports/tests/test/index.html
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-failure-logs
+        path: |
+          ktmidi/build/reports/
+          ktmidi-jvm-desktop/build/reports/
     - name: upload artifact
       if: success()
       uses: actions/upload-artifact@v2
