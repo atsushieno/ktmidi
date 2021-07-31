@@ -47,7 +47,7 @@ interface MidiPort {
 }
 
 interface OnMidiReceivedEventListener {
-    fun onEventReceived(data: ByteArray, start: Int, length: Int, timestamp: Long)
+    fun onEventReceived(data: ByteArray, start: Int, length: Int, timestampInNanoseconds: Long)
 }
 
 interface MidiInput : MidiPort {
@@ -55,7 +55,7 @@ interface MidiInput : MidiPort {
 }
 
 interface MidiOutput : MidiPort {
-    abstract fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long)
+    abstract fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long)
 }
 
 // Virtual MIDI port support
@@ -100,8 +100,8 @@ class SimpleVirtualMidiOutput(details: MidiPortDetails, onDispose: () -> Unit) :
 {
     var onSend: (ByteArray,Int,Int, Long) -> Unit = { _, _, _, _ -> }
 
-    override fun send (mevent: ByteArray, offset: Int, length: Int, timestamp: Long) {
-        onSend (mevent, offset, length, timestamp)
+    override fun send (mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
+        onSend (mevent, offset, length, timestampInNanoseconds)
     }
 }
 
@@ -168,7 +168,7 @@ internal class EmptyMidiOutput : EmptyMidiPort(), MidiOutput {
         val instance = EmptyMidiOutput()
     }
 
-    override fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long) {
+    override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
         // do nothing.
     }
 

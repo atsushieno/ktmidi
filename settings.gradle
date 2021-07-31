@@ -16,4 +16,4 @@ pluginManagement {
 }
 
 rootProject.name = 'ktmidi-project'
-include ("ktmidi", "ktmidi-jvm-desktop", "rtmidi-jna")
+include ("ktmidi", "ktmidi-jvm-desktop")

@@ -69,7 +69,8 @@ kotlin {
             dependencies {
                 implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3')
                 implementation('org.jetbrains.kotlinx:kotlinx-datetime:0.2.0')
-                implementation("io.ktor:ktor-io:1.4.0")            }
+                implementation("io.ktor:ktor-io:1.4.0")
+            }
         }
         commonTest {
             dependencies {

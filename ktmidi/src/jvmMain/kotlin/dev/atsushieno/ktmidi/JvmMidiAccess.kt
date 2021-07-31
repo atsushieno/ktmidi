@@ -94,10 +94,10 @@ private class JvmMidiInput(val port: JvmMidiTransmitterPortDetails) : MidiInput 
         port.transmitter.receiver = object : Receiver {
             override fun close() {}
 
-            override fun send(msg: JvmMidiMessage?, timestamp: Long) {
+            override fun send(msg: JvmMidiMessage?, timestampInMicroseconds: Long) {
                 if (msg == null)
                     return
-                listener.onEventReceived(msg.message, 0, msg.length, timestamp)
+                listener.onEventReceived(msg.message, 0, msg.length, timestampInMicroseconds * 1000)
             }
         }
     }
@@ -121,8 +121,8 @@ private class JvmMidiOutput(val port: JvmMidiReceiverPortDetails) : MidiOutput {
         port.receiver.close()
     }
 
-    override fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long) {
+    override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
         val msg = toJvmMidiMessage(mevent, offset, length)
-        port.receiver.send(msg, timestamp)
+        port.receiver.send(msg, timestampInNanoseconds)
     }
 }

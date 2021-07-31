@@ -4,8 +4,6 @@ import android.app.Service
 import android.media.midi.*
 import android.content.Context
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Semaphore
 
 class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
     internal val manager: MidiManager = applicationContext.getSystemService(Service.MIDI_SERVICE) as MidiManager
@@ -115,12 +113,16 @@ private class AndroidMidiInput(portDetails: AndroidPortDetails, private val impl
         impl.disconnect(receiver)
         super.close()
     }
+
+    init {
+        impl.connect(Receiver(this))
+    }
 }
 
 private class AndroidMidiOutput(portDetails: AndroidPortDetails, private val impl: MidiInputPort)
     : AndroidPort(portDetails, { impl.close() }), MidiOutput {
 
-    override fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long) {
-        impl.send (mevent, offset, length, timestamp);
+    override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
+        impl.send (mevent, offset, length, timestampInNanoseconds);
     }
 }
