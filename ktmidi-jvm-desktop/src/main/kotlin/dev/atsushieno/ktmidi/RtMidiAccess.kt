@@ -14,7 +14,7 @@ class RtMidiAccess() : MidiAccess() {
 
     // Ports
 
-    class RtMidiPortDetails(portIndex: Int, override val name: String) : MidiPortDetails {
+    private class RtMidiPortDetails(portIndex: Int, override val name: String) : MidiPortDetails {
         override val id: String = portIndex.toString()
         override val manufacturer = "" // N/A by rtmidi
         override val version: String = "" // N/A by rtmidi
@@ -47,10 +47,10 @@ class RtMidiAccess() : MidiAccess() {
             else -> false
         }
 
-    override suspend fun createVirtualInputSender(context: PortCreatorContext) =
+    override suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput =
         RtMidiVirtualOutput(context)
 
-    override suspend fun createVirtualOutputReceiver(context: PortCreatorContext) =
+    override suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput =
         RtMidiVirtualInput(context)
 
     override suspend fun openInputAsync(portId: String): MidiInput =
@@ -59,13 +59,13 @@ class RtMidiAccess() : MidiAccess() {
     override suspend fun openOutputAsync(portId: String): MidiOutput =
         RtMidiOutput(portId.toInt())
 
-    abstract class RtMidiPort : MidiPort {
+    internal abstract class RtMidiPort : MidiPort {
         override var midiProtocol: Int = 0 // unspecified
         abstract override val details: MidiPortDetails
         abstract override fun close()
     }
 
-    private class RtMidiInputHandler(private val rtmidi: RtMidiWrapper) {
+    internal class RtMidiInputHandler(private val rtmidi: RtMidiWrapper) {
         private var listener: OnMidiReceivedEventListener? = null
 
         fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
@@ -83,7 +83,7 @@ class RtMidiAccess() : MidiAccess() {
         }
     }
 
-    class RtMidiInput(private val portIndex: Int) : MidiInput, RtMidiPort() {
+    internal class RtMidiInput(private val portIndex: Int) : MidiInput, RtMidiPort() {
         private val rtmidi = library.rtmidi_in_create_default()
         override var connectionState = MidiPortConnectionState.OPEN // at created state
         private val inputHandler : RtMidiInputHandler = RtMidiInputHandler(rtmidi)
@@ -105,7 +105,7 @@ class RtMidiAccess() : MidiAccess() {
         }
     }
 
-    class RtMidiOutput(private val portIndex: Int) : MidiOutput, RtMidiPort() {
+    internal class RtMidiOutput(private val portIndex: Int) : MidiOutput, RtMidiPort() {
         private val rtmidi = library.rtmidi_out_create_default()
         override var connectionState = MidiPortConnectionState.OPEN // at created state
 
@@ -128,7 +128,7 @@ class RtMidiAccess() : MidiAccess() {
 
     // Virtual ports
 
-    class RtMidiVirtualPortDetails(context: PortCreatorContext) : MidiPortDetails {
+    internal class RtMidiVirtualPortDetails(context: PortCreatorContext) : MidiPortDetails {
         override val id: String
         override val manufacturer: String
         override val name: String
@@ -142,7 +142,7 @@ class RtMidiAccess() : MidiAccess() {
         }
     }
 
-    abstract class RtMidiVirtualPort(context: PortCreatorContext) : MidiPort {
+    internal abstract class RtMidiVirtualPort(context: PortCreatorContext) : MidiPort {
         private val detailsImpl: MidiPortDetails
 
         override val details: MidiPortDetails
@@ -155,7 +155,7 @@ class RtMidiAccess() : MidiAccess() {
         }
     }
 
-    class RtMidiVirtualInput(context: PortCreatorContext) : MidiInput, RtMidiVirtualPort(context) {
+    internal class RtMidiVirtualInput(context: PortCreatorContext) : MidiInput, RtMidiVirtualPort(context) {
         private val rtmidi = library.rtmidi_in_create_default()
         override var connectionState = MidiPortConnectionState.OPEN // at created state
         private val inputHandler : RtMidiInputHandler = RtMidiInputHandler(rtmidi)
@@ -174,7 +174,7 @@ class RtMidiAccess() : MidiAccess() {
         }
     }
 
-    class RtMidiVirtualOutput(context: PortCreatorContext) : MidiOutput, RtMidiVirtualPort(context) {
+    internal class RtMidiVirtualOutput(context: PortCreatorContext) : MidiOutput, RtMidiVirtualPort(context) {
         private val rtmidi = library.rtmidi_out_create_default()
         override var connectionState = MidiPortConnectionState.OPEN // at created state
 
