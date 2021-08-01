@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi
 
 import kotlinx.coroutines.*
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -17,6 +18,8 @@ class RtMidiPlayerTest {
 
     @Test
     fun playSimple() {
+        if (!File("/dev/snd/seq").exists())
+            return
         runBlocking {
             delay(100)
             val vt = VirtualMidiPlayerTimer()
