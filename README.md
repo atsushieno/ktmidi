@@ -12,7 +12,7 @@ It implements the following features (and so on):
 - `MidiAccess` : MIDI access abstraction API like what Web MIDI API 1.0 is going to provide.
   - There are actual implementations for some platform specific MIDI API within this library, and you can implement your own backend if you need.
   - Unlike `javax.sound.midi` API, this API also covers creating virtual ports wherever possible.
-    - `ktmidi-jvm-desktop` module actually contains ALSA MIDI Access implementation that supports it. (Unsupported platforms are left unsupported.)
+    - `ktmidi-jvm-desktop` module actually contains ALSA MIDI Access implementation as well as [RtMidi](https://github.com/thestk/rtmidi) backend that support it. (Unsupported platforms are left unsupported.)
 - `MidiMusic` and `Midi2Music` : reflects Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support is not based on standard, as there is nothing like SMF specification for MIDI 2.0 yet.)
   - No strongly-typed message types (something like NoteOnMessage, NoteOffMessage, and so on). There is no point of defining strongly-typed messages for each mere MIDI status byte - you wouldn't need message type abstraction.
   - No worries, there are MidiCC, MidiRpnType, MidiMetaType, MidiEvent fields (of `Byte` or `Int`) and more, so that you don't have to remember the actual constants.
@@ -55,7 +55,7 @@ dependencies {
 }
 ```
 
-... and use `AlsaMidiAccess` on Linux. I use `if (File.exists("/dev/snd/seq")) AlsaMidiAccess() else JvmMidiAccess()` to create best `MidiAccess` instance.
+... and use `AlsaMidiAccess` on Linux, or `RtMidiAccess` elsewhere. I use `if (File.exists("/dev/snd/seq")) AlsaMidiAccess() else RtMidiAccess()` (or `JvmMidiAccess` instead of `RtMidiAccess`) to create best `MidiAccess` instance. `RtMidiAccess` is still unstable to some extent, so it's up to your choice.
 
 ktmidi is released at sonatype and hence available at Maven Central.
 
@@ -80,17 +80,22 @@ There are couple of API/implementation design docs:
 
 ## Platform Access API
 
-For platform MIDI access API, we cover Android MIDI API (in Kotlin), javax.sound.midi API (with limited feature set) and ALSA Sequencer.
+For platform MIDI access API, we cover the following APIs:
 
-For dependency resolution reason, ALSA implementation is split from `ktmidi-jvm` and formed as `ktmidi-jvm-desktop`.
+- `AndroidMidiAccess`: Android MIDI API (in Kotlin)
+- `AlsaMidiAccess`: ALSA sequencer
+- `RtMidiAccess`: RtMidi (which covers Windows, Mac, Linux, and iOS, but iOS is in general excluded in JVM solution)
+- `JvmMidiAccess`: javax.sound.midi API (with limited feature set).
 
-ktmidi builds for Kotlin/JVM, Kotlin/JS and Kotlin/Native (though I only develop with Kotlin/JVM so far).
+For dependency resolution reason, ALSA implementation and RtMidi implementation are split from `ktmidi-jvm` and formed as `ktmidi-jvm-desktop`.
+
+ktmidi builds for Kotlin/JVM, Kotlin/JS and Kotlin/Native (though I only develop with Kotlin/JVM and Kotlin/JS so far).
 
 The entire API is still subject to change, and it had been actually radically changing when development was most active.
 
 ## MIDI 2.0 support
 
-ktmidi supports MIDI 2.0 in our own manner i.e. it presumes MIDI 2.0 protocol is established elsewhere without resorting to MIDI-CI protocol (so far). If you want to follow MIDI-CI system exclusive messages, establish pair of MIDI input and output and handle message exchanges manually.
+ktmidi supports MIDI 2.0. It can be either in our own manner (i.e. it presumes MIDI 2.0 protocol is already established elsewhere), or partially using MIDI-CI protocol. It is up to apps... for example, [atsushieno/kmmk](https://github.com/atsushieno/kmmk) sends MICI-CI "Set New Protocol" message to the output devices, which kind of declares that it will be sending MIDI 2.0 UMPs (but without "Test New Protocol", as it requires bidirectional messaging that kmmk does not implement). If you want to follow MIDI-CI system exclusive messages, establish pair of MIDI input and output and handle message exchanges manually.
 
 ktmidi assumes there are various other use-cases without those message exchanges e.g. use of UMPs in MIDI 2.0-only messaging in apps or audio plugins.
 
@@ -103,7 +108,7 @@ Here is a list of MIDI 2.0 extensibility in this API:
 - `MidiInput` and `MidiOutput` now has `midiProtocol` property which can be get and/or set. When `MidiCIProtocolValue.MIDI2_V1` is specified, then the I/O object is supposed to process UMPs (Universal MIDI Packets).
 - `Midi2Music` is a feature parity with `MidiMusic`, but all the messages are stored as UMPs. However, since SMF concepts of time calculation (namely delta time quantization / specification) is useful, we optionally blend it into UMPs and their JR Timestamp messages are actually fake - they store delta times just like SMF.
 - `Midi2Player` is a feature parity with `MidiPlayer`.
-- `dev.atsushieno.ktmidi.umpfactory` package contains a bunch of utility functions that are used to construct UMP integer values.
+- `UmpFactory` class contains a bunch of utility functions that are used to construct UMP integer values.
 - `dev.atsushieno.ktmidi.ci` package contains a bunch of utility functions that are used to construct MIDI-CI system exclusive packets.
 
 [atsushieno/kmmk](https://github.com) supports "MIDI 2.0 mode" which sends MIDI messages in MIDI 2.0 UMPs. There is also an ongoing experimental project to process MIDI 2.0 UMPs in [audio plugins on Android](https://github.com/atsushieno/android-audio-plugin-framework/tree/main/java/aap-midi-device-service).
