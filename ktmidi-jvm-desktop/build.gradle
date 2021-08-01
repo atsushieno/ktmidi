@@ -12,7 +12,7 @@ dependencies {
     // Always run ./gradle :ktmidi:publishToMavenLocal first.
     implementation "dev.atsushieno:ktmidi-jvm:$version"
     implementation 'dev.atsushieno:alsakt:0.1.4.3'
-    implementation "dev.atsushieno:rtmidi-jna:0.1.0"
+    implementation "dev.atsushieno:rtmidi-jna:0.1.1"
     implementation 'net.java.dev.jna:jna:5.8.0'
     implementation 'com.nativelibs4java:jnaerator-runtime:0.12'
 
