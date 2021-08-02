@@ -15,9 +15,10 @@ Unlike [managed-midi](https://github.com/atsushieno/managed-midi) which was the 
 
 We have the following platform-specific implementations, only for Kotlin/JVM:
 
-- AndroidMidiAccess: based on `android.media.midi` API. The feature is limited due to Android platform limitation.
-- JvmMidiAccess: based on `javax.sound.midi` API. The feature is quite limited because of Java's poor support and classic design to make everything in G.C.M.
-- AlsaMidiAccess: based on [atsushieno/alsakt](https://github.com/atsushieno/alsakt). Supports virtual MIDI ports, and partial device detection. More importantly, it is based on ALSA sequencer API which covers much more than javax.sound.midi which is based on ALSA rawmidi (which lacks support for virtual instruments etc.).
+- `AndroidMidiAccess`: based on `android.media.midi` API. The feature is limited due to Android platform limitation.
+- `JvmMidiAccess`: based on `javax.sound.midi` API. The feature is quite limited because of Java's poor support and classic design to make everything in G.C.M. It is not recommended to use it; use RtMidiAccess for better feature sets.
+- `AlsaMidiAccess`: based on [atsushieno/alsakt](https://github.com/atsushieno/alsakt). Supports virtual MIDI ports, and partial device detection. More importantly, it is based on ALSA sequencer API which covers much more than javax.sound.midi which is based on ALSA rawmidi (which lacks support for virtual instruments etc.).
+- `RtMidiAccess`: based on [thestk/rtmidi](https://github.com/thestk/rtmidi). Supports virtual MIDI ports (wherever supported), no device detection. It should be used the default cross-platform desktop implementation on Mac and Windows.
 
 While we support Android, ALSA, there is no support for them via Kotlin/Native (nor anything else). There are chances for Web MIDI API support in Kotlin/JS and Kotlin/Wasm, or cinterop with platform API (WinMM/CoreMIDI/ALSA) or cross-platform API (like rtmidi, portmidi or libremidi).
 
