@@ -73,9 +73,9 @@ The documentation can be built using `./gradlew dokkaHtml` and it will be genera
 
 There are couple of API/implementation design docs:
 
-- [docs/MidiAccess.md](docs/MidiAccess.md)
-- [docs/MidiMusic.md](docs/MidiMusic.md)
-- [docs/MidiPlayer.md](docs/MidiPlayer.md)
+- [docs/design/MidiAccess.md](docs/design/MidiAccess.md)
+- [docs/design/MidiMusic.md](docs/design/MidiMusic.md)
+- [docs/design/MidiPlayer.md](docs/design/MidiPlayer.md)
 
 
 ## Platform Access API
