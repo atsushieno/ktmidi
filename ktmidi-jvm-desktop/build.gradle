@@ -10,7 +10,7 @@ dependencies {
     // Also note that you cannot simply "gradle sync" this project on Android Studio as it will fail to resolve
     // ktmidi-jvm at first until it is published to MavenLocal.
     // Always run ./gradle :ktmidi:publishToMavenLocal first.
-    implementation "dev.atsushieno:ktmidi-jvm:$version"
+    implementation project(":ktmidi")
     implementation 'dev.atsushieno:alsakt:0.1.4.3'
     implementation "dev.atsushieno:rtmidi-jna:0.1.1"
     implementation 'net.java.dev.jna:jna:5.8.0'
