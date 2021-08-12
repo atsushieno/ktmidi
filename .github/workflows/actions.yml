@@ -41,6 +41,7 @@ jobs:
       with:
         name: ktmidi-artifacts
         path: |
-          build/libs/*.jar
-          build/outputs/aar/*.aar
+          ktmidi/build/libs/*.jar
+          ktmidi/build/outputs/aar/*.aar
+          ktmidi-jvm-desktop/build/libs/*.jar
 
