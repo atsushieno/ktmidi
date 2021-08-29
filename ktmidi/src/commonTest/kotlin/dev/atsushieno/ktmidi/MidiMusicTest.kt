@@ -4,6 +4,7 @@ import kotlin.math.round
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 
 @kotlin.ExperimentalUnsignedTypes
@@ -92,13 +93,24 @@ class MidiMusicUnitTest {
         val music = MidiMusic()
         val track = MidiTrack()
         music.tracks.add(track)
-        val sysexData = arrayOf(0x7D, 0x0B, 0x2D, 0x31, 0x34, 0x37, 0x32, 0x35, 0x34, 0x39, 0x39, 0x37, 0x38, 0xF7)
+        val sysexData = arrayOf(0x7D, 0x0B, 0x2D, 0x31, 0x34, 0x37, 0x32, 0x35, 0x34, 0x39, 0x39, 0x37, 0x38)
                 .map { v -> v.toByte() }.toByteArray()
         track.messages.add(MidiMessage(0, MidiEvent(0xF0, 0, 0, sysexData)))
         val bytes = mutableListOf<Byte>()
-        SmfWriter(bytes).writeTrack(music.tracks[0])
-        val trackHead = arrayOf('M'.code, 'T'.code, 'r'.code, 'k'.code, 0, 0, 0, 17, 0, 0xF0).map { v -> v.toByte() }.toByteArray()
-        assertContentEquals(trackHead + sysexData, bytes.toByteArray(), "SMF track")
+        SmfWriter(bytes).writeMusic(music)
+        val trackHead = arrayOf('M'.code, 'T'.code, 'r'.code, 'k'.code, 0, 0, 0, 16, 0, 0xF0).map { v -> v.toByte() }.toByteArray()
+        val headerChunkSize = 14 // MThd + sizeInfo(0 0 0 6) + actualSize(6 bytes)
+        val actual = bytes.drop(headerChunkSize).toByteArray()
+        assertContentEquals(trackHead + sysexData + byteArrayOf(0xF7.toByte()), actual, "SMF track")
+
+        bytes.clear()
+        SmfWriter(bytes).writeMusic(music)
+        music.tracks.clear()
+        assertTrue(bytes.size > 0, "bytes size")
+        music.read(bytes)
+        val evt = music.tracks.first().messages.first().event
+        assertContentEquals(sysexData, evt.extraData!!.drop(evt.extraDataOffset).take(evt.extraDataLength).toByteArray(), "read")
+        assertEquals(headerChunkSize + trackHead.size + sysexData.size + 1, bytes.size, "music bytes size")
     }
 
     // U and L cannot share case-insensitively identical fields for JNI signature...

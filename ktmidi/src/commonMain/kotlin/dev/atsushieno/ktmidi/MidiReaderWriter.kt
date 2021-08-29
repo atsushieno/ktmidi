@@ -49,16 +49,19 @@ class SmfWriter(val stream: MutableList<Byte>) {
         var running_status: Byte = 0
 
         for (e in track.messages) {
-            write7BitVariableInteger(e.deltaTime)
+            write7bitEncodedInt(e.deltaTime)
             when (e.event.eventType.toUnsigned()) {
                 MidiMusic.META_EVENT -> metaEventWriter(false, e, stream)
-                MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> {
+                MidiMusic.SYSEX_EVENT -> {
                     stream.add(e.event.eventType)
-                    if (e.event.extraData != null) {
+                    val seBytes = e.event.extraData
+                    if (seBytes != null) {
                         if (e.event.extraDataLength > 0)
-                            stream.addAll(e.event.extraData.slice(
-                                IntRange(e.event.extraDataOffset, e.event.extraDataOffset + e.event.extraDataLength - 1)))
+                            stream.addAll(seBytes.drop(e.event.extraDataOffset).take(e.event.extraDataLength))
                     }
+                    // supply SYSEX_END only if missing.
+                    if (seBytes == null || seBytes[e.event.extraDataOffset + e.event.extraDataLength - 1] != MidiMusic.SYSEX_END.toByte())
+                        stream.add(MidiMusic.SYSEX_END.toByte())
                 }
                 else -> {
                     if (disableRunningStatus || e.event.statusByte != running_status)
@@ -75,7 +78,7 @@ class SmfWriter(val stream: MutableList<Byte>) {
         }
     }
 
-    private fun getVariantLength(value: Int): Int {
+    private fun get7BitEncodedLength(value: Int): Int {
         if (value < 0)
             throw IllegalArgumentException("Length must be non-negative integer: $value")
         if (value == 0)
@@ -94,17 +97,20 @@ class SmfWriter(val stream: MutableList<Byte>) {
         var runningStatus: Byte = 0
         for (e in track.messages) {
             // delta time
-            size += getVariantLength(e.deltaTime)
+            size += get7BitEncodedLength(e.deltaTime)
 
             // arguments
             when (e.event.eventType.toUnsigned()) {
                 MidiMusic.META_EVENT -> size += metaEventWriter(true, e, mutableListOf())
-                MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> {
+                MidiMusic.SYSEX_EVENT -> {
                     size++
                     if (e.event.extraData != null) {
-                        size += getVariantLength(e.event.extraDataLength)
                         size += e.event.extraDataLength
+                        if (e.event.extraData!![e.event.extraDataOffset + e.event.extraDataLength - 1] != 0xF7.toByte())
+                            size++ // supply SYSEX_END
                     }
+                    else
+                        size++ // SYSEX_END
                 }
                 else -> {
                     // message type & channel
@@ -119,17 +125,17 @@ class SmfWriter(val stream: MutableList<Byte>) {
         return size
     }
 
-    private fun write7BitVariableInteger(value: Int) {
-        write7BitVariableInteger(value, false)
+    private fun write7bitEncodedInt(value: Int) {
+        write7bitEncodedInt(value, false)
     }
 
-    private fun write7BitVariableInteger(value: Int, shifted: Boolean) {
+    private fun write7bitEncodedInt(value: Int, shifted: Boolean) {
         if (value == 0) {
             stream.add((if (shifted) 0x80 else 0).toByte())
             return
         }
         if (value >= 0x80)
-            write7BitVariableInteger(value shr 7, true)
+            write7bitEncodedInt(value shr 7, true)
         stream.add(((value and 0x7F) + if (shifted) 0x80 else 0).toByte())
     }
 
@@ -141,8 +147,8 @@ class SmfWriterExtension {
         val DEFAULT_META_EVENT_WRITER: (Boolean, MidiMessage, MutableList<Byte>) -> Int =
             { b, m, o -> defaultMetaWriterFunc(b, m, o) }
 
-        private fun defaultMetaWriterFunc(lengthMode: Boolean, e: MidiMessage, stream: MutableList<Byte>): Int {
-            if (lengthMode) {
+        private fun defaultMetaWriterFunc(onlyCountLength: Boolean, e: MidiMessage, stream: MutableList<Byte>): Int {
+            if (onlyCountLength) {
                 // [0x00] 0xFF metaType size ... (note that for more than one meta event it requires step count of 0).
                 val repeatCount: Int = e.event.extraDataLength / 0x7F
                 if (repeatCount == 0)
@@ -288,8 +294,19 @@ internal class SmfReader(val music: MidiMusic, stream: List<Byte>) {
         runningStatus = if (b < 0x80) runningStatus else readByte().toUnsigned()
         val len: Int
         when (runningStatus) {
-            MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END, MidiMusic.META_EVENT -> {
-                val metaType = if (runningStatus == MidiMusic.META_EVENT) readByte() else 0
+            MidiMusic.SYSEX_EVENT -> {
+                val args = mutableListOf<Byte>()
+                while (true) {
+                    val ch = readByte()
+                    if (ch == MidiMusic.SYSEX_END.toByte())
+                        break
+                    else
+                        args.add(ch)
+                }
+                return MidiMessage(deltaTime, MidiEvent(runningStatus, 0, 0, args.toByteArray(), 0, args.size))
+            }
+            MidiMusic.META_EVENT -> {
+                val metaType = readByte()
                 len = readVariableLength()
                 val args = ByteArray(len)
                 if (len > 0)
