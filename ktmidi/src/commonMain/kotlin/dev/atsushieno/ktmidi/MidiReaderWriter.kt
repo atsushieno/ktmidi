@@ -55,7 +55,6 @@ class SmfWriter(val stream: MutableList<Byte>) {
                 MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> {
                     stream.add(e.event.eventType)
                     if (e.event.extraData != null) {
-                        write7BitVariableInteger(e.event.extraDataLength)
                         if (e.event.extraDataLength > 0)
                             stream.addAll(e.event.extraData.slice(
                                 IntRange(e.event.extraDataOffset, e.event.extraDataOffset + e.event.extraDataLength - 1)))
