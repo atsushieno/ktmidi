@@ -438,7 +438,7 @@ fun sysex7Direct(
 
 fun sysex7GetSysexLength(srcData: List<Byte>): Int {
     var i = 0
-    while (srcData[i] != 0xF7.toByte())
+    while (i < srcData.size && srcData[i] != 0xF7.toByte())
         i++
     /* This function automatically detects if 0xF0 is prepended and reduce length if it is. */
     return i - if (srcData[0] == 0xF0.toByte()) 1 else 0
@@ -474,7 +474,7 @@ fun sysex7Process(
     val numPackets: Int = sysex7GetPacketCount(length)
     for (p in 0 until numPackets) {
         val ump = sysex7GetPacketOf(group, length, sysex, p)
-        sendUMP64(ump.toLong(), context)
+        sendUMP64(ump, context)
     }
 }
 
