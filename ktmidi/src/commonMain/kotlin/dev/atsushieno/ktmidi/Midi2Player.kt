@@ -66,14 +66,14 @@ interface OnMidi2EventListener {
 }
 
 // Provides asynchronous player control.
-class Midi2Player : MidiPlayerCommon<Ump> {
+class Midi2Player : MidiPlayerCommon {
     companion object {
         suspend fun create(music: Midi2Music, access: MidiAccess, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer()) =
             Midi2Player(music, access.openOutputAsync(access.outputs.first().id), timer, true)
     }
 
     constructor(music: Midi2Music, output: MidiOutput, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer(), shouldDisposeOutput: Boolean = false)
-            : super(output, shouldDisposeOutput, timer) {
+            : super(output, shouldDisposeOutput) {
         this.music = music
 
         val umpConversionBuffer = ByteArray(16)
@@ -168,6 +168,7 @@ class Midi2Player : MidiPlayerCommon<Ump> {
     }
 
     private val music: Midi2Music
+    internal lateinit var messages: MutableList<Ump>
 
     fun addOnMessageListener(listener: OnMidi2EventListener) {
         (looper as Midi2EventLooper).addOnMessageListener(listener)
@@ -184,7 +185,7 @@ class Midi2Player : MidiPlayerCommon<Ump> {
         get() = Midi2Music.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
 
     override fun seek(ticks: Int) {
-        looper.seek(Midi2SimpleSeekProcessor(ticks), ticks)
+        (looper as MidiEventLooper<Ump>).seek(Midi2SimpleSeekProcessor(ticks), ticks)
     }
 
     override fun setMutedChannels(mutedChannels: Iterable<Int>) {

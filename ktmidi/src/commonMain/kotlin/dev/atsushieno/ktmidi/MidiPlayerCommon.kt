@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlin.jvm.Volatile
 
-internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerTimer) {
+internal abstract class MidiEventLooperBase {
     var starting: Runnable? = null
     var finished: Runnable? = null
     var playbackCompletedToEnd: Runnable? = null
@@ -82,7 +82,7 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
                 }
                 if (isEventIndexAtEnd())
                     break
-                processMessage(getNextMessage())
+                processNextMessage()
                 eventIdx++
             }
             doStop = false
@@ -97,11 +97,26 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
     }
 
     abstract fun isEventIndexAtEnd() : Boolean
+
+    fun stop() {
+        if (state != PlayerState.STOPPED)
+            doStop = true
+        if (eventLoopSemaphore?.availablePermits == 0)
+            eventLoopSemaphore?.release()
+    }
+
+    protected abstract suspend fun processNextMessage()
+}
+
+internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerTimer) : MidiEventLooperBase() {
     abstract fun getNextMessage() : TMessage
     abstract fun getContextDeltaTimeInSeconds(m: TMessage): Double
     abstract fun getDurationOfEvent(m: TMessage) : Int
     abstract fun updateTempoAndTimeSignatureIfApplicable(m: TMessage)
     abstract fun onEvent(m: TMessage)
+
+    override suspend fun processNextMessage() =
+        processMessage(getNextMessage())
 
     private suspend fun processMessage(m: TMessage) {
         if (seek_processor != null) {
@@ -124,13 +139,6 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
         onEvent(m)
     }
 
-    fun stop() {
-        if (state != PlayerState.STOPPED)
-            doStop = true
-        if (eventLoopSemaphore?.availablePermits == 0)
-            eventLoopSemaphore?.release()
-    }
-
     private var seek_processor: SeekProcessor<TMessage>? = null
 
     // not sure about the interface, so make it non-public yet.
@@ -142,10 +150,9 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
     }
 }
 
-abstract class MidiPlayerCommon<TMessage> internal constructor(internal val output: MidiOutput, private var shouldDisposeOutput: Boolean, timer: MidiPlayerTimer) {
+abstract class MidiPlayerCommon internal constructor(internal val output: MidiOutput, private var shouldDisposeOutput: Boolean) {
 
-    internal lateinit var messages: MutableList<TMessage>
-    internal lateinit var looper: MidiEventLooper<TMessage>
+    internal lateinit var looper: MidiEventLooperBase
 
     // FIXME: it is still awkward to have it here. Move it into MidiEventLooper.
     private var syncPlayerTask: Job? = null

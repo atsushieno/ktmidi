@@ -1,8 +1,6 @@
 package dev.atsushieno.ktmidi
 
 import kotlinx.coroutines.Runnable
-import kotlinx.coroutines.sync.Semaphore
-import kotlin.jvm.Volatile
 
 internal class Midi1EventLooper(var messages: List<MidiMessage>, private val timer: MidiPlayerTimer,
                                private val deltaTimeSpec: Int) : MidiEventLooper<MidiMessage>(timer) {
@@ -63,14 +61,14 @@ interface OnMidiMessageListener {
 
 
 // Provides asynchronous player control.
-class MidiPlayer : MidiPlayerCommon<MidiMessage> {
+class MidiPlayer : MidiPlayerCommon {
     companion object {
         suspend fun create(music: MidiMusic, access: MidiAccess, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer()) =
             MidiPlayer(music, access.openOutputAsync(access.outputs.first().id), timer, true)
     }
 
     constructor(music: MidiMusic, output: MidiOutput, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer(), shouldDisposeOutput: Boolean = false)
-        : super(output, shouldDisposeOutput, timer) {
+        : super(output, shouldDisposeOutput) {
 
         this.music = music
         messages = music.mergeTracks().tracks[0].messages
@@ -120,13 +118,17 @@ class MidiPlayer : MidiPlayerCommon<MidiMessage> {
 
     private val music: MidiMusic
     private var buffer = ByteArray(0x100)
+    internal var messages: MutableList<MidiMessage>
+
+    private val looper1 : Midi1EventLooper
+        get() = looper as Midi1EventLooper
 
     fun addOnMessageListener(listener: OnMidiMessageListener) {
-        (looper as Midi1EventLooper).addOnMessageListener(listener)
+        looper1.addOnMessageListener(listener)
     }
 
     fun removeOnMessageListener(listener: OnMidiMessageListener) {
-        (looper as Midi1EventLooper).removeOnMessageListener(listener)
+        looper1.removeOnMessageListener(listener)
     }
 
     override val positionInMilliseconds: Long
@@ -136,7 +138,7 @@ class MidiPlayer : MidiPlayerCommon<MidiMessage> {
         get() = MidiMusic.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
 
     override fun seek(ticks: Int) {
-        looper.seek(SimpleMidi1SeekProcessor(ticks), ticks)
+        looper1.seek(SimpleMidi1SeekProcessor(ticks), ticks)
     }
 
     override fun setMutedChannels(mutedChannels: Iterable<Int>) {
