@@ -29,7 +29,8 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
                 }
                 MidiMetaType.TIME_SIGNATURE -> {
                     m.copyInto(umpConversionBuffer, 0)
-                    umpConversionBuffer.copyInto(currentTimeSignature, 0, 12, 16)
+                    currentTimeSignature.clear()
+                    currentTimeSignature.addAll(umpConversionBuffer.drop(12).take(4))
                 }
                 else -> {}
             }
@@ -66,7 +67,7 @@ interface OnMidi2EventListener {
 }
 
 // Provides asynchronous player control.
-class Midi2Player : MidiPlayerCommon {
+class Midi2Player : MidiPlayer {
     companion object {
         suspend fun create(music: Midi2Music, access: MidiAccess, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer()) =
             Midi2Player(music, access.openOutputAsync(access.outputs.first().id), timer, true)
