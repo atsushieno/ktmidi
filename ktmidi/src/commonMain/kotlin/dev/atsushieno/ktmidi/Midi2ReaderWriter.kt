@@ -1,11 +1,13 @@
 package dev.atsushieno.ktmidi
 
+import io.ktor.utils.io.core.*
+
 // Data Format:
 //   identifier: 0xAAAAAAAAAAAAAAAA (16 bytes)
 //   i32 deltaTimeSpec
 //   i32 numTracks
-//   tracks
-//        identifier: 0xEEEEEEEEEEEEEEEE (16 bytes)
+//   tracks - each track contains:
+//       identifier: 0xEEEEEEEEEEEEEEEE (16 bytes)
 //       i32 numUMPs
 //       umps (i32, i64 or i128)
 
@@ -13,10 +15,17 @@ fun Midi2Music.write(stream: MutableList<Byte>) {
     val w = Midi2MusicWriter(stream)
     val ints = w.serializeMidi2MusicToInts(this)
     val bytes = ints.flatMap { i32 -> sequence {
-        yield((i32 shr 24).toByte())
-        yield(((i32 shr 16) and 0xFF).toByte())
-        yield(((i32 shr 8) and 0xFF).toByte())
-        yield((i32 and 0xFF).toByte())
+        if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
+            yield((i32 and 0xFF).toByte())
+            yield(((i32 shr 8) and 0xFF).toByte())
+            yield(((i32 shr 16) and 0xFF).toByte())
+            yield((i32 shr 24).toByte())
+        } else {
+            yield((i32 shr 24).toByte())
+            yield(((i32 shr 16) and 0xFF).toByte())
+            yield(((i32 shr 8) and 0xFF).toByte())
+            yield((i32 and 0xFF).toByte())
+        }
     }.asIterable() }
     stream.addAll(bytes)
 }
@@ -63,7 +72,7 @@ internal class Midi2MusicReader(val music: Midi2Music, stream: List<Byte>) {
         for (i in 0..3) {
             if (!reader.canRead())
                 throw IllegalArgumentException("Insufficient stream at music file identifier (at $i:  ${reader.position}")
-            ret += (reader.readByte().toUnsigned() shl (8 * (3 - i)))
+            ret += (reader.readByte().toUnsigned() shl (8 * (if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) 3 - i else i)))
         }
         return ret
     }

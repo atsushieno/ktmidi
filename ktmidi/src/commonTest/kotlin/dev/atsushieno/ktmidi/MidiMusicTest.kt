@@ -73,22 +73,6 @@ class MidiMusicUnitTest {
     }
 
     @Test
-    fun readMidi2Music() {
-        val music = Midi2Music()
-        music.addTrack(Midi2Track())
-        music.tracks[0].messages.addAll(listOf(
-            Ump(UmpFactory.midi2NoteOn(0, 1, 0x36, 0, 100 shl 8, 0)),
-            Ump(UmpFactory.jrTimestamp(0, 31250)),
-            Ump(UmpFactory.midi2NoteOff(0, 1, 0x36, 0, 100 shl 8, 0))
-        ))
-        val store = mutableListOf<Byte>()
-        music.write(store)
-        val music2 = Midi2Music().apply { read(store) }
-        assertEquals(music.tracks.size, music2.tracks.size, "tracks")
-        assertEquals(music.tracks[0].messages.size, music2.tracks[0].messages.size, "messages")
-    }
-
-    @Test
     fun smfWriterWrite() {
         val music = MidiMusic()
         val track = MidiTrack()

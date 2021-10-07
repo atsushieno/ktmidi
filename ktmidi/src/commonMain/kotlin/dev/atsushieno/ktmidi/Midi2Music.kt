@@ -5,10 +5,10 @@ import io.ktor.utils.io.core.*
 // We store UMP in Big Endian this time.
 data class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: Int = 0) {
     constructor(long1: Long, long2: Long = 0) : this(
-        (long1 / 0x100000000).toInt(),
-        (long1 % 0x100000000).toInt(),
-        (long2 / 0x100000000).toInt(),
-        (long2 % 0x100000000).toInt())
+        ((long1 shr 32) and 0xFFFFFFFF).toInt(),
+        (long1 and 0xFFFFFFFF).toInt(),
+        ((long2 shr 32) and 0xFFFFFFFF).toInt(),
+        (long2 and 0xFFFFFFFF).toInt())
 
     override fun toString(): String {
         return when(messageType) {
@@ -62,13 +62,7 @@ class Midi2Music {
 
         // FIXME: We should come up with some solid draft on this, but so far, META events are
         //  going to be implemented as Sysex8 messages. Starts with [0xFF MetaType] ...
-        override fun isMetaEventMessage(message: Ump, metaType: Int)
-            = message.messageType == MidiMessageType.SYSEX8_MDS &&
-                message.eventType == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
-                message.int1 % 0x100 == 0 && // first 4 bytes indicate manufacturer ID ... subID2, filled with 0
-                message.int2 / 0x100 == 0 &&
-                message.int2 % 0x100 == MidiMusic.META_EVENT &&
-                (message.int3 shr 24) == metaType
+        override fun isMetaEventMessage(message: Ump, metaType: Int) = isMetaEventMessageStarter(message) && (message.int3 shr 24) == metaType
 
         // 3 bytes in Sysex8 pseudo meta message
         override fun getTempoValue(message: Ump)
@@ -90,6 +84,26 @@ class Midi2Music {
 
         fun getPlayTimeMillisecondsAtTick(messages: Iterable<Ump>, ticks: Int, deltaTimeSpec: Int) =
             calc.getPlayTimeMillisecondsAtTick(messages, ticks, deltaTimeSpec)
+
+        // In our UMP format, they are stored as sysex8 messages which start with the following 8 bytes:
+        // - `0` manufacture ID byte
+        // - `0` sub ID byte
+        // - `0` sub ID 2 byte
+        // - `'M'`, `'M'`, `'M'`, `'M'` indicates our META event
+        //- A meta event type byte
+        fun isMetaEventMessageStarter(message: Ump) =
+            message.messageType == MidiMessageType.SYSEX8_MDS &&
+                    when (message.eventType) {
+                        Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP, Midi2BinaryChunkStatus.SYSEX_START ->
+                            message.int1 % 0x100 == 0 &&
+                                    message.int2 shr 16 == 0 &&
+                                    message.int2 % 0x100 == 'M'.code * 0x100 + 'M'.code &&
+                                    message.int3 shr 16 == 'M'.code * 0x100 + 'M'.code
+                        else -> false // not a starter
+                    }
+
+        // returns meta event type if and only if the argument message is a META event within our own specification.
+        fun getMetaEventType(message: Ump) : Int = if (isMetaEventMessageStarter(message)) message.int3 shr 8 % 0x100 else 0
     }
 
     val tracks: MutableList<Midi2Track> = mutableListOf()

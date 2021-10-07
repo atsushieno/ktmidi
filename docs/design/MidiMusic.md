@@ -20,7 +20,14 @@ A `MidiMessage` is a timed `MidiEvent` structure, where "time" is represented
         - byte array `data` for `F0` (sysex) and `FF` (meta) messages. null for non-Fx event.
         - int32 `value`, which bundles status byte, MSB, and LSB.
 
-There is also feature parity with MIDI 2.0 UMP support, named `Midi2Music`, `Midi2Track`, and `Ump`. However, since MIDI 2.0 does not come up with Standard music file format like SMF, the anything other than `Ump` is only to achieve feature parity with `MidiMusic`.
+There is MIDI 2.0 feature parity, named `Midi2Music`, `Midi2Track`, and `Ump`.
+
+- Midi2Music
+  - `deltaTimeSpec` same as above
+  - Midi2Track list
+    - Ump list
+
+For the details of the format, see [MIDI2_FORMATS.md](../MIDI2_FORMATS.md).
 
 
 # Design notes

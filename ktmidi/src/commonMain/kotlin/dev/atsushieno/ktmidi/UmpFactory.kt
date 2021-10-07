@@ -506,14 +506,14 @@ fun sysex8GetPacketOf(
 fun sysex8Process(
     group: Int,
     sysex: List<Byte>,
-    length: Int,
+    sysexLength: Int,
     streamId: Byte,
     sendUMP128: (Long, Long, Any?) -> Unit,
     context: Any?
 ) {
-    val numPackets: Int = sysex8GetPacketCount(length)
+    val numPackets: Int = sysex8GetPacketCount(sysexLength)
     for (p in 0 until numPackets) {
-        val result = sysex8GetPacketOf(group, streamId, length, sysex, p)
+        val result = sysex8GetPacketOf(group, streamId, sysexLength, sysex, p)
         sendUMP128(result.first, result.second, context)
     }
 }
