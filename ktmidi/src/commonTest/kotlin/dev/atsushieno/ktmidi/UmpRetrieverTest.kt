@@ -22,7 +22,7 @@ class UmpRetrieverTest {
         val actual2 = UmpRetriever.getSysex7Data(iter2)
         assertContentEquals(src2, actual2, "bytes 2")
 
-        // FIXME: more tests (not just in_one_ump)
+        // more tests (not just in_one_ump) are in UmpFactoryTest.kt.
     }
 
     @Test
@@ -33,6 +33,6 @@ class UmpRetrieverTest {
         val actual1 = UmpRetriever.getSysex8Data(pl1.iterator())
         assertContentEquals(src1, actual1, "bytes 1")
 
-        // FIXME: more tests (not just in_one_ump)
+        // more tests (not just in_one_ump) are in UmpFactoryTest.kt.
     }
 }
