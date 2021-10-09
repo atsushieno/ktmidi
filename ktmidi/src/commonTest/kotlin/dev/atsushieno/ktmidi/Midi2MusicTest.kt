@@ -32,13 +32,13 @@ class Midi2MusicTest {
         music.tracks.add(track)
         val ff = 0xFF.toByte()
         // It is actually to write meta events specified in docs/MIDI2_FORMATS.md.
-        val sysex8 = listOf(0, 0, 0, ff, ff, ff, ff, 3, 0x07, 0xA1.toByte(), 0x20) // META EVENT 3: set tempo (500000 = 120bpm)
+        val sysex8 = listOf(0, 0, 0, 0, ff, ff, ff, 3, 0x07, 0xA1.toByte(), 0x20) // META EVENT 3: set tempo (500000 = 120bpm)
         UmpFactory.sysex8Process(0, sysex8) { v1, v2, _ -> track.messages.add(Ump(v1, v2)) }
         val bytes = mutableListOf<Byte>()
         music.write(bytes)
         // Note that "stream id" also counts in the packet size in sysex8 (hence 12, not 11).
-        // FIXME: consider correct endianness
-        assertContentEquals(musicFileIdentifier + listOf(0, 0, 0, 0) + listOf(1, 0, 0, 0) +
-            musicTrackIdentifier + listOf(1, 0, 0, 0) + listOf(0, 0, 12, 0x50) + listOf(ff, ff, 0, 0) + listOf(7, 3, ff, ff) + listOf(0, 0, 0x20, 0xA1.toByte()), bytes, "umpx")
+        // Note that umpx is always serialized in BIG endian.
+        assertContentEquals(musicFileIdentifier + listOf(0, 0, 0, 0) + listOf(0, 0, 0, 1) +musicTrackIdentifier +
+            listOf(0, 0, 0, 1) + listOf(0x50, 12, 0, 0, 0, 0, 0, ff, ff, ff, 3, 7, 0xA1.toByte(), 0x20, 0, 0), bytes, "umpx")
     }
 }

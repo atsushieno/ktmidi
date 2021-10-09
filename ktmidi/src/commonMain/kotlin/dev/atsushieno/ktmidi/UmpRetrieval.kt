@@ -19,8 +19,8 @@ val Ump.sizeInBytes
         else -> 4
     }
 
-private fun Ump.toPlatformNativeBytes(bytes: ByteArray, value: Int, offset: Int) {
-    if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
+private fun Ump.toPlatformBytes(bytes: ByteArray, value: Int, offset: Int, byteOrder: ByteOrder) {
+    if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
         bytes[offset + 3] = ((value shr 24) and 0xFF).toByte()
         bytes[offset + 2] = ((value shr 16) and 0xFF).toByte()
         bytes[offset + 1] = ((value shr 8) and 0xFF).toByte()
@@ -33,28 +33,32 @@ private fun Ump.toPlatformNativeBytes(bytes: ByteArray, value: Int, offset: Int)
     }
 }
 
-fun Ump.toPlatformNativeBytes(bytes: ByteArray, offset: Int) {
+fun Ump.toPlatformBytes(bytes: ByteArray, offset: Int, byteOrder: ByteOrder) {
     val size = sizeInBytes
-    this.toPlatformNativeBytes(bytes, int1, offset)
+    this.toPlatformBytes(bytes, int1, offset, byteOrder)
     if (size != 4)
-        this.toPlatformNativeBytes(bytes, int2, offset + 4)
+        this.toPlatformBytes(bytes, int2, offset + 4, byteOrder)
     if (size == 16) {
-        this.toPlatformNativeBytes(bytes, int3, offset + 8)
-        this.toPlatformNativeBytes(bytes, int4, offset + 12)
+        this.toPlatformBytes(bytes, int3, offset + 8, byteOrder)
+        this.toPlatformBytes(bytes, int4, offset + 12, byteOrder)
     }
 }
 
-fun Ump.toPlatformNativeBytes() : ByteArray {
+fun Ump.toPlatformBytes(bytes: ByteArray, offset: Int) = this.toPlatformBytes(bytes, offset, ByteOrder.nativeOrder())
+
+fun Ump.toPlatformBytes(byteOrder: ByteOrder) : ByteArray {
     val bytes = ByteArray(this.sizeInBytes) {0}
-    toPlatformNativeBytes(bytes, int1, 0)
+    toPlatformBytes(bytes, int1, 0, byteOrder)
     if (messageType > 2)
-        toPlatformNativeBytes(bytes, int2, 4)
+        toPlatformBytes(bytes, int2, 4, byteOrder)
     if (messageType > 4) {
-        toPlatformNativeBytes(bytes, int3, 8)
-        toPlatformNativeBytes(bytes, int4, 12)
+        toPlatformBytes(bytes, int3, 8, byteOrder)
+        toPlatformBytes(bytes, int4, 12, byteOrder)
     }
     return bytes
 }
+
+fun Ump.toPlatformNativeBytes() = this.toPlatformBytes(ByteOrder.nativeOrder())
 
 // Second half of the 1st. byte
 val Ump.group: Int

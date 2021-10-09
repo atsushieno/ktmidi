@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi
 
+import io.ktor.utils.io.core.*
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -196,8 +197,7 @@ class UmpFactoryTest {
         assertEquals(1, pl.size, "pl size")
         assertEquals(0x30060102, pl[0].int1, "v1.1")
         assertEquals(0x03040506, pl[0].int2, "v1.2")
-        val bytes1 = pl[0].toPlatformNativeBytes()
-        // FIXME: respect endianness
+        val bytes1 = pl[0].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
         assertContentEquals(arrayOf(2, 1, 6, 0x30, 6, 5, 4, 3), bytes1.toTypedArray(), "bytes1.1")
         assertContentEquals(sysex6, UmpRetriever.getSysex7Data(pl.iterator()), "getSysex7:6")
 
@@ -209,9 +209,8 @@ class UmpFactoryTest {
         assertEquals(0x03040506, pl[0].int2, "v2.2")
         assertEquals(0x30310700, pl[1].int1, "v2.3")
         assertEquals(0, pl[1].int2, "v2.4")
-        val bytes2_1 = pl[0].toPlatformNativeBytes()
-        val bytes2_2 = pl[1].toPlatformNativeBytes()
-        // FIXME: respect endianness
+        val bytes2_1 = pl[0].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
+        val bytes2_2 = pl[1].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
         assertContentEquals(arrayOf(2, 1, 0x16, 0x30, 6, 5, 4, 3), bytes2_1.toTypedArray(), "bytes2.1")
         assertContentEquals(arrayOf(0, 7, 0x31, 0x30, 0, 0, 0, 0), bytes2_2.toTypedArray(), "bytes2.2")
         assertContentEquals(sysex7, UmpRetriever.getSysex7Data(pl.iterator()), "getSysex7:7")
@@ -224,9 +223,8 @@ class UmpFactoryTest {
         assertEquals(0x03040506, pl[0].int2, "v3.2")
         assertEquals(0x30360708, pl[1].int1, "v3.3")
         assertEquals(0x090A0B0C, pl[1].int2, "v3.4")
-        val bytes3_1 = pl[0].toPlatformNativeBytes()
-        val bytes3_2 = pl[1].toPlatformNativeBytes()
-        // FIXME: respect endianness
+        val bytes3_1 = pl[0].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
+        val bytes3_2 = pl[1].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
         assertContentEquals(arrayOf(2, 1, 0x16, 0x30, 6, 5, 4, 3), bytes3_1.toTypedArray(), "bytes3.1")
         assertContentEquals(arrayOf(8, 7, 0x36, 0x30, 12, 11, 10, 9), bytes3_2.toTypedArray(), "bytes3.2")
         assertContentEquals(sysex12, UmpRetriever.getSysex7Data(pl.iterator()), "getSysex7:12")
@@ -241,10 +239,9 @@ class UmpFactoryTest {
         assertEquals(0x090A0B0C, pl[1].int2, "v4.4")
         assertEquals(0x30310D00, pl[2].int1, "v4.3")
         assertEquals(0, pl[2].int2, "v4.4")
-        val bytes4_1 = pl[0].toPlatformNativeBytes()
-        val bytes4_2 = pl[1].toPlatformNativeBytes()
-        val bytes4_3 = pl[2].toPlatformNativeBytes()
-        // FIXME: respect endianness
+        val bytes4_1 = pl[0].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
+        val bytes4_2 = pl[1].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
+        val bytes4_3 = pl[2].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
         assertContentEquals(arrayOf(2, 1, 0x16, 0x30, 6, 5, 4, 3), bytes4_1.toTypedArray(), "bytes4.1")
         assertContentEquals(arrayOf(8, 7, 0x26, 0x30, 12, 11, 10, 9), bytes4_2.toTypedArray(), "bytes4.2")
         assertContentEquals(arrayOf(0, 13, 0x31, 0x30, 0, 0, 0, 0), bytes4_3.toTypedArray(), "bytes4.3")
@@ -259,8 +256,7 @@ class UmpFactoryTest {
         assertEquals(1, pl.size, "pl size")
         assertEquals(0x50020001, pl[0].int1, "v1.1")
         assertEquals(0, pl[0].int2, "v1.2")
-        val bytes1 = pl[0].toPlatformNativeBytes()
-        // FIXME: respect endianness
+        val bytes1 = pl[0].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
         assertContentEquals(arrayOf(1, 0, 2, 0x50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), bytes1.toTypedArray(), "bytes1.1")
 
         val sysex13 = (1..13).map { i -> i.toByte() }
@@ -271,8 +267,7 @@ class UmpFactoryTest {
         assertEquals(0x02030405, pl[0].int2, "v13.2")
         assertEquals(0x06070809, pl[0].int3, "v13.3")
         assertEquals(0x0A0B0C0D, pl[0].int4, "v13.4")
-        val bytes13 = pl[0].toPlatformNativeBytes()
-        // FIXME: respect endianness
+        val bytes13 = pl[0].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
         assertContentEquals(arrayOf(1, 0, 14, 0x50, 5, 4, 3, 2, 9, 8, 7, 6, 13, 12, 11, 10), bytes13.toTypedArray(), "bytes1.1")
 
         val sysex14 = (1..14).map { i -> i.toByte() }
@@ -287,9 +282,8 @@ class UmpFactoryTest {
         assertEquals(0, pl[1].int2, "v14.6")
         assertEquals(0, pl[1].int3, "v14.7")
         assertEquals(0, pl[1].int4, "v14.8")
-        val bytes14_1 = pl[0].toPlatformNativeBytes()
-        val bytes14_2 = pl[1].toPlatformNativeBytes()
-        // FIXME: respect endianness
+        val bytes14_1 = pl[0].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
+        val bytes14_2 = pl[1].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
         assertContentEquals(arrayOf(1, 0, 0x1E, 0x50, 5, 4, 3, 2, 9, 8, 7, 6, 13, 12, 11, 10), bytes14_1.toTypedArray(), "bytes14.1")
         assertContentEquals(arrayOf(14, 0, 0x32, 0x50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), bytes14_2.toTypedArray(), "bytes14.2")
 
@@ -299,9 +293,8 @@ class UmpFactoryTest {
         assertEquals(2, pl.size, "pl size26")
         assertEquals(0x501E0001, pl[0].int1, "v26.1")
         assertEquals(0x503E000E, pl[1].int1, "v26.2")
-        val bytes26_1 = pl[0].toPlatformNativeBytes()
-        val bytes26_2 = pl[1].toPlatformNativeBytes()
-        // FIXME: respect endianness
+        val bytes26_1 = pl[0].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
+        val bytes26_2 = pl[1].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
         assertContentEquals(arrayOf(1, 0, 0x1E, 0x50, 5, 4, 3, 2, 9, 8, 7, 6, 13, 12, 11, 10), bytes26_1.toTypedArray(), "bytes26.1")
         assertContentEquals(arrayOf(14, 0, 0x3E, 0x50, 18, 17, 16, 15, 22, 21, 20, 19, 26, 25, 24, 23), bytes26_2.toTypedArray(), "bytes26.2")
 
@@ -313,10 +306,9 @@ class UmpFactoryTest {
         assertEquals(0x501E0001, pl[0].int1, "v27.1")
         assertEquals(0x502E000E, pl[1].int1, "v27.2")
         assertEquals(0x5032001B, pl[2].int1, "v27.3")
-        val bytes27_1 = pl[0].toPlatformNativeBytes()
-        val bytes27_2 = pl[1].toPlatformNativeBytes()
-        val bytes27_3 = pl[2].toPlatformNativeBytes()
-        // FIXME: respect endianness
+        val bytes27_1 = pl[0].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
+        val bytes27_2 = pl[1].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
+        val bytes27_3 = pl[2].toPlatformBytes(ByteOrder.LITTLE_ENDIAN)
         assertContentEquals(arrayOf(1, 0, 0x1E, 0x50, 5, 4, 3, 2, 9, 8, 7, 6, 13, 12, 11, 10), bytes27_1.toTypedArray(), "bytes26.1")
         assertContentEquals(arrayOf(14, 0, 0x2E, 0x50, 18, 17, 16, 15, 22, 21, 20, 19, 26, 25, 24, 23), bytes27_2.toTypedArray(), "bytes26.2")
         assertContentEquals(arrayOf(27, 0, 0x32, 0x50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), bytes27_3.toTypedArray(), "bytes26.3")
