@@ -106,7 +106,7 @@ class SmfWriter(val stream: MutableList<Byte>) {
                     size++
                     if (e.event.extraData != null) {
                         size += e.event.extraDataLength
-                        if (e.event.extraData!![e.event.extraDataOffset + e.event.extraDataLength - 1] != 0xF7.toByte())
+                        if (e.event.extraData[e.event.extraDataOffset + e.event.extraDataLength - 1] != 0xF7.toByte())
                             size++ // supply SYSEX_END
                     }
                     else

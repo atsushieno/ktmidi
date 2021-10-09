@@ -116,16 +116,14 @@ class Midi1Player : MidiPlayer {
     private val music: MidiMusic
     private var buffer = ByteArray(0x100)
     internal var messages: MutableList<MidiMessage>
-
-    private val looper1 : Midi1EventLooper
-        get() = looper as Midi1EventLooper
+    override val looper: Midi1EventLooper
 
     fun addOnMessageListener(listener: OnMidiMessageListener) {
-        looper1.addOnMessageListener(listener)
+        looper.addOnMessageListener(listener)
     }
 
     fun removeOnMessageListener(listener: OnMidiMessageListener) {
-        looper1.removeOnMessageListener(listener)
+        looper.removeOnMessageListener(listener)
     }
 
     override val positionInMilliseconds: Long
@@ -135,7 +133,7 @@ class Midi1Player : MidiPlayer {
         get() = MidiMusic.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
 
     override fun seek(ticks: Int) {
-        looper1.seek(SimpleMidi1SeekProcessor(ticks), ticks)
+        looper.seek(SimpleMidi1SeekProcessor(ticks), ticks)
     }
 
     override fun setMutedChannels(mutedChannels: Iterable<Int>) {

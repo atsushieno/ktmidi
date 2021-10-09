@@ -169,14 +169,15 @@ class Midi2Player : MidiPlayer {
     }
 
     private val music: Midi2Music
-    internal lateinit var messages: MutableList<Ump>
+    internal var messages: MutableList<Ump>
+    override val looper: Midi2EventLooper
 
     fun addOnMessageListener(listener: OnMidi2EventListener) {
-        (looper as Midi2EventLooper).addOnMessageListener(listener)
+        looper.addOnMessageListener(listener)
     }
 
     fun removeOnMessageListener(listener: OnMidi2EventListener) {
-        (looper as Midi2EventLooper).removeOnMessageListener(listener)
+        looper.removeOnMessageListener(listener)
     }
 
     override val positionInMilliseconds: Long
@@ -186,7 +187,7 @@ class Midi2Player : MidiPlayer {
         get() = Midi2Music.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
 
     override fun seek(ticks: Int) {
-        (looper as MidiEventLooper<Ump>).seek(Midi2SimpleSeekProcessor(ticks), ticks)
+        looper.seek(Midi2SimpleSeekProcessor(ticks), ticks)
     }
 
     override fun setMutedChannels(mutedChannels: Iterable<Int>) {

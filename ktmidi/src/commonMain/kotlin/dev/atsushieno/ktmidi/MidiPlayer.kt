@@ -152,7 +152,7 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
 
 abstract class MidiPlayer internal constructor(internal val output: MidiOutput, private var shouldDisposeOutput: Boolean) {
 
-    internal lateinit var looper: MidiEventLooperBase
+    internal abstract val looper: MidiEventLooperBase
 
     // FIXME: it is still awkward to have it here. Move it into MidiEventLooper.
     private var syncPlayerTask: Job? = null
