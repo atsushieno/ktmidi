@@ -87,18 +87,19 @@ class Midi2Music {
 
         // In our UMP format, they are stored as sysex8 messages which start with the following 8 bytes:
         // - `0` manufacture ID byte
+        // - `0` device ID byte
         // - `0` sub ID byte
         // - `0` sub ID 2 byte
-        // - `'M'`, `'M'`, `'M'`, `'M'` indicates our META event
-        //- A meta event type byte
+        // - 0xFF 0xFF 0xFF indicate our META event
+        // - A meta event type byte
         fun isMetaEventMessageStarter(message: Ump) =
             message.messageType == MidiMessageType.SYSEX8_MDS &&
                     when (message.eventType) {
                         Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP, Midi2BinaryChunkStatus.SYSEX_START ->
                             message.int1 % 0x100 == 0 &&
-                                    message.int2 shr 16 == 0 &&
-                                    message.int2 % 0x100 == 'M'.code * 0x100 + 'M'.code &&
-                                    message.int3 shr 16 == 'M'.code * 0x100 + 'M'.code
+                                    message.int2 shr 8 == 0 &&
+                                    message.int2 and 0xFF == 0xFF &&
+                                    (message.int3 shr 16) and 0xFFFF == 0xFFFF
                         else -> false // not a starter
                     }
 

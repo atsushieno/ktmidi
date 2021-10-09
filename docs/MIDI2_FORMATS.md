@@ -34,9 +34,10 @@ We also have a hack around SMF META events; they are not part of MIDI 1.0 messag
 
 - `0` manufacture ID byte
   - We don't use Universal Sysex here as it is *more* likely to collide with later MMA specifications.
+- `0` DeviceID byte
 - `0` SubID byte
 - `0` SubID2 byte
-- `0xFFFFFFFF` indicates our META event (4 bytes)
+- `0xFFFFFF` indicates our META event (3 bytes)
 - A meta event type byte
 
 Then the actual meta event message content is enclosed within the sysex8 packets, *without length specifier*. The length can be identified by the packet itself. One sysex8 packet suffice for a fixed-length META event (5 bytes at maximum).
