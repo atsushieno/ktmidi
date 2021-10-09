@@ -24,11 +24,11 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
             m.int2 % 0x100  == MidiMusic.META_EVENT) {
             when ((m.int3 / 0x100_00_00)) {
                 MidiMetaType.TEMPO -> {
-                    m.copyInto(umpConversionBuffer, 0)
+                    m.toPlatformNativeBytes(umpConversionBuffer, 0)
                     currentTempo = MidiMusic.getSmfTempo(umpConversionBuffer, 12)
                 }
                 MidiMetaType.TIME_SIGNATURE -> {
-                    m.copyInto(umpConversionBuffer, 0)
+                    m.toPlatformNativeBytes(umpConversionBuffer, 0)
                     currentTimeSignature.clear()
                     currentTimeSignature.addAll(umpConversionBuffer.drop(12).take(4))
                 }
@@ -87,7 +87,7 @@ class Midi2Player : MidiPlayer {
                     // all control reset on all channels.
                     for (ch in 0..15) {
                         val ump = Ump(UmpFactory.midi1CC(group, ch, MidiCC.RESET_ALL_CONTROLLERS.toByte(), 0))
-                        ump.copyInto(umpConversionBuffer, 0)
+                        ump.toPlatformNativeBytes(umpConversionBuffer, 0)
                         output.send(umpConversionBuffer, 0, ump.sizeInBytes, 0)
                     }
                 }
@@ -109,11 +109,11 @@ class Midi2Player : MidiPlayer {
                         when (e.eventType) {
                             Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> {
                                 if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
-                                    e.copyInto(umpConversionBuffer, 0)
+                                    e.toPlatformNativeBytes(umpConversionBuffer, 0)
                                     output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                                 }
                                 else {
-                                    e.copyInto(umpConversionBuffer, 0)
+                                    e.toPlatformNativeBytes(umpConversionBuffer, 0)
                                     umpConversionBuffer[1] = 0xF0.toByte()
                                     // FIXME: verify size and content
                                     output.send(umpConversionBuffer, 1, e.sizeInBytes, 0)
@@ -126,7 +126,7 @@ class Midi2Player : MidiPlayer {
                         when (e.eventType) {
                             Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> {
                                 if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
-                                    e.copyInto(umpConversionBuffer, 0)
+                                    e.toPlatformNativeBytes(umpConversionBuffer, 0)
                                     output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                                 }
                                 else
@@ -137,7 +137,7 @@ class Midi2Player : MidiPlayer {
                     }
                     MidiMessageType.MIDI2 -> {
                         if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
-                            e.copyInto(umpConversionBuffer, 0)
+                            e.toPlatformNativeBytes(umpConversionBuffer, 0)
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                         }
                         else
@@ -152,7 +152,7 @@ class Midi2Player : MidiPlayer {
                             }
                         }
                         if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
-                            e.copyInto(umpConversionBuffer, 0)
+                            e.toPlatformNativeBytes(umpConversionBuffer, 0)
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                         } else {
                             // all control reset on all channels.

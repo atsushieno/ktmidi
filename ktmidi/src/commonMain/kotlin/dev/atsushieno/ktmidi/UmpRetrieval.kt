@@ -19,39 +19,39 @@ val Ump.sizeInBytes
         else -> 4
     }
 
-private fun Ump.copyInto(bytes: ByteArray, value: Int, offset: Int) {
+private fun Ump.toPlatformNativeBytes(bytes: ByteArray, value: Int, offset: Int) {
     if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN) {
-        bytes[offset + 3] = (value / 0x1000000).toByte()
-        bytes[offset + 2] = ((value / 0x10000) % 0x100).toByte()
-        bytes[offset + 1] = ((value / 0x100) % 0x100).toByte()
-        bytes[offset] = (value % 0x100).toByte()
+        bytes[offset + 3] = ((value shr 24) and 0xFF).toByte()
+        bytes[offset + 2] = ((value shr 16) and 0xFF).toByte()
+        bytes[offset + 1] = ((value shr 8) and 0xFF).toByte()
+        bytes[offset] = (value and 0xFF).toByte()
     } else {
-        bytes[offset] = (value / 0x1000000).toByte()
-        bytes[offset + 1] = ((value / 0x10000) % 0x100).toByte()
-        bytes[offset + 2] = ((value / 0x100) % 0x100).toByte()
-        bytes[offset + 3] = (value % 0x100).toByte()
+        bytes[offset] = ((value shr 24) and 0xFF).toByte()
+        bytes[offset + 1] = ((value shr 16) and 0xFF).toByte()
+        bytes[offset + 2] = ((value shr 8) and 0xFF).toByte()
+        bytes[offset + 3] = (value and 0xFF).toByte()
     }
 }
 
-fun Ump.copyInto(bytes: ByteArray, offset: Int) {
+fun Ump.toPlatformNativeBytes(bytes: ByteArray, offset: Int) {
     val size = sizeInBytes
-    this.copyInto(bytes, int1, offset)
+    this.toPlatformNativeBytes(bytes, int1, offset)
     if (size != 4)
-        this.copyInto(bytes, int2, offset + 4)
+        this.toPlatformNativeBytes(bytes, int2, offset + 4)
     if (size == 16) {
-        this.copyInto(bytes, int3, offset + 8)
-        this.copyInto(bytes, int4, offset + 12)
+        this.toPlatformNativeBytes(bytes, int3, offset + 8)
+        this.toPlatformNativeBytes(bytes, int4, offset + 12)
     }
 }
 
-fun Ump.toBytes() : ByteArray {
+fun Ump.toPlatformNativeBytes() : ByteArray {
     val bytes = ByteArray(this.sizeInBytes) {0}
-    copyInto(bytes, this.int1, 0)
+    toPlatformNativeBytes(bytes, int1, 0)
     if (messageType > 2)
-        copyInto(bytes, this.int2, 4)
+        toPlatformNativeBytes(bytes, int2, 4)
     if (messageType > 4) {
-        copyInto(bytes, this.int3, 8)
-        copyInto(bytes, this.int4, 12)
+        toPlatformNativeBytes(bytes, int3, 8)
+        toPlatformNativeBytes(bytes, int4, 12)
     }
     return bytes
 }
@@ -64,14 +64,9 @@ val Ump.group: Int
 val Ump.statusByte: Int
     get() = (int1 shr 16) and 0xFF
 
-// First half of the 2nd. byte.
-// This makes sense only for MIDI 1.0, MIDI 2.0, and System messages
+// First half of the 2nd. byte. (for MIDI1, MIDI2, Sysex7, Sysex8, System Messages)
 val Ump.eventType: Int
-    get() =
-        when (messageType) {
-            MidiMessageType.MIDI1, MidiMessageType.MIDI2 -> statusByte and 0xF0
-            else -> statusByte
-        }
+    get() = statusByte and 0xF0
 
 // Second half of the 2nd. byte
 val Ump.channelInGroup: Int // 0..15
@@ -164,24 +159,122 @@ val Ump.midi2CAf
     get() = int2.toUInt()
 val Ump.midi2PitchBendData
     get() = int2.toUInt()
-val Ump.midi2Sysex8Size
+val Ump.sysex8Size
     get() = channelInGroup // same bits
-val Ump.midi2Sysex8StreamId
+val Ump.sysex8StreamId
     get() = midi1Msb
-val Ump.midi2MdsId
+val Ump.mdsId
     get() = channelInGroup // same bits
-val Ump.midi2MdsChunkByteSize
+val Ump.mdsChunkByteSize
     get() = (midi1Msb shl 8) + midi1Lsb
-val Ump.midi2MdsChunkCount
+val Ump.mdsChunkCount
     get() = (int2.toUnsigned() / 0x10000).toInt()
-val Ump.midi2MdsChunkIndex
+val Ump.mdsChunkIndex
     get() = (int2.toUnsigned() % 0x10000).toInt()
-val Ump.midi2MdsManufacturerId
+val Ump.mdsManufacturerId
     get() = (int3.toUnsigned() / 0x10000).toInt()
-val Ump.midi2MdsDeviceId
+val Ump.mdsDeviceId
     get() = (int3.toUnsigned() % 0x10000).toInt()
-val Ump.midi2MdsSubId1
+val Ump.mdsSubId1
     get() = (int4.toUnsigned() / 0x10000).toInt()
-val Ump.midi2MdsSubId2
+val Ump.mdsSubId2
     get() = (int4.toUnsigned() % 0x10000).toInt()
 
+enum class UmpSysexBinaryRetrieverFallback {
+    Break,
+    Exception
+}
+
+class UmpException : Exception {
+    constructor() : super()
+    constructor(message: String) : super(message)
+    constructor(message: String, innerException: Exception) : super(message, innerException)
+}
+
+object UmpRetriever {
+    private fun takeSysex7Bytes(ump: Ump, destinationBytes: MutableList<Byte>, sysex7Size: Int) {
+        if (sysex7Size < 1)
+            return
+        // It is hack, but it just reuses toPlatformNativeBytes() and then pick up the appropriate parts per platform
+        val src = ump.toPlatformNativeBytes() // NOTE: memory consumptive
+        if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN)
+            destinationBytes.addAll(src.drop(2).take(sysex7Size))
+        else {
+            destinationBytes.add(src[1])
+            if (sysex7Size > 1)
+                destinationBytes.add(src[0])
+            src.reverse()
+            if (sysex7Size > 2)
+                destinationBytes.addAll(src.take(sysex7Size - 2))
+        }
+    }
+
+    fun getSysex7Data(iter: Iterator<Ump>, fallback: UmpSysexBinaryRetrieverFallback = UmpSysexBinaryRetrieverFallback.Break) : List<Byte> {
+        val ret = mutableListOf<Byte>()
+        if (!iter.hasNext())
+            if (fallback == UmpSysexBinaryRetrieverFallback.Break) return ret else throw UmpException("UMP iterator is empty")
+        val pStart = iter.next()
+        takeSysex7Bytes(pStart, ret, pStart.sysex7Size)
+        when (pStart.eventType) {
+            Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> return ret
+            Midi2BinaryChunkStatus.SYSEX_CONTINUE, Midi2BinaryChunkStatus.SYSEX_END ->
+                if (fallback == UmpSysexBinaryRetrieverFallback.Break) return ret else throw UmpException("Unexpected sysex7 non-starter packet appeared")
+        }
+        while (iter.hasNext()) {
+            val pCont = iter.next()
+            takeSysex7Bytes(pCont, ret, pCont.sysex7Size)
+            when (pCont.eventType) {
+                Midi2BinaryChunkStatus.SYSEX_END -> break
+                Midi2BinaryChunkStatus.SYSEX_CONTINUE -> continue
+                else ->
+                    if (fallback == UmpSysexBinaryRetrieverFallback.Break) return ret else throw UmpException("Unexpected sysex7 non-continue packet appeared")
+            }
+        }
+        return ret
+    }
+
+    private fun takeSysex8Bytes(ump: Ump, destinationBytes: MutableList<Byte>, sysex8Size: Int) {
+        if (sysex8Size < 2)
+            return
+        // It is hack, but it just reuses toPlatformNativeBytes() and then pick up the appropriate parts per platform
+        val src = ump.toPlatformNativeBytes() // NOTE: memory consumptive
+
+        // Note that sysex8Size always contains streamID which should NOT be part of the result.
+        if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN)
+            destinationBytes.addAll(src.drop(3).take(sysex8Size))
+        else {
+            destinationBytes.add(src[0])
+            src.reverse()
+            if (sysex8Size > 2)
+                destinationBytes.addAll(src.drop(8).take(if (sysex8Size > 6) 4 else sysex8Size - 2)) // NOTE: memory consumptive
+            if (sysex8Size > 6)
+                destinationBytes.addAll(src.drop(4).take(if (sysex8Size > 10) 4 else sysex8Size - 6)) // NOTE: memory consumptive
+            if (sysex8Size > 10)
+                destinationBytes.addAll(src.take(sysex8Size - 10)) // NOTE: memory consumptive
+        }
+    }
+
+    fun getSysex8Data(iter: Iterator<Ump>, fallback: UmpSysexBinaryRetrieverFallback = UmpSysexBinaryRetrieverFallback.Break) : List<Byte> {
+        val ret = mutableListOf<Byte>()
+        if (!iter.hasNext())
+            if (fallback == UmpSysexBinaryRetrieverFallback.Break) return ret else throw UmpException("UMP iterator is empty")
+        val pStart = iter.next()
+        takeSysex8Bytes(pStart, ret, pStart.sysex8Size)
+        when (pStart.eventType) {
+            Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> return ret
+            Midi2BinaryChunkStatus.SYSEX_CONTINUE, Midi2BinaryChunkStatus.SYSEX_END ->
+                if (fallback == UmpSysexBinaryRetrieverFallback.Break) return ret else throw UmpException("Unexpected sysex8 non-starter packet appeared")
+        }
+        while (iter.hasNext()) {
+            val pCont = iter.next()
+            takeSysex8Bytes(pCont, ret, pCont.sysex8Size)
+            when (pCont.eventType) {
+                Midi2BinaryChunkStatus.SYSEX_END -> break
+                Midi2BinaryChunkStatus.SYSEX_CONTINUE -> continue
+                else ->
+                    if (fallback == UmpSysexBinaryRetrieverFallback.Break) return ret else throw UmpException("Unexpected sysex8 non-continue packet appeared")
+            }
+        }
+        return ret
+    }
+}

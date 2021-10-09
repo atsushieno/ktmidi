@@ -464,6 +464,7 @@ fun sysex7GetPacketOf(group: Int, numBytes: Int, srcData: List<Byte>, index: Int
     return result.first
 }
 
+@Deprecated("Use another sysex7Process overload that has sendUMP64 as the last parameter")
 fun sysex7Process(
     group: Int,
     sysex: List<Byte>,
@@ -476,6 +477,29 @@ fun sysex7Process(
         val ump = sysex7GetPacketOf(group, length, sysex, p)
         sendUMP64(ump, context)
     }
+}
+
+fun sysex7Process(
+    group: Int,
+    sysex: List<Byte>,
+    context: Any? = null,
+    sendUMP64: (Long, Any?) -> Unit = { _, _ -> },
+) {
+    val length: Int = sysex7GetSysexLength(sysex)
+    val numPackets: Int = sysex7GetPacketCount(length)
+    for (p in 0 until numPackets) {
+        val ump = sysex7GetPacketOf(group, length, sysex, p)
+        sendUMP64(ump, context)
+    }
+}
+
+fun sysex7(
+    group: Int,
+    sysex: List<Byte>,
+) : List<Ump> {
+    val ret = mutableListOf<Ump>()
+    sysex7Process(group, sysex) { l, _ -> ret.add(Ump(l)) }
+    return ret
 }
 
 // 4.5 System Exclusive 8-Bit Messages
@@ -503,19 +527,43 @@ fun sysex8GetPacketOf(
     )
 }
 
+@Deprecated("Use another sysex8Process overload that has sendUMP64 as the last parameter")
 fun sysex8Process(
     group: Int,
     sysex: List<Byte>,
-    sysexLength: Int,
     streamId: Byte,
     sendUMP128: (Long, Long, Any?) -> Unit,
     context: Any?
 ) {
-    val numPackets: Int = sysex8GetPacketCount(sysexLength)
+    val numPackets: Int = sysex8GetPacketCount(sysex.size)
     for (p in 0 until numPackets) {
-        val result = sysex8GetPacketOf(group, streamId, sysexLength, sysex, p)
+        val result = sysex8GetPacketOf(group, streamId, if (sysex.size >= 13) 13 else sysex.size % 13, sysex, p)
         sendUMP128(result.first, result.second, context)
     }
+}
+
+fun sysex8Process(
+    group: Int,
+    sysex: List<Byte>,
+    streamId: Byte = 0,
+    context: Any? = null,
+    sendUMP128: (Long, Long, Any?) -> Unit = { _, _, _ -> }
+) {
+    val numPackets: Int = sysex8GetPacketCount(sysex.size)
+    for (p in 0 until numPackets) {
+        val result = sysex8GetPacketOf(group, streamId, sysex.size, sysex, p)
+        sendUMP128(result.first, result.second, context)
+    }
+}
+
+fun sysex8(
+    group: Int,
+    sysex: List<Byte>,
+    streamId: Byte = 0
+) : List<Ump> {
+    val ret = mutableListOf<Ump>()
+    sysex8Process(group, sysex, streamId) { l1, l2, _ -> ret.add(Ump(l1, l2)) }
+    return ret
 }
 
 // Mixed Data Sets
