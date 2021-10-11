@@ -2,13 +2,13 @@
 
 ![maven repo](https://img.shields.io/maven-central/v/dev.atsushieno/ktmidi)
 
-ktmidi is a Kotlin Multiplatform library for MIDI Access API and MIDI data processing that covers MIDI 1.0 and MIDI 2.0. 
+ktmidi is a Kotlin Multiplatform library for MIDI Access API and MIDI data processing that covers MIDI 1.0 and MIDI 2.0.
 
 ## Features
 
-It implements the following features (and so on):
+It provides various MIDI features, including:
 
-- MIDI 1.0 and 2.0 UMPs everywhere.
+- MIDI 1.0 messages and 2.0 UMPs everywhere.
 - `MidiAccess` : MIDI access abstraction API like what Web MIDI API 1.0 is going to provide.
   - There are actual implementations for some platform specific MIDI API within this library, and you can implement your own backend if you need.
   - Unlike `javax.sound.midi` API, this API also covers creating virtual ports wherever possible.
@@ -17,6 +17,7 @@ It implements the following features (and so on):
   - No strongly-typed message types (something like NoteOnMessage, NoteOffMessage, and so on). There is no point of defining strongly-typed messages for each mere MIDI status byte - you wouldn't need message type abstraction.
   - No worries, there are contants of Int or Byte in `MidiChannelStatus`, `MidiCC`, `MidiRpn`, `MidiMetaType` etc. so that you don't have to remember the actual constant numbers.
   - `MidiMusic.read()` reads and `MidiMusic.write()` writes to SMF (standard MIDI format) files with MIDI messages, with `Midi1TrackMerger`, `Midi2TrackMerger`, `Midi1TrackSplitter` and `Midi2TrackSplitter` that help you implement sequential event processing for your own MIDI players, or per-track editors if needed.
+  - `UmpFactory` and `UmpRetriever` provides various accessors to MIDI 2.0 `Ump` data class, as well as some preliminary MIDI-CI support in `CIFactory` class.
 - `MidiPlayer` and `Midi2Player`: provides MIDI player functionality: play/pause/stop and fast-forwarding.
   - Midi messages are sent to its "message listeners". If you don't pass a Midi Access instance or a Midi Output instance, it will do nothing but event dispatching.
   - It is based on customizible scheduler `MidiPlayerTimer`.
@@ -36,11 +37,11 @@ val player = MidiPlayer(music, access)
 player.play()
 ```
 
-To use ktmidi, add the following lines in the `dependencies` section in `build.gradle`:
+To use ktmidi, add the following lines in the `dependencies` section in `build.gradle(.kts)`:
 
 ```
 dependencies {
-    implementation 'dev.atsushieno:ktmidi:+' // replace + with the actual version
+    implementation "dev.atsushieno:ktmidi:+" // replace + with the actual version
 }
 ```
 
@@ -51,38 +52,13 @@ If you want to bring better user experience on desktop (which @atsushieno recomm
 
 ```
 dependencies {
-    implementation 'dev.atsushieno:ktmidi-jvm-desktop:+' // replace + with the actual version
+    implementation "dev.atsushieno:ktmidi-jvm-desktop:+" // replace + with the actual version
 }
 ```
 
 ... and use `AlsaMidiAccess` on Linux, or `RtMidiAccess` elsewhere. I use `if (File.exists("/dev/snd/seq")) AlsaMidiAccess() else RtMidiAccess()` (or `JvmMidiAccess` instead of `RtMidiAccess`) to create best `MidiAccess` instance.
 
 ktmidi is released at sonatype and hence available at Maven Central.
-
-You can also find some real-world usage examples:
-
-- [kmmk](https://github.com/atsushieno/kmmk/blob/e431452aadb50ae1925dd9b9b0eb25948694758f/common/src/commonMain/kotlin/dev/atsushieno/kmmk/MidiDeviceManager.kt) for `MidiAccess`/`MidiOutput`
-- [mugene-ng](https://github.com/atsushieno/mugene-ng/blob/3bc55304a0ffc8014c3cf1df97d2bffea4ebda29/mugene/src/commonMain/kotlin/dev/atsushieno/mugene/mml_smf_generator.kt) for SMF/MIDI2 file generator
-- [augene-ng](https://github.com/atsushieno/augene-ng/blob/47e624d6030060bad72bc56dbfb0503af3e1ad85/augene-project/augene/src/commonMain/kotlin/dev/atsushieno/augene/Midi2ToTracktionEditConverter.kt) for SMF/MIDI2 file reader
-
-## Resources
-
-We use [GitHub issues](https://github.com/atsushieno/ktmidi/issues) for bug reports etc., and [GitHub Discussions boards](https://github.com/atsushieno/ktmidi/discussions/) open to everyone.
-
-For hacking and/or contributing to ktmidi, please have a look at [HACKING.md](HACKING.md).
-
-For Applications that use ktmidi, check out [this Discussions thread](https://github.com/atsushieno/ktmidi/discussions/14).
-
-API documentation is published at: https://atsushieno.github.io/ktmidi/
-
-The documentation can be built using `./gradlew dokkaHtml` and it will be generated locally at `build/dokka/html`.
-
-There are couple of API/implementation design docs:
-
-- [docs/design/MidiAccess.md](docs/design/MidiAccess.md)
-- [docs/design/MidiMusic.md](docs/design/MidiMusic.md)
-- [docs/design/MidiPlayer.md](docs/design/MidiPlayer.md)
-
 
 ## Platform Access API
 
@@ -134,6 +110,30 @@ However everything in this project went far beyond them and now we are making it
 Some of the MIDI 2.0 related bits are ported from [cmidi2](https://github.com/atsushieno/cmidi2) library.
 
 Historically `ktmidi-jvm-desktop` used to reside in [its own repository](https://github.com/atsushieno/ktmidi-jvm-desktop) to avoid complicated dependency resolution, so there would be some outdated information that tells it was isolated from this project/repository.
+
+## Resources
+
+We use [GitHub issues](https://github.com/atsushieno/ktmidi/issues) for bug reports etc., and [GitHub Discussions boards](https://github.com/atsushieno/ktmidi/discussions/) open to everyone.
+
+For hacking and/or contributing to ktmidi, please have a look at [HACKING.md](HACKING.md).
+
+For Applications that use ktmidi, check out [this Discussions thread](https://github.com/atsushieno/ktmidi/discussions/14).
+
+API documentation is published at: https://atsushieno.github.io/ktmidi/
+
+The documentation can be built using `./gradlew dokkaHtml` and it will be generated locally at `build/dokka/html`.
+
+There are couple of API/implementation design docs:
+
+- [docs/design/MidiAccess.md](docs/design/MidiAccess.md)
+- [docs/design/MidiMusic.md](docs/design/MidiMusic.md)
+- [docs/design/MidiPlayer.md](docs/design/MidiPlayer.md)
+
+You can also find some real-world usage examples:
+
+- [kmmk](https://github.com/atsushieno/kmmk/blob/e431452aadb50ae1925dd9b9b0eb25948694758f/common/src/commonMain/kotlin/dev/atsushieno/kmmk/MidiDeviceManager.kt) for `MidiAccess`/`MidiOutput`
+- [mugene-ng](https://github.com/atsushieno/mugene-ng/blob/3bc55304a0ffc8014c3cf1df97d2bffea4ebda29/mugene/src/commonMain/kotlin/dev/atsushieno/mugene/mml_smf_generator.kt) for SMF/MIDI2 file generator
+- [augene-ng](https://github.com/atsushieno/augene-ng/blob/47e624d6030060bad72bc56dbfb0503af3e1ad85/augene-project/augene/src/commonMain/kotlin/dev/atsushieno/augene/Midi2ToTracktionEditConverter.kt) for SMF/MIDI2 file reader
 
 ## License
 
