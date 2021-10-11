@@ -15,11 +15,11 @@ It implements the following features (and so on):
     - `ktmidi-jvm-desktop` module actually contains ALSA MIDI Access implementation as well as [RtMidi](https://github.com/thestk/rtmidi) backend that support it. (Unsupported platforms are left unsupported.)
 - `MidiMusic` and `Midi2Music` : reflects Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support is not based on standard, as there is nothing like SMF specification for MIDI 2.0 yet.)
   - No strongly-typed message types (something like NoteOnMessage, NoteOffMessage, and so on). There is no point of defining strongly-typed messages for each mere MIDI status byte - you wouldn't need message type abstraction.
-  - No worries, there are MidiCC, MidiRpnType, MidiMetaType, MidiEvent fields (of `Byte` or `Int`) and more, so that you don't have to remember the actual constants.
-  - `SmfReader` reads and `SmfWriter` writes to SMF (standard MIDI format) files with MIDI messages, with `SmfTrackMerger` and `SmfTrackSplitter` that help you implement sequential event processing for your own MIDI players, or per-track editors if needed.
+  - No worries, there are contants of Int or Byte in `MidiChannelStatus`, `MidiCC`, `MidiRpn`, `MidiMetaType` etc. so that you don't have to remember the actual constant numbers.
+  - `MidiMusic.read()` reads and `MidiMusic.write()` writes to SMF (standard MIDI format) files with MIDI messages, with `Midi1TrackMerger`, `Midi2TrackMerger`, `Midi1TrackSplitter` and `Midi2TrackSplitter` that help you implement sequential event processing for your own MIDI players, or per-track editors if needed.
 - `MidiPlayer` and `Midi2Player`: provides MIDI player functionality: play/pause/stop and fast-forwarding.
   - Midi messages are sent to its "message listeners". If you don't pass a Midi Access instance or a Midi Output instance, it will do nothing but event dispatching.
-  - It is based on customizible scheduler `MidiTimer`.
+  - It is based on customizible scheduler `MidiPlayerTimer`.
   - Not realtime strict (as on GC-ed language / VM), but would suffice for general usage.
 
 ## Using ktmidi
@@ -55,9 +55,15 @@ dependencies {
 }
 ```
 
-... and use `AlsaMidiAccess` on Linux, or `RtMidiAccess` elsewhere. I use `if (File.exists("/dev/snd/seq")) AlsaMidiAccess() else RtMidiAccess()` (or `JvmMidiAccess` instead of `RtMidiAccess`) to create best `MidiAccess` instance. `RtMidiAccess` is still unstable to some extent, so it's up to your choice.
+... and use `AlsaMidiAccess` on Linux, or `RtMidiAccess` elsewhere. I use `if (File.exists("/dev/snd/seq")) AlsaMidiAccess() else RtMidiAccess()` (or `JvmMidiAccess` instead of `RtMidiAccess`) to create best `MidiAccess` instance.
 
 ktmidi is released at sonatype and hence available at Maven Central.
+
+You can also find some real-world usage examples:
+
+- [kmmk](https://github.com/atsushieno/kmmk/blob/e431452aadb50ae1925dd9b9b0eb25948694758f/common/src/commonMain/kotlin/dev/atsushieno/kmmk/MidiDeviceManager.kt) for `MidiAccess`/`MidiOutput`
+- [mugene-ng](https://github.com/atsushieno/mugene-ng/blob/3bc55304a0ffc8014c3cf1df97d2bffea4ebda29/mugene/src/commonMain/kotlin/dev/atsushieno/mugene/mml_smf_generator.kt) for SMF/MIDI2 file generator
+- [augene-ng](https://github.com/atsushieno/augene-ng/blob/47e624d6030060bad72bc56dbfb0503af3e1ad85/augene-project/augene/src/commonMain/kotlin/dev/atsushieno/augene/Midi2ToTracktionEditConverter.kt) for SMF/MIDI2 file reader
 
 ## Resources
 
