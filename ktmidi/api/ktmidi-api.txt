@@ -1191,64 +1191,65 @@ package dev.atsushieno.ktmidi {
 
 package dev.atsushieno.ktmidi.ci {
 
-  public final class CIFactoryKt {
-    method public static void midiCI7bitInt14At(@NonNull java.util.List<java.lang.Byte> buf, int offset, short v);
-    method public static void midiCI7bitInt21At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
-    method public static void midiCI7bitInt28At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
-    method public static void midiCIDiscovery(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
-    method public static void midiCIDiscoveryCommon(@NonNull java.util.List<java.lang.Byte> buf, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer3Bytes, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
-    method public static void midiCIDiscoveryInvalidateMuid(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int targetMUID);
-    method public static void midiCIDiscoveryNak(@NonNull java.util.List<java.lang.Byte> buf, byte deviceId, byte versionAndFormat, int sourceMUID, int destinationMUID);
-    method public static void midiCIDiscoveryReply(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
-    method public static void midiCIMessageCommon(@NonNull java.util.List<java.lang.Byte> buf, byte destination, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID);
-    method public static void midiCIProfile(@NonNull java.util.List<java.lang.Byte> buf, int offset, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId info);
-    method public static void midiCIProfileInquiry(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID);
-    method public static void midiCIProfileInquiryReply(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID, byte numEnabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> enabledProfiles, byte numDisabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> disabledProfiles);
-    method public static void midiCIProfileReport(@NonNull java.util.List<java.lang.Byte> buf, byte source, boolean isEnabledReport, int sourceMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
-    method public static void midiCIProfileSet(@NonNull java.util.List<java.lang.Byte> buf, byte destination, boolean turnOn, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
-    method public static void midiCIProfileSpecificData(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, int dataSize, @NonNull java.util.List<java.lang.Byte> data);
-    method public static void midiCIPropertyCommon(@NonNull java.util.List<java.lang.Byte> buf, byte destination, byte messageTypeSubId2, int sourceMUID, int destinationMUID, byte requestId, short headerSize, @NonNull java.util.List<java.lang.Byte> header, short numChunks, short chunkIndex, short dataSize, @NonNull java.util.List<java.lang.Byte> data);
-    method public static void midiCIPropertyGetCapabilities(@NonNull java.util.List<java.lang.Byte> buf, byte destination, boolean isReply, int sourceMUID, int destinationMUID, byte maxSupportedRequests);
-    method public static void midiCIProtocolConfirmEstablished(@NonNull java.util.List<java.lang.Byte> buf, int sourceMUID, int destinationMUID, byte authorityLevel);
-    method public static void midiCIProtocolInfo(@NonNull java.util.List<java.lang.Byte> buf, int offset, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo info);
-    method public static void midiCIProtocolNegotiation(@NonNull java.util.List<java.lang.Byte> buf, boolean isReply, int sourceMUID, int destinationMUID, byte authorityLevel, byte numSupportedProtocols, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
-    method public static void midiCIProtocolSet(@NonNull java.util.List<java.lang.Byte> buf, int sourceMUID, int destinationMUID, byte authorityLevel, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo newProtocolType);
-    method public static void midiCIProtocolTest(@NonNull java.util.List<java.lang.Byte> buf, boolean isInitiatorToResponder, int sourceMUID, int destinationMUID, byte authorityLevel, @NonNull java.util.List<java.lang.Byte> testData48Bytes);
-    method public static void midiCIProtocols(@NonNull java.util.List<java.lang.Byte> buf, int offset, byte numSupportedProtocols, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
-    method public static void midiCiDirectUint16At(@NonNull java.util.List<java.lang.Byte> buf, int offset, short v);
-    method public static void midiCiDirectUint32At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
-    field public static final int CMIDI2_CI_PROFILE_CONFIGURATION_SUPPORTED = 4; // 0x4
-    field public static final int CMIDI2_CI_PROPERTY_EXCHANGE_SUPPORTED = 8; // 0x8
-    field public static final int CMIDI2_CI_PROTOCOL_NEGOTIATION_SUPPORTED = 2; // 0x2
-    field public static final byte CMIDI2_CI_SUB_ID = 13; // 0xd
-    field public static final byte CMIDI2_CI_SUB_ID_2_CONFIRM_NEW_PROTOCOL_ESTABLISHED = 21; // 0x15
-    field public static final byte CMIDI2_CI_SUB_ID_2_DISCOVERY_INQUIRY = 112; // 0x70
-    field public static final byte CMIDI2_CI_SUB_ID_2_DISCOVERY_REPLY = 113; // 0x71
-    field public static final byte CMIDI2_CI_SUB_ID_2_INVALIDATE_MUID = 126; // 0x7e
-    field public static final byte CMIDI2_CI_SUB_ID_2_NAK = 127; // 0x7f
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROFILE_DISABLED_REPORT = 37; // 0x25
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROFILE_ENABLED_REPORT = 36; // 0x24
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROFILE_INQUIRY = 32; // 0x20
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROFILE_INQUIRY_REPLY = 33; // 0x21
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROFILE_SPECIFIC_DATA = 47; // 0x2f
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY = 48; // 0x30
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_CAPABILITIES_REPLY = 49; // 0x31
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_GET_DATA_INQUIRY = 52; // 0x34
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_GET_DATA_REPLY = 53; // 0x35
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_HAS_DATA_INQUIRY = 50; // 0x32
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_HAS_DATA_REPLY = 51; // 0x33
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_NOTIFY = 63; // 0x3f
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_SET_DATA_INQUIRY = 54; // 0x36
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_SET_DATA_REPLY = 55; // 0x37
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_SUBSCRIBE = 56; // 0x38
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY = 57; // 0x39
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROTOCOL_NEGOTIATION_INQUIRY = 16; // 0x10
-    field public static final byte CMIDI2_CI_SUB_ID_2_PROTOCOL_NEGOTIATION_REPLY = 17; // 0x11
-    field public static final byte CMIDI2_CI_SUB_ID_2_SET_NEW_PROTOCOL = 18; // 0x12
-    field public static final byte CMIDI2_CI_SUB_ID_2_SET_PROFILE_OFF = 35; // 0x23
-    field public static final byte CMIDI2_CI_SUB_ID_2_SET_PROFILE_ON = 34; // 0x22
-    field public static final byte CMIDI2_CI_SUB_ID_2_TEST_NEW_PROTOCOL_I2R = 19; // 0x13
-    field public static final byte CMIDI2_CI_SUB_ID_2_TEST_NEW_PROTOCOL_R2I = 20; // 0x14
+  public final class CIFactory {
+    method public void midiCI7bitInt14At(@NonNull java.util.List<java.lang.Byte> buf, int offset, short v);
+    method public void midiCI7bitInt21At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
+    method public void midiCI7bitInt28At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
+    method public void midiCIDiscovery(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
+    method public void midiCIDiscoveryCommon(@NonNull java.util.List<java.lang.Byte> buf, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer3Bytes, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
+    method public void midiCIDiscoveryInvalidateMuid(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int targetMUID);
+    method public void midiCIDiscoveryNak(@NonNull java.util.List<java.lang.Byte> buf, byte deviceId, byte versionAndFormat, int sourceMUID, int destinationMUID);
+    method public void midiCIDiscoveryReply(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
+    method public void midiCIMessageCommon(@NonNull java.util.List<java.lang.Byte> buf, byte destination, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID);
+    method public void midiCIProfile(@NonNull java.util.List<java.lang.Byte> buf, int offset, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId info);
+    method public void midiCIProfileInquiry(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID);
+    method public void midiCIProfileInquiryReply(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID, byte numEnabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> enabledProfiles, byte numDisabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> disabledProfiles);
+    method public void midiCIProfileReport(@NonNull java.util.List<java.lang.Byte> buf, byte source, boolean isEnabledReport, int sourceMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
+    method public void midiCIProfileSet(@NonNull java.util.List<java.lang.Byte> buf, byte destination, boolean turnOn, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
+    method public void midiCIProfileSpecificData(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, int dataSize, @NonNull java.util.List<java.lang.Byte> data);
+    method public void midiCIPropertyCommon(@NonNull java.util.List<java.lang.Byte> buf, byte destination, byte messageTypeSubId2, int sourceMUID, int destinationMUID, byte requestId, short headerSize, @NonNull java.util.List<java.lang.Byte> header, short numChunks, short chunkIndex, short dataSize, @NonNull java.util.List<java.lang.Byte> data);
+    method public void midiCIPropertyGetCapabilities(@NonNull java.util.List<java.lang.Byte> buf, byte destination, boolean isReply, int sourceMUID, int destinationMUID, byte maxSupportedRequests);
+    method public void midiCIProtocolConfirmEstablished(@NonNull java.util.List<java.lang.Byte> buf, int sourceMUID, int destinationMUID, byte authorityLevel);
+    method public void midiCIProtocolInfo(@NonNull java.util.List<java.lang.Byte> buf, int offset, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo info);
+    method public void midiCIProtocolNegotiation(@NonNull java.util.List<java.lang.Byte> buf, boolean isReply, int sourceMUID, int destinationMUID, byte authorityLevel, byte numSupportedProtocols, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
+    method public void midiCIProtocolSet(@NonNull java.util.List<java.lang.Byte> buf, int sourceMUID, int destinationMUID, byte authorityLevel, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo newProtocolType);
+    method public void midiCIProtocolTest(@NonNull java.util.List<java.lang.Byte> buf, boolean isInitiatorToResponder, int sourceMUID, int destinationMUID, byte authorityLevel, @NonNull java.util.List<java.lang.Byte> testData48Bytes);
+    method public void midiCIProtocols(@NonNull java.util.List<java.lang.Byte> buf, int offset, byte numSupportedProtocols, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
+    method public void midiCiDirectUint16At(@NonNull java.util.List<java.lang.Byte> buf, int offset, short v);
+    method public void midiCiDirectUint32At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
+    field @NonNull public static final dev.atsushieno.ktmidi.ci.CIFactory INSTANCE;
+    field public static final int PROFILE_CONFIGURATION_SUPPORTED = 4; // 0x4
+    field public static final int PROPERTY_EXCHANGE_SUPPORTED = 8; // 0x8
+    field public static final int PROTOCOL_NEGOTIATION_SUPPORTED = 2; // 0x2
+    field public static final byte SUB_ID = 13; // 0xd
+    field public static final byte SUB_ID_2_CONFIRM_NEW_PROTOCOL_ESTABLISHED = 21; // 0x15
+    field public static final byte SUB_ID_2_DISCOVERY_INQUIRY = 112; // 0x70
+    field public static final byte SUB_ID_2_DISCOVERY_REPLY = 113; // 0x71
+    field public static final byte SUB_ID_2_INVALIDATE_MUID = 126; // 0x7e
+    field public static final byte SUB_ID_2_NAK = 127; // 0x7f
+    field public static final byte SUB_ID_2_PROFILE_DISABLED_REPORT = 37; // 0x25
+    field public static final byte SUB_ID_2_PROFILE_ENABLED_REPORT = 36; // 0x24
+    field public static final byte SUB_ID_2_PROFILE_INQUIRY = 32; // 0x20
+    field public static final byte SUB_ID_2_PROFILE_INQUIRY_REPLY = 33; // 0x21
+    field public static final byte SUB_ID_2_PROFILE_SPECIFIC_DATA = 47; // 0x2f
+    field public static final byte SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY = 48; // 0x30
+    field public static final byte SUB_ID_2_PROPERTY_CAPABILITIES_REPLY = 49; // 0x31
+    field public static final byte SUB_ID_2_PROPERTY_GET_DATA_INQUIRY = 52; // 0x34
+    field public static final byte SUB_ID_2_PROPERTY_GET_DATA_REPLY = 53; // 0x35
+    field public static final byte SUB_ID_2_PROPERTY_HAS_DATA_INQUIRY = 50; // 0x32
+    field public static final byte SUB_ID_2_PROPERTY_HAS_DATA_REPLY = 51; // 0x33
+    field public static final byte SUB_ID_2_PROPERTY_NOTIFY = 63; // 0x3f
+    field public static final byte SUB_ID_2_PROPERTY_SET_DATA_INQUIRY = 54; // 0x36
+    field public static final byte SUB_ID_2_PROPERTY_SET_DATA_REPLY = 55; // 0x37
+    field public static final byte SUB_ID_2_PROPERTY_SUBSCRIBE = 56; // 0x38
+    field public static final byte SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY = 57; // 0x39
+    field public static final byte SUB_ID_2_PROTOCOL_NEGOTIATION_INQUIRY = 16; // 0x10
+    field public static final byte SUB_ID_2_PROTOCOL_NEGOTIATION_REPLY = 17; // 0x11
+    field public static final byte SUB_ID_2_SET_NEW_PROTOCOL = 18; // 0x12
+    field public static final byte SUB_ID_2_SET_PROFILE_OFF = 35; // 0x23
+    field public static final byte SUB_ID_2_SET_PROFILE_ON = 34; // 0x22
+    field public static final byte SUB_ID_2_TEST_NEW_PROTOCOL_I2R = 19; // 0x13
+    field public static final byte SUB_ID_2_TEST_NEW_PROTOCOL_R2I = 20; // 0x14
   }
 
   public final class MidiCIProfileId {
