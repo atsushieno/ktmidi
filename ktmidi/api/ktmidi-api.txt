@@ -1,0 +1,1283 @@
+package dev.atsushieno.ktmidi {
+
+  public final class AndroidMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
+    ctor public AndroidMidiAccess(@NonNull android.content.Context applicationContext);
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
+    method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
+    property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
+  }
+
+  public final class DefaultMidiModuleDatabase extends dev.atsushieno.ktmidi.MidiModuleDatabase {
+    ctor public DefaultMidiModuleDatabase();
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiModuleDefinition> all();
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.MidiModuleDefinition> getModules();
+    method @NonNull public dev.atsushieno.ktmidi.MidiModuleDefinition resolve(@NonNull String moduleName);
+    method @NonNull public String resolvePossibleAlias(@NonNull String name);
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.MidiModuleDefinition> modules;
+    field @NonNull public static final dev.atsushieno.ktmidi.DefaultMidiModuleDatabase.Companion Companion;
+  }
+
+  public static final class DefaultMidiModuleDatabase.Companion {
+    method @NonNull public java.io.InputStream getResource(@NonNull String name);
+  }
+
+  public enum DteTarget {
+    enum_constant public static final dev.atsushieno.ktmidi.DteTarget NRPN;
+    enum_constant public static final dev.atsushieno.ktmidi.DteTarget RPN;
+  }
+
+  public final class EmptyMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
+    ctor public EmptyMidiAccess();
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
+    method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
+    property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
+  }
+
+  public final class GeneralMidi {
+    ctor public GeneralMidi();
+    field @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi.Companion Companion;
+  }
+
+  public static final class GeneralMidi.Companion {
+    method @NonNull public String[] getDRUM_KITS_GM2();
+    method @NonNull public String[] getINSTRUMENT_CATEGORIES();
+    method @NonNull public String[] getINSTRUMENT_NAMES();
+    property @NonNull public final String[] DRUM_KITS_GM2;
+    property @NonNull public final String[] INSTRUMENT_CATEGORIES;
+    property @NonNull public final String[] INSTRUMENT_NAMES;
+  }
+
+  public static final class GeneralMidi.Companion.Instruments {
+    ctor public GeneralMidi.Companion.Instruments();
+    field public static final int ACCORDION = 21; // 0x15
+    field public static final int ACOUSTIC_BASS = 32; // 0x20
+    field public static final int ACOUSTIC_GRAND_PIANO = 0; // 0x0
+    field public static final int ACOUSTIC_GUITAR_NYLON = 24; // 0x18
+    field public static final int ACOUSTIC_GUITAR_STEEL = 25; // 0x19
+    field public static final int AGOGO = 113; // 0x71
+    field public static final int ALTO_SAX = 65; // 0x41
+    field public static final int APPLAUSE = 126; // 0x7e
+    field public static final int BAGPIPE = 109; // 0x6d
+    field public static final int BANJO = 105; // 0x69
+    field public static final int BARITONE_SAX = 67; // 0x43
+    field public static final int BASSOON = 70; // 0x46
+    field public static final int BIRD_TWEET = 123; // 0x7b
+    field public static final int BLOWN_BOTTLE = 76; // 0x4c
+    field public static final int BRASS_SECTION = 61; // 0x3d
+    field public static final int BREATH_NOISE = 121; // 0x79
+    field public static final int BRIGHT_ACOUSTIC_PIANO = 1; // 0x1
+    field public static final int CELESTA = 8; // 0x8
+    field public static final int CELLO = 42; // 0x2a
+    field public static final int CHOIR_AAHS = 52; // 0x34
+    field public static final int CHURCH_ORGAN = 29; // 0x1d
+    field public static final int CLARINET = 71; // 0x47
+    field public static final int CLAVI = 7; // 0x7
+    field public static final int CONTRABASS = 43; // 0x2b
+    field @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi.Companion.Instruments.Companion Companion;
+    field public static final int DISTORTION_GUITAR = 30; // 0x1e
+    field public static final int DRAWBAR_ORGAN = 16; // 0x10
+    field public static final int DULCIMER = 15; // 0xf
+    field public static final int ELECTRIC_BASS_FINGER = 33; // 0x21
+    field public static final int ELECTRIC_BASS_PICK = 34; // 0x22
+    field public static final int ELECTRIC_GRAND_PIANO = 2; // 0x2
+    field public static final int ELECTRIC_GUITAR_CLEAN = 27; // 0x1b
+    field public static final int ELECTRIC_GUITAR_JAZZ = 26; // 0x1a
+    field public static final int ELECTRIC_GUITAR_MUTED = 28; // 0x1c
+    field public static final int ELECTRIC_PIANO_1 = 4; // 0x4
+    field public static final int ELECTRIC_PIANO_2 = 5; // 0x5
+    field public static final int ENGLISH_HORN = 69; // 0x45
+    field public static final int FIDDLE = 110; // 0x6e
+    field public static final int FLUTE = 73; // 0x49
+    field public static final int FRENCH_HORN = 60; // 0x3c
+    field public static final int FRETLESS_BASS = 35; // 0x23
+    field public static final int FX_ATMOSPHERE = 99; // 0x63
+    field public static final int FX_BRIGHTNESS = 100; // 0x64
+    field public static final int FX_CRYSTAL = 98; // 0x62
+    field public static final int FX_ECHOES = 102; // 0x66
+    field public static final int FX_GOBLINS = 101; // 0x65
+    field public static final int FX_RAIN = 96; // 0x60
+    field public static final int FX_SCIFI = 103; // 0x67
+    field public static final int FX_SOUNDTRACK = 97; // 0x61
+    field public static final int GLOCKENSPIEL = 9; // 0x9
+    field public static final int GUITARHARMONICS = 31; // 0x1f
+    field public static final int GUITAR_FRET_NOISE = 120; // 0x78
+    field public static final int GUNSHOT = 127; // 0x7f
+    field public static final int HARMONICA = 22; // 0x16
+    field public static final int HARPSICHORD = 6; // 0x6
+    field public static final int HELICOPTER = 125; // 0x7d
+    field public static final int HONKYTONK_PIANO = 3; // 0x3
+    field public static final int KALIMBA = 108; // 0x6c
+    field public static final int KOTO = 107; // 0x6b
+    field public static final int LEAD_BASS_AND_LEAD = 87; // 0x57
+    field public static final int LEAD_CALLIOPE = 82; // 0x52
+    field public static final int LEAD_CHARANG = 84; // 0x54
+    field public static final int LEAD_CHIFF = 83; // 0x53
+    field public static final int LEAD_FIFTHS = 86; // 0x56
+    field public static final int LEAD_SAWTOOTH = 81; // 0x51
+    field public static final int LEAD_SQUARE = 80; // 0x50
+    field public static final int LEAD_VOICE = 85; // 0x55
+    field public static final int MARIMBA = 12; // 0xc
+    field public static final int MELODIC_TOM = 117; // 0x75
+    field public static final int MUSIC_BOX = 10; // 0xa
+    field public static final int MUTED_TRUMPET = 59; // 0x3b
+    field public static final int OBOE = 68; // 0x44
+    field public static final int OCARINA = 79; // 0x4f
+    field public static final int ORCHESTRAL_HARP = 46; // 0x2e
+    field public static final int ORCHESTRA_HIT = 55; // 0x37
+    field public static final int OVERDRIVEN_GUITAR = 29; // 0x1d
+    field public static final int PAD_BOWED = 92; // 0x5c
+    field public static final int PAD_CHOIR = 91; // 0x5b
+    field public static final int PAD_HALO = 94; // 0x5e
+    field public static final int PAD_METALLIC = 93; // 0x5d
+    field public static final int PAD_NEWAGE = 88; // 0x58
+    field public static final int PAD_POLYSYNTH = 90; // 0x5a
+    field public static final int PAD_SWEEP = 95; // 0x5f
+    field public static final int PAD_WARM = 89; // 0x59
+    field public static final int PAN_FLUTE = 75; // 0x4b
+    field public static final int PERCUSSIVE_ORGAN = 17; // 0x11
+    field public static final int PICCOLO = 72; // 0x48
+    field public static final int PIZZICATO_STRINGS = 45; // 0x2d
+    field public static final int RECORDER = 74; // 0x4a
+    field public static final int REED_ORGAN = 20; // 0x14
+    field public static final int REVERSE_CYMBAL = 119; // 0x77
+    field public static final int ROCK_ORGAN = 18; // 0x12
+    field public static final int SEASHORE = 122; // 0x7a
+    field public static final int SHAKUHACHI = 77; // 0x4d
+    field public static final int SHAMISEN = 106; // 0x6a
+    field public static final int SHANAI = 111; // 0x6f
+    field public static final int SITAR = 104; // 0x68
+    field public static final int SLAP_BASS_1 = 36; // 0x24
+    field public static final int SLAP_BASS_2 = 37; // 0x25
+    field public static final int SOPRANO_SAX = 64; // 0x40
+    field public static final int STEEL_DRUMS = 114; // 0x72
+    field public static final int STRING_ENSEMBLE_1 = 48; // 0x30
+    field public static final int STRING_ENSEMBLE_2 = 49; // 0x31
+    field public static final int SYNTH_BASS_1 = 38; // 0x26
+    field public static final int SYNTH_BASS_2 = 39; // 0x27
+    field public static final int SYNTH_BRASS_1 = 62; // 0x3e
+    field public static final int SYNTH_BRASS_2 = 63; // 0x3f
+    field public static final int SYNTH_DRUM = 118; // 0x76
+    field public static final int SYNTH_STRINGS_1 = 50; // 0x32
+    field public static final int SYNTH_STRINGS_2 = 51; // 0x33
+    field public static final int SYNTH_VOICE = 54; // 0x36
+    field public static final int TAIKO_DRUM = 116; // 0x74
+    field public static final int TANGO_ACCORDION = 23; // 0x17
+    field public static final int TELEPHONE_RING = 124; // 0x7c
+    field public static final int TENOR_SAX = 66; // 0x42
+    field public static final int TIMPANI = 47; // 0x2f
+    field public static final int TINKLE_BELL = 112; // 0x70
+    field public static final int TREMOLO_STRINGS = 44; // 0x2c
+    field public static final int TROMBONE = 57; // 0x39
+    field public static final int TRUMPET = 56; // 0x38
+    field public static final int TUBA = 58; // 0x3a
+    field public static final int TUBULAR_BELLS = 14; // 0xe
+    field public static final int VIBRAPHONE = 11; // 0xb
+    field public static final int VIOLA = 41; // 0x29
+    field public static final int VIOLIN = 40; // 0x28
+    field public static final int VOICE_OOHS = 53; // 0x35
+    field public static final int WHISTLE = 78; // 0x4e
+    field public static final int WOODBLOCK = 115; // 0x73
+    field public static final int XYLOPHONE = 13; // 0xd
+  }
+
+  public static final class GeneralMidi.Companion.Instruments.Companion {
+  }
+
+  public static final class GeneralMidi.Companion.Percussions {
+    ctor public GeneralMidi.Companion.Percussions();
+    field public static final int ACOUSTIC_BASS_DRUM = 34; // 0x22
+    field public static final int ACOUSTIC_SNARE = 37; // 0x25
+    field public static final int BASS_DRUM_1 = 35; // 0x23
+    field public static final int CABASA = 68; // 0x44
+    field public static final int CHINESE_CYMBAL = 51; // 0x33
+    field public static final int CLAVES = 74; // 0x4a
+    field public static final int CLOSED_HI_HAT = 41; // 0x29
+    field public static final int COWBELL = 55; // 0x37
+    field public static final int CRASH_CYMBAL_1 = 48; // 0x30
+    field public static final int CRASH_CYMBAL_2 = 56; // 0x38
+    field @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi.Companion.Percussions.Companion Companion;
+    field public static final int ELECTRIC_SNARE = 39; // 0x27
+    field public static final int HAND_CLAP = 38; // 0x26
+    field public static final int HIGH_AGOGO = 66; // 0x42
+    field public static final int HIGH_FLOOR_TOM = 42; // 0x2a
+    field public static final int HIGH_TIMBALE = 64; // 0x40
+    field public static final int HIGH_TOM = 49; // 0x31
+    field public static final int HI_BONGO = 59; // 0x3b
+    field public static final int HI_MID_TOM = 47; // 0x2f
+    field public static final int HI_WOOD_BLOCK = 75; // 0x4b
+    field public static final int LONG_GUIRO = 73; // 0x49
+    field public static final int LONG_WHISTLE = 71; // 0x47
+    field public static final int LOW_AGOGO = 67; // 0x43
+    field public static final int LOW_BONGO = 60; // 0x3c
+    field public static final int LOW_CONGA = 63; // 0x3f
+    field public static final int LOW_FLOOR_TOM = 40; // 0x28
+    field public static final int LOW_MID_TOM = 46; // 0x2e
+    field public static final int LOW_TIMBALE = 65; // 0x41
+    field public static final int LOW_TOM = 44; // 0x2c
+    field public static final int LOW_WOOD_BLOCK = 76; // 0x4c
+    field public static final int MARACAS = 69; // 0x45
+    field public static final int MUTE_CUICA = 77; // 0x4d
+    field public static final int MUTE_HI_CONGA = 61; // 0x3d
+    field public static final int MUTE_TRIANGLE = 79; // 0x4f
+    field public static final int OPEN_CUICA = 78; // 0x4e
+    field public static final int OPEN_HI_CONGA = 62; // 0x3e
+    field public static final int OPEN_HI_HAT = 45; // 0x2d
+    field public static final int OPEN_TRIANGLE = 80; // 0x50
+    field public static final int PEDAL_HI_HAT = 43; // 0x2b
+    field public static final int RIDE_BELL = 52; // 0x34
+    field public static final int RIDE_CYMBAL_1 = 50; // 0x32
+    field public static final int RIDE_CYMBAL_2 = 58; // 0x3a
+    field public static final int SHORT_GUIRO = 72; // 0x48
+    field public static final int SHORT_WHISTLE = 70; // 0x46
+    field public static final int SIDE_STICK = 36; // 0x24
+    field public static final int SPLASH_CYMBAL = 54; // 0x36
+    field public static final int TAMBOURINE = 53; // 0x35
+    field public static final int VIBRASLAP = 57; // 0x39
+  }
+
+  public static final class GeneralMidi.Companion.Percussions.Companion {
+  }
+
+  public final class JvmMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
+    ctor public JvmMidiAccess();
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
+    method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
+    property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
+  }
+
+  public final class JvmMidiAccessKt {
+  }
+
+  public final class MergedMidiModuleDatabase extends dev.atsushieno.ktmidi.MidiModuleDatabase {
+    ctor public MergedMidiModuleDatabase(@NonNull Iterable<? extends dev.atsushieno.ktmidi.MidiModuleDatabase> sources);
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiModuleDefinition> all();
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.MidiModuleDatabase> getList();
+    method @NonNull public dev.atsushieno.ktmidi.MidiModuleDefinition resolve(@NonNull String moduleName);
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.MidiModuleDatabase> list;
+  }
+
+  public final class Midi1Player extends dev.atsushieno.ktmidi.MidiPlayer {
+    ctor public Midi1Player(@NonNull dev.atsushieno.ktmidi.MidiMusic music, @NonNull dev.atsushieno.ktmidi.MidiOutput output, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional boolean shouldDisposeOutput);
+    method public void addOnMessageListener(@NonNull dev.atsushieno.ktmidi.OnMidiMessageListener listener);
+    method @NonNull public dev.atsushieno.ktmidi.Midi1EventLooper getLooper$metalava_module();
+    method public long getPositionInMilliseconds();
+    method public int getTotalPlayTimeMilliseconds();
+    method public void removeOnMessageListener(@NonNull dev.atsushieno.ktmidi.OnMidiMessageListener listener);
+    method public void seek(int ticks);
+    method public void setMutedChannels(@NonNull Iterable<java.lang.Integer> mutedChannels);
+    property @NonNull public dev.atsushieno.ktmidi.Midi1EventLooper looper;
+    property public long positionInMilliseconds;
+    property public int totalPlayTimeMilliseconds;
+    field @NonNull public static final dev.atsushieno.ktmidi.Midi1Player.Companion Companion;
+  }
+
+  public static final class Midi1Player.Companion {
+    method @Nullable public suspend Object create(@NonNull dev.atsushieno.ktmidi.MidiMusic music, @NonNull dev.atsushieno.ktmidi.MidiAccess access, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player> p);
+  }
+
+  public class Midi1TrackSplitter {
+    ctor public Midi1TrackSplitter(@NonNull java.util.List<dev.atsushieno.ktmidi.MidiMessage> source, byte deltaTimeSpec);
+    method public int getTrackId(@NonNull dev.atsushieno.ktmidi.MidiMessage e);
+    method @NonNull public final dev.atsushieno.ktmidi.MidiMusic split();
+    field @NonNull public static final dev.atsushieno.ktmidi.Midi1TrackSplitter.Companion Companion;
+  }
+
+  public static final class Midi1TrackSplitter.Companion {
+    method @NonNull public dev.atsushieno.ktmidi.MidiMusic split(@NonNull java.util.List<dev.atsushieno.ktmidi.MidiMessage> source, byte deltaTimeSpec);
+  }
+
+  public final class Midi2BinaryChunkStatus {
+    field @NonNull public static final dev.atsushieno.ktmidi.Midi2BinaryChunkStatus INSTANCE;
+    field public static final int MDS_HEADER = 128; // 0x80
+    field public static final int MDS_PAYLOAD = 144; // 0x90
+    field public static final int SYSEX_CONTINUE = 32; // 0x20
+    field public static final int SYSEX_END = 48; // 0x30
+    field public static final int SYSEX_IN_ONE_UMP = 0; // 0x0
+    field public static final int SYSEX_START = 16; // 0x10
+  }
+
+  public final class Midi2Music {
+    ctor public Midi2Music();
+    method public void addTrack(@NonNull dev.atsushieno.ktmidi.Midi2Track track);
+    method public int getDeltaTimeSpec();
+    method public byte getFormat();
+    method @NonNull public Iterable<kotlin.Pair<java.lang.Integer,dev.atsushieno.ktmidi.Ump>> getMetaEventsOfType(int metaType);
+    method public int getTimePositionInMillisecondsForTick(int ticks);
+    method public int getTotalPlayTimeMilliseconds();
+    method public int getTotalTicks();
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Midi2Track> getTracks();
+    method public void setDeltaTimeSpec(int deltaTimeSpec);
+    method public void setFormat(byte format);
+    property public final int deltaTimeSpec;
+    property public final byte format;
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.Midi2Track> tracks;
+    field @NonNull public static final dev.atsushieno.ktmidi.Midi2Music.Companion Companion;
+  }
+
+  public static final class Midi2Music.Companion {
+    method public int getMetaEventType(@NonNull dev.atsushieno.ktmidi.Ump message);
+    method @NonNull public kotlin.sequences.Sequence<kotlin.Pair<java.lang.Integer,dev.atsushieno.ktmidi.Ump>> getMetaEventsOfType(@NonNull Iterable<dev.atsushieno.ktmidi.Ump> messages, int metaType);
+    method public int getPlayTimeMillisecondsAtTick(@NonNull Iterable<dev.atsushieno.ktmidi.Ump> messages, int ticks, int deltaTimeSpec);
+    method public int getTotalPlayTimeMilliseconds(@NonNull Iterable<dev.atsushieno.ktmidi.Ump> messages, int deltaTimeSpec);
+    method public boolean isMetaEventMessageStarter(@NonNull dev.atsushieno.ktmidi.Ump message);
+  }
+
+  public final class Midi2MusicKt {
+    method @NonNull public static dev.atsushieno.ktmidi.Midi2Music convertDeltaTimesToJRTimestamps(@NonNull dev.atsushieno.ktmidi.Midi2Music);
+    method @NonNull public static dev.atsushieno.ktmidi.Midi2Music mergeTracks(@NonNull dev.atsushieno.ktmidi.Midi2Music);
+    method @NonNull public static dev.atsushieno.ktmidi.Midi2Music splitTracksByChannel(@NonNull dev.atsushieno.ktmidi.Midi2Track);
+  }
+
+  public final class Midi2Player extends dev.atsushieno.ktmidi.MidiPlayer {
+    ctor public Midi2Player(@NonNull dev.atsushieno.ktmidi.Midi2Music music, @NonNull dev.atsushieno.ktmidi.MidiOutput output, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional boolean shouldDisposeOutput);
+    method public void addOnMessageListener(@NonNull dev.atsushieno.ktmidi.OnMidi2EventListener listener);
+    method @NonNull public dev.atsushieno.ktmidi.Midi2EventLooper getLooper$metalava_module();
+    method public long getPositionInMilliseconds();
+    method public int getTotalPlayTimeMilliseconds();
+    method public void removeOnMessageListener(@NonNull dev.atsushieno.ktmidi.OnMidi2EventListener listener);
+    method public void seek(int ticks);
+    method public void setMutedChannels(@NonNull Iterable<java.lang.Integer> mutedChannels);
+    property @NonNull public dev.atsushieno.ktmidi.Midi2EventLooper looper;
+    property public long positionInMilliseconds;
+    property public int totalPlayTimeMilliseconds;
+    field @NonNull public static final dev.atsushieno.ktmidi.Midi2Player.Companion Companion;
+  }
+
+  public static final class Midi2Player.Companion {
+    method @Nullable public suspend Object create(@NonNull dev.atsushieno.ktmidi.Midi2Music music, @NonNull dev.atsushieno.ktmidi.MidiAccess access, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi2Player> p);
+  }
+
+  public final class Midi2ReaderWriterKt {
+    method public static void read(@NonNull dev.atsushieno.ktmidi.Midi2Music, @NonNull java.util.List<java.lang.Byte> stream);
+    method public static void write(@NonNull dev.atsushieno.ktmidi.Midi2Music, @NonNull java.util.List<java.lang.Byte> stream);
+  }
+
+  public final class Midi2Track {
+    ctor public Midi2Track(optional @NonNull java.util.List<dev.atsushieno.ktmidi.Ump> messages);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> getMessages();
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.Ump> messages;
+  }
+
+  public class Midi2TrackSplitter {
+    ctor public Midi2TrackSplitter(@NonNull java.util.List<dev.atsushieno.ktmidi.Ump> source);
+    method public int getTrackId(@NonNull dev.atsushieno.ktmidi.Ump e);
+    method @NonNull public final dev.atsushieno.ktmidi.Midi2Music split();
+    field @NonNull public static final dev.atsushieno.ktmidi.Midi2TrackSplitter.Companion Companion;
+  }
+
+  public static final class Midi2TrackSplitter.Companion {
+    method @NonNull public dev.atsushieno.ktmidi.Midi2Music split(@NonNull java.util.List<dev.atsushieno.ktmidi.Ump> source);
+  }
+
+  public abstract class MidiAccess {
+    ctor public MidiAccess();
+    method @Nullable public suspend Object createVirtualInputSender(@NonNull dev.atsushieno.ktmidi.PortCreatorContext context, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    method @Nullable public suspend Object createVirtualOutputReceiver(@NonNull dev.atsushieno.ktmidi.PortCreatorContext context, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method public boolean getCanCreateVirtualPort();
+    method public boolean getCanDetectStateChanges();
+    method @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
+    method @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
+    method @NonNull public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> getStateChanged();
+    method @Nullable public abstract suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method @Nullable public abstract suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    method public final void setStateChanged(@NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> stateChanged);
+    property public boolean canCreateVirtualPort;
+    property public boolean canDetectStateChanges;
+    property @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
+    property @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
+    property @NonNull public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> stateChanged;
+  }
+
+  public final class MidiAccessKt {
+    method @NonNull public static dev.atsushieno.ktmidi.EmptyMidiAccess getEmptyMidiAccess();
+  }
+
+  public final class MidiBankDefinition {
+    ctor public MidiBankDefinition();
+    method public int getLsb();
+    method public int getMsb();
+    method @Nullable public String getName();
+    method public void setLsb(int lsb);
+    method public void setMsb(int msb);
+    method public void setName(@Nullable String name);
+    property public final int lsb;
+    property public final int msb;
+    property @Nullable public final String name;
+  }
+
+  public final class MidiCC {
+    field public static final int ALL_NOTES_OFF = 123; // 0x7b
+    field public static final int ALL_SOUND_OFF = 120; // 0x78
+    field public static final int BALANCE = 8; // 0x8
+    field public static final int BALANCE_LSB = 40; // 0x28
+    field public static final int BANK_SELECT = 0; // 0x0
+    field public static final int BANK_SELECT_LSB = 32; // 0x20
+    field public static final int BREATH = 2; // 0x2
+    field public static final int BREATH_LSB = 34; // 0x22
+    field public static final int CELESTE = 94; // 0x5e
+    field public static final int CSD = 93; // 0x5d
+    field public static final int DTE_DECREMENT = 97; // 0x61
+    field public static final int DTE_INCREMENT = 96; // 0x60
+    field public static final int DTE_LSB = 38; // 0x26
+    field public static final int DTE_MSB = 6; // 0x6
+    field public static final int EFFECT_1 = 91; // 0x5b
+    field public static final int EFFECT_1_LSB = 44; // 0x2c
+    field public static final int EFFECT_2 = 92; // 0x5c
+    field public static final int EFFECT_2_LSB = 45; // 0x2d
+    field public static final int EFFECT_3 = 93; // 0x5d
+    field public static final int EFFECT_4 = 94; // 0x5e
+    field public static final int EFFECT_5 = 95; // 0x5f
+    field public static final int EFFECT_CONTROL_1 = 12; // 0xc
+    field public static final int EFFECT_CONTROL_2 = 13; // 0xd
+    field public static final int EXPRESSION = 11; // 0xb
+    field public static final int EXPRESSION_LSB = 43; // 0x2b
+    field public static final int FOOT = 4; // 0x4
+    field public static final int FOOT_LSB = 36; // 0x24
+    field public static final int GENERAL_1 = 16; // 0x10
+    field public static final int GENERAL_1_LSB = 48; // 0x30
+    field public static final int GENERAL_2 = 17; // 0x11
+    field public static final int GENERAL_2_LSB = 49; // 0x31
+    field public static final int GENERAL_3 = 18; // 0x12
+    field public static final int GENERAL_3_LSB = 50; // 0x32
+    field public static final int GENERAL_4 = 19; // 0x13
+    field public static final int GENERAL_4_LSB = 51; // 0x33
+    field public static final int GENERAL_5 = 80; // 0x50
+    field public static final int GENERAL_6 = 81; // 0x51
+    field public static final int GENERAL_7 = 82; // 0x52
+    field public static final int GENERAL_8 = 83; // 0x53
+    field public static final int HOLD = 64; // 0x40
+    field public static final int HOLD_2 = 69; // 0x45
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiCC INSTANCE;
+    field public static final int LEGATO = 68; // 0x44
+    field public static final int LOCAL_CONTROL = 122; // 0x7a
+    field public static final int MODULATION = 1; // 0x1
+    field public static final int MODULATION_LSB = 33; // 0x21
+    field public static final int NRPN_LSB = 98; // 0x62
+    field public static final int NRPN_MSB = 99; // 0x63
+    field public static final int OMNI_MODE_OFF = 124; // 0x7c
+    field public static final int OMNI_MODE_ON = 125; // 0x7d
+    field public static final int PAN = 10; // 0xa
+    field public static final int PAN_LSB = 42; // 0x2a
+    field public static final int PHASER = 95; // 0x5f
+    field public static final int POLY_MODE_OFF = 126; // 0x7e
+    field public static final int POLY_MODE_ON = 127; // 0x7f
+    field public static final int PORTAMENTO_CONTROL = 84; // 0x54
+    field public static final int PORTAMENTO_SWITCH = 65; // 0x41
+    field public static final int PORTAMENTO_TIME = 5; // 0x5
+    field public static final int PORTAMENTO_TIME_LSB = 37; // 0x25
+    field public static final int RESET_ALL_CONTROLLERS = 121; // 0x79
+    field public static final int RPN_LSB = 100; // 0x64
+    field public static final int RPN_MSB = 101; // 0x65
+    field public static final int RSD = 91; // 0x5b
+    field public static final int SOFT_PEDAL = 67; // 0x43
+    field public static final int SOSTENUTO = 66; // 0x42
+    field public static final int SOUND_CONTROLLER_1 = 70; // 0x46
+    field public static final int SOUND_CONTROLLER_10 = 79; // 0x4f
+    field public static final int SOUND_CONTROLLER_2 = 71; // 0x47
+    field public static final int SOUND_CONTROLLER_3 = 72; // 0x48
+    field public static final int SOUND_CONTROLLER_4 = 73; // 0x49
+    field public static final int SOUND_CONTROLLER_5 = 74; // 0x4a
+    field public static final int SOUND_CONTROLLER_6 = 75; // 0x4b
+    field public static final int SOUND_CONTROLLER_7 = 76; // 0x4c
+    field public static final int SOUND_CONTROLLER_8 = 77; // 0x4d
+    field public static final int SOUND_CONTROLLER_9 = 78; // 0x4e
+    field public static final int TREMOLO = 92; // 0x5c
+    field public static final int VOLUME = 7; // 0x7
+    field public static final int VOLUME_LSB = 39; // 0x27
+  }
+
+  public final class MidiCIProtocolBytes {
+    field public static final int EXTENSIONS = 2; // 0x2
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiCIProtocolBytes INSTANCE;
+    field public static final int TYPE = 0; // 0x0
+    field public static final int VERSION = 1; // 0x1
+  }
+
+  public final class MidiCIProtocolExtensions {
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiCIProtocolExtensions INSTANCE;
+    field public static final int JITTER = 1; // 0x1
+    field public static final int LARGER = 2; // 0x2
+  }
+
+  public final class MidiCIProtocolType {
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiCIProtocolType INSTANCE;
+    field public static final int MIDI1 = 1; // 0x1
+    field public static final int MIDI2 = 2; // 0x2
+  }
+
+  public final class MidiCIProtocolValue {
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiCIProtocolValue INSTANCE;
+    field public static final int MIDI1 = 0; // 0x0
+    field public static final int MIDI2_V1 = 0; // 0x0
+  }
+
+  public final class MidiChannelStatus {
+    field public static final int CAF = 208; // 0xd0
+    field public static final int CC = 176; // 0xb0
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiChannelStatus INSTANCE;
+    field public static final int NOTE_OFF = 128; // 0x80
+    field public static final int NOTE_ON = 144; // 0x90
+    field public static final int NRPN = 48; // 0x30
+    field public static final int PAF = 160; // 0xa0
+    field public static final int PER_NOTE_ACC = 16; // 0x10
+    field public static final int PER_NOTE_MANAGEMENT = 240; // 0xf0
+    field public static final int PER_NOTE_PITCH_BEND = 96; // 0x60
+    field public static final int PER_NOTE_RCC = 0; // 0x0
+    field public static final int PITCH_BEND = 224; // 0xe0
+    field public static final int PROGRAM = 192; // 0xc0
+    field public static final int RELATIVE_NRPN = 80; // 0x50
+    field public static final int RELATIVE_RPN = 64; // 0x40
+    field public static final int RPN = 32; // 0x20
+  }
+
+  public final class MidiEvent {
+    ctor public MidiEvent(int value);
+    ctor public MidiEvent(int type, int arg1, int arg2, optional @Nullable byte[] extraData, optional int extraOffset, optional int extraLength);
+    method public byte getChannel();
+    method public byte getEventType();
+    method @Nullable public byte[] getExtraData();
+    method public int getExtraDataLength();
+    method public int getExtraDataOffset();
+    method public byte getLsb();
+    method public byte getMetaType();
+    method public byte getMsb();
+    method public byte getStatusByte();
+    method public int getValue();
+    method public void setValue(int value);
+    property public final byte channel;
+    property public final byte eventType;
+    property @Nullable public final byte[] extraData;
+    property public final int extraDataLength;
+    property public final int extraDataOffset;
+    property public final byte lsb;
+    property public final byte metaType;
+    property public final byte msb;
+    property public final byte statusByte;
+    property public final int value;
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiEvent.Companion Companion;
+  }
+
+  public static final class MidiEvent.Companion {
+    method @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.MidiEvent> convert(@NonNull byte[] bytes, int index, int size);
+    method public byte fixedDataSize(byte statusByte);
+  }
+
+  @Deprecated public final class MidiEventType {
+    field @Deprecated public static final byte CAF = -48; // 0xffffffd0
+    field @Deprecated public static final byte CC = -80; // 0xffffffb0
+    field @Deprecated @NonNull public static final dev.atsushieno.ktmidi.MidiEventType INSTANCE;
+    field @Deprecated public static final byte NOTE_OFF = -128; // 0xffffff80
+    field @Deprecated public static final byte NOTE_ON = -112; // 0xffffff90
+    field @Deprecated public static final byte PAF = -96; // 0xffffffa0
+    field @Deprecated public static final byte PITCH = -32; // 0xffffffe0
+    field @Deprecated public static final byte PROGRAM = -64; // 0xffffffc0
+  }
+
+  public interface MidiInput extends dev.atsushieno.ktmidi.MidiPort {
+    method public void setMessageReceivedListener(@NonNull dev.atsushieno.ktmidi.OnMidiReceivedEventListener listener);
+  }
+
+  public final class MidiInstrumentDefinition {
+    ctor public MidiInstrumentDefinition();
+    method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> getDrumMaps();
+    method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> getMaps();
+    method public void setDrumMaps(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> drumMaps);
+    method public void setMaps(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> maps);
+    property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> drumMaps;
+    property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> maps;
+  }
+
+  public final class MidiInstrumentMap {
+    ctor public MidiInstrumentMap();
+    method @Nullable public String getName();
+    method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiProgramDefinition> getPrograms();
+    method public void setName(@Nullable String name);
+    method public void setPrograms(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiProgramDefinition> programs);
+    property @Nullable public final String name;
+    property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiProgramDefinition> programs;
+  }
+
+  public final class MidiMachine {
+    ctor public MidiMachine();
+    method public void addOnEventReceivedListener(@NonNull dev.atsushieno.ktmidi.OnMidiEventListener listener);
+    method @NonNull public dev.atsushieno.ktmidi.MidiMachineChannel[] getChannels();
+    method public void processEvent(@NonNull dev.atsushieno.ktmidi.MidiEvent evt);
+    method public void removeOnEventReceivedListener(@NonNull dev.atsushieno.ktmidi.OnMidiEventListener listener);
+    method public void setChannels(@NonNull dev.atsushieno.ktmidi.MidiMachineChannel[] channels);
+    property @NonNull public final dev.atsushieno.ktmidi.MidiMachineChannel[] channels;
+  }
+
+  public final class MidiMachineChannel {
+    ctor public MidiMachineChannel();
+    method public byte getCaf();
+    method @NonNull public byte[] getControls();
+    method @NonNull public dev.atsushieno.ktmidi.DteTarget getDteTarget();
+    method @NonNull public byte[] getNoteVelocity();
+    method @NonNull public short[] getNrpns();
+    method @NonNull public byte[] getPafVelocity();
+    method public short getPitchbend();
+    method public byte getProgram();
+    method public short getRpnTarget();
+    method @NonNull public short[] getRpns();
+    method public void processDte(byte value, boolean isMsb);
+    method public void processDteDecrement();
+    method public void processDteIncrement();
+    method public void setCaf(byte caf);
+    method public void setDteTarget(@NonNull dev.atsushieno.ktmidi.DteTarget dteTarget);
+    method public void setPitchbend(short pitchbend);
+    method public void setProgram(byte program);
+    property public final byte caf;
+    property @NonNull public final byte[] controls;
+    property @NonNull public final dev.atsushieno.ktmidi.DteTarget dteTarget;
+    property @NonNull public final byte[] noteVelocity;
+    property @NonNull public final short[] nrpns;
+    property @NonNull public final byte[] pafVelocity;
+    property public final short pitchbend;
+    property public final byte program;
+    property public final short rpnTarget;
+    property @NonNull public final short[] rpns;
+  }
+
+  public final class MidiMessage {
+    ctor public MidiMessage(int deltaTime, @NonNull dev.atsushieno.ktmidi.MidiEvent evt);
+    method public int getDeltaTime();
+    method @NonNull public dev.atsushieno.ktmidi.MidiEvent getEvent();
+    property public final int deltaTime;
+    property @NonNull public final dev.atsushieno.ktmidi.MidiEvent event;
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiMessage.Companion Companion;
+  }
+
+  public static final class MidiMessage.Companion {
+    method @NonNull public kotlin.sequences.Sequence<java.lang.Byte> encode7BitLength(int length);
+  }
+
+  public final class MidiMessageType {
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiMessageType INSTANCE;
+    field public static final int MIDI1 = 2; // 0x2
+    field public static final int MIDI2 = 4; // 0x4
+    field public static final int SYSEX7 = 3; // 0x3
+    field public static final int SYSEX8_MDS = 5; // 0x5
+    field public static final int SYSTEM = 1; // 0x1
+    field public static final int UTILITY = 0; // 0x0
+  }
+
+  public final class MidiMetaType {
+    field public static final int CHANNEL_PREFIX = 32; // 0x20
+    field public static final int COPYRIGHT = 2; // 0x2
+    field public static final int CUE = 7; // 0x7
+    field public static final int END_OF_TRACK = 47; // 0x2f
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiMetaType INSTANCE;
+    field public static final int INSTRUMENT_NAME = 4; // 0x4
+    field public static final int KEY_SIGNATURE = 89; // 0x59
+    field public static final int LYRIC = 5; // 0x5
+    field public static final int MARKER = 6; // 0x6
+    field public static final int SEQUENCER_SPECIFIC = 127; // 0x7f
+    field public static final int SEQUENCE_NUMBER = 0; // 0x0
+    field public static final int SMTPE_OFFSET = 84; // 0x54
+    field public static final int TEMPO = 81; // 0x51
+    field public static final int TEXT = 1; // 0x1
+    field public static final int TIME_SIGNATURE = 88; // 0x58
+    field public static final int TRACK_NAME = 3; // 0x3
+  }
+
+  public abstract class MidiModuleDatabase {
+    ctor public MidiModuleDatabase();
+    method @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiModuleDefinition> all();
+    method @NonNull public abstract dev.atsushieno.ktmidi.MidiModuleDefinition resolve(@NonNull String moduleName);
+  }
+
+  public final class MidiModuleDatabase_jvmKt {
+    method @NonNull public static dev.atsushieno.ktmidi.DefaultMidiModuleDatabase getDefaultMidiModuleDatabase();
+  }
+
+  public final class MidiModuleDefinition {
+    ctor public MidiModuleDefinition();
+    method @NonNull public dev.atsushieno.ktmidi.MidiInstrumentDefinition getInstrument();
+    method @Nullable public String getMatch();
+    method @Nullable public String getName();
+    method public void setInstrument(@NonNull dev.atsushieno.ktmidi.MidiInstrumentDefinition instrument);
+    method public void setMatch(@Nullable String match);
+    method public void setName(@Nullable String name);
+    property @NonNull public final dev.atsushieno.ktmidi.MidiInstrumentDefinition instrument;
+    property @Nullable public final String match;
+    property @Nullable public final String name;
+  }
+
+  public final class MidiMusic {
+    ctor public MidiMusic();
+    method public void addTrack(@NonNull dev.atsushieno.ktmidi.MidiTrack track);
+    method public int getDeltaTimeSpec();
+    method public byte getFormat();
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiMessage> getMetaEventsOfType(int metaType);
+    method public int getTimePositionInMillisecondsForTick(int ticks);
+    method public int getTotalPlayTimeMilliseconds();
+    method public int getTotalTicks();
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.MidiTrack> getTracks();
+    method public void setDeltaTimeSpec(int deltaTimeSpec);
+    method public void setFormat(byte format);
+    property public final int deltaTimeSpec;
+    property public final byte format;
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.MidiTrack> tracks;
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiMusic.Companion Companion;
+    field public static final int META_EVENT = 255; // 0xff
+    field public static final int SYSEX_END = 247; // 0xf7
+    field public static final int SYSEX_EVENT = 240; // 0xf0
+  }
+
+  public static final class MidiMusic.Companion {
+    method public int getDEFAULT_TEMPO();
+    method @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.MidiMessage> getMetaEventsOfType(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, int metaType);
+    method public int getPlayTimeMillisecondsAtTick(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, int ticks, int deltaTimeSpec);
+    method public double getSmfBpm(@NonNull byte[] data, int offset);
+    method public int getSmfTempo(@NonNull byte[] data, int offset);
+    method public int getTotalPlayTimeMilliseconds(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, int deltaTimeSpec);
+    property public final int DEFAULT_TEMPO;
+  }
+
+  public final class MidiMusicCommonKt {
+  }
+
+  public final class MidiMusicKt {
+    method @NonNull public static dev.atsushieno.ktmidi.MidiMusic mergeTracks(@NonNull dev.atsushieno.ktmidi.MidiMusic);
+    method @NonNull public static dev.atsushieno.ktmidi.MidiMusic splitTracksByChannel(@NonNull dev.atsushieno.ktmidi.MidiTrack, byte deltaTimeSpec);
+  }
+
+  public final class MidiNoteAttributeType {
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiNoteAttributeType INSTANCE;
+    field public static final int MANUFACTURER_SPECIFIC = 1; // 0x1
+    field public static final int NONE = 0; // 0x0
+    field public static final int PROFILE_SPECIFIC = 2; // 0x2
+    field public static final int Pitch7_9 = 3; // 0x3
+  }
+
+  public interface MidiOutput extends dev.atsushieno.ktmidi.MidiPort {
+    method public void send(@NonNull byte[] mevent, int offset, int length, long timestampInNanoseconds);
+  }
+
+  public final class MidiPerNoteManagementFlags {
+    field public static final int DETACH = 2; // 0x2
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiPerNoteManagementFlags INSTANCE;
+    field public static final int RESET = 1; // 0x1
+  }
+
+  public abstract class MidiPlayer {
+    method public final void close();
+    method public final int getBpm();
+    method @Nullable public final Runnable getFinished();
+    method public final int getPlayDeltaTime();
+    method @Nullable public final Runnable getPlaybackCompletedToEnd();
+    method public abstract long getPositionInMilliseconds();
+    method @NonNull public final dev.atsushieno.ktmidi.PlayerState getState();
+    method public final int getTempo();
+    method public final double getTempoChangeRatio();
+    method @NonNull public final java.util.List<java.lang.Byte> getTimeSignature();
+    method public abstract int getTotalPlayTimeMilliseconds();
+    method public final void pause();
+    method public final void play();
+    method public abstract void seek(int ticks);
+    method public final void setFinished(@Nullable Runnable v);
+    method public abstract void setMutedChannels(@NonNull Iterable<java.lang.Integer> mutedChannels);
+    method public final void setPlaybackCompletedToEnd(@Nullable Runnable v);
+    method public final void setTempo(int v);
+    method public final void setTempoChangeRatio(double v);
+    method public final void stop();
+    property public final int bpm;
+    property @Nullable public final Runnable finished;
+    property public final int playDeltaTime;
+    property @Nullable public final Runnable playbackCompletedToEnd;
+    property public abstract long positionInMilliseconds;
+    property @NonNull public final dev.atsushieno.ktmidi.PlayerState state;
+    property public final int tempo;
+    property public final double tempoChangeRatio;
+    property @NonNull public final java.util.List<java.lang.Byte> timeSignature;
+    property public abstract int totalPlayTimeMilliseconds;
+  }
+
+  public interface MidiPlayerTimer {
+    method public void stop();
+    method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit> p);
+  }
+
+  public interface MidiPort {
+    method public void close();
+    method @NonNull public dev.atsushieno.ktmidi.MidiPortConnectionState getConnectionState();
+    method @NonNull public dev.atsushieno.ktmidi.MidiPortDetails getDetails();
+    method public int getMidiProtocol();
+    method public void setMidiProtocol(int midiProtocol);
+    property @NonNull public abstract dev.atsushieno.ktmidi.MidiPortConnectionState connectionState;
+    property @NonNull public abstract dev.atsushieno.ktmidi.MidiPortDetails details;
+    property public abstract int midiProtocol;
+  }
+
+  public enum MidiPortConnectionState {
+    enum_constant public static final dev.atsushieno.ktmidi.MidiPortConnectionState CLOSED;
+    enum_constant public static final dev.atsushieno.ktmidi.MidiPortConnectionState OPEN;
+  }
+
+  public interface MidiPortDetails {
+    method @NonNull public String getId();
+    method @Nullable public String getManufacturer();
+    method @Nullable public String getName();
+    method @Nullable public String getVersion();
+    property @NonNull public abstract String id;
+    property @Nullable public abstract String manufacturer;
+    property @Nullable public abstract String name;
+    property @Nullable public abstract String version;
+  }
+
+  public final class MidiProgramDefinition {
+    ctor public MidiProgramDefinition();
+    method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiBankDefinition> getBanks();
+    method public int getIndex();
+    method @Nullable public String getName();
+    method public void setBanks(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiBankDefinition> banks);
+    method public void setIndex(int index);
+    method public void setName(@Nullable String name);
+    property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiBankDefinition> banks;
+    property public final int index;
+    property @Nullable public final String name;
+  }
+
+  public final class MidiReaderWriterKt {
+    method public static void read(@NonNull dev.atsushieno.ktmidi.MidiMusic, @NonNull java.util.List<java.lang.Byte> stream);
+    method public static void write(@NonNull dev.atsushieno.ktmidi.MidiMusic, @NonNull java.util.List<java.lang.Byte> stream, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Boolean,? super dev.atsushieno.ktmidi.MidiMessage,? super java.util.List<java.lang.Byte>,java.lang.Integer> metaEventWriter);
+  }
+
+  public final class MidiRpn {
+    field public static final int COARSE_TUNING = 2; // 0x2
+    field public static final int FINE_TUNING = 1; // 0x1
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiRpn INSTANCE;
+    field public static final int MODULATION_DEPTH = 5; // 0x5
+    field public static final int PITCH_BEND_SENSITIVITY = 0; // 0x0
+    field public static final int TUNING_BANK_SELECT = 4; // 0x4
+    field public static final int TUNING_PROGRAM = 3; // 0x3
+  }
+
+  public final class MidiSystemStatus {
+    field public static final int ACTIVE_SENSING = 254; // 0xfe
+    field public static final int CONTINUE = 251; // 0xfb
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiSystemStatus INSTANCE;
+    field public static final int MIDI_TIME_CODE = 241; // 0xf1
+    field public static final int RESET = 255; // 0xff
+    field public static final int SONG_POSITION = 242; // 0xf2
+    field public static final int SONG_SELECT = 243; // 0xf3
+    field public static final int START = 250; // 0xfa
+    field public static final int STOP = 252; // 0xfc
+    field public static final int TIMING_CLOCK = 248; // 0xf8
+    field public static final int TUNE_REQUEST = 246; // 0xf6
+  }
+
+  public final class MidiTrack {
+    ctor public MidiTrack(optional @NonNull java.util.List<dev.atsushieno.ktmidi.MidiMessage> messages);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.MidiMessage> getMessages();
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.MidiMessage> messages;
+  }
+
+  public final class MidiUtilityStatus {
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiUtilityStatus INSTANCE;
+    field public static final int JR_CLOCK = 16; // 0x10
+    field public static final int JR_TIMESTAMP = 32; // 0x20
+    field public static final int NOP = 0; // 0x0
+  }
+
+  public interface OnMidi2EventListener {
+    method public void onEvent(@NonNull dev.atsushieno.ktmidi.Ump e);
+  }
+
+  public interface OnMidiEventListener {
+    method public void onEvent(@NonNull dev.atsushieno.ktmidi.MidiEvent e);
+  }
+
+  public interface OnMidiMessageListener {
+    method public void onMessage(@NonNull dev.atsushieno.ktmidi.MidiMessage m);
+  }
+
+  public interface OnMidiReceivedEventListener {
+    method public void onEventReceived(@NonNull byte[] data, int start, int length, long timestampInNanoseconds);
+  }
+
+  public enum PlayerState {
+    enum_constant public static final dev.atsushieno.ktmidi.PlayerState PAUSED;
+    enum_constant public static final dev.atsushieno.ktmidi.PlayerState PLAYING;
+    enum_constant public static final dev.atsushieno.ktmidi.PlayerState STOPPED;
+  }
+
+  public final class PortCreatorContext {
+    ctor public PortCreatorContext(@NonNull String applicationName, @NonNull String portName, @NonNull String manufacturer, @NonNull String version);
+    method @NonNull public String component1();
+    method @NonNull public String component2();
+    method @NonNull public String component3();
+    method @NonNull public String component4();
+    method @NonNull public dev.atsushieno.ktmidi.PortCreatorContext copy(@NonNull String applicationName, @NonNull String portName, @NonNull String manufacturer, @NonNull String version);
+    method @NonNull public String getApplicationName();
+    method @NonNull public String getManufacturer();
+    method @NonNull public String getPortName();
+    method @NonNull public String getVersion();
+    method public void setApplicationName(@NonNull String applicationName);
+    method public void setManufacturer(@NonNull String manufacturer);
+    method public void setPortName(@NonNull String portName);
+    method public void setVersion(@NonNull String version);
+    property @NonNull public final String applicationName;
+    property @NonNull public final String manufacturer;
+    property @NonNull public final String portName;
+    property @NonNull public final String version;
+  }
+
+  public enum SeekFilterResult {
+    enum_constant public static final dev.atsushieno.ktmidi.SeekFilterResult BLOCK;
+    enum_constant public static final dev.atsushieno.ktmidi.SeekFilterResult BLOCK_AND_TERMINATE;
+    enum_constant public static final dev.atsushieno.ktmidi.SeekFilterResult PASS;
+    enum_constant public static final dev.atsushieno.ktmidi.SeekFilterResult PASS_AND_TERMINATE;
+  }
+
+  public interface SeekProcessor<TMessage> {
+    method @NonNull public dev.atsushieno.ktmidi.SeekFilterResult filterMessage(@Nullable TMessage message);
+  }
+
+  public final class SimpleAdjustingMidiPlayerTimer implements dev.atsushieno.ktmidi.MidiPlayerTimer {
+    ctor public SimpleAdjustingMidiPlayerTimer();
+    method public void stop();
+    method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit> p);
+  }
+
+  public final class SimpleVirtualMidiInput extends dev.atsushieno.ktmidi.SimpleVirtualMidiPort implements dev.atsushieno.ktmidi.MidiInput {
+    ctor public SimpleVirtualMidiInput(@NonNull dev.atsushieno.ktmidi.MidiPortDetails details, @NonNull kotlin.jvm.functions.Function0<kotlin.Unit> onDispose);
+    method public void setMessageReceivedListener(@NonNull dev.atsushieno.ktmidi.OnMidiReceivedEventListener listener);
+  }
+
+  public final class SimpleVirtualMidiOutput extends dev.atsushieno.ktmidi.SimpleVirtualMidiPort implements dev.atsushieno.ktmidi.MidiOutput {
+    ctor public SimpleVirtualMidiOutput(@NonNull dev.atsushieno.ktmidi.MidiPortDetails details, @NonNull kotlin.jvm.functions.Function0<kotlin.Unit> onDispose);
+    method @NonNull public kotlin.jvm.functions.Function4<byte[],java.lang.Integer,java.lang.Integer,java.lang.Long,kotlin.Unit> getOnSend();
+    method public void send(@NonNull byte[] mevent, int offset, int length, long timestampInNanoseconds);
+    method public void setOnSend(@NonNull kotlin.jvm.functions.Function4<? super byte[],? super java.lang.Integer,? super java.lang.Integer,? super java.lang.Long,kotlin.Unit> onSend);
+    property @NonNull public final kotlin.jvm.functions.Function4<byte[],java.lang.Integer,java.lang.Integer,java.lang.Long,kotlin.Unit> onSend;
+  }
+
+  public abstract class SimpleVirtualMidiPort implements dev.atsushieno.ktmidi.MidiPort {
+    ctor protected SimpleVirtualMidiPort(@NonNull dev.atsushieno.ktmidi.MidiPortDetails details, @NonNull kotlin.jvm.functions.Function0<kotlin.Unit> onDispose);
+    method public void close();
+    method @NonNull public dev.atsushieno.ktmidi.MidiPortConnectionState getConnectionState();
+    method @NonNull public dev.atsushieno.ktmidi.MidiPortDetails getDetails();
+    method public int getMidiProtocol();
+    method public void setMidiProtocol(int v);
+    property @NonNull public dev.atsushieno.ktmidi.MidiPortConnectionState connectionState;
+    property @NonNull public dev.atsushieno.ktmidi.MidiPortDetails details;
+    property public int midiProtocol;
+  }
+
+  public final class SmfParserException extends java.lang.Exception {
+    ctor public SmfParserException();
+    ctor public SmfParserException(@NonNull String message);
+    ctor public SmfParserException(@NonNull String message, @NonNull Exception innerException);
+  }
+
+  @Deprecated public final class SmfWriter {
+    ctor @Deprecated public SmfWriter(@NonNull java.util.List<java.lang.Byte> stream, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Boolean,? super dev.atsushieno.ktmidi.MidiMessage,? super java.util.List<java.lang.Byte>,java.lang.Integer> metaEventWriter);
+    method @Deprecated public boolean getDisableRunningStatus();
+    method @Deprecated public void setDisableRunningStatus(boolean disableRunningStatus);
+    method @Deprecated public void writeHeader(short format, short tracks, short deltaTimeSpec);
+    method @Deprecated public void writeMusic(@NonNull dev.atsushieno.ktmidi.MidiMusic music);
+    method @Deprecated public void writeTrack(@NonNull dev.atsushieno.ktmidi.MidiTrack track);
+    property public final boolean disableRunningStatus;
+  }
+
+  public final class SmfWriterExtension {
+    ctor public SmfWriterExtension();
+    field @NonNull public static final dev.atsushieno.ktmidi.SmfWriterExtension.Companion Companion;
+  }
+
+  public static final class SmfWriterExtension.Companion {
+    method @NonNull public kotlin.jvm.functions.Function3<java.lang.Boolean,dev.atsushieno.ktmidi.MidiMessage,java.util.List<java.lang.Byte>,java.lang.Integer> getDEFAULT_META_EVENT_WRITER();
+    property @NonNull public final kotlin.jvm.functions.Function3<java.lang.Boolean,dev.atsushieno.ktmidi.MidiMessage,java.util.List<java.lang.Byte>,java.lang.Integer> DEFAULT_META_EVENT_WRITER;
+  }
+
+  public final class Ump {
+    ctor public Ump(int int1, optional int int2, optional int int3, optional int int4);
+    ctor public Ump(long long1, optional long long2);
+    method public int component1();
+    method public int component2();
+    method public int component3();
+    method public int component4();
+    method @NonNull public dev.atsushieno.ktmidi.Ump copy(int int1, int int2, int int3, int int4);
+    method public int getInt1();
+    method public int getInt2();
+    method public int getInt3();
+    method public int getInt4();
+    property public final int int1;
+    property public final int int2;
+    property public final int int3;
+    property public final int int4;
+    field @NonNull public static final dev.atsushieno.ktmidi.Ump.Companion Companion;
+  }
+
+  public static final class Ump.Companion {
+    method @Deprecated @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.Ump> fromBytes(@NonNull byte[] bytes, int offset, int count);
+  }
+
+  public final class UmpException extends java.lang.Exception {
+    ctor public UmpException();
+    ctor public UmpException(@NonNull String message);
+    ctor public UmpException(@NonNull String message, @NonNull Exception innerException);
+  }
+
+  public final class UmpFactory {
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.Ump> fromPlatformBytes(@NonNull io.ktor.utils.io.core.ByteOrder byteOrder, @NonNull java.util.List<java.lang.Byte> bytes);
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.Ump> fromPlatformNativeBytes(@NonNull java.util.List<java.lang.Byte> bytes);
+    method public int jrClock(int group, int senderClockTime16);
+    method public int jrClock(int group, double senderClockTimeSeconds);
+    method public int jrTimestamp(int group, int senderClockTimestamp16);
+    method public int jrTimestamp(int group, double senderClockTimestampSeconds);
+    method @NonNull public kotlin.sequences.Sequence<java.lang.Integer> jrTimestamps(int group, long senderClockTimestampTicks);
+    method @NonNull public kotlin.sequences.Sequence<java.lang.Integer> jrTimestamps(int group, double senderClockTimestampSeconds);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> mds(int group, @NonNull java.util.List<java.lang.Byte> data, optional byte mdsId);
+    method public int mdsGetChunkCount(int numTotalBytesInMDS);
+    method @NonNull public kotlin.Pair<java.lang.Long,java.lang.Long> mdsGetHeader(byte group, byte mdsId, int numBytesInChunk16, int numChunks16, int chunkIndex16, int manufacturerId16, int deviceId16, int subId16, int subId2_16);
+    method public int mdsGetPayloadCount(int numTotalBytesinChunk);
+    method @NonNull public kotlin.Pair<java.lang.Long,java.lang.Long> mdsGetPayloadOf(byte group, byte mdsId, int numBytes16, @NonNull java.util.List<java.lang.Byte> srcData, int offset);
+    method public void mdsProcess(int group, byte mdsId, @NonNull java.util.List<java.lang.Byte> data, optional @Nullable Object context, @NonNull kotlin.jvm.functions.Function5<? super java.lang.Long,? super java.lang.Long,? super java.lang.Integer,? super java.lang.Integer,java.lang.Object,kotlin.Unit> sendUmp);
+    method @Deprecated public void mdsProcess(byte group, byte mdsId, @NonNull java.util.List<java.lang.Byte> data, int length, @NonNull kotlin.jvm.functions.Function5<? super java.lang.Long,? super java.lang.Long,? super java.lang.Integer,? super java.lang.Integer,java.lang.Object,kotlin.Unit> sendUmp, @Nullable Object context);
+    method public int midi1CAf(int group, int channel, byte data);
+    method public int midi1CC(int group, int channel, byte index, byte data);
+    method public int midi1Message(int group, byte code, int channel, byte byte3, byte byte4);
+    method public int midi1NoteOff(int group, int channel, byte note, byte velocity);
+    method public int midi1NoteOn(int group, int channel, byte note, byte velocity);
+    method public int midi1PAf(int group, int channel, byte note, byte data);
+    method public int midi1PitchBend(int group, int channel, short data);
+    method public int midi1PitchBendDirect(int group, int channel, short data);
+    method public int midi1PitchBendSplit(int group, int channel, byte dataLSB, byte dataMSB);
+    method public int midi1Program(int group, int channel, byte program);
+    method public long midi2CAf(int group, int channel, long data32);
+    method public long midi2CC(int group, int channel, int index8, long data32);
+    method public long midi2ChannelMessage8_8_16_16(int group, int code, int channel, int byte3, int byte4, int short1, int short2);
+    method public long midi2ChannelMessage8_8_32(int group, int code, int channel, int byte3, int byte4, long rest32);
+    method public long midi2NRPN(int group, int channel, int bankAkaMSB8, int indexAkaLSB8, long dataAkaDTE32);
+    method public long midi2NoteOff(int group, int channel, int note, byte attributeType8, int velocity16, int attributeData16);
+    method public long midi2NoteOn(int group, int channel, int note, byte attributeType8, int velocity16, int attributeData16);
+    method public long midi2PAf(int group, int channel, int note, long data32);
+    method public long midi2PerNoteACC(int group, int channel, int note, int index8, long data32);
+    method public long midi2PerNoteManagement(int group, int channel, int note, int optionFlags);
+    method public long midi2PerNotePitchBend(int group, int channel, int note, long data32);
+    method public long midi2PerNotePitchBendDirect(int group, int channel, int note, long data32);
+    method public long midi2PerNoteRCC(int group, int channel, int note, int index8, long data32);
+    method public long midi2PitchBend(int group, int channel, long data32);
+    method public long midi2PitchBendDirect(int group, int channel, long data32);
+    method public long midi2Program(int group, int channel, int optionFlags, int program8, int bankMSB8, int bankLSB8);
+    method public long midi2RPN(int group, int channel, int bankAkaMSB8, int indexAkaLSB8, long dataAkaDTE32);
+    method public long midi2RelativeNRPN(int group, int channel, int bankAkaMSB8, int indexAkaLSB8, long dataAkaDTE32);
+    method public long midi2RelativeRPN(int group, int channel, int bankAkaMSB8, int indexAkaLSB8, long dataAkaDTE32);
+    method public int noop(int group);
+    method public int pitch7_9(double pitch);
+    method public int pitch7_9Split(byte semitone, double microtone0To1);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> sysex7(int group, @NonNull java.util.List<java.lang.Byte> sysex);
+    method public long sysex7Direct(int group, byte status, int numBytes, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6);
+    method public int sysex7GetPacketCount(int numSysex7Bytes);
+    method public long sysex7GetPacketOf(int group, int numBytes, @NonNull java.util.List<java.lang.Byte> srcData, int index);
+    method public int sysex7GetSysexLength(@NonNull java.util.List<java.lang.Byte> srcData);
+    method @Deprecated public void sysex7Process(int group, @NonNull java.util.List<java.lang.Byte> sysex, @NonNull kotlin.jvm.functions.Function2<? super java.lang.Long,java.lang.Object,kotlin.Unit> sendUMP64, @Nullable Object context);
+    method public void sysex7Process(int group, @NonNull java.util.List<java.lang.Byte> sysex, optional @Nullable Object context, optional @NonNull kotlin.jvm.functions.Function2<? super java.lang.Long,java.lang.Object,kotlin.Unit> sendUMP64);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> sysex8(int group, @NonNull java.util.List<java.lang.Byte> sysex, optional byte streamId);
+    method public int sysex8GetPacketCount(int numBytes);
+    method @NonNull public kotlin.Pair<java.lang.Long,java.lang.Long> sysex8GetPacketOf(int group, byte streamId, int numBytes, @NonNull java.util.List<java.lang.Byte> srcData, int index);
+    method @Deprecated public void sysex8Process(int group, @NonNull java.util.List<java.lang.Byte> sysex, byte streamId, @NonNull kotlin.jvm.functions.Function3<? super java.lang.Long,? super java.lang.Long,java.lang.Object,kotlin.Unit> sendUMP128, @Nullable Object context);
+    method public void sysex8Process(int group, @NonNull java.util.List<java.lang.Byte> sysex, optional byte streamId, optional @Nullable Object context, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Long,? super java.lang.Long,java.lang.Object,kotlin.Unit> sendUMP128);
+    method public int systemMessage(int group, byte status, byte midi1Byte2, byte midi1Byte3);
+    method public int umpGetNumBytes(int data);
+    field @NonNull public static final dev.atsushieno.ktmidi.UmpFactory INSTANCE;
+  }
+
+  public final class UmpFactoryKt {
+    field public static final int JR_TIMESTAMP_TICKS_PER_SECOND = 31250; // 0x7a12
+    field public static final byte MIDI_2_0_RESERVED = 0; // 0x0
+  }
+
+  public final class UmpRetrievalKt {
+    method public static int getChannelInGroup(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getEventType(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getGroup(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getGroupAndChannel(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getGroupByte(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getJrClock(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getJrTimestamp(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMdsChunkByteSize(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMdsChunkCount(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMdsChunkIndex(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMdsDeviceId(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMdsId(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMdsManufacturerId(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMdsSubId1(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMdsSubId2(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMessageType(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi1CAf(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi1CCData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi1CCIndex(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi1Lsb(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi1Msb(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi1Note(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi1PAfData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi1PitchBendData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi1Program(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi1Velocity(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2CAf(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2CCData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2CCIndex(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2Note(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2NoteAttributeData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2NoteAttributeType(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2NrpnData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2NrpnLsb(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2NrpnMsb(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2PAfData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2PerNoteACCData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2PerNoteACCIndex(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2PerNoteManagementOptions(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2PerNoteRCCData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2PerNoteRCCIndex(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2PitchBendData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2ProgramBankLsb(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2ProgramBankMsb(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2ProgramOptions(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2ProgramProgram(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2RpnData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2RpnLsb(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2RpnMsb(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2Velocity16(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getSizeInBytes(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getStatusByte(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getSysex7Size(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getSysex8Size(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getSysex8StreamId(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static boolean isJRClock(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static boolean isJRTimestamp(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static void toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull byte[] bytes, int offset, @NonNull io.ktor.utils.io.core.ByteOrder byteOrder);
+    method public static void toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull byte[] bytes, int offset);
+    method @NonNull public static byte[] toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull io.ktor.utils.io.core.ByteOrder byteOrder);
+    method @NonNull public static byte[] toPlatformNativeBytes(@NonNull dev.atsushieno.ktmidi.Ump);
+  }
+
+  public final class UmpRetriever {
+    method @NonNull public java.util.List<java.lang.Byte> getSysex7Data(@NonNull java.util.Iterator<dev.atsushieno.ktmidi.Ump> iter, optional @NonNull dev.atsushieno.ktmidi.UmpSysexBinaryRetrieverFallback fallback);
+    method @NonNull public java.util.List<java.lang.Byte> getSysex8Data(@NonNull java.util.Iterator<dev.atsushieno.ktmidi.Ump> iter, optional @NonNull dev.atsushieno.ktmidi.UmpSysexBinaryRetrieverFallback fallback);
+    field @NonNull public static final dev.atsushieno.ktmidi.UmpRetriever INSTANCE;
+  }
+
+  public enum UmpSysexBinaryRetrieverFallback {
+    enum_constant public static final dev.atsushieno.ktmidi.UmpSysexBinaryRetrieverFallback Break;
+    enum_constant public static final dev.atsushieno.ktmidi.UmpSysexBinaryRetrieverFallback Exception;
+  }
+
+  public class VirtualMidiPlayerTimer implements dev.atsushieno.ktmidi.MidiPlayerTimer {
+    ctor public VirtualMidiPlayerTimer();
+    method public final double getTotalProceededSeconds();
+    method public final double getTotalWaitedSeconds();
+    method public void proceedBySeconds(double addedSeconds);
+    method public final void setTotalProceededSeconds(double totalProceededSeconds);
+    method public final void setTotalWaitedSeconds(double totalWaitedSeconds);
+    method public void stop();
+    method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit> p);
+    property public final double totalProceededSeconds;
+    property public final double totalWaitedSeconds;
+  }
+
+}
+
+package dev.atsushieno.ktmidi.ci {
+
+  public final class CIFactoryKt {
+    method public static void midiCI7bitInt14At(@NonNull java.util.List<java.lang.Byte> buf, int offset, short v);
+    method public static void midiCI7bitInt21At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
+    method public static void midiCI7bitInt28At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
+    method public static void midiCIDiscovery(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
+    method public static void midiCIDiscoveryCommon(@NonNull java.util.List<java.lang.Byte> buf, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer3Bytes, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
+    method public static void midiCIDiscoveryInvalidateMuid(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int targetMUID);
+    method public static void midiCIDiscoveryNak(@NonNull java.util.List<java.lang.Byte> buf, byte deviceId, byte versionAndFormat, int sourceMUID, int destinationMUID);
+    method public static void midiCIDiscoveryReply(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
+    method public static void midiCIMessageCommon(@NonNull java.util.List<java.lang.Byte> buf, byte destination, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID);
+    method public static void midiCIProfile(@NonNull java.util.List<java.lang.Byte> buf, int offset, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId info);
+    method public static void midiCIProfileInquiry(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID);
+    method public static void midiCIProfileInquiryReply(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID, byte numEnabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> enabledProfiles, byte numDisabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> disabledProfiles);
+    method public static void midiCIProfileReport(@NonNull java.util.List<java.lang.Byte> buf, byte source, boolean isEnabledReport, int sourceMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
+    method public static void midiCIProfileSet(@NonNull java.util.List<java.lang.Byte> buf, byte destination, boolean turnOn, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
+    method public static void midiCIProfileSpecificData(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, int dataSize, @NonNull java.util.List<java.lang.Byte> data);
+    method public static void midiCIPropertyCommon(@NonNull java.util.List<java.lang.Byte> buf, byte destination, byte messageTypeSubId2, int sourceMUID, int destinationMUID, byte requestId, short headerSize, @NonNull java.util.List<java.lang.Byte> header, short numChunks, short chunkIndex, short dataSize, @NonNull java.util.List<java.lang.Byte> data);
+    method public static void midiCIPropertyGetCapabilities(@NonNull java.util.List<java.lang.Byte> buf, byte destination, boolean isReply, int sourceMUID, int destinationMUID, byte maxSupportedRequests);
+    method public static void midiCIProtocolConfirmEstablished(@NonNull java.util.List<java.lang.Byte> buf, int sourceMUID, int destinationMUID, byte authorityLevel);
+    method public static void midiCIProtocolInfo(@NonNull java.util.List<java.lang.Byte> buf, int offset, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo info);
+    method public static void midiCIProtocolNegotiation(@NonNull java.util.List<java.lang.Byte> buf, boolean isReply, int sourceMUID, int destinationMUID, byte authorityLevel, byte numSupportedProtocols, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
+    method public static void midiCIProtocolSet(@NonNull java.util.List<java.lang.Byte> buf, int sourceMUID, int destinationMUID, byte authorityLevel, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo newProtocolType);
+    method public static void midiCIProtocolTest(@NonNull java.util.List<java.lang.Byte> buf, boolean isInitiatorToResponder, int sourceMUID, int destinationMUID, byte authorityLevel, @NonNull java.util.List<java.lang.Byte> testData48Bytes);
+    method public static void midiCIProtocols(@NonNull java.util.List<java.lang.Byte> buf, int offset, byte numSupportedProtocols, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
+    method public static void midiCiDirectUint16At(@NonNull java.util.List<java.lang.Byte> buf, int offset, short v);
+    method public static void midiCiDirectUint32At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
+    field public static final int CMIDI2_CI_PROFILE_CONFIGURATION_SUPPORTED = 4; // 0x4
+    field public static final int CMIDI2_CI_PROPERTY_EXCHANGE_SUPPORTED = 8; // 0x8
+    field public static final int CMIDI2_CI_PROTOCOL_NEGOTIATION_SUPPORTED = 2; // 0x2
+    field public static final byte CMIDI2_CI_SUB_ID = 13; // 0xd
+    field public static final byte CMIDI2_CI_SUB_ID_2_CONFIRM_NEW_PROTOCOL_ESTABLISHED = 21; // 0x15
+    field public static final byte CMIDI2_CI_SUB_ID_2_DISCOVERY_INQUIRY = 112; // 0x70
+    field public static final byte CMIDI2_CI_SUB_ID_2_DISCOVERY_REPLY = 113; // 0x71
+    field public static final byte CMIDI2_CI_SUB_ID_2_INVALIDATE_MUID = 126; // 0x7e
+    field public static final byte CMIDI2_CI_SUB_ID_2_NAK = 127; // 0x7f
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROFILE_DISABLED_REPORT = 37; // 0x25
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROFILE_ENABLED_REPORT = 36; // 0x24
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROFILE_INQUIRY = 32; // 0x20
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROFILE_INQUIRY_REPLY = 33; // 0x21
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROFILE_SPECIFIC_DATA = 47; // 0x2f
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY = 48; // 0x30
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_CAPABILITIES_REPLY = 49; // 0x31
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_GET_DATA_INQUIRY = 52; // 0x34
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_GET_DATA_REPLY = 53; // 0x35
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_HAS_DATA_INQUIRY = 50; // 0x32
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_HAS_DATA_REPLY = 51; // 0x33
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_NOTIFY = 63; // 0x3f
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_SET_DATA_INQUIRY = 54; // 0x36
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_SET_DATA_REPLY = 55; // 0x37
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_SUBSCRIBE = 56; // 0x38
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY = 57; // 0x39
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROTOCOL_NEGOTIATION_INQUIRY = 16; // 0x10
+    field public static final byte CMIDI2_CI_SUB_ID_2_PROTOCOL_NEGOTIATION_REPLY = 17; // 0x11
+    field public static final byte CMIDI2_CI_SUB_ID_2_SET_NEW_PROTOCOL = 18; // 0x12
+    field public static final byte CMIDI2_CI_SUB_ID_2_SET_PROFILE_OFF = 35; // 0x23
+    field public static final byte CMIDI2_CI_SUB_ID_2_SET_PROFILE_ON = 34; // 0x22
+    field public static final byte CMIDI2_CI_SUB_ID_2_TEST_NEW_PROTOCOL_I2R = 19; // 0x13
+    field public static final byte CMIDI2_CI_SUB_ID_2_TEST_NEW_PROTOCOL_R2I = 20; // 0x14
+  }
+
+  public final class MidiCIProfileId {
+    ctor public MidiCIProfileId(byte fixed_7e, byte bank, byte number, byte version, byte level);
+    method public byte getBank();
+    method public byte getFixed_7e();
+    method public byte getLevel();
+    method public byte getNumber();
+    method public byte getVersion();
+    property public final byte bank;
+    property public final byte fixed_7e;
+    property public final byte level;
+    property public final byte number;
+    property public final byte version;
+  }
+
+  public final class MidiCIProtocolTypeInfo {
+    ctor public MidiCIProtocolTypeInfo(byte type, byte version, byte extensions, byte reserved1, byte reserved2);
+    method public byte getExtensions();
+    method public byte getReserved1();
+    method public byte getReserved2();
+    method public byte getType();
+    method public byte getVersion();
+    property public final byte extensions;
+    property public final byte reserved1;
+    property public final byte reserved2;
+    property public final byte type;
+    property public final byte version;
+  }
+
+}
+

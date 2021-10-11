@@ -1,11 +1,23 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
 
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "me.tylerbwong.gradle:metalava-gradle:0.1.9"
+    }
+}
+
 plugins {
     id 'com.android.library' version '4.1.3'
     id 'org.jetbrains.kotlin.multiplatform' version '1.5.21'
     id 'org.jetbrains.dokka' version '1.5.0'
     id 'maven-publish'
     id 'signing'
+    id "me.tylerbwong.gradle.metalava" version "0.1.9"
 }
 
 repositories {
@@ -120,13 +132,19 @@ kotlin {
     }
 }
 
+metalava {
+    filename = "api/$name-api.txt"
+    outputKotlinNulls = false
+    includeSignatureVersion = false
+}
+
 android {
-    compileSdkVersion 30
+    compileSdkVersion 31
     sourceSets.main.manifest.srcFile('src/androidMain/AndroidManifest.xml')
     sourceSets.test.assets.srcDir("src/commonTest/resources") // kind of hack...
     defaultConfig {
         minSdkVersion 24
-        targetSdkVersion 30
+        targetSdkVersion 31
     }
     buildTypes {
         debug {
