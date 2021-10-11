@@ -2,7 +2,15 @@ package dev.atsushieno.ktmidi
 
 import kotlin.math.min
 
-class SmfWriter(val stream: MutableList<Byte>) {
+typealias MetaEventWriter = (Boolean, MidiMessage, MutableList<Byte>) -> Int
+
+fun MidiMusic.write(stream: MutableList<Byte>, metaEventWriter: MetaEventWriter = SmfWriterExtension.DEFAULT_META_EVENT_WRITER) {
+    val w = SmfWriter(stream, metaEventWriter)
+    w.writeMusic(this)
+}
+
+// It cannot go internal because MetaEventWriter
+class SmfWriter(private val stream: MutableList<Byte>, private var metaEventWriter: MetaEventWriter = SmfWriterExtension.DEFAULT_META_EVENT_WRITER) {
 
     var disableRunningStatus: Boolean = false
 
@@ -35,9 +43,6 @@ class SmfWriter(val stream: MutableList<Byte>) {
         writeShort(tracks)
         writeShort(deltaTimeSpec)
     }
-
-    var metaEventWriter: (Boolean, MidiMessage, MutableList<Byte>) -> Int =
-        SmfWriterExtension.DEFAULT_META_EVENT_WRITER
 
     fun writeTrack(track: MidiTrack) {
         stream.add('M'.code.toByte())
@@ -138,7 +143,6 @@ class SmfWriter(val stream: MutableList<Byte>) {
             write7bitEncodedInt(value shr 7, true)
         stream.add(((value and 0x7F) + if (shifted) 0x80 else 0).toByte())
     }
-
 }
 
 class SmfWriterExtension {
