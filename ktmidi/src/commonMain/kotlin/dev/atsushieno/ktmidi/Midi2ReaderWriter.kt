@@ -5,23 +5,25 @@ package dev.atsushieno.ktmidi
 fun Midi2Music.write(stream: MutableList<Byte>) {
     val w = Midi2MusicWriter(stream)
     val ints = w.serializeMidi2MusicToInts(this)
-    val bytes = ints.flatMap { i32 -> sequence {
-        // We store them in BIG endian. We need consistent endianness across platforms.
-        yield((i32 shr 24).toByte())
-        yield(((i32 shr 16) and 0xFF).toByte())
-        yield(((i32 shr 8) and 0xFF).toByte())
-        yield((i32 and 0xFF).toByte())
-    }.asIterable() }
+    val bytes = ints.flatMap { i32 ->
+        sequence {
+            // We store them in BIG endian. We need consistent endianness across platforms.
+            yield((i32 shr 24).toByte())
+            yield(((i32 shr 16) and 0xFF).toByte())
+            yield(((i32 shr 8) and 0xFF).toByte())
+            yield((i32 and 0xFF).toByte())
+        }.asIterable()
+    }
     stream.addAll(bytes)
 }
 
 internal class Midi2MusicWriter(val stream: MutableList<Byte>) {
-    internal fun serializeMidi2MusicToInts(music: Midi2Music) : List<Int> {
+    internal fun serializeMidi2MusicToInts(music: Midi2Music): List<Int> {
         val ret = mutableListOf<Int>()
         (0..3).forEach { _ -> ret.add(0xAAAAAAAA.toInt()) }
         ret.add(music.deltaTimeSpec)
         ret.add(music.tracks.size)
-        for(track in music.tracks) {
+        for (track in music.tracks) {
             (0..3).forEach { _ -> ret.add(0xEEEEEEEE.toInt()) }
             ret.add(track.messages.size)
             for (message in track.messages)
@@ -52,7 +54,7 @@ internal class Midi2MusicReader(val music: Midi2Music, stream: List<Byte>) {
                 throw IllegalArgumentException("Unexpected stream content at music file identifier (at $i: ${reader.position - 1})")
     }
 
-    private fun readInt32() : Int {
+    private fun readInt32(): Int {
         var ret: Int = 0
         for (i in 0..3) {
             if (!reader.canRead())
@@ -67,20 +69,20 @@ internal class Midi2MusicReader(val music: Midi2Music, stream: List<Byte>) {
         expectIdentifier16(0xAA.toByte())
         music.deltaTimeSpec = readInt32()
         val numTracks = readInt32()
-        for(t in 0 until numTracks)
+        for (t in 0 until numTracks)
             music.addTrack(readTrack())
     }
 
-    private fun readTrack() : Midi2Track {
+    private fun readTrack(): Midi2Track {
         val ret = Midi2Track()
         expectIdentifier16(0xEE.toByte())
         val numUMPs = readInt32()
-        for(t in 0 until numUMPs)
+        for (t in 0 until numUMPs)
             ret.messages.add(readUmp())
         return ret
     }
 
-    private fun readUmp() : Ump {
+    private fun readUmp(): Ump {
         val int1 = readInt32()
         return when (int1 shr 28) {
             5 -> Ump(int1, readInt32(), readInt32(), readInt32())

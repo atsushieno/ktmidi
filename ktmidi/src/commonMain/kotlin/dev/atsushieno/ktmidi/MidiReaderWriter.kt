@@ -4,14 +4,19 @@ import kotlin.math.min
 
 typealias MetaEventWriter = (Boolean, MidiMessage, MutableList<Byte>) -> Int
 
-fun MidiMusic.write(stream: MutableList<Byte>, metaEventWriter: MetaEventWriter = SmfWriterExtension.DEFAULT_META_EVENT_WRITER) {
+fun MidiMusic.write(
+    stream: MutableList<Byte>,
+    metaEventWriter: MetaEventWriter = SmfWriterExtension.DEFAULT_META_EVENT_WRITER
+) {
     val w = SmfWriter(stream, metaEventWriter)
     w.writeMusic(this)
 }
 
-// It cannot go internal because MetaEventWriter
-class SmfWriter(private val stream: MutableList<Byte>, private var metaEventWriter: MetaEventWriter = SmfWriterExtension.DEFAULT_META_EVENT_WRITER) {
-
+@Deprecated("It will become internal. Use MidiMusic.write() instead")
+class SmfWriter(
+    private val stream: MutableList<Byte>,
+    private var metaEventWriter: MetaEventWriter = SmfWriterExtension.DEFAULT_META_EVENT_WRITER
+) {
     var disableRunningStatus: Boolean = false
 
     private fun writeShort(v: Short) {
@@ -51,7 +56,7 @@ class SmfWriter(private val stream: MutableList<Byte>, private var metaEventWrit
         stream.add('k'.code.toByte())
         writeInt(getTrackDataSize(track))
 
-        var running_status: Byte = 0
+        var runningStatus: Byte = 0
 
         for (e in track.messages) {
             write7bitEncodedInt(e.deltaTime)
@@ -69,7 +74,7 @@ class SmfWriter(private val stream: MutableList<Byte>, private var metaEventWrit
                         stream.add(MidiMusic.SYSEX_END.toByte())
                 }
                 else -> {
-                    if (disableRunningStatus || e.event.statusByte != running_status)
+                    if (disableRunningStatus || e.event.statusByte != runningStatus)
                         stream.add(e.event.statusByte)
                     val len = MidiEvent.fixedDataSize(e.event.eventType)
                     stream.add(e.event.msb)
@@ -79,7 +84,7 @@ class SmfWriter(private val stream: MutableList<Byte>, private var metaEventWrit
                         throw Exception("Unexpected data size: $len")
                 }
             }
-            running_status = e.event.statusByte
+            runningStatus = e.event.statusByte
         }
     }
 
@@ -113,8 +118,7 @@ class SmfWriter(private val stream: MutableList<Byte>, private var metaEventWrit
                         size += e.event.extraDataLength
                         if (e.event.extraData[e.event.extraDataOffset + e.event.extraDataLength - 1] != 0xF7.toByte())
                             size++ // supply SYSEX_END
-                    }
-                    else
+                    } else
                         size++ // SYSEX_END
                 }
                 else -> {
@@ -182,47 +186,6 @@ class SmfWriterExtension {
             }
             return 0
         }
-
-        val vsqMetaTextSplitter: (Boolean, MidiMessage, MutableList<Byte>) -> Int =
-            { b, m, o -> vsqMetaTextSplitterFunc(b, m, o) }
-
-        private fun vsqMetaTextSplitterFunc(lengthMode: Boolean, e: MidiMessage, stream: MutableList<Byte>): Int {
-            if (e.event.extraData == null)
-                return 0
-
-            // The split should not be applied to "Master Track"
-            if (e.event.extraDataLength < 0x80) {
-                return DEFAULT_META_EVENT_WRITER(lengthMode, e, stream)
-            }
-
-            if (lengthMode) {
-                // { [0x00] 0xFF metaType DM:xxxx:... } * repeat + 0x00 0xFF metaType DM:xxxx:mod...
-                // (note that for more than one meta event it requires step count of 0).
-                val repeatCount = e.event.extraDataLength / 0x77
-                if (repeatCount == 0)
-                    return 11 + e.event.extraDataLength
-                val mod = e.event.extraDataLength % 0x77
-                return repeatCount * (12 + 0x77) - 1 + if (mod > 0) 12 + mod else 0
-            }
-
-            var written = 0
-            val total: Int = e.event.extraDataLength
-            val idx = 0
-            do {
-                if (written > 0)
-                    stream.add(0.toByte()) // step
-                stream.add(0xFF.toByte())
-                stream.add(e.event.metaType)
-                val size = min(0x77, total - written)
-                stream.add((size + 8).toByte())
-                stream.addAll("DM:${idx.toString(16)}:".map { c -> c.code.toByte() }.toTypedArray())
-                val offset = e.event.extraDataOffset + written
-                if (size > 0)
-                    stream.addAll(e.event.extraData.slice(IntRange(offset, offset + size - 1)))
-                written += size
-            } while (written < total)
-            return 0
-        }
     }
 }
 
@@ -232,8 +195,8 @@ fun MidiMusic.read(stream: List<Byte>) {
 }
 
 internal class Reader(private val stream: List<Byte>, private var index: Int) {
-    fun canRead() : Boolean = index < stream.size
-    fun read(dst: ByteArray, startOffset: Int, endOffsetInclusive: Int) : Int {
+    fun canRead(): Boolean = index < stream.size
+    fun read(dst: ByteArray, startOffset: Int, endOffsetInclusive: Int): Int {
         val len = min(stream.size - index, endOffsetInclusive - startOffset)
         if (len > 0) {
             stream.subList(index, index + len).toByteArray().copyInto(dst, startOffset, 0, len)
@@ -241,9 +204,10 @@ internal class Reader(private val stream: List<Byte>, private var index: Int) {
         }
         return len
     }
+
     val position = index
-    fun peekByte() : Byte = stream[index]
-    fun readByte() : Byte = stream[index++]
+    fun peekByte(): Byte = stream[index]
+    fun readByte(): Byte = stream[index++]
 }
 
 internal class SmfReader(val music: MidiMusic, stream: List<Byte>) {
