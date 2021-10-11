@@ -15,17 +15,6 @@ Most of the features are implemented in `commonMain`, and some "platform"-specif
 Tests are somewhat different - majority of the tests are still in `commonTest`, but some tests that depend on synchronized execution via `runBlocking` are not runnable with KotlinJS, so they are (so far) in `jvmTest`.
 
 
-## Build complexity
-
-Due to the limitation on Kotlin Multiplatform project, we cannot simply reference `ktmidi` or `ktmidi-jvm` as `implementation` in `ktmidi-jvm-desktop`. So we have to build them separately, in order:
-
-```
-./gradlew :ktmidi:publishToMavenLocal build
-```
-
-Also note that `ktmidi-jvm-desktop` always resolves types from the ones in "Maven Repository". This impacts our hacking on ktmidi-jvm-desktop. It is annoying, but still better than having it in the split repository...
-
-
 ## Project development management
 
 Bug reports are welcomed at [GitHub issues](https://github.com/atsushieno/ktmidi/issues). Any code change suggestions are expected as [Pull requests](https://github.com/atsushieno/ktmidi/pulls). Though they are not very strict, feel free to reach @atsushieno by other means (email, mastodon.cloud, Facebook, Twitter etc.) too.
@@ -56,7 +45,7 @@ Sample projects do not have these problems in general and therefore those princi
 
 ## Continuous Integration
 
-At this state, we use GitHub Actions to verify builds, and publish Maven packages to Maven Central via SonaType, as well as GitHub Packages (supplemental). It is maintained by @atsushieno. Pull requests are built as well, and release pipelines run by git tags (though it is manually released at Nexus Repository Manager at this state).
+At this state, we use GitHub Actions to verify builds, and publish Maven packages to Maven Central via SonaType. It is maintained by @atsushieno. Pull requests are built as well, and release pipelines run by git tags (though it is manually released at Nexus Repository Manager).
 
-Builds are run on ubuntu-20.04 machine, and that brings in some limitations e.g. we don't really support platform native libraries even if they are needed. It is partly due to an issue in the build infrastructure: https://github.com/atsushieno/ktmidi/issues/13
+Builds run on ubuntu-20.04 machine, and they bring in some limitations e.g. we don't really support platform native libraries even if they are needed. It is partly due to an issue in the build infrastructure: https://github.com/atsushieno/ktmidi/issues/13
 

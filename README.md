@@ -115,7 +115,7 @@ Historically `ktmidi-jvm-desktop` used to reside in [its own repository](https:/
 
 We use [GitHub issues](https://github.com/atsushieno/ktmidi/issues) for bug reports etc., and [GitHub Discussions boards](https://github.com/atsushieno/ktmidi/discussions/) open to everyone.
 
-For hacking and/or contributing to ktmidi, please have a look at [HACKING.md](HACKING.md).
+For hacking and/or contributing to ktmidi, please have a look at [docs/HACKING.md](docs/HACKING.md).
 
 For Applications that use ktmidi, check out [this Discussions thread](https://github.com/atsushieno/ktmidi/discussions/14).
 
