@@ -1,15 +1,6 @@
 package dev.atsushieno.ktmidi
 
-import io.ktor.utils.io.core.*
-
-// Data Format:
-//   identifier: 0xAAAAAAAAAAAAAAAA (16 bytes)
-//   i32 deltaTimeSpec
-//   i32 numTracks
-//   tracks - each track contains:
-//       identifier: 0xEEEEEEEEEEEEEEEE (16 bytes)
-//       i32 numUMPs
-//       umps (i32, i64 or i128) in BIG endian for better binary readability.
+// See docs/MIDI2_FORMATS.md for the normative format reference.
 
 fun Midi2Music.write(stream: MutableList<Byte>) {
     val w = Midi2MusicWriter(stream)
