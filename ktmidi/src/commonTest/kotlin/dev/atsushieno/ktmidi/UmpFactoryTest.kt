@@ -313,4 +313,25 @@ class UmpFactoryTest {
         assertContentEquals(arrayOf(14, 0, 0x2E, 0x50, 18, 17, 16, 15, 22, 21, 20, 19, 26, 25, 24, 23), bytes27_2.toTypedArray(), "bytes26.2")
         assertContentEquals(arrayOf(27, 0, 0x32, 0x50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), bytes27_3.toTypedArray(), "bytes26.3")
     }
+
+    @Test
+    fun fromPlatformBytes() {
+        val bytes = listOf(0x40, 0x91, 0x40, 0, 0x64, 0, 0, 0, 0x00, 0x20, 0x00, 0xC0, 0x40, 0x81, 0x40, 0, 0, 0, 0, 0).map { it.toByte() }
+        val packets = UmpFactory.fromPlatformBytes(ByteOrder.BIG_ENDIAN, bytes).toList()
+        assertEquals(3, packets.size, "packets.size")
+        assertEquals(0x40914000, packets[0].int1, "1.1.1")
+        assertEquals(0x64000000, packets[0].int2, "1.1.2")
+        assertEquals(0x002000C0, packets[1].int1, "1.2.1")
+        assertEquals(0x40814000, packets[2].int1, "1.3.1")
+        assertEquals(0, packets[2].int2, "1.3.2")
+
+        val bytes2 = listOf(0, 0x40, 0x91, 0x40, 0, 0, 0, 0x64, 0xC0, 0x00, 0x20, 0x00, 0, 0x40, 0x81, 0x40, 0, 0, 0, 0).map { it.toByte() }
+        val packets2 = UmpFactory.fromPlatformBytes(ByteOrder.LITTLE_ENDIAN, bytes2).toList()
+        assertEquals(3, packets2.size, "packets2.size")
+        assertEquals(0x40914000, packets2[0].int1, "2.1.1")
+        assertEquals(0x64000000, packets2[0].int2, "2.1.2")
+        assertEquals(0x002000C0, packets2[1].int1, "2.2.1")
+        assertEquals(0x40814000, packets2[2].int1, "2.3.1")
+        assertEquals(0, packets2[2].int2, "2.3.2")
+    }
 }

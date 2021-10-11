@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi
 
+import io.ktor.utils.io.core.*
+
 // See docs/MIDI2_FORMATS.md for the normative format reference.
 
 fun Midi2Music.write(stream: MutableList<Byte>) {
@@ -42,33 +44,44 @@ fun Midi2Music.read(stream: List<Byte>) {
     r.readMusic()
 }
 
-internal class Midi2MusicReader(val music: Midi2Music, stream: List<Byte>) {
-
-    private val reader: Reader = Reader(stream, 0)
-
-    private fun expectIdentifier16(e: Byte) {
-        for (i in 0..15)
-            if (!reader.canRead())
-                throw IllegalArgumentException("Insufficient stream at music file identifier (at $i:  ${reader.position})")
-            else if (reader.readByte() != e)
-                throw IllegalArgumentException("Unexpected stream content at music file identifier (at $i: ${reader.position - 1})")
-    }
-
-    private fun readInt32(): Int {
+internal class UmpStreamReader(val reader: Reader, val byteOrder: ByteOrder) {
+    fun readInt32(): Int {
         var ret: Int = 0
         for (i in 0..3) {
             if (!reader.canRead())
                 throw IllegalArgumentException("Insufficient stream at music file identifier (at $i:  ${reader.position}")
-            // We read them in BIG endian regardless of the native platform.
-            ret += (reader.readByte().toUnsigned() shl (8 * (3 - i)))
+            ret += (reader.readByte().toUnsigned() shl (8 * (if (byteOrder == ByteOrder.BIG_ENDIAN) 3 - i else i)))
         }
         return ret
     }
 
+    fun readUmp(): Ump {
+        val int1 = readInt32()
+        return when (int1 shr 28) {
+            5 -> Ump(int1, readInt32(), readInt32(), readInt32())
+            3, 4 -> Ump(int1, readInt32())
+            else -> Ump(int1)
+        }
+    }
+}
+
+internal class Midi2MusicReader(val music: Midi2Music, stream: List<Byte>) {
+
+    // We read them in BIG endian regardless of the native platform.
+    private val reader = UmpStreamReader(Reader(stream, 0), ByteOrder.BIG_ENDIAN)
+
+    private fun expectIdentifier16(e: Byte) {
+        for (i in 0..15)
+            if (!reader.reader.canRead())
+                throw IllegalArgumentException("Insufficient stream at music file identifier (at $i:  ${reader.reader.position})")
+            else if (reader.reader.readByte() != e)
+                throw IllegalArgumentException("Unexpected stream content at music file identifier (at $i: ${reader.reader.position - 1})")
+    }
+
     internal fun readMusic() {
         expectIdentifier16(0xAA.toByte())
-        music.deltaTimeSpec = readInt32()
-        val numTracks = readInt32()
+        music.deltaTimeSpec = reader.readInt32()
+        val numTracks = reader.readInt32()
         for (t in 0 until numTracks)
             music.addTrack(readTrack())
     }
@@ -76,18 +89,9 @@ internal class Midi2MusicReader(val music: Midi2Music, stream: List<Byte>) {
     private fun readTrack(): Midi2Track {
         val ret = Midi2Track()
         expectIdentifier16(0xEE.toByte())
-        val numUMPs = readInt32()
+        val numUMPs = reader.readInt32()
         for (t in 0 until numUMPs)
-            ret.messages.add(readUmp())
+            ret.messages.add(reader.readUmp())
         return ret
-    }
-
-    private fun readUmp(): Ump {
-        val int1 = readInt32()
-        return when (int1 shr 28) {
-            5 -> Ump(int1, readInt32(), readInt32(), readInt32())
-            3, 4 -> Ump(int1, readInt32())
-            else -> Ump(int1)
-        }
     }
 }

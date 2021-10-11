@@ -2,6 +2,7 @@
 
 package dev.atsushieno.ktmidi
 
+import io.ktor.utils.io.core.*
 import kotlin.experimental.and
 
 private infix fun Byte.shl(n: Int): Int = this.toInt() shl n
@@ -12,7 +13,7 @@ private infix fun Short.shr(n: Int): Int = this.toInt() shr n
 const val JR_TIMESTAMP_TICKS_PER_SECOND = 31250
 const val MIDI_2_0_RESERVED: Byte = 0
 
-typealias UmpMdsHandler = (Long, Long, Int, Int, Any) -> Unit
+typealias UmpMdsHandler = (Long, Long, Int, Int, Any?) -> Unit
 
 object UmpFactory {
 
@@ -620,7 +621,11 @@ object UmpFactory {
         return Pair(readInt64Bytes(dst8.asList(), 0), readInt64Bytes(dst8.asList(), 8))
     }
 
-    fun mdsProcess(group: Byte, mdsId: Byte, data: List<Byte>, length: Int, sendUmp: UmpMdsHandler, context: Any) {
+    fun mdsProcess(group: Int, mdsId: Byte, data: List<Byte>, context: Any? = null, sendUmp: UmpMdsHandler) =
+        mdsProcess(group.toByte(), mdsId, data, data.size, sendUmp, context)
+
+    @Deprecated("Use another overload that takes sndUmp as the last parameter")
+    fun mdsProcess(group: Byte, mdsId: Byte, data: List<Byte>, length: Int, sendUmp: UmpMdsHandler, context: Any?) {
         val numChunks = mdsGetChunkCount(length)
         for (c in 0 until numChunks) {
             val maxChunkSize = 14 * 65535
@@ -633,4 +638,23 @@ object UmpFactory {
             }
         }
     }
+
+    fun mds(
+        group: Int,
+        data: List<Byte>,
+        mdsId: Byte = 0
+    ): List<Ump> {
+        val ret = mutableListOf<Ump>()
+        mdsProcess(group, mdsId, data) { l1, l2, _, _, _ -> ret.add(Ump(l1, l2)) }
+        return ret
+    }
+
+    fun fromPlatformBytes(byteOrder: ByteOrder, bytes: List<Byte>) : Iterable<Ump> =
+        sequence {
+            val reader = UmpStreamReader(Reader(bytes, 0), byteOrder)
+            while (reader.reader.canRead())
+                yield(reader.readUmp())
+        }.asIterable()
+
+    fun fromPlatformNativeBytes(bytes: List<Byte>) = this.fromPlatformBytes(ByteOrder.nativeOrder(), bytes)
 }
