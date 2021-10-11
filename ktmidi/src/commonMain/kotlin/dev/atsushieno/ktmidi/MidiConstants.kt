@@ -76,7 +76,7 @@ object MidiCIProtocolExtensions { // MIDI 2.0
     const val LARGER = 2
 }
 
-object MidiAttributeType { // MIDI 2.0
+object MidiNoteAttributeType { // MIDI 2.0
     const val NONE = 0
     const val MANUFACTURER_SPECIFIC = 1
     const val PROFILE_SPECIFIC = 2
