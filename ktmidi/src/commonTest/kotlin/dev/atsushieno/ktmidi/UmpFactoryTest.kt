@@ -103,6 +103,8 @@ class UmpFactoryTest {
         assertEqualsFlipped(v, 0x41822003FEDC4100)
         v = UmpFactory.midi2ChannelMessage8_8_32(1, MidiChannelStatus.NOTE_OFF, 2, 0x20, MidiNoteAttributeType.Pitch7_9, 0x12345678)
         assertEqualsFlipped(v, 0x4182200312345678)
+        v = UmpFactory.midi2ChannelMessage8_8_32(0, 0x60, 0, 0x40, 0, 0x81000000)
+        assertEqualsFlipped(v, 0x4060400081000000)
 
         v = UmpFactory.midi2NoteOff(1, 2, 64, 0, 0x1234, 0)
         assertEqualsFlipped(v, 0x4182400012340000)
