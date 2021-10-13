@@ -5,7 +5,7 @@ package dev.atsushieno.ktmidi
 import io.ktor.utils.io.core.*
 import kotlin.experimental.and
 
-private infix fun Byte.shl(n: Int): Int = this.toInt() shl n
+internal infix fun Byte.shl(n: Int): Int = this.toInt() shl n
 private infix fun Byte.shr(n: Int): Int = this.toInt() shr n
 private infix fun Short.shl(n: Int): Int = this.toInt() shl n
 private infix fun Short.shr(n: Int): Int = this.toInt() shr n

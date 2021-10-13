@@ -305,6 +305,59 @@ package dev.atsushieno.ktmidi {
     field public static final int SYSEX_START = 16; // 0x10
   }
 
+  public final class Midi2Machine {
+    ctor public Midi2Machine();
+    method public void addListener(@NonNull dev.atsushieno.ktmidi.Midi2Machine.Listener listener);
+    method @NonNull public dev.atsushieno.ktmidi.Midi2MachineChannel channel(int index);
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.Midi2MachineChannel> getUsedChannels();
+    method public void processEvent(@NonNull dev.atsushieno.ktmidi.Ump evt);
+    method public void removeListener(@NonNull dev.atsushieno.ktmidi.Midi2Machine.Listener listener);
+    property @NonNull public final Iterable<dev.atsushieno.ktmidi.Midi2MachineChannel> usedChannels;
+  }
+
+  public static interface Midi2Machine.Listener {
+    method public void onEvent(@NonNull dev.atsushieno.ktmidi.Ump e);
+  }
+
+  public final class Midi2MachineChannel {
+    ctor public Midi2MachineChannel();
+    method public int getCaf();
+    method @NonNull public kotlin.UInt[] getControls();
+    method @NonNull public dev.atsushieno.ktmidi.DteTarget getDteTarget();
+    method @NonNull public kotlin.UShort[] getNoteAttribute();
+    method @NonNull public kotlin.UShort[] getNoteAttributeType();
+    method @NonNull public kotlin.UShort[] getNoteVelocity();
+    method @NonNull public kotlin.UInt[] getNrpns();
+    method @NonNull public kotlin.UInt[] getPafVelocity();
+    method @NonNull public kotlin.UInt[][] getPerNoteACC();
+    method @NonNull public kotlin.UInt[] getPerNotePitchbend();
+    method @NonNull public kotlin.UInt[][] getPerNoteRCC();
+    method public int getPitchbend();
+    method public byte getProgram();
+    method @NonNull public kotlin.UInt[] getRpns();
+    method public void processMidi1Dte(byte value, boolean isMsb);
+    method public void processMidi1DteDecrement();
+    method public void processMidi1DteIncrement();
+    method public void setCaf(int caf);
+    method public void setDteTarget(@NonNull dev.atsushieno.ktmidi.DteTarget dteTarget);
+    method public void setPitchbend(int pitchbend);
+    method public void setProgram(byte program);
+    property public final int caf;
+    property @NonNull public final kotlin.UInt[] controls;
+    property @NonNull public final dev.atsushieno.ktmidi.DteTarget dteTarget;
+    property @NonNull public final kotlin.UShort[] noteAttribute;
+    property @NonNull public final kotlin.UShort[] noteAttributeType;
+    property @NonNull public final kotlin.UShort[] noteVelocity;
+    property @NonNull public final kotlin.UInt[] nrpns;
+    property @NonNull public final kotlin.UInt[] pafVelocity;
+    property @NonNull public final kotlin.UInt[][] perNoteACC;
+    property @NonNull public final kotlin.UInt[] perNotePitchbend;
+    property @NonNull public final kotlin.UInt[][] perNoteRCC;
+    property public final int pitchbend;
+    property public final byte program;
+    property @NonNull public final kotlin.UInt[] rpns;
+  }
+
   public final class Midi2Music {
     ctor public Midi2Music();
     method public void addTrack(@NonNull dev.atsushieno.ktmidi.Midi2Track track);
