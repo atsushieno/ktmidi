@@ -404,6 +404,7 @@ $dokka.location:dev.atsushieno.ktmidi/Midi2Machine///PointingToDeclaration/ktmi
 $dokka.location:dev.atsushieno.ktmidi/Midi2Machine/Midi2Machine/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi2-machine/-midi2-machine.html
 $dokka.location:dev.atsushieno.ktmidi/Midi2Machine/addListener/#dev.atsushieno.ktmidi.Midi2Machine.Listener/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi2-machine/add-listener.html
 $dokka.location:dev.atsushieno.ktmidi/Midi2Machine/channel/#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi2-machine/channel.html
+$dokka.location:dev.atsushieno.ktmidi/Midi2Machine/diagnosticsHandler/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi2-machine/diagnostics-handler.html
 $dokka.location:dev.atsushieno.ktmidi/Midi2Machine/processEvent/#dev.atsushieno.ktmidi.Ump/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi2-machine/process-event.html
 $dokka.location:dev.atsushieno.ktmidi/Midi2Machine/removeListener/#dev.atsushieno.ktmidi.Midi2Machine.Listener/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi2-machine/remove-listener.html
 $dokka.location:dev.atsushieno.ktmidi/Midi2Machine/usedChannels/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi2-machine/used-channels.html
