@@ -5,6 +5,9 @@ class Midi2Machine {
         fun onEvent(e: Ump)
     }
 
+    var diagnosticsHandler: (String, Ump?) -> Unit =
+        { message, ump -> throw UnsupportedOperationException(message + (if (ump != null) " : $ump" else null)) }
+
     private val listeners = arrayListOf<Listener>()
 
     fun addListener(listener: Listener) {
@@ -27,18 +30,26 @@ class Midi2Machine {
         return ch
     }
 
+    private fun withNoteRangeCheckV1(u: Ump, action: () -> Unit) = if (u.midi1Msb in 0..127) action() else diagnosticsHandler("Note is out of range", u)
+    private fun withNoteRangeCheckV2(u: Ump, action: () -> Unit) = if (u.midi2Note in 0..127) action() else diagnosticsHandler("Note is out of range", u)
+
     @OptIn(ExperimentalUnsignedTypes::class)
     fun processEvent(evt: Ump) {
         when (evt.messageType) {
             MidiMessageType.MIDI1 -> {
                 when (evt.eventType) {
                     MidiChannelStatus.NOTE_ON ->
-                        channel(evt.groupAndChannel).noteVelocity[evt.midi1Msb] = (evt.midi1Lsb shl 9).toUShort()
-
+                        withNoteRangeCheckV1(evt) {
+                            channel(evt.groupAndChannel).noteVelocity[evt.midi1Msb] = (evt.midi1Lsb shl 9).toUShort()
+                        }
                     MidiChannelStatus.NOTE_OFF ->
-                        channel(evt.groupAndChannel).noteVelocity[evt.midi1Msb] = 0u
+                        withNoteRangeCheckV1(evt) {
+                            channel(evt.groupAndChannel).noteVelocity[evt.midi1Msb] = 0u
+                        }
                     MidiChannelStatus.PAF ->
-                        channel(evt.groupAndChannel).pafVelocity[evt.midi1Msb] = (evt.midi1Lsb shl 25).toUInt()
+                        withNoteRangeCheckV1(evt) {
+                            channel(evt.groupAndChannel).pafVelocity[evt.midi1Msb] = (evt.midi1Lsb shl 25).toUInt()
+                        }
                     MidiChannelStatus.CC -> {
                         // FIXME: handle RPNs and NRPNs by DTE
                         when (evt.midi1Msb) {
@@ -70,17 +81,22 @@ class Midi2Machine {
             }
             MidiMessageType.MIDI2 -> {
                 when (evt.eventType) {
-                    MidiChannelStatus.NOTE_ON -> {
-                        channel(evt.groupAndChannel).noteVelocity[evt.midi2Note] = evt.midi2Velocity16.toUShort()
-                        channel(evt.groupAndChannel).noteAttribute[evt.midi2Note] =
-                            evt.midi2NoteAttributeData.toUShort()
-                        channel(evt.groupAndChannel).noteAttributeType[evt.midi2Note] =
-                            evt.midi2NoteAttributeType.toUShort()
-                    }
+                    MidiChannelStatus.NOTE_ON ->
+                        withNoteRangeCheckV2(evt) {
+                            channel(evt.groupAndChannel).noteVelocity[evt.midi2Note] = evt.midi2Velocity16.toUShort()
+                            channel(evt.groupAndChannel).noteAttribute[evt.midi2Note] =
+                                evt.midi2NoteAttributeData.toUShort()
+                            channel(evt.groupAndChannel).noteAttributeType[evt.midi2Note] =
+                                evt.midi2NoteAttributeType.toUShort()
+                        }
                     MidiChannelStatus.NOTE_OFF ->
-                        channel(evt.groupAndChannel).noteVelocity[evt.midi2Note] = 0u
+                        withNoteRangeCheckV2(evt) {
+                            channel(evt.groupAndChannel).noteVelocity[evt.midi2Note] = 0u
+                        }
                     MidiChannelStatus.PAF ->
-                        channel(evt.groupAndChannel).pafVelocity[evt.midi2Note] = evt.midi2PAfData
+                        withNoteRangeCheckV2(evt) {
+                            channel(evt.groupAndChannel).pafVelocity[evt.midi2Note] = evt.midi2PAfData
+                        }
                     MidiChannelStatus.CC -> {
                         channel(evt.groupAndChannel).controls[evt.midi2CCIndex] = evt.midi2CCData
                     }
@@ -100,11 +116,15 @@ class Midi2Machine {
                     MidiChannelStatus.PER_NOTE_PITCH_BEND ->
                         channel(evt.groupAndChannel).perNotePitchbend[evt.midi2Note] = evt.midi2PitchBendData
                     MidiChannelStatus.PER_NOTE_RCC ->
-                        channel(evt.groupAndChannel).perNoteRCC[evt.midi2PerNoteRCCIndex][evt.midi2Note] =
-                            evt.midi2PerNoteRCCData
+                        withNoteRangeCheckV2(evt) {
+                            channel(evt.groupAndChannel).perNoteRCC[evt.midi2PerNoteRCCIndex][evt.midi2Note] =
+                                evt.midi2PerNoteRCCData
+                        }
                     MidiChannelStatus.PER_NOTE_ACC ->
-                        channel(evt.groupAndChannel).perNoteACC[evt.midi2PerNoteACCIndex][evt.midi2Note] =
-                            evt.midi2PerNoteACCData
+                        withNoteRangeCheckV2(evt) {
+                            channel(evt.groupAndChannel).perNoteACC[evt.midi2PerNoteACCIndex][evt.midi2Note] =
+                                evt.midi2PerNoteACCData
+                        }
                     MidiChannelStatus.RPN ->
                         channel(evt.groupAndChannel).rpns[evt.midi2RpnMsb * 128 + evt.midi2RpnLsb] = evt.midi2RpnData
                     MidiChannelStatus.NRPN ->

@@ -309,9 +309,12 @@ package dev.atsushieno.ktmidi {
     ctor public Midi2Machine();
     method public void addListener(@NonNull dev.atsushieno.ktmidi.Midi2Machine.Listener listener);
     method @NonNull public dev.atsushieno.ktmidi.Midi2MachineChannel channel(int index);
+    method @NonNull public kotlin.jvm.functions.Function2<java.lang.String,dev.atsushieno.ktmidi.Ump,kotlin.Unit> getDiagnosticsHandler();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.Midi2MachineChannel> getUsedChannels();
     method public void processEvent(@NonNull dev.atsushieno.ktmidi.Ump evt);
     method public void removeListener(@NonNull dev.atsushieno.ktmidi.Midi2Machine.Listener listener);
+    method public void setDiagnosticsHandler(@NonNull kotlin.jvm.functions.Function2<? super java.lang.String,? super dev.atsushieno.ktmidi.Ump,kotlin.Unit> diagnosticsHandler);
+    property @NonNull public final kotlin.jvm.functions.Function2<java.lang.String,dev.atsushieno.ktmidi.Ump,kotlin.Unit> diagnosticsHandler;
     property @NonNull public final Iterable<dev.atsushieno.ktmidi.Midi2MachineChannel> usedChannels;
   }
 
