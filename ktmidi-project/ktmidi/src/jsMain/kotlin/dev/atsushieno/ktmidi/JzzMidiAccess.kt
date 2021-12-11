@@ -102,6 +102,8 @@ internal class JzzMidiOutput(private val impl: dynamic, details: MidiPortDetails
 
     // FIXME: we should come up with certain delaying queue instead of immediately delaying the processing...
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
-        impl.wait(timestampInNanoseconds / 1000).send(if (offset == 0 && length == mevent.size) mevent else mevent.copyOfRange(offset, length))
+        // Due to signed-unsigned mismatch, we have to convert ByteArray to (unsigned) number array
+        val arr = mevent.drop(offset).take(length).map { it.toUByte().toInt() }.toIntArray().asDynamic()
+        impl.wait(timestampInNanoseconds / 1000).send(arr, offset, length)
     }
 }
