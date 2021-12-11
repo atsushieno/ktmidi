@@ -36,8 +36,8 @@ jobs:
         sed -i "s/signing {}/signing { sign publishing.publications }/" extension-project/ktmidi-jvm-desktop/build.gradle
     - name: publish
       run: |
-        cd ktmidi-project && ./gradlew --warning-mode all dokkaHtml :ktmidi:publishToMavenLocal publish
-        cd extension-project && ./gradlew --warning-mode all dokkaHtml :ktmidi:publishToMavenLocal publish
+        cd ktmidi-project && ./gradlew --warning-mode all dokkaHtml build :ktmidi:publishToMavenLocal publish
+        cd extension-project && ./gradlew --warning-mode all dokkaHtml build publish
       env:
         USERNAME: atsushieno
         GITHUB_TOKEN: ${{ secrets.MAVEN_PAT }}
