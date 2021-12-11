@@ -1,0 +1,9 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'ktmidi-project'
+include("ktmidi-jvm-desktop")

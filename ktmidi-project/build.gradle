@@ -1,0 +1,20 @@
+buildscript {
+    repositories {
+        google()
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+allprojects {
+    group = 'dev.atsushieno'
+    version = '0.3.15'
+
+    repositories {
+        google()
+        mavenLocal()
+        mavenCentral()
+    }
+}
+
+apply from: "${rootDir}/publish-root.gradle"
