@@ -11,7 +11,7 @@ buildscript {
 
 plugins {
     id("com.android.library") version "4.1.3"
-    kotlin("multiplatform") version "1.5.21"
+    kotlin("multiplatform") version "1.6.0"
     id("org.jetbrains.dokka") version "1.5.0"
     id("maven-publish")
     id("signing")
@@ -62,19 +62,19 @@ kotlin {
     val isMacOSX64 = hostOs == "Mac OS X"
     val isLinuxX64 = hostOs == "Linux"
     val nativeTarget = when {
-        isMacOSX64 -> macosX64("apple") {
+        isMacOSX64 -> macosX64("native") {
             binaries {
                 staticLib {}
                 sharedLib {}
             }
         }
-        isLinuxX64 -> linuxX64("linuxX64") {
+        isLinuxX64 -> linuxX64("native") {
             binaries {
                 staticLib {}
                 sharedLib {}
             }
         }
-        isMingwX64 -> mingwX64("mingwX64") {
+        isMingwX64 -> mingwX64("native") {
             binaries {
                 staticLib {}
                 sharedLib {}
@@ -86,22 +86,23 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.2.1")
-                implementation("io.ktor:ktor-io:1.6.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC2")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.1")
+                implementation("io.ktor:ktor-io:1.6.1")
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC2")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0-RC2")
             }
         }
-        val jvmMain by getting {
-        }
+        val jvmMain by getting
         val androidMain by getting {
             dependencies {
-                implementation("androidx.core:core-ktx:1.6.0")
+                implementation("androidx.core:core-ktx:1.7.0")
             }
         }
         val androidTest by getting {
@@ -116,16 +117,17 @@ kotlin {
             }
         }
         val jsMain by getting {
+            dependencies {
+                implementation(npm("jzz", "1.4.7"))
+            }
         }
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))
             }
         }
-        val nativeMain by creating {
-        }
-        val nativeTest by creating {
-        }
+        val nativeMain by getting
+        val nativeTest by getting
         /*
         val iosMain by getting {
         }

@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.5.10'
+    id 'org.jetbrains.kotlin.jvm' version '1.6.0'
     id 'maven-publish'
     id 'signing'
 }
@@ -13,12 +13,12 @@ dependencies {
     implementation project(":ktmidi")
     implementation 'dev.atsushieno:alsakt:0.1.4.3'
     implementation "dev.atsushieno:rtmidi-jna:0.1.1"
-    implementation 'net.java.dev.jna:jna:5.8.0'
+    implementation 'net.java.dev.jna:jna:5.9.0'
     implementation 'com.nativelibs4java:jnaerator-runtime:0.12'
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-datetime:0.2.1'
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit:1.5.21'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-datetime:0.3.1'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit:1.6.0'
 }
 
 test {
@@ -52,7 +52,7 @@ afterEvaluate {
 
                 pom {
                     name.set('ktmidi-jvm-desktop')
-                    description.set('Kotlin library for MIDI 1.0 and MIDI 2.0 - ALSA')
+                    description.set('Kotlin library for MIDI 1.0 and MIDI 2.0 - ALSA and RtMidi')
                     url.set('https://github.com/atsushieno/ktmidi-jvm-desktop')
                     scm {
                         url.set('https://github.com/atsushieno/ktmidi-jvm-desktop')

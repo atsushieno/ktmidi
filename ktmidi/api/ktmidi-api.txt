@@ -257,6 +257,25 @@ package dev.atsushieno.ktmidi {
   public final class JvmMidiAccessKt {
   }
 
+  public final class JzzMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
+    method public boolean getUseSysex();
+    method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
+    property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
+    property public final boolean useSysex;
+    field @NonNull public static final dev.atsushieno.ktmidi.JzzMidiAccess.Companion Companion;
+  }
+
+  public static final class JzzMidiAccess.Companion {
+    method @Nullable public suspend Object create(boolean useSysex, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.JzzMidiAccess> p);
+  }
+
+  public final class JzzMidiAccessKt {
+  }
+
   public final class MergedMidiModuleDatabase extends dev.atsushieno.ktmidi.MidiModuleDatabase {
     ctor public MergedMidiModuleDatabase(@NonNull Iterable<? extends dev.atsushieno.ktmidi.MidiModuleDatabase> sources);
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiModuleDefinition> all();
