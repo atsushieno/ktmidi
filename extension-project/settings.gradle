@@ -2,8 +2,9 @@ pluginManagement {
     repositories {
         google()
         mavenCentral()
+        gradlePluginPortal()
     }
 }
 
-rootProject.name = 'ktmidi-project'
-include("ktmidi-jvm-desktop")
+rootProject.name = 'ktmidi_extension-project'
+include(":ktmidi-jvm-desktop")
