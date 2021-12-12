@@ -370,6 +370,14 @@ $dokka.location:dev.atsushieno.ktmidi/JvmMidiAccess/inputs/#/PointingToDeclarati
 $dokka.location:dev.atsushieno.ktmidi/JvmMidiAccess/openInputAsync/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jvm-midi-access/open-input-async.html
 $dokka.location:dev.atsushieno.ktmidi/JvmMidiAccess/openOutputAsync/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jvm-midi-access/open-output-async.html
 $dokka.location:dev.atsushieno.ktmidi/JvmMidiAccess/outputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jvm-midi-access/outputs.html
+$dokka.location:dev.atsushieno.ktmidi/JzzMidiAccess.Companion///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jzz-midi-access/-companion/index.html
+$dokka.location:dev.atsushieno.ktmidi/JzzMidiAccess.Companion/create/#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jzz-midi-access/-companion/create.html
+$dokka.location:dev.atsushieno.ktmidi/JzzMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jzz-midi-access/index.html
+$dokka.location:dev.atsushieno.ktmidi/JzzMidiAccess/inputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jzz-midi-access/inputs.html
+$dokka.location:dev.atsushieno.ktmidi/JzzMidiAccess/openInputAsync/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jzz-midi-access/open-input-async.html
+$dokka.location:dev.atsushieno.ktmidi/JzzMidiAccess/openOutputAsync/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jzz-midi-access/open-output-async.html
+$dokka.location:dev.atsushieno.ktmidi/JzzMidiAccess/outputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jzz-midi-access/outputs.html
+$dokka.location:dev.atsushieno.ktmidi/JzzMidiAccess/useSysex/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jzz-midi-access/use-sysex.html
 $dokka.location:dev.atsushieno.ktmidi/MergedMidiModuleDatabase///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-module-database/index.html
 $dokka.location:dev.atsushieno.ktmidi/MergedMidiModuleDatabase/MergedMidiModuleDatabase/#kotlin.collections.Iterable[dev.atsushieno.ktmidi.MidiModuleDatabase]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-module-database/-merged-midi-module-database.html
 $dokka.location:dev.atsushieno.ktmidi/MergedMidiModuleDatabase/all/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-module-database/all.html
