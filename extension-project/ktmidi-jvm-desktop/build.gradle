@@ -5,7 +5,7 @@ plugins {
 }
 
 dependencies {
-    implementation "dev.atsushieno:ktmidi:+"
+    implementation "dev.atsushieno:ktmidi:$version"
     implementation 'dev.atsushieno:alsakt:0.1.4.3'
     implementation "dev.atsushieno:rtmidi-jna:0.1.1"
     implementation 'net.java.dev.jna:jna:5.9.0'
