@@ -37,6 +37,7 @@ jobs:
     - name: publish
       run: |
         cd ktmidi-project && ./gradlew --warning-mode all dokkaHtml build :ktmidi:publishToMavenLocal publish
+        cd ..
         cd extension-project && ./gradlew --warning-mode all dokkaHtml build publish
       env:
         USERNAME: atsushieno
