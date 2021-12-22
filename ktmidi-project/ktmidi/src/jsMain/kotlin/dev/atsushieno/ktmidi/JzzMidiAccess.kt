@@ -31,7 +31,7 @@ class JzzMidiAccess private constructor(val useSysex: Boolean, private val jzz: 
             .iterator().asSequence<MidiPortDetails>().asIterable()
 
     override suspend fun openInputAsync(portId: String): MidiInput {
-        val details = outputs.firstOrNull { it.id == portId }
+        val details = inputs.firstOrNull { it.id == portId }
             ?: throw IllegalArgumentException("Invalid port ID was requested: $portId")
         val port = jzz.openMidiIn(details.name)
         return JzzMidiInput(port, details, MidiCIProtocolType.MIDI1)
@@ -73,12 +73,11 @@ internal class JzzMidiInput(private val impl: dynamic, details: MidiPortDetails,
     private var listener: OnMidiReceivedEventListener? = null
 
     override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
-        TODO("Not yet implemented")
+        this.listener = listener
     }
 
     override fun close() {
-        impl.disconnect(outFunc)
-        (details as JzzMidiPortDetails).item.close()
+        impl.close()
         super.close()
     }
 
@@ -96,14 +95,14 @@ internal class JzzMidiOutput(private val impl: dynamic, details: MidiPortDetails
     : JzzMidiPort(details, midiProtocol), MidiOutput {
 
     override fun close() {
-        (details as JzzMidiPortDetails).item.close()
+        impl.close()
         super.close()
     }
 
     // FIXME: we should come up with certain delaying queue instead of immediately delaying the processing...
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
         // Due to signed-unsigned mismatch, we have to convert ByteArray to (unsigned) number array
-        val arr = mevent.drop(offset).take(length).map { it.toUByte().toInt() }.toIntArray().asDynamic()
+        val arr = mevent.drop(offset).take(length).map { it.toUByte().toInt() }.toTypedArray().asDynamic()
         impl.wait(timestampInNanoseconds / 1000).send(arr, offset, length)
     }
 }
