@@ -12,7 +12,7 @@ It provides various MIDI features, including:
 - `MidiAccess` : MIDI access abstraction API like what Web MIDI API 1.0 is going to provide.
   - There are actual implementations for some platform specific MIDI API within this library, and you can implement your own backend if you need.
   - Unlike `javax.sound.midi` API, this API also covers creating virtual ports wherever possible.
-    - `ktmidi-jvm-desktop` module actually contains ALSA MIDI Access implementation as well as [RtMidi](https://github.com/thestk/rtmidi) backend that support it (Unsupported platforms are left unsupported). Note that they are for Kotlin/JVM.
+    - `ktmidi-jvm-desktop` module actually contains ALSA MIDI Access implementation as well as [RtMidi](https://github.com/thestk/rtmidi) backend via [atsushieno/rtmidi-jna](https://github.com/atsushieno/rtmidi-jna) that support it (Unsupported platforms are left unsupported). Note that they are for Kotlin/JVM.
   - For Kotlin/JS, `JzzMidiAccess` which wraps [Jazz-Soft JZZ](https://jazz-soft.net/doc/JZZ/) is included. It should cover both node.js and web browsers.
 - `MidiMusic` and `Midi2Music` : reflects Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support is not based on standard, as there is nothing like SMF specification for MIDI 2.0 yet.)
   - No strongly-typed message types (something like NoteOnMessage, NoteOffMessage, and so on). There is no point of defining strongly-typed messages for each mere MIDI status byte - you wouldn't need message type abstraction.
@@ -67,7 +67,7 @@ For platform MIDI access API, we cover the following APIs:
 
 - `AndroidMidiAccess`: Android MIDI API (in Kotlin)
 - `AlsaMidiAccess`: ALSA sequencer
-- `RtMidiAccess`: RtMidi (which covers Windows, Mac, Linux, and iOS, but iOS is in general excluded in JVM solution)
+- `RtMidiAccess`: RtMidi (which covers Windows, Mac, Linux, and iOS, but iOS is in general excluded in JVM solution. Also note that [rtmidi-jna](https://github.com/atsushieno/rtmidi-jna) contains prebuilt binaries only for those x86_64 desktop targets.)
 - `JvmMidiAccess`: javax.sound.midi API (with limited feature set).
 
 For dependency resolution reason, ALSA implementation and RtMidi implementation are split from `ktmidi-jvm` and formed as `ktmidi-jvm-desktop`.
