@@ -34,12 +34,13 @@ class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
 }
 
 private class AndroidPortDetails(val device: MidiDeviceInfo, val portInfo: MidiDeviceInfo.PortInfo) : MidiPortDetails {
+    private val significantPortName = if (portInfo.name != "input" && portInfo.name != "output") portInfo.name else null
     override val id: String
         get() = "${this.name}_${portInfo.portNumber}"
     override val manufacturer
         get() = device.properties.getString(MidiDeviceInfo.PROPERTY_MANUFACTURER)
     override val name: String?
-        get() = device.properties.getString(MidiDeviceInfo.PROPERTY_NAME)
+        get() = device.properties.getString(MidiDeviceInfo.PROPERTY_NAME) + (if (significantPortName.isNullOrEmpty()) "" else ": $significantPortName")
     override val version: String?
         get() = device.properties.getString(MidiDeviceInfo.PROPERTY_VERSION)
 }
