@@ -7,13 +7,13 @@ plugins {
 dependencies {
     implementation "dev.atsushieno:ktmidi:$version"
     implementation 'dev.atsushieno:alsakt:0.1.4.3'
-    implementation "dev.atsushieno:rtmidi-jna:0.1.1"
-    implementation 'net.java.dev.jna:jna:5.9.0'
+    implementation "dev.atsushieno:rtmidi-jna:0.1.2"
+    implementation 'net.java.dev.jna:jna:5.11.0'
     implementation 'com.nativelibs4java:jnaerator-runtime:0.12'
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0-RC2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-datetime:0.3.1'
-    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit:1.6.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-datetime:0.3.2'
+    testImplementation 'org.jetbrains.kotlin:kotlin-test-junit:1.6.21'
 }
 
 test {

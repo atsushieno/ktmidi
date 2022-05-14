@@ -12,7 +12,7 @@ buildscript {
 plugins {
     id("com.android.library") version "4.1.3"
     kotlin("multiplatform") version "1.6.0"
-    id("org.jetbrains.dokka") version "1.5.0"
+    id("org.jetbrains.dokka") version "1.6.10"
     id("maven-publish")
     id("signing")
     id("me.tylerbwong.gradle.metalava") version "0.1.9"
@@ -144,12 +144,12 @@ metalava {
 }
 
 android {
-    compileSdkVersion(31)
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["test"].assets.srcDir("src/commonTest/resources") // kind of hack...
     defaultConfig {
-        minSdkVersion(24)
-        targetSdkVersion(31)
+        compileSdk = 32
+        minSdk = 24
+        targetSdk = 32
     }
     buildTypes {
         val debug by getting {

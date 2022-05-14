@@ -1,7 +1,8 @@
 package dev.atsushieno.ktmidi
 
+import java.nio.ByteBuffer
+import java.nio.IntBuffer
 import com.ochafik.lang.jnaerator.runtime.NativeSize
-import com.sun.jna.Native
 import com.sun.jna.Pointer
 import dev.atsushieno.rtmidijna.RtMidiWrapper
 import dev.atsushieno.rtmidijna.RtmidiLibrary
@@ -10,6 +11,17 @@ import kotlinx.coroutines.yield
 class RtMidiAccess() : MidiAccess() {
     companion object {
         private val library = RtmidiLibrary.INSTANCE
+
+        internal fun getPortName(rtmidi: RtMidiWrapper, index: Int) : String {
+            val lenArr = intArrayOf(0)
+            val len = IntBuffer.wrap(lenArr)
+            if (library.rtmidi_get_port_name(rtmidi, index, null, len) < 0)
+                return "" // error
+            val nameBuf = ByteArray(len.get(0) - 1) // rtmidi returns the length with the null-terminator.
+            if (library.rtmidi_get_port_name(rtmidi, index, ByteBuffer.wrap(nameBuf), len) < 0)
+                return "" // error
+            return String(nameBuf)
+        }
     }
 
     // Ports
@@ -25,7 +37,7 @@ class RtMidiAccess() : MidiAccess() {
             val rtmidi = library.rtmidi_in_create_default()
             return sequence {
                 for (i in 0 until library.rtmidi_get_port_count(rtmidi))
-                    yield(RtMidiPortDetails(i, library.rtmidi_get_port_name(rtmidi, i)))
+                    yield(RtMidiPortDetails(i, getPortName(rtmidi, i)))
             }.asIterable()
         }
 
@@ -34,7 +46,7 @@ class RtMidiAccess() : MidiAccess() {
             val rtmidi = library.rtmidi_out_create_default()
             return sequence {
                 for (i in 0 until library.rtmidi_get_port_count(rtmidi))
-                    yield(RtMidiPortDetails(i, library.rtmidi_get_port_name(rtmidi, i)))
+                    yield(RtMidiPortDetails(i, getPortName(rtmidi, i)))
             }.asIterable()
         }
 
@@ -89,7 +101,7 @@ class RtMidiAccess() : MidiAccess() {
         private val inputHandler : RtMidiInputHandler = RtMidiInputHandler(rtmidi)
 
         override val details: MidiPortDetails
-            get() = RtMidiPortDetails(portIndex, library.rtmidi_get_port_name(rtmidi, portIndex))
+            get() = RtMidiPortDetails(portIndex, getPortName(rtmidi, portIndex))
 
         override fun close() {
             connectionState = MidiPortConnectionState.CLOSED
@@ -110,14 +122,14 @@ class RtMidiAccess() : MidiAccess() {
         override var connectionState = MidiPortConnectionState.OPEN // at created state
 
         override val details: MidiPortDetails
-            get() = RtMidiPortDetails(portIndex, library.rtmidi_get_port_name(rtmidi, portIndex))
+            get() = RtMidiPortDetails(portIndex, getPortName(rtmidi, portIndex))
 
         override fun close() {
             connectionState = MidiPortConnectionState.CLOSED
             library.rtmidi_close_port(rtmidi)
         }
 
-        override fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long) {
+        override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
             library.rtmidi_out_send_message(rtmidi, if (offset > 0) mevent.drop(offset).take(length).toByteArray() else mevent, length)
         }
 
@@ -183,7 +195,7 @@ class RtMidiAccess() : MidiAccess() {
             library.rtmidi_close_port(rtmidi)
         }
 
-        override fun send(mevent: ByteArray, offset: Int, length: Int, timestamp: Long) {
+        override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
             library.rtmidi_out_send_message(rtmidi, if (offset > 0) mevent.drop(offset).take(length).toByteArray() else mevent, length)
         }
 
