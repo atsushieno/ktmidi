@@ -67,7 +67,7 @@ For platform MIDI access API, we cover the following APIs:
 
 - `AndroidMidiAccess`: Android MIDI API (in Kotlin)
 - `AlsaMidiAccess`: ALSA sequencer
-- `RtMidiAccess`: RtMidi (which covers Windows, Mac, Linux, and iOS, but iOS is in general excluded in JVM solution. Also note that [rtmidi-jna](https://github.com/atsushieno/rtmidi-jna) contains prebuilt binaries only for those x86_64 desktop targets.)
+- `RtMidiAccess`: RtMidi (which covers Windows, Mac, Linux, and iOS, but iOS is in general excluded in JVM solution. <del>Also note that [rtmidi-jna](https://github.com/atsushieno/rtmidi-jna) contains prebuilt binaries only for those x86_64 desktop targets.</del> Due to the jar packaging issue, we cannot provide automatic native library loading solution. **You are supposed to set up rtmidi 5.0.x locally.**)
 - `JvmMidiAccess`: javax.sound.midi API (with limited feature set).
 
 For dependency resolution reason, ALSA implementation and RtMidi implementation are split from `ktmidi-jvm` and formed as `ktmidi-jvm-desktop`.
