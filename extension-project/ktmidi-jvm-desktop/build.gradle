@@ -7,7 +7,7 @@ plugins {
 dependencies {
     implementation "dev.atsushieno:ktmidi:$version"
     implementation 'dev.atsushieno:alsakt:0.1.4.3'
-    implementation "dev.atsushieno:rtmidi-jna:0.1.2"
+    implementation "dev.atsushieno:rtmidi-jna:0.1.3"
     implementation 'net.java.dev.jna:jna:5.11.0'
     implementation 'com.nativelibs4java:jnaerator-runtime:0.12'
 
