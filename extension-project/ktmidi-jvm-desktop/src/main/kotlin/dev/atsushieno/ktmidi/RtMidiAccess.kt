@@ -6,6 +6,7 @@ import com.ochafik.lang.jnaerator.runtime.NativeSize
 import com.sun.jna.Pointer
 import dev.atsushieno.rtmidijna.RtMidiWrapper
 import dev.atsushieno.rtmidijna.RtmidiLibrary
+import dev.atsushieno.rtmidijna.RtmidiLibrary.RtMidiCCallback
 import kotlinx.coroutines.yield
 
 class RtMidiAccess() : MidiAccess() {
@@ -88,9 +89,18 @@ class RtMidiAccess() : MidiAccess() {
             listener?.onEventReceived(message.getByteArray(0, messageSize.toInt()), 0, messageSize.toInt(), (timestamp * 1_000_000_000).toLong())
         }
 
+        class RtMidiAccessInputCallback(val owner: RtMidiInputHandler) : RtMidiCCallback {
+
+            override fun apply(timeStamp: Double, message: Pointer?, messageSize: NativeSize?, userData: Pointer?) {
+                owner.onRtMidiMessage(timeStamp, message!!, messageSize!!)
+            }
+        }
+
+        private val callback = RtMidiAccessInputCallback(this)
+
         init {
             library.rtmidi_in_set_callback(rtmidi,
-                { timestamp, message, messageSize, _ -> onRtMidiMessage(timestamp, message, messageSize) },
+                callback,
                 Pointer.NULL)
         }
     }

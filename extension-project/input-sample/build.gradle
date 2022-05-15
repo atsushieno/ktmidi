@@ -1,0 +1,28 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.6.10"
+    id "application"
+}
+
+
+group 'dev.atsushieno'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation('org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1')
+    implementation 'dev.atsushieno:ktmidi:+'
+    implementation project(':ktmidi-jvm-desktop')
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+run {
+    standardInput = System.in
+}

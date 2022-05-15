@@ -8,3 +8,5 @@ pluginManagement {
 
 rootProject.name = 'ktmidi_extension-project'
 include(":ktmidi-jvm-desktop")
+include 'input-sample'
+
