@@ -2,28 +2,35 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
     <title>JzzMidiAccess</title>
-<link href="../../../../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script><script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script><link href="../../../styles/style.css" rel="Stylesheet"><link href="../../../styles/logo-styles.css" rel="Stylesheet"><link href="../../../styles/jetbrains-mono.css" rel="Stylesheet"><link href="../../../styles/main.css" rel="Stylesheet"><script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script><script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script><script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script><script type="text/javascript" src="../../../scripts/main.js" async="async"></script>  </head>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>    <script>const storage = localStorage.getItem("dokka-dark-mode")
+const savedDarkMode = storage ? JSON.parse(storage) : false
+if(savedDarkMode === true){
+    document.getElementsByTagName("html")[0].classList.add("theme-dark")
+}</script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script><link href="../../../styles/style.css" rel="Stylesheet"><link href="../../../styles/jetbrains-mono.css" rel="Stylesheet"><link href="../../../styles/main.css" rel="Stylesheet"><link href="../../../styles/prism.css" rel="Stylesheet"><link href="../../../styles/logo-styles.css" rel="Stylesheet"><script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script><script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script><script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script><script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script><script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>  </head>
   <body>
+    <div class="navigation-wrapper" id="navigation-wrapper">
+      <div id="leftToggler"><span class="icon-toggler"></span></div>
+      <div class="library-name"><a href="../../../index.html">ktmidi</a></div>
+      <div>0.3.17</div>
+      <div class="pull-right d-flex">
+        <div class="filter-section" id="filter-section"><button class="platform-tag platform-selector js-like" data-active="" data-filter=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<button id="theme-toggle-button"><span id="theme-toggle"></span></button>
+        <div id="searchBar"></div>
+      </div>
+    </div>
     <div id="container">
-      <div id="leftColumn"><a href="../../../index.html">
-          <div id="logo"></div>
-        </a>
-        <div id="paneSearch"></div>
+      <div id="leftColumn">
         <div id="sideMenu"></div>
       </div>
       <div id="main">
-        <div id="leftToggler"><span class="icon-toggler"></span></div>
-<script type="text/javascript" src="../../../scripts/main.js"></script>        <div class="main-content" id="content" pageIds="ktmidi::dev.atsushieno.ktmidi/JzzMidiAccess///PointingToDeclaration//-1738481826">
-          <div class="navigation-wrapper" id="navigation-wrapper">
-            <div class="breadcrumbs"><a href="../../../index.html">ktmidi</a>/<a href="../index.html">dev.atsushieno.ktmidi</a>/<a href="index.html">JzzMidiAccess</a></div>
-            <div class="pull-right d-flex">
-              <div class="filter-section" id="filter-section"><button class="platform-tag platform-selector js-like" data-active="" data-filter=":ktmidi:dokkaHtml/jsMain">js</button></div>
-              <div id="searchBar"></div>
-            </div>
-          </div>
+        <div class="main-content" id="content" pageIds="ktmidi::dev.atsushieno.ktmidi/JzzMidiAccess///PointingToDeclaration//-1738481826">
+          <div class="breadcrumbs"><a href="../../../index.html">ktmidi</a>/<a href="../index.html">dev.atsushieno.ktmidi</a>/<a href="index.html">JzzMidiAccess</a></div>
           <div class="cover ">
-            <h1 class="cover"><span>Jzz</span><wbr></wbr><span>Midi</span><wbr></wbr><span>Access</span></h1>
-            <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace">class <a href="index.html">JzzMidiAccess</a> : <a href="../-midi-access/index.html">MidiAccess</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+            <h1 class="cover"><span>Jzz</span><wbr></wbr><span>Midi</span><wbr></wbr><span><span>Access</span></span></h1>
+            <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+              <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">JzzMidiAccess</a> : <span data-unresolved-link="dev.atsushieno.ktmidi/MidiAccess///PointingToDeclaration/">MidiAccess</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>            </div>
           </div>
           <div class="tabbedcontent">
             <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="Types">Types</button><button class="section-tab" data-togglable="Functions">Functions</button><button class="section-tab" data-togglable="Properties">Properties</button></div>
@@ -32,20 +39,17 @@
               <div class="table" data-togglable="Types"><a data-name="-47446213%2FClasslikes%2F-1738481826" anchor-label="Companion" id="-47446213%2FClasslikes%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
                 <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain">
                   <div class="main-subrow keyValue ">
-                    <div class=""><span class="inline-flex"><a href="-companion/index.html">Companion</a><span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-47446213%2FClasslikes%2F-1738481826"></span>
+                    <div class=""><span class="inline-flex">
+                        <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-47446213%2FClasslikes%2F-1738481826"></span>
                           <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                         </span></span></div>
                     <div>
-                      <div class="platform-tags ">
-                        <div class="platform-tag js-like">js</div>
+                      <div class="title">
+                        <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                          <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                        </div>
                       </div>
-                      <div class="title"><div class="divergent-group" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain"><div class="with-platform-tags"><span class="pull-right"></span></div>
-
-  <div>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace">object <a href="-companion/index.html">Companion</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
-  </div>
-</div>
-</div>
                     </div>
                   </div>
                 </div>
@@ -54,113 +58,103 @@
               <div class="table" data-togglable="Functions"><a data-name="1717738848%2FFunctions%2F-1738481826" anchor-label="createVirtualInputSender" id="1717738848%2FFunctions%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
                 <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain">
                   <div class="main-subrow keyValue ">
-                    <div class=""><span class="inline-flex"><a href="index.html#1717738848%2FFunctions%2F-1738481826">createVirtualInputSender</a><span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1717738848%2FFunctions%2F-1738481826"></span>
+                    <div class=""><span class="inline-flex">
+                        <div><a href="index.html#1717738848%2FFunctions%2F-1738481826"><span>create</span><wbr></wbr><span>Virtual</span><wbr></wbr><span>Input</span><wbr></wbr><span><span>Sender</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1717738848%2FFunctions%2F-1738481826"></span>
                           <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                         </span></span></div>
                     <div>
-                      <div class="platform-tags ">
-                        <div class="platform-tag js-like">js</div>
+                      <div class="title">
+                        <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                          <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html#1717738848%2FFunctions%2F-1738481826"><span class="token function">createVirtualInputSender</span></a><span class="token punctuation">(</span>context<span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/PortCreatorContext///PointingToDeclaration/">PortCreatorContext</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiOutput///PointingToDeclaration/">MidiOutput</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                        </div>
                       </div>
-                      <div class="title"><div class="divergent-group" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain"><div class="with-platform-tags"><span class="pull-right"></span></div>
-
-  <div>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace">open suspend fun <a href="index.html#1717738848%2FFunctions%2F-1738481826">createVirtualInputSender</a>(context: <a href="../-port-creator-context/index.html">PortCreatorContext</a>): <a href="../-midi-output/index.html">MidiOutput</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
-  </div>
-</div>
-</div>
                     </div>
                   </div>
                 </div>
 <a data-name="1387687703%2FFunctions%2F-1738481826" anchor-label="createVirtualOutputReceiver" id="1387687703%2FFunctions%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
                 <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain">
                   <div class="main-subrow keyValue ">
-                    <div class=""><span class="inline-flex"><a href="index.html#1387687703%2FFunctions%2F-1738481826">createVirtualOutputReceiver</a><span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1387687703%2FFunctions%2F-1738481826"></span>
+                    <div class=""><span class="inline-flex">
+                        <div><a href="index.html#1387687703%2FFunctions%2F-1738481826"><span>create</span><wbr></wbr><span>Virtual</span><wbr></wbr><span>Output</span><wbr></wbr><span><span>Receiver</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1387687703%2FFunctions%2F-1738481826"></span>
                           <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                         </span></span></div>
                     <div>
-                      <div class="platform-tags ">
-                        <div class="platform-tag js-like">js</div>
+                      <div class="title">
+                        <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                          <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html#1387687703%2FFunctions%2F-1738481826"><span class="token function">createVirtualOutputReceiver</span></a><span class="token punctuation">(</span>context<span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/PortCreatorContext///PointingToDeclaration/">PortCreatorContext</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiInput///PointingToDeclaration/">MidiInput</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                        </div>
                       </div>
-                      <div class="title"><div class="divergent-group" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain"><div class="with-platform-tags"><span class="pull-right"></span></div>
-
-  <div>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace">open suspend fun <a href="index.html#1387687703%2FFunctions%2F-1738481826">createVirtualOutputReceiver</a>(context: <a href="../-port-creator-context/index.html">PortCreatorContext</a>): <a href="../-midi-input/index.html">MidiInput</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
-  </div>
-</div>
-</div>
                     </div>
                   </div>
                 </div>
 <a data-name="-29588326%2FFunctions%2F-1738481826" anchor-label="openInputAsync" id="-29588326%2FFunctions%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
                 <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain">
                   <div class="main-subrow keyValue ">
-                    <div class=""><span class="inline-flex"><a href="open-input-async.html">openInputAsync</a><span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-29588326%2FFunctions%2F-1738481826"></span>
+                    <div class=""><span class="inline-flex">
+                        <div><a href="open-input-async.html"><span>open</span><wbr></wbr><span>Input</span><wbr></wbr><span><span>Async</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-29588326%2FFunctions%2F-1738481826"></span>
                           <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                         </span></span></div>
                     <div>
-                      <div class="platform-tags ">
-                        <div class="platform-tag js-like">js</div>
+                      <div class="title">
+                        <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                          <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="open-input-async.html"><span class="token function">openInputAsync</span></a><span class="token punctuation">(</span>portId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiInput///PointingToDeclaration/">MidiInput</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                        </div>
                       </div>
-                      <div class="title"><div class="divergent-group" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain"><div class="with-platform-tags"><span class="pull-right"></span></div>
-
-  <div>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace">open suspend override fun <a href="open-input-async.html">openInputAsync</a>(portId: <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a>): <a href="../-midi-input/index.html">MidiInput</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
-  </div>
-</div>
-</div>
                     </div>
                   </div>
                 </div>
 <a data-name="2146034017%2FFunctions%2F-1738481826" anchor-label="openOutputAsync" id="2146034017%2FFunctions%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
                 <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain">
                   <div class="main-subrow keyValue ">
-                    <div class=""><span class="inline-flex"><a href="open-output-async.html">openOutputAsync</a><span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2146034017%2FFunctions%2F-1738481826"></span>
+                    <div class=""><span class="inline-flex">
+                        <div><a href="open-output-async.html"><span>open</span><wbr></wbr><span>Output</span><wbr></wbr><span><span>Async</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2146034017%2FFunctions%2F-1738481826"></span>
                           <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                         </span></span></div>
                     <div>
-                      <div class="platform-tags ">
-                        <div class="platform-tag js-like">js</div>
+                      <div class="title">
+                        <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                          <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="open-output-async.html"><span class="token function">openOutputAsync</span></a><span class="token punctuation">(</span>portId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiOutput///PointingToDeclaration/">MidiOutput</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                        </div>
                       </div>
-                      <div class="title"><div class="divergent-group" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain"><div class="with-platform-tags"><span class="pull-right"></span></div>
-
-  <div>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><div class="symbol monospace">open suspend override fun <a href="open-output-async.html">openOutputAsync</a>(portId: <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a>): <a href="../-midi-output/index.html">MidiOutput</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
-  </div>
-</div>
-</div>
                     </div>
                   </div>
                 </div>
               </div>
               <h2 class="">Properties</h2>
-              <div class="table" data-togglable="Properties"><a data-name="-1561619578%2FProperties%2F-1738481826" anchor-label="canCreateVirtualPort" id="-1561619578%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
+              <div class="table" data-togglable="Properties"><a data-name="1362902858%2FProperties%2F-1738481826" anchor-label="canCreateVirtualPort" id="1362902858%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
                 <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain">
                   <div class="main-subrow keyValue ">
-                    <div class=""><span class="inline-flex"><a href="index.html#-1561619578%2FProperties%2F-1738481826">canCreateVirtualPort</a><span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1561619578%2FProperties%2F-1738481826"></span>
+                    <div class=""><span class="inline-flex">
+                        <div><a href="index.html#1362902858%2FProperties%2F-1738481826">canCreateVirtualPort</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1362902858%2FProperties%2F-1738481826"></span>
                           <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                         </span></span></div>
                     <div>
-                      <div class="platform-tags ">
-                        <div class="platform-tag js-like">js</div>
-                      </div>
                       <div class="title">
-                        <div class="platform-hinted " data-platform-hinted="data-platform-hinted" data-togglable="Properties"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="-1561619578%2FProperties%2F-1738481826" anchor-label="canCreateVirtualPort" id="-1561619578%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace">open val <a href="index.html#-1561619578%2FProperties%2F-1738481826">canCreateVirtualPort</a>: <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a> = false<span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+                        <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
+                          <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="1362902858%2FProperties%2F-1738481826" anchor-label="canCreateVirtualPort" id="1362902858%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">val </span><a href="index.html#1362902858%2FProperties%2F-1738481826">canCreateVirtualPort</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-<a data-name="-2019436561%2FProperties%2F-1738481826" anchor-label="canDetectStateChanges" id="-2019436561%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
+<a data-name="-1553554261%2FProperties%2F-1738481826" anchor-label="canDetectStateChanges" id="-1553554261%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
                 <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain">
                   <div class="main-subrow keyValue ">
-                    <div class=""><span class="inline-flex"><a href="index.html#-2019436561%2FProperties%2F-1738481826">canDetectStateChanges</a><span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2019436561%2FProperties%2F-1738481826"></span>
+                    <div class=""><span class="inline-flex">
+                        <div><a href="index.html#-1553554261%2FProperties%2F-1738481826">canDetectStateChanges</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1553554261%2FProperties%2F-1738481826"></span>
                           <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                         </span></span></div>
                     <div>
-                      <div class="platform-tags ">
-                        <div class="platform-tag js-like">js</div>
-                      </div>
                       <div class="title">
-                        <div class="platform-hinted " data-platform-hinted="data-platform-hinted" data-togglable="Properties"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="-2019436561%2FProperties%2F-1738481826" anchor-label="canDetectStateChanges" id="-2019436561%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace">open val <a href="index.html#-2019436561%2FProperties%2F-1738481826">canDetectStateChanges</a>: <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a> = false<span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+                        <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
+                          <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="-1553554261%2FProperties%2F-1738481826" anchor-label="canDetectStateChanges" id="-1553554261%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">val </span><a href="index.html#-1553554261%2FProperties%2F-1738481826">canDetectStateChanges</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                        </div>
                       </div>
                     </div>
                   </div>
@@ -168,15 +162,16 @@
 <a data-name="-514508003%2FProperties%2F-1738481826" anchor-label="inputs" id="-514508003%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
                 <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain">
                   <div class="main-subrow keyValue ">
-                    <div class=""><span class="inline-flex"><a href="inputs.html">inputs</a><span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-514508003%2FProperties%2F-1738481826"></span>
+                    <div class=""><span class="inline-flex">
+                        <div><a href="inputs.html">inputs</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-514508003%2FProperties%2F-1738481826"></span>
                           <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                         </span></span></div>
                     <div>
-                      <div class="platform-tags ">
-                        <div class="platform-tag js-like">js</div>
-                      </div>
                       <div class="title">
-                        <div class="platform-hinted " data-platform-hinted="data-platform-hinted" data-togglable="Properties"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="-514508003%2FProperties%2F-1738481826" anchor-label="inputs" id="-514508003%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace">open override val <a href="inputs.html">inputs</a>: <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-iterable/index.html">Iterable</a>&lt;<a href="../-midi-port-details/index.html">MidiPortDetails</a>&gt;<span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+                        <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
+                          <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="-514508003%2FProperties%2F-1738481826" anchor-label="inputs" id="-514508003%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="inputs.html">inputs</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-iterable/index.html">Iterable</a><span class="token operator">&lt;</span><span class="token keyword"></span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiPortDetails///PointingToDeclaration/">MidiPortDetails</span><span class="token operator">&gt;</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                        </div>
                       </div>
                     </div>
                   </div>
@@ -184,31 +179,33 @@
 <a data-name="-932079518%2FProperties%2F-1738481826" anchor-label="outputs" id="-932079518%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
                 <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain">
                   <div class="main-subrow keyValue ">
-                    <div class=""><span class="inline-flex"><a href="outputs.html">outputs</a><span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-932079518%2FProperties%2F-1738481826"></span>
+                    <div class=""><span class="inline-flex">
+                        <div><a href="outputs.html">outputs</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-932079518%2FProperties%2F-1738481826"></span>
                           <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                         </span></span></div>
                     <div>
-                      <div class="platform-tags ">
-                        <div class="platform-tag js-like">js</div>
-                      </div>
                       <div class="title">
-                        <div class="platform-hinted " data-platform-hinted="data-platform-hinted" data-togglable="Properties"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="-932079518%2FProperties%2F-1738481826" anchor-label="outputs" id="-932079518%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace">open override val <a href="outputs.html">outputs</a>: <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-iterable/index.html">Iterable</a>&lt;<a href="../-midi-port-details/index.html">MidiPortDetails</a>&gt;<span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+                        <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
+                          <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="-932079518%2FProperties%2F-1738481826" anchor-label="outputs" id="-932079518%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="outputs.html">outputs</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-iterable/index.html">Iterable</a><span class="token operator">&lt;</span><span class="token keyword"></span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiPortDetails///PointingToDeclaration/">MidiPortDetails</span><span class="token operator">&gt;</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-<a data-name="1051813539%2FProperties%2F-1738481826" anchor-label="stateChanged" id="1051813539%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
+<a data-name="1253840487%2FProperties%2F-1738481826" anchor-label="stateChanged" id="1253840487%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
                 <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain">
                   <div class="main-subrow keyValue ">
-                    <div class=""><span class="inline-flex"><a href="index.html#1051813539%2FProperties%2F-1738481826">stateChanged</a><span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1051813539%2FProperties%2F-1738481826"></span>
+                    <div class=""><span class="inline-flex">
+                        <div><a href="index.html#1253840487%2FProperties%2F-1738481826">stateChanged</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1253840487%2FProperties%2F-1738481826"></span>
                           <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                         </span></span></div>
                     <div>
-                      <div class="platform-tags ">
-                        <div class="platform-tag js-like">js</div>
-                      </div>
                       <div class="title">
-                        <div class="platform-hinted " data-platform-hinted="data-platform-hinted" data-togglable="Properties"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="1051813539%2FProperties%2F-1738481826" anchor-label="stateChanged" id="1051813539%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace">var <a href="index.html#1051813539%2FProperties%2F-1738481826">stateChanged</a>: (<a href="../-midi-port-details/index.html">MidiPortDetails</a>) -&gt; <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+                        <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
+                          <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="1253840487%2FProperties%2F-1738481826" anchor-label="stateChanged" id="1253840487%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="index.html#1253840487%2FProperties%2F-1738481826">stateChanged</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiPortDetails///PointingToDeclaration/">MidiPortDetails</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                        </div>
                       </div>
                     </div>
                   </div>
@@ -216,15 +213,16 @@
 <a data-name="-740977203%2FProperties%2F-1738481826" anchor-label="useSysex" id="-740977203%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a>
                 <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain">
                   <div class="main-subrow keyValue ">
-                    <div class=""><span class="inline-flex"><a href="use-sysex.html">useSysex</a><span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-740977203%2FProperties%2F-1738481826"></span>
+                    <div class=""><span class="inline-flex">
+                        <div><a href="use-sysex.html">useSysex</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-740977203%2FProperties%2F-1738481826"></span>
                           <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                         </span></span></div>
                     <div>
-                      <div class="platform-tags ">
-                        <div class="platform-tag js-like">js</div>
-                      </div>
                       <div class="title">
-                        <div class="platform-hinted " data-platform-hinted="data-platform-hinted" data-togglable="Properties"><div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="-740977203%2FProperties%2F-1738481826" anchor-label="useSysex" id="-740977203%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace">val <a href="use-sysex.html">useSysex</a>: <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div></div>
+                        <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
+                          <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark js-like" data-filterable-current=":ktmidi:dokkaHtml/jsMain" data-filterable-set=":ktmidi:dokkaHtml/jsMain" data-active="" data-toggle=":ktmidi:dokkaHtml/jsMain">js</button></div>
+<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/jsMain"><a data-name="-740977203%2FProperties%2F-1738481826" anchor-label="useSysex" id="-740977203%2FProperties%2F-1738481826" data-filterable-set=":ktmidi:dokkaHtml/jsMain"></a><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">val </span><a href="use-sysex.html">useSysex</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                        </div>
                       </div>
                     </div>
                   </div>
@@ -233,7 +231,7 @@
             </div>
           </div>
         </div>
-        <div class="footer"><span class="go-to-top-icon"><a href="#content"></a></span><span>© 2021 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span></div>
+        <div class="footer"><span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2022 Copyright</span><span class="pull-right"><span>Generated by </span><a href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span></div>
       </div>
     </div>
   </body>
