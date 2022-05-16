@@ -56,9 +56,7 @@ In audio processing world, music playback engine would be implemented in realtim
 
 Since audio processing is based on chunked buffers, MIDI inputs are also buffered in such processing approach.
 
-Our `MidiPlayer` and `Midi2Player` is NOT realtime safe. It is simpler event based implementation that makes use of mutex. We are living with garbage collectors and JIT engines, so expecting realtime safety is awkward.
-
-When Kotlin-Native becomes more popular and usecases becomes much broader, there may be professional realtime need, but until that happens, we wouldn't spend too much effort. (But contributions are of course welcome.)
+Our `MidiPlayer` and `Midi2Player` is NOT realtime safe. It is simpler event based implementation that makes use of mutex. Kotlin programs build on top of garbage collectors and JIT engines, so expecting realtime safety is awkward.
 
 
 ## Format 0
