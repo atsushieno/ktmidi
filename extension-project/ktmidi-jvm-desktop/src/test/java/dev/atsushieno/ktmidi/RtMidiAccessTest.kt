@@ -1,15 +1,20 @@
 package dev.atsushieno.ktmidi
 
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
 class RtMidiAccessTest {
     @Test
     fun rtMidiAccessInfo() {
-        val rtmidi = RtMidiAccess()
-        rtmidi.inputs.forEach { println("${it.id}: ${it.name}") }
-        rtmidi.outputs.forEach { println("${it.id}: ${it.name}") }
+        // skip running this test on Linux VMs.
+        if (System.getProperty("os.name").lowercase().contains("linux") && !File("/dev/snd/seq").exists()) {
+            println("Test rtMidiAccessInfo() is skipped as ALSA is unavailable.")
+            return
+        }
 
+        val rtmidi = RtMidiAccess()
+        
         rtmidi.inputs.forEach {
             assertTrue(it.id.isNotEmpty(), "input.id")
             assertTrue(it.name!!.isNotEmpty(), "input.name for id: '${it.id}'")
