@@ -7,10 +7,10 @@ import kotlin.test.assertTrue
 class RtMidiAccessTest {
     @Test
     fun rtMidiAccessInfo() {
-        // skip running this test on Linux VMs.
-        val seq = File("/dev/snd/seq")
-        if (System.getProperty("os.name").lowercase().contains("linux") && (!seq.exists() || !seq.canRead() || !seq.canWrite())) {
-            println("Test rtMidiAccessInfo() is skipped as ALSA is unavailable.")
+        // skip running this test on GH Actions Linux VMs (it's kind of hacky check but would be mostly harmless...)
+        val homeRunnwrWork = File("/home/runner/work")
+        if (System.getProperty("os.name").lowercase().contains("linux") && homeRunnwrWork.exists()) {
+            println("Test rtMidiAccessInfo() is skipped on GitHub Actions as ALSA is unavailable.")
             return
         }
 
