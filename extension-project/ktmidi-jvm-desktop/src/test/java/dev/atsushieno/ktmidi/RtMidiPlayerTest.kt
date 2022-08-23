@@ -18,8 +18,13 @@ class RtMidiPlayerTest {
 
     @Test
     fun playSimple() {
-        if (!File("/dev/snd/seq").exists())
+        // skip running this test on GH Actions Linux VMs (it's kind of hacky check but would be mostly harmless...)
+        val homeRunnwrWork = File("/home/runner/work")
+        if (System.getProperty("os.name").lowercase().contains("linux") && homeRunnwrWork.exists()) {
+            println("Test rtMidiAccessInfo() is skipped on GitHub Actions as ALSA is unavailable.")
             return
+        }
+
         runBlocking {
             delay(100)
             val vt = VirtualMidiPlayerTimer()
