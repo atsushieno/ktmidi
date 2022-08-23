@@ -37,6 +37,8 @@ jobs:
         path: |
           ktmidi-project/ktmidi/build/reports/
           extension-project/ktmidi-jvm-desktop/build/reports/
+          ktmidi-project/ktmidi/*.log
+          extension-project/ktmidi-jvm-desktop/*.log
     - name: upload artifact
       if: success()
       uses: actions/upload-artifact@v2
