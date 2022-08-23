@@ -12,7 +12,10 @@ interface MidiPlayerTimer {
 }
 
 @OptIn(ExperimentalTime::class)
-class SimpleAdjustingMidiPlayerTimer : MidiPlayerTimer {
+class SimpleAdjustingMidiPlayerTimer(private val timeSource: TimeSource = TimeSource.Monotonic) : MidiPlayerTimer {
+    @Deprecated("This constructor will be removed in the future")
+    constructor() : this(TimeSource.Monotonic)
+
     private lateinit var startedTime: TimeMark
     private var nominalTotalSeconds: Double = 0.0
 
@@ -23,7 +26,7 @@ class SimpleAdjustingMidiPlayerTimer : MidiPlayerTimer {
                 val actualTotalSeconds = startedTime.elapsedNow().inWholeMicroseconds / 1_000_000.0
                 delta -= actualTotalSeconds - nominalTotalSeconds
             } else {
-                startedTime = TimeSource.Monotonic.markNow()
+                startedTime = timeSource.markNow()
             }
             if (delta > 0)
                 delay((delta * 1000).toLong())

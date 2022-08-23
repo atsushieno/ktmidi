@@ -10,6 +10,14 @@ package dev.atsushieno.ktmidi {
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
   }
 
+  public final class CIFactoryTest {
+    ctor public CIFactoryTest();
+    method public void testDiscoveryMessages();
+    method public void testProfileConfigurationMessages();
+    method public void testPropertyExchangeMessages();
+    method public void testProtocolNegotiationMessages();
+  }
+
   public final class DefaultMidiModuleDatabase extends dev.atsushieno.ktmidi.MidiModuleDatabase {
     ctor public DefaultMidiModuleDatabase();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiModuleDefinition> all();
@@ -276,6 +284,13 @@ package dev.atsushieno.ktmidi {
   public final class JzzMidiAccessKt {
   }
 
+  public final class JzzMidiAccessTest {
+    ctor public JzzMidiAccessTest();
+    method public error.NonExistentClass create();
+    method public error.NonExistentClass input();
+    method public error.NonExistentClass output();
+  }
+
   public final class MergedMidiModuleDatabase extends dev.atsushieno.ktmidi.MidiModuleDatabase {
     ctor public MergedMidiModuleDatabase(@NonNull Iterable<? extends dev.atsushieno.ktmidi.MidiModuleDatabase> sources);
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiModuleDefinition> all();
@@ -287,13 +302,11 @@ package dev.atsushieno.ktmidi {
   public final class Midi1Player extends dev.atsushieno.ktmidi.MidiPlayer {
     ctor public Midi1Player(@NonNull dev.atsushieno.ktmidi.MidiMusic music, @NonNull dev.atsushieno.ktmidi.MidiOutput output, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional boolean shouldDisposeOutput);
     method public void addOnMessageListener(@NonNull dev.atsushieno.ktmidi.OnMidiMessageListener listener);
-    method @NonNull public dev.atsushieno.ktmidi.Midi1EventLooper getLooper$metalava_module();
     method public long getPositionInMilliseconds();
     method public int getTotalPlayTimeMilliseconds();
     method public void removeOnMessageListener(@NonNull dev.atsushieno.ktmidi.OnMidiMessageListener listener);
     method public void seek(int ticks);
     method public void setMutedChannels(@NonNull Iterable<java.lang.Integer> mutedChannels);
-    property @NonNull public dev.atsushieno.ktmidi.Midi1EventLooper looper;
     property public long positionInMilliseconds;
     property public int totalPlayTimeMilliseconds;
     field @NonNull public static final dev.atsushieno.ktmidi.Midi1Player.Companion Companion;
@@ -301,6 +314,18 @@ package dev.atsushieno.ktmidi {
 
   public static final class Midi1Player.Companion {
     method @Nullable public suspend Object create(@NonNull dev.atsushieno.ktmidi.MidiMusic music, @NonNull dev.atsushieno.ktmidi.MidiAccess access, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player> p);
+  }
+
+  public final class Midi1PlayerTest {
+    ctor public Midi1PlayerTest();
+    method public void getTimePositionInMillisecondsForTick();
+    method public void playSimple();
+    method public void playbackCompletedToEnd();
+    method public void playbackCompletedToEndAbort();
+  }
+
+  public static final class Midi1PlayerTest.AlmostVirtualMidiPlayerTimer extends dev.atsushieno.ktmidi.VirtualMidiPlayerTimer {
+    ctor public Midi1PlayerTest.AlmostVirtualMidiPlayerTimer();
   }
 
   public class Midi1TrackSplitter {
@@ -412,16 +437,27 @@ package dev.atsushieno.ktmidi {
     method @NonNull public static dev.atsushieno.ktmidi.Midi2Music splitTracksByChannel(@NonNull dev.atsushieno.ktmidi.Midi2Track);
   }
 
+  public final class Midi2MusicTest {
+    ctor public Midi2MusicTest();
+    method public void readWriteMusic();
+    method public void writeSysex8();
+  }
+
+  public final class Midi2MusicTestKt {
+    method @NonNull public static java.util.List<java.lang.Byte> getMusicFileIdentifier();
+    method @NonNull public static java.util.List<java.lang.Byte> getMusicTrackIdentifier();
+    property @NonNull public static final java.util.List<java.lang.Byte> musicFileIdentifier;
+    property @NonNull public static final java.util.List<java.lang.Byte> musicTrackIdentifier;
+  }
+
   public final class Midi2Player extends dev.atsushieno.ktmidi.MidiPlayer {
     ctor public Midi2Player(@NonNull dev.atsushieno.ktmidi.Midi2Music music, @NonNull dev.atsushieno.ktmidi.MidiOutput output, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional boolean shouldDisposeOutput);
     method public void addOnMessageListener(@NonNull dev.atsushieno.ktmidi.OnMidi2EventListener listener);
-    method @NonNull public dev.atsushieno.ktmidi.Midi2EventLooper getLooper$metalava_module();
     method public long getPositionInMilliseconds();
     method public int getTotalPlayTimeMilliseconds();
     method public void removeOnMessageListener(@NonNull dev.atsushieno.ktmidi.OnMidi2EventListener listener);
     method public void seek(int ticks);
     method public void setMutedChannels(@NonNull Iterable<java.lang.Integer> mutedChannels);
-    property @NonNull public dev.atsushieno.ktmidi.Midi2EventLooper looper;
     property public long positionInMilliseconds;
     property public int totalPlayTimeMilliseconds;
     field @NonNull public static final dev.atsushieno.ktmidi.Midi2Player.Companion Companion;
@@ -474,6 +510,7 @@ package dev.atsushieno.ktmidi {
 
   public final class MidiAccessKt {
     method @NonNull public static dev.atsushieno.ktmidi.EmptyMidiAccess getEmptyMidiAccess();
+    property @NonNull public static final dev.atsushieno.ktmidi.EmptyMidiAccess emptyMidiAccess;
   }
 
   public final class MidiBankDefinition {
@@ -772,6 +809,7 @@ package dev.atsushieno.ktmidi {
 
   public final class MidiModuleDatabase_jvmKt {
     method @NonNull public static dev.atsushieno.ktmidi.DefaultMidiModuleDatabase getDefaultMidiModuleDatabase();
+    property @NonNull public static final dev.atsushieno.ktmidi.DefaultMidiModuleDatabase defaultMidiModuleDatabase;
   }
 
   public final class MidiModuleDefinition {
@@ -824,6 +862,53 @@ package dev.atsushieno.ktmidi {
   public final class MidiMusicKt {
     method @NonNull public static dev.atsushieno.ktmidi.MidiMusic mergeTracks(@NonNull dev.atsushieno.ktmidi.MidiMusic);
     method @NonNull public static dev.atsushieno.ktmidi.MidiMusic splitTracksByChannel(@NonNull dev.atsushieno.ktmidi.MidiTrack, byte deltaTimeSpec);
+  }
+
+  @kotlin.ExperimentalUnsignedTypes public final class MidiMusicUnitTest {
+    ctor public MidiMusicUnitTest();
+    method public void convert();
+    method public void encode7BitLength();
+    method public void getFixedSize();
+    method public void getSmfBpm();
+    method public void midiEventConvert();
+    method public void midiMusicGetPlayTimeMillisecondsAtTick();
+    method public void smfReaderRead();
+    method public void smfWriterWrite();
+    method public void unsignedOperations();
+  }
+
+  public static final class MidiMusicUnitTest.L {
+    ctor public MidiMusicUnitTest.L();
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiMusicUnitTest.L.Companion Companion;
+  }
+
+  public static final class MidiMusicUnitTest.L.Companion {
+    method public int getD();
+    method public int getE();
+    method public int getH();
+    method public int getK();
+    method public int getR();
+    method public int getS();
+    method public int getT();
+    property public final int d;
+    property public final int e;
+    property public final int h;
+    property public final int k;
+    property public final int r;
+    property public final int s;
+    property public final int t;
+  }
+
+  public static final class MidiMusicUnitTest.U {
+    ctor public MidiMusicUnitTest.U();
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiMusicUnitTest.U.Companion Companion;
+  }
+
+  public static final class MidiMusicUnitTest.U.Companion {
+    method public int getM();
+    method public int getT();
+    property public final int M;
+    property public final int T;
   }
 
   public final class MidiNoteAttributeType {
@@ -882,6 +967,11 @@ package dev.atsushieno.ktmidi {
     method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit> p);
   }
 
+  public final class MidiPlayerTimerTest {
+    ctor public MidiPlayerTimerTest();
+    method public void simpleTimerTest();
+  }
+
   public interface MidiPort {
     method public void close();
     method @NonNull public dev.atsushieno.ktmidi.MidiPortConnectionState getConnectionState();
@@ -925,6 +1015,12 @@ package dev.atsushieno.ktmidi {
   public final class MidiReaderWriterKt {
     method public static void read(@NonNull dev.atsushieno.ktmidi.MidiMusic, @NonNull java.util.List<java.lang.Byte> stream);
     method public static void write(@NonNull dev.atsushieno.ktmidi.MidiMusic, @NonNull java.util.List<java.lang.Byte> stream, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Boolean,? super dev.atsushieno.ktmidi.MidiMessage,? super java.util.List<java.lang.Byte>,java.lang.Integer> metaEventWriter);
+  }
+
+  public final class MidiReaderWriterTest {
+    ctor public MidiReaderWriterTest();
+    method public void readMusicFromResource();
+    method public void writeMetaText();
   }
 
   public final class MidiRpn {
@@ -1019,7 +1115,7 @@ package dev.atsushieno.ktmidi {
   }
 
   public final class SimpleAdjustingMidiPlayerTimer implements dev.atsushieno.ktmidi.MidiPlayerTimer {
-    ctor public SimpleAdjustingMidiPlayerTimer();
+    ctor public SimpleAdjustingMidiPlayerTimer(optional @NonNull kotlin.time.TimeSource timeSource);
     method public void stop();
     method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit> p);
   }
@@ -1073,6 +1169,18 @@ package dev.atsushieno.ktmidi {
   public static final class SmfWriterExtension.Companion {
     method @NonNull public kotlin.jvm.functions.Function3<java.lang.Boolean,dev.atsushieno.ktmidi.MidiMessage,java.util.List<java.lang.Byte>,java.lang.Integer> getDEFAULT_META_EVENT_WRITER();
     property @NonNull public final kotlin.jvm.functions.Function3<java.lang.Boolean,dev.atsushieno.ktmidi.MidiMessage,java.util.List<java.lang.Byte>,java.lang.Integer> DEFAULT_META_EVENT_WRITER;
+  }
+
+  public final class TestHelper {
+    ctor public TestHelper();
+    field @NonNull public static final dev.atsushieno.ktmidi.TestHelper.Companion Companion;
+  }
+
+  public static final class TestHelper.Companion {
+    method @NonNull public dev.atsushieno.ktmidi.MidiMusic getMidiMusic();
+    method @NonNull public dev.atsushieno.ktmidi.MidiMusic getMidiMusic(@NonNull String resourceId);
+    method @Nullable public suspend Object getMidiPlayer(@Nullable dev.atsushieno.ktmidi.MidiPlayerTimer timeManager, @Nullable dev.atsushieno.ktmidi.MidiMusic midiMusic, optional @Nullable dev.atsushieno.ktmidi.MidiAccess midiAccess, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player> p);
+    method @Nullable public suspend Object getMidiPlayer(optional @Nullable dev.atsushieno.ktmidi.MidiPlayerTimer timeManager, optional @Nullable dev.atsushieno.ktmidi.MidiAccess midiAccess, optional @Nullable String resourceId, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player> p);
   }
 
   public final class Ump {
@@ -1174,6 +1282,22 @@ package dev.atsushieno.ktmidi {
     field public static final byte MIDI_2_0_RESERVED = 0; // 0x0
   }
 
+  public final class UmpFactoryTest {
+    ctor public UmpFactoryTest();
+    method public void fromPlatformBytes();
+    method public void sysex7Process();
+    method public void sysex8Process();
+    method public void testType0Messages();
+    method public void testType1Messages();
+    method public void testType2Messages();
+    method public void testType3Messages();
+    method public void testType4Messages();
+    method public void testType5Messages();
+  }
+
+  public final class UmpFactoryTestKt {
+  }
+
   public final class UmpRetrievalKt {
     method public static int getChannelInGroup(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getEventType(@NonNull dev.atsushieno.ktmidi.Ump);
@@ -1244,9 +1368,21 @@ package dev.atsushieno.ktmidi {
     field @NonNull public static final dev.atsushieno.ktmidi.UmpRetriever INSTANCE;
   }
 
+  public final class UmpRetrieverTest {
+    ctor public UmpRetrieverTest();
+    method public void getSysex7Data1();
+    method public void getSysex7Data2();
+    method public void getSysex8Data();
+  }
+
   public enum UmpSysexBinaryRetrieverFallback {
     enum_constant public static final dev.atsushieno.ktmidi.UmpSysexBinaryRetrieverFallback Break;
     enum_constant public static final dev.atsushieno.ktmidi.UmpSysexBinaryRetrieverFallback Exception;
+  }
+
+  public final class UmpTest {
+    ctor public UmpTest();
+    method public void testToAndFromBytes();
   }
 
   public class VirtualMidiPlayerTimer implements dev.atsushieno.ktmidi.MidiPlayerTimer {

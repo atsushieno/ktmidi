@@ -5,17 +5,17 @@ buildscript {
         maven("https://plugins.gradle.org/m2/")
     }
     dependencies {
-        classpath("me.tylerbwong.gradle:metalava-gradle:0.1.9")
+        classpath("me.tylerbwong.gradle:metalava-gradle:0.2.3")
     }
 }
 
 plugins {
-    id("com.android.library") version "4.1.3"
-    kotlin("multiplatform") version "1.6.0"
-    id("org.jetbrains.dokka") version "1.6.10"
+    id("com.android.library") version "7.2.0"
+    kotlin("multiplatform") version "1.7.10"
+    id("org.jetbrains.dokka") version "1.7.10"
     id("maven-publish")
     id("signing")
-    id("me.tylerbwong.gradle.metalava") version "0.1.9"
+    id("me.tylerbwong.gradle.metalava") version "0.2.3"
 }
 
 repositories {
@@ -86,8 +86,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
                 implementation("io.ktor:ktor-io:1.6.1")
             }
         }
@@ -95,14 +95,14 @@ kotlin {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
             }
         }
         val jvmMain by getting
         val androidMain by getting {
             dependencies {
-                implementation("androidx.core:core-ktx:1.7.0")
+                implementation("androidx.core:core-ktx:1.8.0")
             }
         }
         val androidTest by getting {
