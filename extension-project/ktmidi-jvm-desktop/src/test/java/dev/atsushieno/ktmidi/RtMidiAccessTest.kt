@@ -8,7 +8,8 @@ class RtMidiAccessTest {
     @Test
     fun rtMidiAccessInfo() {
         // skip running this test on Linux VMs.
-        if (System.getProperty("os.name").lowercase().contains("linux") && !File("/dev/snd/seq").exists()) {
+        val seq = File("/dev/snd/seq")
+        if (System.getProperty("os.name").lowercase().contains("linux") && (!seq.exists() || !seq.canRead())) {
             println("Test rtMidiAccessInfo() is skipped as ALSA is unavailable.")
             return
         }
