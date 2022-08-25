@@ -88,6 +88,11 @@ object MidiPerNoteManagementFlags { // MIDI 2.0
     const val DETACH = 2
 }
 
+object MidiProgramChangeOptions {
+    const val NONE = 0
+    const val BANK_VALID = 1
+}
+
 object MidiCC {
     const val BANK_SELECT = 0x00
     const val MODULATION = 0x01
