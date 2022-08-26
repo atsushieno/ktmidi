@@ -110,7 +110,7 @@ class Midi2Machine {
                         channel(evt.groupAndChannel).program = evt.midi2ProgramProgram.toByte()
                     }
                     MidiChannelStatus.CAF ->
-                        channel(evt.groupAndChannel).caf = evt.midi2CAf
+                        channel(evt.groupAndChannel).caf = evt.midi2CAfData
                     MidiChannelStatus.PITCH_BEND ->
                         channel(evt.groupAndChannel).pitchbend = evt.midi2PitchBendData
                     MidiChannelStatus.PER_NOTE_PITCH_BEND ->

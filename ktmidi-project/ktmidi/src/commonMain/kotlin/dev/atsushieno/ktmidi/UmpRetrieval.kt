@@ -159,7 +159,10 @@ val Ump.midi2ProgramBankMsb
     get() = ((int2.toUnsigned() / 0x100) % 0x100).toInt()
 val Ump.midi2ProgramBankLsb
     get() = (int2.toUnsigned() % 0x100).toInt()
+@Deprecated("Renamed to midi2CAfData for consistency with PAf", replaceWith = ReplaceWith("midi2CAfData"))
 val Ump.midi2CAf
+    get() = int2.toUInt()
+val Ump.midi2CAfData
     get() = int2.toUInt()
 val Ump.midi2PitchBendData
     get() = int2.toUInt()

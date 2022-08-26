@@ -1,9 +1,95 @@
 package dev.atsushieno.ktmidi
 
+import io.ktor.utils.io.core.*
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 class UmpTranslatorTest {
+    @Test
+    fun testConvertSingleUmpToMidi1 ()
+    {
+        var ump = Ump(0L)
+        val dst = MutableList<Byte>(16) { 0 }
+        var size = 0
+
+        // MIDI1 Channel Voice Messages
+
+        ump = Ump(UmpFactory.midi1NoteOff(0, 1, 40, 0x70))
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(3,  size)
+        assertContentEquals(listOf(0x81, 40, 0x70).map { it.toByte() }, dst.take(size))
+
+        ump = Ump(UmpFactory.midi1Program(0, 1, 40))
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(2,  size)
+        assertContentEquals(listOf(0xC1, 40).map { it.toByte() }, dst.take(size))
+
+        // MIDI2 Channel Voice Messages
+
+        // rpn
+        ump = Ump(UmpFactory.midi2RPN(0, 1, 2, 3, 517 * 0x40000)) // MIDI1 DTE 517, expanded to 32bit
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(12,  size)
+        // 4 = 517 / 0x80, 5 = 517 % 0x80
+        assertContentEquals(listOf(0xB1, 101, 0x2, 0xB1, 100, 0x3, 0xB1, 6, 4, 0xB1, 38, 5).map { it.toByte() }, dst.take(size))
+
+        // nrpn
+        ump = Ump(UmpFactory.midi2NRPN(0, 1, 2, 3, 0xFF000000))
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(12,  size)
+        assertContentEquals(listOf(0xB1, 99, 0x2, 0xB1, 98, 0x3, 0xB1, 6, 0x7F, 0xB1, 38, 0x40).map { it.toByte() }, dst.take(size))
+
+        // note off
+        ump = Ump(UmpFactory.midi2NoteOff(0, 1, 40, 0, 0xE800, 0))
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(3,  size)
+        assertContentEquals(listOf(0x81, 40, 0x74).map { it.toByte() }, dst.take(size))
+
+        // note on
+        ump = Ump(UmpFactory.midi2NoteOn(0, 1, 40, 0, 0xE800, 0))
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(3,  size)
+        assertContentEquals(listOf(0x91, 40, 0x74).map { it.toByte() }, dst.take(size))
+
+        // PAf
+        ump = Ump(UmpFactory.midi2PAf(0, 1, 40, 0xE8000000))
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(3,  size)
+        assertContentEquals(listOf(0xA1, 40, 0x74).map { it.toByte() }, dst.take(size))
+
+        // CC
+        ump = Ump(UmpFactory.midi2CC(0, 1, 10, 0xE8000000))
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(3,  size)
+        assertContentEquals(listOf(0xB1, 10, 0x74).map { it.toByte() }, dst.take(size))
+
+        // program change, without bank options
+        ump = Ump(UmpFactory.midi2Program(0, 1, 0, 8, 16, 24))
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(2,  size)
+        assertContentEquals(listOf(0xC1, 8).map { it.toByte() }, dst.take(size))
+
+        // program change, with bank options
+        ump = Ump(UmpFactory.midi2Program(0, 1, 1, 8, 16, 24))
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(8,  size)
+        assertContentEquals(listOf(0xB1, 0, 16, 0xB1, 32, 24, 0xC1, 8).map { it.toByte() }, dst.take(size))
+
+        // CAf
+        ump = Ump(UmpFactory.midi2CAf(0, 1, 0xE8000000))
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(2,  size)
+        assertContentEquals(listOf(0xD1, 0x74).map { it.toByte() }, dst.take(size))
+
+        // PitchBend
+        ump = Ump(UmpFactory.midi2PitchBendDirect(0, 1, 0xE8040000))
+        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        assertEquals(3,  size)
+        assertContentEquals(listOf(0xE1, 1, 0x74).map { it.toByte() }, dst.take(size))
+    }
+
+
     @Test
     fun testConvertMidi1ToUmpNoteOn()
     {

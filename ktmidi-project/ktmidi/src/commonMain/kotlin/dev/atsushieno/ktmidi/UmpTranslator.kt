@@ -45,6 +45,146 @@ object UmpTranslationResult {
 
 object UmpTranslator {
 
+    /// Convert one single UMP (without JR Timestamp) to MIDI 1.0 Message (without delta time)
+    fun translateSingleUmpToMidi1Bytes(dst: MutableList<Byte>, ump: Ump) : Int {
+        var midiEventSize = 0
+        val statusCode = ump.statusByte and 0xF0
+
+        dst[0] = ump.statusByte.toByte()
+
+        when (ump.messageType) {
+            MidiMessageType.SYSTEM -> {
+                midiEventSize = 1
+                when (statusCode) {
+                    0xF1, 0xF3, 0xF9 -> {
+                        dst[1] = ump.midi1Msb.toByte()
+                        midiEventSize = 2
+                    }
+                }
+            }
+
+            MidiMessageType.MIDI1 -> {
+                midiEventSize = 3
+                dst[1] = ump.midi1Msb.toByte()
+                when (statusCode) {
+                    0xC0, 0xD0 -> {
+                        midiEventSize = 2
+                    }
+
+                    else -> {
+                        dst[2] = ump.midi1Lsb.toByte()
+                    }
+                }
+            }
+
+            MidiMessageType.MIDI2 -> {
+                when (statusCode) {
+                    MidiChannelStatus.RPN -> {
+                        midiEventSize = 12
+                        dst[0] = (ump.channelInGroup + MidiChannelStatus.CC).toByte()
+                        dst[1] = MidiCC.RPN_MSB.toByte()
+                        dst[2] = ump.midi2RpnMsb.toByte()
+                        dst[3] = dst[0] // CC + channel
+                        dst[4] = MidiCC.RPN_LSB.toByte()
+                        dst[5] = ump.midi2RpnLsb.toByte()
+                        dst[6] = dst[0] // CC + channel
+                        dst[7] = MidiCC.DTE_MSB.toByte()
+                        dst[8] = ((ump.midi2RpnData shr 25) and 0x7Fu).toByte()
+                        dst[9] = dst[0] // CC + channel
+                        dst[10] = MidiCC.DTE_LSB.toByte()
+                        dst[11] = ((ump.midi2RpnData shr 18) and 0x7Fu).toByte()
+                    }
+
+                    MidiChannelStatus.NRPN -> {
+                        midiEventSize = 12
+                        dst[0] = (ump.channelInGroup + MidiChannelStatus.CC).toByte()
+                        dst[1] = MidiCC.NRPN_MSB.toByte()
+                        dst[2] = ump.midi2NrpnMsb.toByte()
+                        dst[3] = dst[0] // CC + channel
+                        dst[4] = MidiCC.NRPN_LSB.toByte()
+                        dst[5] = ump.midi2NrpnLsb.toByte()
+                        dst[6] = dst[0] // CC + channel
+                        dst[7] = MidiCC.DTE_MSB.toByte()
+                        dst[8] = ((ump.midi2RpnData shr 25) and 0x7Fu).toByte()
+                        dst[9] = dst[0] // CC + channel
+                        dst[10] = MidiCC.DTE_LSB.toByte()
+                        dst[11] = ((ump.midi2RpnData shr 18) and 0x7Fu).toByte()
+                    }
+
+                    MidiChannelStatus.NOTE_OFF,
+                    MidiChannelStatus.NOTE_ON -> {
+                        midiEventSize = 3
+                        dst[1] = ump.midi2Note.toByte()
+                        dst[2] = (ump.midi2Velocity16 / 0x200).toByte()
+                    }
+
+                    MidiChannelStatus.PAF -> {
+                        midiEventSize = 3
+                        dst[1] = ump.midi2Note.toByte()
+                        dst[2] = (ump.midi2PAfData / 0x2000000u).toByte()
+                    }
+
+                    MidiChannelStatus.CC -> {
+                        midiEventSize = 3
+                        dst[1] = ump.midi2CCIndex.toByte()
+                        dst[2] = (ump.midi2CCData / 0x2000000u).toByte()
+                    }
+
+                    MidiChannelStatus.PROGRAM -> {
+                        if (0 != ump.midi2ProgramOptions and MidiProgramChangeOptions.BANK_VALID) {
+                            midiEventSize = 8
+                            dst[0] = (ump.channelInGroup + MidiChannelStatus.CC).toByte()
+                            dst[1] = 0 // Bank MSB
+                            dst[2] = ump.midi2ProgramBankMsb.toByte()
+                            dst[3] = ((dst[0] and 0xF) + MidiChannelStatus.CC).toByte()
+                            dst[4] = 32 // Bank LSB
+                            dst[5] = ump.midi2ProgramBankLsb.toByte()
+                            dst[6] = ((dst[0] and 0xF) + MidiChannelStatus.PROGRAM).toByte()
+                            dst[7] = ump.midi2ProgramProgram.toByte()
+                        } else {
+                            midiEventSize = 2
+                            dst[1] = ump.midi2ProgramProgram.toByte()
+                        }
+                    }
+
+                    MidiChannelStatus.CAF -> {
+                        midiEventSize = 2
+                        dst[1] = (ump.midi2CAfData / 0x2000000u).toByte()
+                    }
+
+                    MidiChannelStatus.PITCH_BEND -> {
+                        midiEventSize = 3
+                        val pitchBendV1 = ump.midi2PitchBendData.toULong() / 0x40000u
+                        // Note that it has to be translated to little endian pair
+                        dst[1] = (pitchBendV1 % 0x80u).toByte()
+                        dst[2] = (pitchBendV1 / 0x80u).toByte()
+                    }
+                    // skip for other status bytes; we cannot support them.
+                }
+            }
+
+            MidiMessageType.SYSEX7 -> {
+                // Within this function we cannot process multi-packet sysex. Thus, sysex other than in-one-packets are dropped.
+                if (Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP != ump.statusByte and 0xF0)
+                    midiEventSize = 0
+                else {
+                    midiEventSize = 2 + ump.sysex7Size
+                    dst.add(0xF0.toByte())
+                    val bytes = ump.toPlatformNativeBytes()
+                    dst.addAll(bytes.drop(2).take(midiEventSize - 2))
+                    dst.add(0xF7.toByte())
+                }
+            }
+
+            MidiMessageType.SYSEX8_MDS -> {
+                // By the UMP specification they cannot be translated in Default Translation
+                midiEventSize = 0
+            }
+        }
+        return midiEventSize
+    }
+
+
     private fun convertMidi1DteToUmp(context: UmpTranslatorContext, channel: Int): Long {
         val isRpn = (context.rpnState and 0x8080) == 0
         val msb = (if (isRpn) context.rpnState else context.nrpnState) shr 8

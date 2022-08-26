@@ -20,7 +20,6 @@ data class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: In
     }
 
     companion object {
-        @Deprecated("This function does not respect endianness.")
         fun fromBytes(bytes: ByteArray, offset: Int, count: Int) =
             sequence {
                 var off = offset
