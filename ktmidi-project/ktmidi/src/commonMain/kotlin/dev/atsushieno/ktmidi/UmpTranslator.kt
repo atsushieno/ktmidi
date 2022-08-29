@@ -37,7 +37,6 @@ class UmpTranslatorContext(val midi1: List<Byte>,
 
 object UmpTranslationResult {
     const val OK = 0
-    const val OUT_OF_SPACE = 1
     const val INVALID_SYSEX = 0x10
     const val INVALID_DTE_SEQUENCE = 0x11
     const val INVALID_STATUS = 0x13
