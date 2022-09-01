@@ -1,6 +1,5 @@
-package dev.atsushieno.ktmidi
+package dev.atsushieno.ktmidi.ci
 
-import dev.atsushieno.ktmidi.ci.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -78,7 +77,7 @@ class CIFactoryTest {
         val actual1 = MutableList<Byte>(25) { 0 }
         CIFactory.midiCIProtocolNegotiation(
             actual1, false, 0x10101010, 0x20202020,
-            1, 2, infos
+            1, infos
         )
         assertEquals(expected1, actual1)
 
@@ -86,7 +85,7 @@ class CIFactoryTest {
         val actual2 = MutableList<Byte>(25) { 0 }
         CIFactory.midiCIProtocolNegotiation(
             actual2, true, 0x10101010, 0x20202020,
-            1, 2, infos
+            1, infos
         )
         assertEquals(0x11, actual2[3])
 
