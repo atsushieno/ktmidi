@@ -55,80 +55,80 @@ object CIFactory {
     const val PROPERTY_EXCHANGE_SUPPORTED = 8
 
     // Assumes the input value is already 7-bit encoded if required.
-    fun midiCiDirectUint16At(buf: MutableList<Byte>, offset: Int, v: Short) {
-        buf[offset] = (v and 0xFF).toByte()
-        buf[offset + 1] = (v.toInt() shr 8 and 0xFF).toByte()
+    fun midiCiDirectUint16At(dst: MutableList<Byte>, offset: Int, v: Short) {
+        dst[offset] = (v and 0xFF).toByte()
+        dst[offset + 1] = (v.toInt() shr 8 and 0xFF).toByte()
     }
 
     // Assumes the input value is already 7-bit encoded if required.
-    fun midiCiDirectUint32At(buf: MutableList<Byte>, offset: Int, v: Int) {
-        buf[offset] = (v and 0xFF).toByte()
-        buf[offset + 1] = (v shr 8 and 0xFF).toByte()
-        buf[offset + 2] = (v shr 16 and 0xFF).toByte()
-        buf[offset + 3] = (v shr 24 and 0xFF).toByte()
+    fun midiCiDirectUint32At(dst: MutableList<Byte>, offset: Int, v: Int) {
+        dst[offset] = (v and 0xFF).toByte()
+        dst[offset + 1] = (v shr 8 and 0xFF).toByte()
+        dst[offset + 2] = (v shr 16 and 0xFF).toByte()
+        dst[offset + 3] = (v shr 24 and 0xFF).toByte()
     }
 
-    fun midiCI7bitInt14At(buf: MutableList<Byte>, offset: Int, v: Short) {
-        buf[offset] = (v and 0x7F).toByte()
-        buf[offset + 1] = (v.toInt() shr 7 and 0x7F).toByte()
+    fun midiCI7bitInt14At(dst: MutableList<Byte>, offset: Int, v: Short) {
+        dst[offset] = (v and 0x7F).toByte()
+        dst[offset + 1] = (v.toInt() shr 7 and 0x7F).toByte()
     }
 
-    fun midiCI7bitInt21At(buf: MutableList<Byte>, offset: Int, v: Int) {
-        buf[offset] = (v and 0x7F).toByte()
-        buf[offset + 1] = (v shr 7 and 0x7F).toByte()
-        buf[offset + 2] = (v shr 14 and 0x7F).toByte()
+    fun midiCI7bitInt21At(dst: MutableList<Byte>, offset: Int, v: Int) {
+        dst[offset] = (v and 0x7F).toByte()
+        dst[offset + 1] = (v shr 7 and 0x7F).toByte()
+        dst[offset + 2] = (v shr 14 and 0x7F).toByte()
     }
 
-    fun midiCI7bitInt28At(buf: MutableList<Byte>, offset: Int, v: Int) {
-        buf[offset] = (v and 0x7F).toByte()
-        buf[offset + 1] = (v shr 7 and 0x7F).toByte()
-        buf[offset + 2] = (v shr 14 and 0x7F).toByte()
-        buf[offset + 3] = (v shr 21 and 0x7F).toByte()
+    fun midiCI7bitInt28At(dst: MutableList<Byte>, offset: Int, v: Int) {
+        dst[offset] = (v and 0x7F).toByte()
+        dst[offset + 1] = (v shr 7 and 0x7F).toByte()
+        dst[offset + 2] = (v shr 14 and 0x7F).toByte()
+        dst[offset + 3] = (v shr 21 and 0x7F).toByte()
     }
 
     fun midiCIMessageCommon(
-        buf: MutableList<Byte>,
+        dst: MutableList<Byte>,
         destination: Byte, sysexSubId2: Byte, versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int
     ) {
-        buf[0] = 0x7E
-        buf[1] = destination
-        buf[2] = 0xD
-        buf[3] = sysexSubId2
-        buf[4] = versionAndFormat
-        midiCiDirectUint32At(buf, 5, sourceMUID)
-        midiCiDirectUint32At(buf, 9, destinationMUID)
+        dst[0] = 0x7E
+        dst[1] = destination
+        dst[2] = 0xD
+        dst[3] = sysexSubId2
+        dst[4] = versionAndFormat
+        midiCiDirectUint32At(dst, 5, sourceMUID)
+        midiCiDirectUint32At(dst, 9, destinationMUID)
     }
 
 
 // Discovery
 
     fun midiCIDiscoveryCommon(
-        buf: MutableList<Byte>, sysexSubId2: Byte,
+        dst: MutableList<Byte>, sysexSubId2: Byte,
         versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int,
         deviceManufacturer3Bytes: Int, deviceFamily: Short, deviceFamilyModelNumber: Short,
         softwareRevisionLevel: Int, ciCategorySupported: Byte, receivableMaxSysExSize: Int
     ) {
-        midiCIMessageCommon(buf, 0x7F, sysexSubId2, versionAndFormat, sourceMUID, destinationMUID)
+        midiCIMessageCommon(dst, 0x7F, sysexSubId2, versionAndFormat, sourceMUID, destinationMUID)
         midiCiDirectUint32At(
-            buf, 13,
+            dst, 13,
             deviceManufacturer3Bytes.toInt()
         ) // the last byte is extraneous, but will be overwritten next.
-        midiCiDirectUint16At(buf, 16, deviceFamily)
-        midiCiDirectUint16At(buf, 18, deviceFamilyModelNumber)
+        midiCiDirectUint16At(dst, 16, deviceFamily)
+        midiCiDirectUint16At(dst, 18, deviceFamilyModelNumber)
         // LAMESPEC: Software Revision Level does not mention in which endianness this field is stored.
-        midiCiDirectUint32At(buf, 20, softwareRevisionLevel.toInt())
-        buf[24] = ciCategorySupported
-        midiCiDirectUint32At(buf, 25, receivableMaxSysExSize.toInt())
+        midiCiDirectUint32At(dst, 20, softwareRevisionLevel.toInt())
+        dst[24] = ciCategorySupported
+        midiCiDirectUint32At(dst, 25, receivableMaxSysExSize.toInt())
     }
 
     fun midiCIDiscovery(
-        buf: MutableList<Byte>,
+        dst: MutableList<Byte>,
         versionAndFormat: Byte, sourceMUID: Int,
         deviceManufacturer: Int, deviceFamily: Short, deviceFamilyModelNumber: Short,
         softwareRevisionLevel: Int, ciCategorySupported: Byte, receivableMaxSysExSize: Int
     ) {
         midiCIDiscoveryCommon(
-            buf, SUB_ID_2_DISCOVERY_INQUIRY,
+            dst, SUB_ID_2_DISCOVERY_INQUIRY,
             versionAndFormat, sourceMUID, 0x7F7F7F7F,
             deviceManufacturer, deviceFamily, deviceFamilyModelNumber,
             softwareRevisionLevel, ciCategorySupported, receivableMaxSysExSize
@@ -136,13 +136,13 @@ object CIFactory {
     }
 
     fun midiCIDiscoveryReply(
-        buf: MutableList<Byte>,
+        dst: MutableList<Byte>,
         versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int,
         deviceManufacturer: Int, deviceFamily: Short, deviceFamilyModelNumber: Short,
         softwareRevisionLevel: Int, ciCategorySupported: Byte, receivableMaxSysExSize: Int
     ) {
         midiCIDiscoveryCommon(
-            buf, SUB_ID_2_DISCOVERY_REPLY,
+            dst, SUB_ID_2_DISCOVERY_REPLY,
             versionAndFormat, sourceMUID, destinationMUID,
             deviceManufacturer, deviceFamily, deviceFamilyModelNumber,
             softwareRevisionLevel, ciCategorySupported, receivableMaxSysExSize
@@ -150,208 +150,208 @@ object CIFactory {
     }
 
     fun midiCIDiscoveryInvalidateMuid(
-        buf: MutableList<Byte>,
+        dst: MutableList<Byte>,
         versionAndFormat: Byte, sourceMUID: Int, targetMUID: Int
     ) {
-        midiCIMessageCommon(buf, 0x7F, 0x7E, versionAndFormat, sourceMUID, 0x7F7F7F7F)
-        midiCiDirectUint32At(buf, 13, targetMUID)
+        midiCIMessageCommon(dst, 0x7F, 0x7E, versionAndFormat, sourceMUID, 0x7F7F7F7F)
+        midiCiDirectUint32At(dst, 13, targetMUID)
     }
 
     fun midiCIDiscoveryNak(
-        buf: MutableList<Byte>, deviceId: Byte,
+        dst: MutableList<Byte>, deviceId: Byte,
         versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int
     ) {
-        midiCIMessageCommon(buf, deviceId, 0x7F, versionAndFormat, sourceMUID, destinationMUID)
+        midiCIMessageCommon(dst, deviceId, 0x7F, versionAndFormat, sourceMUID, destinationMUID)
     }
 
 
 // Protocol Negotiation
 
-    fun midiCIProtocolInfo(buf: MutableList<Byte>, offset: Int, info: MidiCIProtocolTypeInfo) {
-        buf[offset] = info.type
-        buf[offset + 1] = info.version
-        buf[offset + 2] = info.extensions
-        buf[offset + 3] = info.reserved1
-        buf[offset + 4] = info.reserved2
+    fun midiCIProtocolInfo(dst: MutableList<Byte>, offset: Int, info: MidiCIProtocolTypeInfo) {
+        dst[offset] = info.type
+        dst[offset + 1] = info.version
+        dst[offset + 2] = info.extensions
+        dst[offset + 3] = info.reserved1
+        dst[offset + 4] = info.reserved2
     }
 
     fun midiCIProtocols(
-        buf: MutableList<Byte>,
+        dst: MutableList<Byte>,
         offset: Int,
-        numSupportedProtocols: Byte,
-        protocolTypes: MutableList<MidiCIProtocolTypeInfo>
+        protocolTypes: List<MidiCIProtocolTypeInfo>
     ) {
-        buf[offset] = numSupportedProtocols
-        for (i in 0 until numSupportedProtocols.toInt())
-            midiCIProtocolInfo(buf, offset + 1 + i * 5, protocolTypes[i])
+        dst[offset] = protocolTypes.size.toByte()
+        protocolTypes.forEachIndexed { i, p ->
+            midiCIProtocolInfo(dst, offset + 1 + i * 5, p)
+        }
     }
 
     fun midiCIProtocolNegotiation(
-        buf: MutableList<Byte>, isReply: Boolean,
+        dst: MutableList<Byte>, isReply: Boolean,
         sourceMUID: Int, destinationMUID: Int,
         authorityLevel: Byte,
-        numSupportedProtocols: Byte, protocolTypes: MutableList<MidiCIProtocolTypeInfo>
+        protocolTypes: List<MidiCIProtocolTypeInfo>
     ) {
         midiCIMessageCommon(
-            buf, 0x7F,
+            dst, 0x7F,
             if (isReply) SUB_ID_2_PROTOCOL_NEGOTIATION_REPLY else SUB_ID_2_PROTOCOL_NEGOTIATION_INQUIRY,
             1, sourceMUID, destinationMUID
         )
-        buf[13] = authorityLevel
-        midiCIProtocols(buf, 14, numSupportedProtocols, protocolTypes)
+        dst[13] = authorityLevel
+        midiCIProtocols(dst, 14, protocolTypes)
     }
 
     fun midiCIProtocolSet(
-        buf: MutableList<Byte>,
+        dst: MutableList<Byte>,
         sourceMUID: Int, destinationMUID: Int,
         authorityLevel: Byte, newProtocolType: MidiCIProtocolTypeInfo
     ) {
         midiCIMessageCommon(
-            buf, 0x7F,
+            dst, 0x7F,
             SUB_ID_2_SET_NEW_PROTOCOL,
             1, sourceMUID, destinationMUID
         )
-        buf[13] = authorityLevel
-        midiCIProtocolInfo(buf, 14, newProtocolType)
+        dst[13] = authorityLevel
+        midiCIProtocolInfo(dst, 14, newProtocolType)
     }
 
     fun midiCIProtocolTest(
-        buf: MutableList<Byte>,
+        dst: MutableList<Byte>,
         isInitiatorToResponder: Boolean,
         sourceMUID: Int, destinationMUID: Int,
-        authorityLevel: Byte, testData48Bytes: MutableList<Byte>
+        authorityLevel: Byte, testData48Bytes: List<Byte>
     ) {
         midiCIMessageCommon(
-            buf, 0x7F,
+            dst, 0x7F,
             if (isInitiatorToResponder) SUB_ID_2_TEST_NEW_PROTOCOL_I2R else SUB_ID_2_TEST_NEW_PROTOCOL_R2I,
             1, sourceMUID, destinationMUID
         )
-        buf[13] = authorityLevel
-        memcpy(buf, 14, testData48Bytes, 48)
+        dst[13] = authorityLevel
+        memcpy(dst, 14, testData48Bytes, 48)
     }
 
     fun midiCIProtocolConfirmEstablished(
-        buf: MutableList<Byte>,
+        dst: MutableList<Byte>,
         sourceMUID: Int, destinationMUID: Int,
         authorityLevel: Byte
     ) {
         midiCIMessageCommon(
-            buf, 0x7F,
+            dst, 0x7F,
             SUB_ID_2_CONFIRM_NEW_PROTOCOL_ESTABLISHED,
             1, sourceMUID, destinationMUID
         )
-        buf[13] = authorityLevel
+        dst[13] = authorityLevel
     }
 
 
 // Profile Configuration
 
-    fun midiCIProfile(buf: MutableList<Byte>, offset: Int, info: MidiCIProfileId) {
-        buf[offset] = info.fixed_7e
-        buf[offset + 1] = info.bank
-        buf[offset + 2] = info.number
-        buf[offset + 3] = info.version
-        buf[offset + 4] = info.level
+    fun midiCIProfile(dst: MutableList<Byte>, offset: Int, info: MidiCIProfileId) {
+        dst[offset] = info.fixed_7e
+        dst[offset + 1] = info.bank
+        dst[offset + 2] = info.number
+        dst[offset + 3] = info.version
+        dst[offset + 4] = info.level
     }
 
     fun midiCIProfileInquiry(
-        buf: MutableList<Byte>, source: Byte,
+        dst: MutableList<Byte>, source: Byte,
         sourceMUID: Int, destinationMUID: Int
     ) {
         midiCIMessageCommon(
-            buf, source,
+            dst, source,
             SUB_ID_2_PROFILE_INQUIRY,
             1, sourceMUID, destinationMUID
         )
     }
 
     fun midiCIProfileInquiryReply(
-        buf: MutableList<Byte>, source: Byte,
+        dst: MutableList<Byte>, source: Byte,
         sourceMUID: Int, destinationMUID: Int,
         numEnabledProfiles: Byte, enabledProfiles: MutableList<MidiCIProfileId>,
         numDisabledProfiles: Byte, disabledProfiles: MutableList<MidiCIProfileId>
     ) {
         midiCIMessageCommon(
-            buf, source,
+            dst, source,
             SUB_ID_2_PROFILE_INQUIRY_REPLY,
             1, sourceMUID, destinationMUID
         )
-        buf[13] = numEnabledProfiles
+        dst[13] = numEnabledProfiles
         for (i in 0 until numEnabledProfiles)
-            midiCIProfile(buf, 14 + i * 5, enabledProfiles[i])
+            midiCIProfile(dst, 14 + i * 5, enabledProfiles[i])
         var pos: Int = 14 + numEnabledProfiles * 5
-        buf[pos++] = numDisabledProfiles
+        dst[pos++] = numDisabledProfiles
         for (i in 0 until numDisabledProfiles)
-            midiCIProfile(buf, pos + i * 5, disabledProfiles[i])
+            midiCIProfile(dst, pos + i * 5, disabledProfiles[i])
     }
 
     fun midiCIProfileSet(
-        buf: MutableList<Byte>, destination: Byte, turnOn: Boolean,
+        dst: MutableList<Byte>, destination: Byte, turnOn: Boolean,
         sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId
     ) {
         midiCIMessageCommon(
-            buf, destination,
+            dst, destination,
             if (turnOn) SUB_ID_2_SET_PROFILE_ON else SUB_ID_2_SET_PROFILE_OFF,
             1, sourceMUID, destinationMUID
         )
-        midiCIProfile(buf, 13, profile)
+        midiCIProfile(dst, 13, profile)
     }
 
     fun midiCIProfileReport(
-        buf: MutableList<Byte>, source: Byte, isEnabledReport: Boolean,
+        dst: MutableList<Byte>, source: Byte, isEnabledReport: Boolean,
         sourceMUID: Int, profile: MidiCIProfileId
     ) {
         midiCIMessageCommon(
-            buf, source,
+            dst, source,
             if (isEnabledReport) SUB_ID_2_PROFILE_ENABLED_REPORT else SUB_ID_2_PROFILE_DISABLED_REPORT,
             1, sourceMUID, 0x7F7F7F7F
         )
-        midiCIProfile(buf, 13, profile)
+        midiCIProfile(dst, 13, profile)
     }
 
     fun midiCIProfileSpecificData(
-        buf: MutableList<Byte>, source: Byte,
+        dst: MutableList<Byte>, source: Byte,
         sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, dataSize: Int, data: MutableList<Byte>
     ) {
         midiCIMessageCommon(
-            buf, source,
+            dst, source,
             SUB_ID_2_PROFILE_SPECIFIC_DATA,
             1, sourceMUID, destinationMUID
         )
-        midiCIProfile(buf, 13, profile)
-        midiCiDirectUint32At(buf, 18, dataSize)
-        memcpy(buf, 22, data, dataSize)
+        midiCIProfile(dst, 13, profile)
+        midiCiDirectUint32At(dst, 18, dataSize)
+        memcpy(dst, 22, data, dataSize)
     }
 
 
     // Property Exchange
     fun midiCIPropertyGetCapabilities(
-        buf: MutableList<Byte>, destination: Byte, isReply: Boolean,
+        dst: MutableList<Byte>, destination: Byte, isReply: Boolean,
         sourceMUID: Int, destinationMUID: Int, maxSupportedRequests: Byte
     ) {
         midiCIMessageCommon(
-            buf, destination,
+            dst, destination,
             if (isReply) SUB_ID_2_PROPERTY_CAPABILITIES_REPLY else SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY,
             1, sourceMUID, destinationMUID
         )
-        buf[13] = maxSupportedRequests
+        dst[13] = maxSupportedRequests
     }
 
     // common to all of: has data & reply, get data & reply, set data & reply, subscribe & reply, notify
     fun midiCIPropertyCommon(
-        buf: MutableList<Byte>, destination: Byte, messageTypeSubId2: Byte,
+        dst: MutableList<Byte>, destination: Byte, messageTypeSubId2: Byte,
         sourceMUID: Int, destinationMUID: Int,
         requestId: Byte, headerSize: Short, header: List<Byte>,
         numChunks: Short, chunkIndex: Short, dataSize: Short, data: List<Byte>
     ) {
-        midiCIMessageCommon(buf, destination, messageTypeSubId2, 1, sourceMUID, destinationMUID)
-        buf[13] = requestId
-        midiCiDirectUint16At(buf, 14, headerSize)
-        memcpy(buf, 16, header, headerSize.toInt())
-        midiCiDirectUint16At(buf, 16 + headerSize, numChunks)
-        midiCiDirectUint16At(buf, 18 + headerSize, chunkIndex)
-        midiCiDirectUint16At(buf, 20 + headerSize, dataSize)
-        memcpy(buf, 22 + headerSize, data, dataSize.toInt())
+        midiCIMessageCommon(dst, destination, messageTypeSubId2, 1, sourceMUID, destinationMUID)
+        dst[13] = requestId
+        midiCiDirectUint16At(dst, 14, headerSize)
+        memcpy(dst, 16, header, headerSize.toInt())
+        midiCiDirectUint16At(dst, 16 + headerSize, numChunks)
+        midiCiDirectUint16At(dst, 18 + headerSize, chunkIndex)
+        midiCiDirectUint16At(dst, 20 + headerSize, dataSize)
+        memcpy(dst, 22 + headerSize, data, dataSize.toInt())
     }
 
     private fun memcpy(dst: MutableList<Byte>, dstOffset: Int, src: List<Byte>, size: Int) {
