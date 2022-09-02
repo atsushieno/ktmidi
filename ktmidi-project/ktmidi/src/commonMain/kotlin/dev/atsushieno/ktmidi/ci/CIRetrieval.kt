@@ -3,29 +3,46 @@ package dev.atsushieno.ktmidi.ci
 import dev.atsushieno.ktmidi.shl
 
 object CIRetrieval {
-    fun midiCIGetDeviceDetails(sysex: ByteArray, offset: Int) = DeviceDetails(
-        sysex[offset + 14] + (sysex[offset + 15] shl 8) + (sysex[offset + 16] shl 16),
-        (sysex[offset + 17] + (sysex[offset + 18] shl 8)).toShort(),
-        (sysex[offset + 19] + (sysex[offset + 20] shl 8)).toShort(),
-        sysex[offset + 21] + (sysex[offset + 22] shl 8) + (sysex[offset + 23] shl 16) + (sysex[offset + 24] shl 24))
+    /** retrieves device details (manufacturer, version, etc.) from a MIDI-CI sysex7 chunk.
+     * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
+     */
+    fun midiCIGetDeviceDetails(sysex: List<Byte>) = DeviceDetails(
+        sysex[13] + (sysex[14] shl 8) + (sysex[15] shl 16),
+        (sysex[16] + (sysex[17] shl 8)).toShort(),
+        (sysex[18] + (sysex[19] shl 8)).toShort(),
+        sysex[20] + (sysex[21] shl 8) + (sysex[22] shl 16) + (sysex[23] shl 24))
 
-    fun midiCIGetSourceMUID(sysex: ByteArray, offset: Int) =
-        sysex[offset + 6] + (sysex[offset + 7] shl 8) + (sysex[offset + 8] shl 16) + (sysex[offset + 9] shl 24)
+    /** retrieves source MUID from a MIDI-CI sysex7 chunk.
+     * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
+     */
+    fun midiCIGetSourceMUID(sysex: List<Byte>) =
+        sysex[5] + (sysex[6] shl 8) + (sysex[7] shl 16) + (sysex[8] shl 24)
 
-    private fun readSingleProtocol(sysex: ByteArray, offsetToProtocol: Int) =
-        MidiCIProtocolTypeInfo(sysex[offsetToProtocol + 16], sysex[offsetToProtocol + 17], sysex[offsetToProtocol + 18], 0, 0)
+    /** retrieves a protocol type info from a MIDI-CI sysex7 chunk partial (from offset 0). */
+    private fun readSingleProtocol(sysex: List<Byte>) =
+        MidiCIProtocolTypeInfo(sysex[0], sysex[1], sysex[2], 0, 0)
 
-    // common to "Initiate Protocol Negotiation" and "Reply To Initiate Protocol Negotiation"
-    fun midiCIGetSupportedProtocols(sysex: ByteArray, offset: Int) : List<MidiCIProtocolTypeInfo> {
+    /** retrieves the list of supported protocol type infos from a MIDI-CI Initiate or Reply-To-Initiate Protocol Negotiation sysex7 chunk.
+     * common to "Initiate Protocol Negotiation" and "Reply To Initiate Protocol Negotiation"
+     * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
+     */
+    fun midiCIGetSupportedProtocols(sysex: List<Byte>) : List<MidiCIProtocolTypeInfo> {
         val l = mutableListOf<MidiCIProtocolTypeInfo>()
-        val n = sysex[offset + 15]
+        val n = sysex[14]
         (0 until n).forEach { i ->
-            l.add(readSingleProtocol(sysex, offset + 16 + i * 5))
+            l.add(readSingleProtocol(sysex.drop(15 + i * 5)))
         }
         return l
     }
 
-    fun midiCIGetNewProtocol(sysex: ByteArray, offset: Int) = readSingleProtocol(sysex, offset + 15)
+    /** retrieves the protocol type info from a MIDI-CI Set New Protocol sysex7 chunk.
+     * common to "Initiate Protocol Negotiation" and "Reply To Initiate Protocol Negotiation"
+     * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
+     */
+    fun midiCIGetNewProtocol(sysex: List<Byte>) = readSingleProtocol(sysex.drop(14))
 
-    fun midiCIGetTestData(sysex: ByteArray, offset: Int) = sysex.drop(offset + 16).take(48)
+    /** retrieves the test data (of 48 bytes) from a MIDI-CI Test New Protocol sysex7 chunk.
+     * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
+     */
+    fun midiCIGetTestData(sysex: List<Byte>) = sysex.drop(14).take(48)
 }

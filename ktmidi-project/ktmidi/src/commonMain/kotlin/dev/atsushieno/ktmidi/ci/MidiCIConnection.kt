@@ -13,7 +13,11 @@ import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 import kotlin.time.compareTo
 
-data class DeviceDetails(val manufacturer: Int = 0, val family: Short = 0, val familyModelNumber: Short = 0, val softwareRevisionLevel: Int = 0)
+data class DeviceDetails(val manufacturer: Int = 0, val family: Short = 0, val familyModelNumber: Short = 0, val softwareRevisionLevel: Int = 0) {
+    companion object {
+        val empty = DeviceDetails()
+    }
+}
 
 enum class MidiCIInitiatorState {
     Initial,
@@ -28,6 +32,14 @@ enum class MidiCIDiscoveryResponseCode {
     Reply,
     InvalidateMUID,
     NAK
+}
+
+object MidiCIDiscoveryCategoryFlags {
+    const val None: Byte = 0
+    const val ProtocolNegotiation: Byte = 1
+    const val ProfileConfiguration: Byte = 2
+    const val PropertyExchange: Byte = 4
+    const val ThreePs: Byte = 7 // I'd inclined to say "All", but that may change in the future...
 }
 
 // It is used to determine default authority level
@@ -59,7 +71,7 @@ object MidiCIConstants {
     val Midi2ProtocolTypeInfo = MidiCIProtocolTypeInfo(MidiCIProtocolType
         .MIDI2.toByte(), MidiCIProtocolValue.MIDI2_V1.toByte(), 0, 0, 0)
     // The list is ordered from most preferred protocol type info, as per MIDI-CI spec. section 6.5 describes.
-    val Midi2ThenMidi1Protocols = listOf(Midi1ProtocolTypeInfo, Midi2ProtocolTypeInfo)
+    val Midi2ThenMidi1Protocols = listOf(Midi2ProtocolTypeInfo, Midi1ProtocolTypeInfo)
     val Midi1ThenMidi2Protocols = listOf(Midi1ProtocolTypeInfo, Midi2ProtocolTypeInfo)
 }
 
@@ -73,16 +85,26 @@ object MidiCIConstants {
     - MidiCIResponder.processNegotiationInquiry()
     - MidiCIInitiator.setNewProtocol() - no matching reply from responder
     - MidiCIInitiator.testNewProtocol()
+    - MidiCIResponder.processTestNewProtocol()
     - MidiCIInitiator.confirmProtocol()
- */
 
-class MidiCIInitiator(private val input: MidiInput, private val output: MidiOutput, val device: DeviceDetails,
+ These classes are responsible only for one input/output connection pair.
+ The argument `sendOutput` takes a sysex bytestream which is NOT specific to MIDI 1.0 bytestream (i.e. it should
+ support sysex7 UMPs) and thus does NOT contain F0 and F7.
+ Same goes for `processInput()` function.
+
+*/
+
+class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
                       val authorityLevel: Byte = MidiCIAuthorityLevelBasis.NodeServer,
                       val muid: Int = Random.nextInt()) {
 
+    var device: DeviceDetails = DeviceDetails.empty
+    var midiCIBufferSize = 128
+
     var state: MidiCIInitiatorState = MidiCIInitiatorState.Initial
 
-    var midiProtocol: Int = MidiCIProtocolType.MIDI1
+    var currentMidiProtocol: MidiCIProtocolTypeInfo = MidiCIConstants.Midi1ProtocolTypeInfo
     var protocolTested: Boolean = false
 
     private var latestDiscoveryResponseCode: MidiCIDiscoveryResponseCode? = null
@@ -106,121 +128,129 @@ class MidiCIInitiator(private val input: MidiInput, private val output: MidiOutp
     private val defaultProcessReplyToInitiateProtocolNegotiation = { supportedProtocols: List<MidiCIProtocolTypeInfo>, sourceMUID: Int ->
         val protocol = preferredProtocols.firstOrNull { i -> supportedProtocols.any { i.type == it.type && i.version == it.version }}
         if (protocol != null) {
-            setNewProtocol(sourceMUID, authorityLevel, protocol)
+            // we set state before sending the MIDI data as it may process the rest of the events synchronously through the end...
             state = MidiCIInitiatorState.NEW_PROTOCOL_SENT
+            setNewProtocol(sourceMUID, authorityLevel, protocol)
+            currentMidiProtocol = protocol
             protocolTestData = (0 until 48).map { it.toByte()}
-            testNewProtocol(sourceMUID, authorityLevel, protocolTestData!!)
             state = MidiCIInitiatorState.TEST_SENT
+            testNewProtocol(sourceMUID, authorityLevel, protocolTestData!!)
         }
     }
     var processReplyToInitiateProtocolNegotiation = defaultProcessReplyToInitiateProtocolNegotiation
 
     private val defaultProcessTestProtocolReply = { sourceMUID: Int, testData: List<Byte> ->
         if (testData.toByteArray() contentEquals protocolTestData?.toByteArray()) {
-            confirmProtocol(sourceMUID, authorityLevel)
+            protocolTested = true
             state = MidiCIInitiatorState.ESTABLISHED
+            confirmProtocol(sourceMUID, authorityLevel)
         }
     }
     var processTestProtocolReply = defaultProcessTestProtocolReply
 
-    fun sendDiscovery(ciCategorySupported: Byte) {
-        val buf = mutableListOf<Byte>()
+    fun sendDiscovery(ciCategorySupported: Byte = MidiCIDiscoveryCategoryFlags.ThreePs) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIDiscovery(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, device.manufacturer, device.family, device.familyModelNumber,
             device.softwareRevisionLevel, ciCategorySupported, MidiCIConstants.RECEIVABLE_MAX_SYSEX_SIZE)
-        output.send(buf.toByteArray(), 0, buf.size, 0)
+        // we set state before sending the MIDI data as it may process the rest of the events synchronously through the end...
         state = MidiCIInitiatorState.DISCOVERY_SENT
+        sendOutput(buf)
     }
 
     fun initiateProtocolNegotiation(destinationMUID: Int, authorityLevel: Byte, protocolTypes: List<MidiCIProtocolTypeInfo>) {
-        val buf = mutableListOf<Byte>()
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIProtocolNegotiation(buf, false, muid, destinationMUID, authorityLevel, protocolTypes)
-        output.send(buf.toByteArray(), 0, buf.size, 0)
+        sendOutput(buf)
     }
 
     fun setNewProtocol(destinationMUID: Int, authorityLevel: Byte, newProtocolType: MidiCIProtocolTypeInfo) {
-        val buf = mutableListOf<Byte>()
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIProtocolSet(buf, muid, destinationMUID, authorityLevel, newProtocolType)
-        output.send(buf.toByteArray(), 0, buf.size, 0)
+        sendOutput(buf)
     }
 
     fun testNewProtocol(destinationMUID: Int, authorityLevel: Byte, testData48Bytes: List<Byte>) {
-        val buf = mutableListOf<Byte>()
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIProtocolTest(buf, true, muid, destinationMUID, authorityLevel, testData48Bytes)
-        output.send(buf.toByteArray(), 0, buf.size, 0)
+        sendOutput(buf)
     }
 
     fun confirmProtocol(destinationMUID: Int, authorityLevel: Byte) {
-        val buf = mutableListOf<Byte>()
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIProtocolConfirmEstablished(buf, muid, destinationMUID, authorityLevel)
-        output.send(buf.toByteArray(), 0, buf.size, 0)
+        sendOutput(buf)
     }
 
-    private val inputListener = object: OnMidiReceivedEventListener {
-        override fun onEventReceived(data: ByteArray, start: Int, length: Int, timestampInNanoseconds: Long) {
-            if (start + 4 < data.size)
-                return // invalid input
-            if (data.drop(start).toByteArray() contentEquals byteArrayOf(0xF0.toByte(), 0x7E, 0x7F, 0xD)) {
-                when (data[start + 4]) {
-                    CIFactory.SUB_ID_2_PROTOCOL_NEGOTIATION_REPLY -> {
-                        // Reply to Initiate Protocol Negotiation
-                        processReplyToInitiateProtocolNegotiation(
-                            CIRetrieval.midiCIGetSupportedProtocols(data, start),
-                            CIRetrieval.midiCIGetSourceMUID(data, start))
-                    }
-                    CIFactory.SUB_ID_2_TEST_NEW_PROTOCOL_R2I -> {
-                        // Test New Protocol Responder to Initiator
-                        processTestProtocolReply(
-                            CIRetrieval.midiCIGetSourceMUID(data, start),
-                            CIRetrieval.midiCIGetTestData(data, start))
-                    }
-                    CIFactory.SUB_ID_2_DISCOVERY_REPLY -> {
-                        // Reply to Discovery
-                        processDiscoveryResponse(MidiCIDiscoveryResponseCode.Reply,
-                            CIRetrieval.midiCIGetDeviceDetails(data, start),
-                            CIRetrieval.midiCIGetSourceMUID(data, start))
-                    }
-                    CIFactory.SUB_ID_2_INVALIDATE_MUID -> {
-                        // Invalid MUID
-                        processDiscoveryResponse(MidiCIDiscoveryResponseCode.InvalidateMUID,
-                            CIRetrieval.midiCIGetDeviceDetails(data, start),
-                            CIRetrieval.midiCIGetSourceMUID(data, start))
-                    }
-                    CIFactory.SUB_ID_2_NAK -> {
-                        // NAK MIDI-CI
-                        processDiscoveryResponse(MidiCIDiscoveryResponseCode.NAK,
-                            CIRetrieval.midiCIGetDeviceDetails(data, start),
-                            CIRetrieval.midiCIGetSourceMUID(data, start))
-                    }
-                    CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_REPLY -> {
-                        // Reply to Property Exchange Capabilities
-                    }
-                    CIFactory.SUB_ID_2_PROPERTY_HAS_DATA_REPLY -> {
-                        // Reply to Property Exchange Capabilities
-                    }
-                    CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY -> {
-                        // Reply to Property Exchange Capabilities
-                    }
-                    CIFactory.SUB_ID_2_PROPERTY_SET_DATA_REPLY -> {
-                        // Reply to Property Exchange Capabilities
-                    }
-                    CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY -> {
-                        // Reply to Property Exchange Capabilities
-                    }
-                }
+    fun processInput(data: List<Byte>) {
+        if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
+            return // not MIDI-CI sysex
+        when (data[3]) {
+            CIFactory.SUB_ID_2_PROTOCOL_NEGOTIATION_REPLY -> {
+                // Reply to Initiate Protocol Negotiation
+                processReplyToInitiateProtocolNegotiation(
+                    CIRetrieval.midiCIGetSupportedProtocols(data),
+                    CIRetrieval.midiCIGetSourceMUID(data))
+            }
+            CIFactory.SUB_ID_2_TEST_NEW_PROTOCOL_R2I -> {
+                // Test New Protocol Responder to Initiator
+                processTestProtocolReply(
+                    CIRetrieval.midiCIGetSourceMUID(data),
+                    CIRetrieval.midiCIGetTestData(data))
+            }
+            CIFactory.SUB_ID_2_DISCOVERY_REPLY -> {
+                // Reply to Discovery
+                processDiscoveryResponse(MidiCIDiscoveryResponseCode.Reply,
+                    CIRetrieval.midiCIGetDeviceDetails(data),
+                    CIRetrieval.midiCIGetSourceMUID(data))
+            }
+            CIFactory.SUB_ID_2_INVALIDATE_MUID -> {
+                // Invalid MUID
+                processDiscoveryResponse(MidiCIDiscoveryResponseCode.InvalidateMUID,
+                    CIRetrieval.midiCIGetDeviceDetails(data),
+                    CIRetrieval.midiCIGetSourceMUID(data))
+            }
+            CIFactory.SUB_ID_2_NAK -> {
+                // NAK MIDI-CI
+                processDiscoveryResponse(MidiCIDiscoveryResponseCode.NAK,
+                    CIRetrieval.midiCIGetDeviceDetails(data),
+                    CIRetrieval.midiCIGetSourceMUID(data))
+            }
+            CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_REPLY -> {
+                // Reply to Property Exchange Capabilities
+            }
+            CIFactory.SUB_ID_2_PROPERTY_HAS_DATA_REPLY -> {
+                // Reply to Property Exchange Capabilities
+            }
+            CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY -> {
+                // Reply to Property Exchange Capabilities
+            }
+            CIFactory.SUB_ID_2_PROPERTY_SET_DATA_REPLY -> {
+                // Reply to Property Exchange Capabilities
+            }
+            CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY -> {
+                // Reply to Property Exchange Capabilities
             }
         }
     }
-
-    init {
-        input.setMessageReceivedListener(inputListener)
-    }
 }
 
-class MidiCIResponder(private val input: MidiInput, private val output: MidiOutput, private val device: DeviceDetails,
+/**
+ * This class is responsible only for one input/output connection pair
+ *
+ * The argument `sendOutput` takes a sysex bytestream which is NOT specific to MIDI 1.0 bytestream (i.e. it should
+ * support sysex7 UMPs) and thus does NOT contain F0 and F7.
+ * Same goes for `processInput()` function.
+ *
+ */
+class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                       private val authorityLevel: Byte = MidiCIAuthorityLevelBasis.NodeServer,
                       private val muid: Int = Random.nextInt()) {
 
-    var currentMidiProtocol = MidiCIConstants.Midi1ProtocolTypeInfo
+    var device: DeviceDetails = DeviceDetails.empty
+    var midiCIBufferSize = 128
+
+    var initiatorDevice: DeviceDetails? = null
+    var currentMidiProtocol: MidiCIProtocolTypeInfo = MidiCIConstants.Midi1ProtocolTypeInfo
 
     private var defaultProcessDiscovery: (deviceDetails: DeviceDetails, initiatorMUID: Int) -> MidiCIDiscoveryResponseCode =
         { _, _ -> MidiCIDiscoveryResponseCode.Reply }
@@ -238,72 +268,72 @@ class MidiCIResponder(private val input: MidiInput, private val output: MidiOutp
     var processSetNewProtocol = defaultProcessSetNewProtocol
 
     @OptIn(ExperimentalTime::class)
-    private var defaultProcessTestNewProtocol: (testData: List<Byte>, initiatorMUID: Int) -> Boolean =
-        { _, _ -> protocolTestTimeout != null && MidiCISystem.timeSource.markNow().elapsedNow() < protocolTestTimeout!!.elapsedNow() }
+    private var defaultProcessTestNewProtocol: (testData: List<Byte>, initiatorMUID: Int) -> Boolean = { _, _ ->
+        val now = MidiCISystem.timeSource.markNow().elapsedNow()
+        protocolTestTimeout != null && now.absoluteValue < protocolTestTimeout!!
+    }
     var processTestNewProtocol = defaultProcessTestNewProtocol
 
-    @OptIn(ExperimentalTime::class)
-    private var protocolTestTimeout: TimeMark? = null
+    var processConfirmNewProtocol: (initiatorMUID: Int) -> Unit = { _ -> }
 
     @OptIn(ExperimentalTime::class)
-    private val inputListener = object: OnMidiReceivedEventListener {
-        override fun onEventReceived(data: ByteArray, start: Int, length: Int, timestampInNanoseconds: Long) {
-            if (start + 4 < data.size)
-                return // invalid input
-            if (data.drop(start).toByteArray() contentEquals byteArrayOf(0xF0.toByte(), 0x7E, 0x7F, 0xD)) {
-                when (data[start + 4]) {
-                    CIFactory.SUB_ID_2_DISCOVERY_INQUIRY -> {
-                        val device = CIRetrieval.midiCIGetDeviceDetails(data, start)
-                        val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data, start)
-                        val dst = mutableListOf<Byte>()
-                        when (processDiscovery(device, sourceMUID)) {
-                            MidiCIDiscoveryResponseCode.Reply -> CIFactory.midiCIDiscoveryReply(
-                                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID,
-                                device.manufacturer, device.family, device.familyModelNumber, device.softwareRevisionLevel,
-                                MidiCIConstants.RESPONDER_CI_CATEGORY_SUPPORTED, MidiCIConstants.RECEIVABLE_MAX_SYSEX_SIZE)
-                            MidiCIDiscoveryResponseCode.InvalidateMUID -> CIFactory.midiCIDiscoveryInvalidateMuid(
-                                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID)
-                            MidiCIDiscoveryResponseCode.NAK -> CIFactory.midiCIDiscoveryNak(
-                                dst, MidiCIConstants.DEVICE_ID_MIDI_PORT, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID)
-                        }
-                        output.send(dst.toByteArray(), 0, dst.size, 0)
-                    }
-                    CIFactory.SUB_ID_2_PROTOCOL_NEGOTIATION_INQUIRY -> {
-                        val requestedProtocols = CIRetrieval.midiCIGetSupportedProtocols(data, start)
-                        val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data, start)
-                        val dst = mutableListOf<Byte>()
-                        CIFactory.midiCIProtocolNegotiation(dst, true, muid, sourceMUID, authorityLevel,
-                            processNegotiationInquiry(requestedProtocols, sourceMUID))
-                        output.send(dst.toByteArray(), 0, dst.size, 0)
-                    }
-                    CIFactory.SUB_ID_2_SET_NEW_PROTOCOL -> {
-                        val requestedProtocol = CIRetrieval.midiCIGetNewProtocol(data, start)
-                        val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data, start)
+    private var protocolTestTimeout: Duration? = null
 
-                        if (processSetNewProtocol(requestedProtocol, sourceMUID)) {
-                            currentMidiProtocol = requestedProtocol
-                            protocolTestTimeout = MidiCISystem.timeSource.markNow().plus(300.milliseconds)
-                        }
-                    }
-                    CIFactory.SUB_ID_2_TEST_NEW_PROTOCOL_I2R -> {
-                        val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data, start)
-                        val testData = CIRetrieval.midiCIGetTestData(data, start)
-                        if (processTestNewProtocol(testData, sourceMUID)) {
-                            val dst = mutableListOf<Byte>()
-                            CIFactory.midiCIProtocolTest(dst, false, muid, sourceMUID, authorityLevel, testData)
-                            output.send(dst.toByteArray(), 0, dst.size, 0)
-                        }
-                        protocolTestTimeout = null
-                    }
-                    CIFactory.SUB_ID_2_CONFIRM_NEW_PROTOCOL_ESTABLISHED -> {
-                        // New Protocol Established
-                    }
+    @OptIn(ExperimentalTime::class)
+    fun processInput(data: List<Byte>) {
+        if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
+            return // not MIDI-CI sysex
+        when (data[3]) {
+            CIFactory.SUB_ID_2_DISCOVERY_INQUIRY -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                initiatorDevice = CIRetrieval.midiCIGetDeviceDetails(data)
+                val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+                when (processDiscovery(device, sourceMUID)) {
+                    MidiCIDiscoveryResponseCode.Reply -> CIFactory.midiCIDiscoveryReply(
+                        dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID,
+                        device.manufacturer, device.family, device.familyModelNumber, device.softwareRevisionLevel,
+                        MidiCIConstants.RESPONDER_CI_CATEGORY_SUPPORTED, MidiCIConstants.RECEIVABLE_MAX_SYSEX_SIZE)
+                    MidiCIDiscoveryResponseCode.InvalidateMUID -> CIFactory.midiCIDiscoveryInvalidateMuid(
+                        dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID)
+                    MidiCIDiscoveryResponseCode.NAK -> CIFactory.midiCIDiscoveryNak(
+                        dst, MidiCIConstants.DEVICE_ID_MIDI_PORT, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID)
+                }
+                sendOutput(dst)
+            }
+            CIFactory.SUB_ID_2_PROTOCOL_NEGOTIATION_INQUIRY -> {
+                val requestedProtocols = CIRetrieval.midiCIGetSupportedProtocols(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+                CIFactory.midiCIProtocolNegotiation(dst, true, muid, sourceMUID, authorityLevel,
+                    processNegotiationInquiry(requestedProtocols, sourceMUID))
+                sendOutput(dst)
+            }
+            CIFactory.SUB_ID_2_SET_NEW_PROTOCOL -> {
+                val requestedProtocol = CIRetrieval.midiCIGetNewProtocol(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+
+                if (processSetNewProtocol(requestedProtocol, sourceMUID)) {
+                    currentMidiProtocol = requestedProtocol
+                    protocolTestTimeout = MidiCISystem.timeSource.markNow().elapsedNow().plus(300.milliseconds.absoluteValue)
                 }
             }
+            CIFactory.SUB_ID_2_TEST_NEW_PROTOCOL_I2R -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val testData = CIRetrieval.midiCIGetTestData(data)
+                if (processTestNewProtocol(testData, sourceMUID)) {
+                    val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+                    CIFactory.midiCIProtocolTest(dst, false, muid, sourceMUID, authorityLevel, testData)
+                    sendOutput(dst)
+                }
+                protocolTestTimeout = null
+            }
+            CIFactory.SUB_ID_2_CONFIRM_NEW_PROTOCOL_ESTABLISHED -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                processConfirmNewProtocol(sourceMUID)
+            }
+            CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_REPLY -> {
+                // Reply to Property Exchange Capabilities
+            }
         }
-    }
-
-    init {
-        input.setMessageReceivedListener(inputListener)
     }
 }
