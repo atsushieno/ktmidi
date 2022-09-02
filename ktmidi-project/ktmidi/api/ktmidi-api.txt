@@ -10,14 +10,6 @@ package dev.atsushieno.ktmidi {
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
   }
 
-  public final class CIFactoryTest {
-    ctor public CIFactoryTest();
-    method public void testDiscoveryMessages();
-    method public void testProfileConfigurationMessages();
-    method public void testPropertyExchangeMessages();
-    method public void testProtocolNegotiationMessages();
-  }
-
   public final class DefaultMidiModuleDatabase extends dev.atsushieno.ktmidi.MidiModuleDatabase {
     ctor public DefaultMidiModuleDatabase();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiModuleDefinition> all();
@@ -999,6 +991,12 @@ package dev.atsushieno.ktmidi {
     property @Nullable public abstract String version;
   }
 
+  public final class MidiProgramChangeOptions {
+    field public static final int BANK_VALID = 1; // 0x1
+    field @NonNull public static final dev.atsushieno.ktmidi.MidiProgramChangeOptions INSTANCE;
+    field public static final int NONE = 0; // 0x0
+  }
+
   public final class MidiProgramDefinition {
     ctor public MidiProgramDefinition();
     method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiBankDefinition> getBanks();
@@ -1014,7 +1012,8 @@ package dev.atsushieno.ktmidi {
 
   public final class MidiReaderWriterKt {
     method public static void read(@NonNull dev.atsushieno.ktmidi.MidiMusic, @NonNull java.util.List<java.lang.Byte> stream);
-    method public static void write(@NonNull dev.atsushieno.ktmidi.MidiMusic, @NonNull java.util.List<java.lang.Byte> stream, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Boolean,? super dev.atsushieno.ktmidi.MidiMessage,? super java.util.List<java.lang.Byte>,java.lang.Integer> metaEventWriter);
+    method @Deprecated public static void write(@NonNull dev.atsushieno.ktmidi.MidiMusic, @NonNull java.util.List<java.lang.Byte> stream, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Boolean,? super dev.atsushieno.ktmidi.MidiMessage,? super java.util.List<java.lang.Byte>,java.lang.Integer> metaEventWriter);
+    method public static void write(@NonNull dev.atsushieno.ktmidi.MidiMusic, @NonNull java.util.List<java.lang.Byte> stream, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Boolean,? super dev.atsushieno.ktmidi.MidiMessage,? super java.util.List<java.lang.Byte>,java.lang.Integer> metaEventWriter, optional boolean disableRunningStatus);
   }
 
   public final class MidiReaderWriterTest {
@@ -1203,7 +1202,7 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class Ump.Companion {
-    method @Deprecated @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.Ump> fromBytes(@NonNull byte[] bytes, int offset, int count);
+    method @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.Ump> fromBytes(@NonNull byte[] bytes, int offset, int count);
   }
 
   public final class UmpException extends java.lang.Exception {
@@ -1325,7 +1324,8 @@ package dev.atsushieno.ktmidi {
     method public static int getMidi1PitchBendData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi1Program(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi1Velocity(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getMidi2CAf(@NonNull dev.atsushieno.ktmidi.Ump);
+    method @Deprecated public static int getMidi2CAf(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getMidi2CAfData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2CCData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2CCIndex(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2Note(@NonNull dev.atsushieno.ktmidi.Ump);
@@ -1385,6 +1385,74 @@ package dev.atsushieno.ktmidi {
     method public void testToAndFromBytes();
   }
 
+  public final class UmpTranslationResult {
+    field @NonNull public static final dev.atsushieno.ktmidi.UmpTranslationResult INSTANCE;
+    field public static final int INVALID_DTE_SEQUENCE = 17; // 0x11
+    field public static final int INVALID_STATUS = 19; // 0x13
+    field public static final int INVALID_SYSEX = 16; // 0x10
+    field public static final int OK = 0; // 0x0
+  }
+
+  public final class UmpTranslator {
+    method public int translateMidi1BytesToUmp(@NonNull dev.atsushieno.ktmidi.UmpTranslatorContext context);
+    method public int translateSingleUmpToMidi1Bytes(@NonNull java.util.List<java.lang.Byte> dst, @NonNull dev.atsushieno.ktmidi.Ump ump);
+    field @NonNull public static final dev.atsushieno.ktmidi.UmpTranslator INSTANCE;
+  }
+
+  public final class UmpTranslatorContext {
+    ctor public UmpTranslatorContext(@NonNull java.util.List<java.lang.Byte> midi1, optional boolean allowReorderedDTE, optional int midiProtocol, int group, optional boolean useSysex8, optional boolean isMidi1Smf);
+    method public boolean getAllowReorderedDTE();
+    method public int getBankState();
+    method public int getDteState();
+    method public int getGroup();
+    method @NonNull public java.util.List<java.lang.Byte> getMidi1();
+    method public int getMidi1Pos();
+    method public int getMidiProtocol();
+    method public int getNrpnState();
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> getOutput();
+    method public int getRpnState();
+    method public int getTempo();
+    method public boolean getUseSysex8();
+    method public boolean isMidi1Smf();
+    method public void setBankState(int bankState);
+    method public void setDteState(int dteState);
+    method public void setMidi1Pos(int midi1Pos);
+    method public void setNrpnState(int nrpnState);
+    method public void setRpnState(int rpnState);
+    method public void setTempo(int tempo);
+    property public final boolean allowReorderedDTE;
+    property public final int bankState;
+    property public final int dteState;
+    property public final int group;
+    property public final boolean isMidi1Smf;
+    property @NonNull public final java.util.List<java.lang.Byte> midi1;
+    property public final int midi1Pos;
+    property public final int midiProtocol;
+    property public final int nrpnState;
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.Ump> output;
+    property public final int rpnState;
+    property public final int tempo;
+    property public final boolean useSysex8;
+  }
+
+  public final class UmpTranslatorTest {
+    ctor public UmpTranslatorTest();
+    method public void testConvertMidi1ToUmpBankLsbAndProgramChange();
+    method public void testConvertMidi1ToUmpBankMsbAndProgramChange();
+    method public void testConvertMidi1ToUmpBankMsbLsbAndProgramChange();
+    method public void testConvertMidi1ToUmpCAf();
+    method public void testConvertMidi1ToUmpInvalidNRPN();
+    method public void testConvertMidi1ToUmpInvalidRPN();
+    method public void testConvertMidi1ToUmpNoteOn();
+    method public void testConvertMidi1ToUmpPAf();
+    method public void testConvertMidi1ToUmpPitchBend();
+    method public void testConvertMidi1ToUmpSimpleCC();
+    method public void testConvertMidi1ToUmpSimpleProgramChange();
+    method public void testConvertMidi1ToUmpValidNRPN();
+    method public void testConvertMidi1ToUmpValidRPN();
+    method public void testConvertSingleUmpToMidi1();
+  }
+
   public class VirtualMidiPlayerTimer implements dev.atsushieno.ktmidi.MidiPlayerTimer {
     ctor public VirtualMidiPlayerTimer();
     method public final double getTotalProceededSeconds();
@@ -1403,31 +1471,31 @@ package dev.atsushieno.ktmidi {
 package dev.atsushieno.ktmidi.ci {
 
   public final class CIFactory {
-    method public void midiCI7bitInt14At(@NonNull java.util.List<java.lang.Byte> buf, int offset, short v);
-    method public void midiCI7bitInt21At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
-    method public void midiCI7bitInt28At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
-    method public void midiCIDiscovery(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
-    method public void midiCIDiscoveryCommon(@NonNull java.util.List<java.lang.Byte> buf, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer3Bytes, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
-    method public void midiCIDiscoveryInvalidateMuid(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int targetMUID);
-    method public void midiCIDiscoveryNak(@NonNull java.util.List<java.lang.Byte> buf, byte deviceId, byte versionAndFormat, int sourceMUID, int destinationMUID);
-    method public void midiCIDiscoveryReply(@NonNull java.util.List<java.lang.Byte> buf, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
-    method public void midiCIMessageCommon(@NonNull java.util.List<java.lang.Byte> buf, byte destination, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID);
-    method public void midiCIProfile(@NonNull java.util.List<java.lang.Byte> buf, int offset, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId info);
-    method public void midiCIProfileInquiry(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID);
-    method public void midiCIProfileInquiryReply(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID, byte numEnabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> enabledProfiles, byte numDisabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> disabledProfiles);
-    method public void midiCIProfileReport(@NonNull java.util.List<java.lang.Byte> buf, byte source, boolean isEnabledReport, int sourceMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
-    method public void midiCIProfileSet(@NonNull java.util.List<java.lang.Byte> buf, byte destination, boolean turnOn, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
-    method public void midiCIProfileSpecificData(@NonNull java.util.List<java.lang.Byte> buf, byte source, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, int dataSize, @NonNull java.util.List<java.lang.Byte> data);
-    method public void midiCIPropertyCommon(@NonNull java.util.List<java.lang.Byte> buf, byte destination, byte messageTypeSubId2, int sourceMUID, int destinationMUID, byte requestId, short headerSize, @NonNull java.util.List<java.lang.Byte> header, short numChunks, short chunkIndex, short dataSize, @NonNull java.util.List<java.lang.Byte> data);
-    method public void midiCIPropertyGetCapabilities(@NonNull java.util.List<java.lang.Byte> buf, byte destination, boolean isReply, int sourceMUID, int destinationMUID, byte maxSupportedRequests);
-    method public void midiCIProtocolConfirmEstablished(@NonNull java.util.List<java.lang.Byte> buf, int sourceMUID, int destinationMUID, byte authorityLevel);
-    method public void midiCIProtocolInfo(@NonNull java.util.List<java.lang.Byte> buf, int offset, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo info);
-    method public void midiCIProtocolNegotiation(@NonNull java.util.List<java.lang.Byte> buf, boolean isReply, int sourceMUID, int destinationMUID, byte authorityLevel, byte numSupportedProtocols, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
-    method public void midiCIProtocolSet(@NonNull java.util.List<java.lang.Byte> buf, int sourceMUID, int destinationMUID, byte authorityLevel, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo newProtocolType);
-    method public void midiCIProtocolTest(@NonNull java.util.List<java.lang.Byte> buf, boolean isInitiatorToResponder, int sourceMUID, int destinationMUID, byte authorityLevel, @NonNull java.util.List<java.lang.Byte> testData48Bytes);
-    method public void midiCIProtocols(@NonNull java.util.List<java.lang.Byte> buf, int offset, byte numSupportedProtocols, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
-    method public void midiCiDirectUint16At(@NonNull java.util.List<java.lang.Byte> buf, int offset, short v);
-    method public void midiCiDirectUint32At(@NonNull java.util.List<java.lang.Byte> buf, int offset, int v);
+    method public void midiCI7bitInt14At(@NonNull java.util.List<java.lang.Byte> dst, int offset, short v);
+    method public void midiCI7bitInt21At(@NonNull java.util.List<java.lang.Byte> dst, int offset, int v);
+    method public void midiCI7bitInt28At(@NonNull java.util.List<java.lang.Byte> dst, int offset, int v);
+    method public void midiCIDiscovery(@NonNull java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
+    method public void midiCIDiscoveryCommon(@NonNull java.util.List<java.lang.Byte> dst, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer3Bytes, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
+    method public void midiCIDiscoveryInvalidateMuid(@NonNull java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int targetMUID);
+    method public void midiCIDiscoveryNak(@NonNull java.util.List<java.lang.Byte> dst, byte deviceId, byte versionAndFormat, int sourceMUID, int destinationMUID);
+    method public void midiCIDiscoveryReply(@NonNull java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
+    method public void midiCIMessageCommon(@NonNull java.util.List<java.lang.Byte> dst, byte destination, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID);
+    method public void midiCIProfile(@NonNull java.util.List<java.lang.Byte> dst, int offset, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId info);
+    method public void midiCIProfileInquiry(@NonNull java.util.List<java.lang.Byte> dst, byte source, int sourceMUID, int destinationMUID);
+    method public void midiCIProfileInquiryReply(@NonNull java.util.List<java.lang.Byte> dst, byte source, int sourceMUID, int destinationMUID, byte numEnabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> enabledProfiles, byte numDisabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> disabledProfiles);
+    method public void midiCIProfileReport(@NonNull java.util.List<java.lang.Byte> dst, byte source, boolean isEnabledReport, int sourceMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
+    method public void midiCIProfileSet(@NonNull java.util.List<java.lang.Byte> dst, byte destination, boolean turnOn, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
+    method public void midiCIProfileSpecificData(@NonNull java.util.List<java.lang.Byte> dst, byte source, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, int dataSize, @NonNull java.util.List<java.lang.Byte> data);
+    method public void midiCIPropertyCommon(@NonNull java.util.List<java.lang.Byte> dst, byte destination, byte messageTypeSubId2, int sourceMUID, int destinationMUID, byte requestId, short headerSize, @NonNull java.util.List<java.lang.Byte> header, short numChunks, short chunkIndex, short dataSize, @NonNull java.util.List<java.lang.Byte> data);
+    method public void midiCIPropertyGetCapabilities(@NonNull java.util.List<java.lang.Byte> dst, byte destination, boolean isReply, int sourceMUID, int destinationMUID, byte maxSupportedRequests);
+    method public void midiCIProtocolConfirmEstablished(@NonNull java.util.List<java.lang.Byte> dst, int sourceMUID, int destinationMUID, byte authorityLevel);
+    method public void midiCIProtocolInfo(@NonNull java.util.List<java.lang.Byte> dst, int offset, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo info);
+    method public void midiCIProtocolNegotiation(@NonNull java.util.List<java.lang.Byte> dst, boolean isReply, int sourceMUID, int destinationMUID, byte authorityLevel, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
+    method public void midiCIProtocolSet(@NonNull java.util.List<java.lang.Byte> dst, int sourceMUID, int destinationMUID, byte authorityLevel, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo newProtocolType);
+    method public void midiCIProtocolTest(@NonNull java.util.List<java.lang.Byte> dst, boolean isInitiatorToResponder, int sourceMUID, int destinationMUID, byte authorityLevel, @NonNull java.util.List<java.lang.Byte> testData48Bytes);
+    method public void midiCIProtocols(@NonNull java.util.List<java.lang.Byte> dst, int offset, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
+    method public void midiCiDirectUint16At(@NonNull java.util.List<java.lang.Byte> dst, int offset, short v);
+    method public void midiCiDirectUint32At(@NonNull java.util.List<java.lang.Byte> dst, int offset, int v);
     field @NonNull public static final dev.atsushieno.ktmidi.ci.CIFactory INSTANCE;
     field public static final int PROFILE_CONFIGURATION_SUPPORTED = 4; // 0x4
     field public static final int PROPERTY_EXCHANGE_SUPPORTED = 8; // 0x8
@@ -1463,6 +1531,126 @@ package dev.atsushieno.ktmidi.ci {
     field public static final byte SUB_ID_2_TEST_NEW_PROTOCOL_R2I = 20; // 0x14
   }
 
+  public final class CIFactoryTest {
+    ctor public CIFactoryTest();
+    method public void testDiscoveryMessages();
+    method public void testProfileConfigurationMessages();
+    method public void testPropertyExchangeMessages();
+    method public void testProtocolNegotiationMessages();
+  }
+
+  public final class CIRetrieval {
+    method @NonNull public dev.atsushieno.ktmidi.ci.DeviceDetails midiCIGetDeviceDetails(@NonNull byte[] sysex, int offset);
+    method @NonNull public dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo midiCIGetNewProtocol(@NonNull byte[] sysex, int offset);
+    method public int midiCIGetSourceMUID(@NonNull byte[] sysex, int offset);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> midiCIGetSupportedProtocols(@NonNull byte[] sysex, int offset);
+    method @NonNull public java.util.List<java.lang.Byte> midiCIGetTestData(@NonNull byte[] sysex, int offset);
+    field @NonNull public static final dev.atsushieno.ktmidi.ci.CIRetrieval INSTANCE;
+  }
+
+  public final class DeviceDetails {
+    ctor public DeviceDetails(optional int manufacturer, optional short family, optional short familyModelNumber, optional int softwareRevisionLevel);
+    method public int component1();
+    method public short component2();
+    method public short component3();
+    method public int component4();
+    method @NonNull public dev.atsushieno.ktmidi.ci.DeviceDetails copy(int manufacturer, short family, short familyModelNumber, int softwareRevisionLevel);
+    method public short getFamily();
+    method public short getFamilyModelNumber();
+    method public int getManufacturer();
+    method public int getSoftwareRevisionLevel();
+    property public final short family;
+    property public final short familyModelNumber;
+    property public final int manufacturer;
+    property public final int softwareRevisionLevel;
+  }
+
+  public final class MidiCIAuthorityLevelBasis {
+    field public static final byte Endpoint = 48; // 0x30
+    field public static final byte EventProcessor = 32; // 0x20
+    field public static final byte Gateway = 80; // 0x50
+    field @NonNull public static final dev.atsushieno.ktmidi.ci.MidiCIAuthorityLevelBasis INSTANCE;
+    field public static final byte NodeServer = 96; // 0x60
+    field public static final byte Translator = 64; // 0x40
+    field public static final byte Transport = 16; // 0x10
+  }
+
+  public final class MidiCIConstants {
+    method public byte getCI_VERSION_AND_FORMAT();
+    method public byte getDEVICE_ID_MIDI_PORT();
+    method @NonNull public dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo getMidi1ProtocolTypeInfo();
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> getMidi1ThenMidi2Protocols();
+    method @NonNull public dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo getMidi2ProtocolTypeInfo();
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> getMidi2ThenMidi1Protocols();
+    method public int getRECEIVABLE_MAX_SYSEX_SIZE();
+    method public byte getRESPONDER_CI_CATEGORY_SUPPORTED();
+    property public final byte CI_VERSION_AND_FORMAT;
+    property public final byte DEVICE_ID_MIDI_PORT;
+    property @NonNull public final dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo Midi1ProtocolTypeInfo;
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> Midi1ThenMidi2Protocols;
+    property @NonNull public final dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo Midi2ProtocolTypeInfo;
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> Midi2ThenMidi1Protocols;
+    property public final int RECEIVABLE_MAX_SYSEX_SIZE;
+    property public final byte RESPONDER_CI_CATEGORY_SUPPORTED;
+    field @NonNull public static final dev.atsushieno.ktmidi.ci.MidiCIConstants INSTANCE;
+  }
+
+  public enum MidiCIDiscoveryResponseCode {
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode InvalidateMUID;
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode NAK;
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode Reply;
+  }
+
+  public final class MidiCIInitiator {
+    ctor public MidiCIInitiator(@NonNull dev.atsushieno.ktmidi.MidiInput input, @NonNull dev.atsushieno.ktmidi.MidiOutput output, @NonNull dev.atsushieno.ktmidi.ci.DeviceDetails device, optional byte authorityLevel, optional int muid);
+    method public void confirmProtocol(int destinationMUID, byte authorityLevel);
+    method public byte getAuthorityLevel();
+    method @NonNull public dev.atsushieno.ktmidi.ci.DeviceDetails getDevice();
+    method public int getMidiProtocol();
+    method public int getMuid();
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> getPreferredProtocols();
+    method @NonNull public kotlin.jvm.functions.Function3<dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,kotlin.Unit> getProcessDiscoveryResponse();
+    method @NonNull public kotlin.jvm.functions.Function2<java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,java.lang.Integer,kotlin.Unit> getProcessReplyToInitiateProtocolNegotiation();
+    method @NonNull public kotlin.jvm.functions.Function2<java.lang.Integer,java.util.List<java.lang.Byte>,kotlin.Unit> getProcessTestProtocolReply();
+    method public boolean getProtocolTested();
+    method @NonNull public dev.atsushieno.ktmidi.ci.MidiCIInitiatorState getState();
+    method public void initiateProtocolNegotiation(int destinationMUID, byte authorityLevel, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
+    method public void sendDiscovery(byte ciCategorySupported);
+    method public void setMidiProtocol(int midiProtocol);
+    method public void setNewProtocol(int destinationMUID, byte authorityLevel, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo newProtocolType);
+    method public void setPreferredProtocols(@NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> preferredProtocols);
+    method public void setProcessDiscoveryResponse(@NonNull kotlin.jvm.functions.Function3<? super dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,? super dev.atsushieno.ktmidi.ci.DeviceDetails,? super java.lang.Integer,kotlin.Unit> processDiscoveryResponse);
+    method public void setProcessReplyToInitiateProtocolNegotiation(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,? super java.lang.Integer,kotlin.Unit> processReplyToInitiateProtocolNegotiation);
+    method public void setProcessTestProtocolReply(@NonNull kotlin.jvm.functions.Function2<? super java.lang.Integer,? super java.util.List<java.lang.Byte>,kotlin.Unit> processTestProtocolReply);
+    method public void setProtocolTested(boolean protocolTested);
+    method public void setState(@NonNull dev.atsushieno.ktmidi.ci.MidiCIInitiatorState state);
+    method public void testNewProtocol(int destinationMUID, byte authorityLevel, @NonNull java.util.List<java.lang.Byte> testData48Bytes);
+    property public final byte authorityLevel;
+    property @NonNull public final dev.atsushieno.ktmidi.ci.DeviceDetails device;
+    property public final int midiProtocol;
+    property public final int muid;
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> preferredProtocols;
+    property @NonNull public final kotlin.jvm.functions.Function3<dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,kotlin.Unit> processDiscoveryResponse;
+    property @NonNull public final kotlin.jvm.functions.Function2<java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,java.lang.Integer,kotlin.Unit> processReplyToInitiateProtocolNegotiation;
+    property @NonNull public final kotlin.jvm.functions.Function2<java.lang.Integer,java.util.List<java.lang.Byte>,kotlin.Unit> processTestProtocolReply;
+    property public final boolean protocolTested;
+    property @NonNull public final dev.atsushieno.ktmidi.ci.MidiCIInitiatorState state;
+  }
+
+  public enum MidiCIInitiatorState {
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiatorState DISCOVERED;
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiatorState DISCOVERY_SENT;
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiatorState ESTABLISHED;
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiatorState Initial;
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiatorState NEW_PROTOCOL_SENT;
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiatorState TEST_SENT;
+  }
+
+  public final class MidiCIInitiatorTest {
+    ctor public MidiCIInitiatorTest();
+    method public error.NonExistentClass initialState();
+  }
+
   public final class MidiCIProfileId {
     ctor public MidiCIProfileId(byte fixed_7e, byte bank, byte number, byte version, byte level);
     method public byte getBank();
@@ -1489,6 +1677,35 @@ package dev.atsushieno.ktmidi.ci {
     property public final byte reserved2;
     property public final byte type;
     property public final byte version;
+  }
+
+  public final class MidiCIResponder {
+    ctor public MidiCIResponder(@NonNull dev.atsushieno.ktmidi.MidiInput input, @NonNull dev.atsushieno.ktmidi.MidiOutput output, @NonNull dev.atsushieno.ktmidi.ci.DeviceDetails device, optional byte authorityLevel, optional int muid);
+    method @NonNull public dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo getCurrentMidiProtocol();
+    method @NonNull public kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode> getProcessDiscovery();
+    method @NonNull public kotlin.jvm.functions.Function2<java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,java.lang.Integer,java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>> getProcessNegotiationInquiry();
+    method @NonNull public kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo,java.lang.Integer,java.lang.Boolean> getProcessSetNewProtocol();
+    method @NonNull public kotlin.jvm.functions.Function2<java.util.List<java.lang.Byte>,java.lang.Integer,java.lang.Boolean> getProcessTestNewProtocol();
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> getSupportedProtocols();
+    method public void setCurrentMidiProtocol(@NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo currentMidiProtocol);
+    method public void setProcessDiscovery(@NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.DeviceDetails,? super java.lang.Integer,? extends dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode> processDiscovery);
+    method public void setProcessNegotiationInquiry(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,? super java.lang.Integer,? extends java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>> processNegotiationInquiry);
+    method public void setProcessSetNewProtocol(@NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo,? super java.lang.Integer,java.lang.Boolean> processSetNewProtocol);
+    method public void setProcessTestNewProtocol(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<java.lang.Byte>,? super java.lang.Integer,java.lang.Boolean> processTestNewProtocol);
+    method public void setSupportedProtocols(@NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> supportedProtocols);
+    property @NonNull public final dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo currentMidiProtocol;
+    property @NonNull public final kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode> processDiscovery;
+    property @NonNull public final kotlin.jvm.functions.Function2<java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,java.lang.Integer,java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>> processNegotiationInquiry;
+    property @NonNull public final kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo,java.lang.Integer,java.lang.Boolean> processSetNewProtocol;
+    property @NonNull public final kotlin.jvm.functions.Function2<java.util.List<java.lang.Byte>,java.lang.Integer,java.lang.Boolean> processTestNewProtocol;
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> supportedProtocols;
+  }
+
+  public final class MidiCISystem {
+    method @NonNull public kotlin.time.TimeSource getTimeSource();
+    method public void setTimeSource(@NonNull kotlin.time.TimeSource timeSource);
+    property @NonNull public final kotlin.time.TimeSource timeSource;
+    field @NonNull public static final dev.atsushieno.ktmidi.ci.MidiCISystem INSTANCE;
   }
 
 }

@@ -6,9 +6,9 @@ import io.ktor.utils.io.core.*
 import kotlin.experimental.and
 
 internal infix fun Byte.shl(n: Int): Int = this.toInt() shl n
-private infix fun Byte.shr(n: Int): Int = this.toInt() shr n
-private infix fun Short.shl(n: Int): Int = this.toInt() shl n
-private infix fun Short.shr(n: Int): Int = this.toInt() shr n
+internal infix fun Byte.shr(n: Int): Int = this.toInt() shr n
+internal infix fun Short.shl(n: Int): Int = this.toInt() shl n
+internal infix fun Short.shr(n: Int): Int = this.toInt() shr n
 
 const val JR_TIMESTAMP_TICKS_PER_SECOND = 31250
 const val MIDI_2_0_RESERVED: Byte = 0
