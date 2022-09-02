@@ -1481,8 +1481,8 @@ package dev.atsushieno.ktmidi.ci {
     method public void midiCIDiscoveryReply(@NonNull java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize);
     method public void midiCIMessageCommon(@NonNull java.util.List<java.lang.Byte> dst, byte destination, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID);
     method public void midiCIProfile(@NonNull java.util.List<java.lang.Byte> dst, int offset, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId info);
-    method public void midiCIProfileInquiry(@NonNull java.util.List<java.lang.Byte> dst, byte source, int sourceMUID, int destinationMUID);
-    method public void midiCIProfileInquiryReply(@NonNull java.util.List<java.lang.Byte> dst, byte source, int sourceMUID, int destinationMUID, byte numEnabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> enabledProfiles, byte numDisabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> disabledProfiles);
+    method public void midiCIProfileInquiry(@NonNull java.util.List<java.lang.Byte> dst, byte destinationChannelOr7F, int sourceMUID, int destinationMUID);
+    method public void midiCIProfileInquiryReply(@NonNull java.util.List<java.lang.Byte> dst, byte source, int sourceMUID, int destinationMUID, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> enabledProfiles, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> disabledProfiles);
     method public void midiCIProfileReport(@NonNull java.util.List<java.lang.Byte> dst, byte source, boolean isEnabledReport, int sourceMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
     method public void midiCIProfileSet(@NonNull java.util.List<java.lang.Byte> dst, byte destination, boolean turnOn, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
     method public void midiCIProfileSpecificData(@NonNull java.util.List<java.lang.Byte> dst, byte source, int sourceMUID, int destinationMUID, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, int dataSize, @NonNull java.util.List<java.lang.Byte> data);
@@ -1540,8 +1540,12 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   public final class CIRetrieval {
+    method public byte midiCIGetDestination(@NonNull java.util.List<java.lang.Byte> sysex);
+    method public int midiCIGetDestinationMUID(@NonNull java.util.List<java.lang.Byte> sysex);
     method @NonNull public dev.atsushieno.ktmidi.ci.DeviceDetails midiCIGetDeviceDetails(@NonNull java.util.List<java.lang.Byte> sysex);
     method @NonNull public dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo midiCIGetNewProtocol(@NonNull java.util.List<java.lang.Byte> sysex);
+    method @NonNull public dev.atsushieno.ktmidi.ci.MidiCIProfileId midiCIGetProfileId(@NonNull java.util.List<java.lang.Byte> sysex);
+    method @NonNull public java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>> midiCIGetProfileSet(@NonNull java.util.List<java.lang.Byte> sysex);
     method public int midiCIGetSourceMUID(@NonNull java.util.List<java.lang.Byte> sysex);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> midiCIGetSupportedProtocols(@NonNull java.util.List<java.lang.Byte> sysex);
     method @NonNull public java.util.List<java.lang.Byte> midiCIGetTestData(@NonNull java.util.List<java.lang.Byte> sysex);
@@ -1625,20 +1629,23 @@ package dev.atsushieno.ktmidi.ci {
     method public int getMidiCIBufferSize();
     method public int getMuid();
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> getPreferredProtocols();
-    method @NonNull public kotlin.jvm.functions.Function3<dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,kotlin.Unit> getProcessDiscoveryResponse();
+    method @NonNull public kotlin.jvm.functions.Function4<dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,java.lang.Integer,kotlin.Unit> getProcessDiscoveryResponse();
+    method @NonNull public kotlin.jvm.functions.Function3<java.lang.Byte,java.lang.Integer,java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>,kotlin.Unit> getProcessProfileInquiryResponse();
     method @NonNull public kotlin.jvm.functions.Function2<java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,java.lang.Integer,kotlin.Unit> getProcessReplyToInitiateProtocolNegotiation();
     method @NonNull public kotlin.jvm.functions.Function2<java.lang.Integer,java.util.List<java.lang.Byte>,kotlin.Unit> getProcessTestProtocolReply();
     method public boolean getProtocolTested();
     method @NonNull public dev.atsushieno.ktmidi.ci.MidiCIInitiatorState getState();
     method public void initiateProtocolNegotiation(int destinationMUID, byte authorityLevel, @NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> protocolTypes);
     method public void processInput(@NonNull java.util.List<java.lang.Byte> data);
+    method public void requestProfiles(byte destinationChannelOr7F, int destinationMUID);
     method public void sendDiscovery(optional byte ciCategorySupported);
     method public void setCurrentMidiProtocol(@NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo currentMidiProtocol);
     method public void setDevice(@NonNull dev.atsushieno.ktmidi.ci.DeviceDetails device);
     method public void setMidiCIBufferSize(int midiCIBufferSize);
     method public void setNewProtocol(int destinationMUID, byte authorityLevel, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo newProtocolType);
     method public void setPreferredProtocols(@NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> preferredProtocols);
-    method public void setProcessDiscoveryResponse(@NonNull kotlin.jvm.functions.Function3<? super dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,? super dev.atsushieno.ktmidi.ci.DeviceDetails,? super java.lang.Integer,kotlin.Unit> processDiscoveryResponse);
+    method public void setProcessDiscoveryResponse(@NonNull kotlin.jvm.functions.Function4<? super dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,? super dev.atsushieno.ktmidi.ci.DeviceDetails,? super java.lang.Integer,? super java.lang.Integer,kotlin.Unit> processDiscoveryResponse);
+    method public void setProcessProfileInquiryResponse(@NonNull kotlin.jvm.functions.Function3<? super java.lang.Byte,? super java.lang.Integer,? super java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>,kotlin.Unit> processProfileInquiryResponse);
     method public void setProcessReplyToInitiateProtocolNegotiation(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,? super java.lang.Integer,kotlin.Unit> processReplyToInitiateProtocolNegotiation);
     method public void setProcessTestProtocolReply(@NonNull kotlin.jvm.functions.Function2<? super java.lang.Integer,? super java.util.List<java.lang.Byte>,kotlin.Unit> processTestProtocolReply);
     method public void setProtocolTested(boolean protocolTested);
@@ -1650,7 +1657,8 @@ package dev.atsushieno.ktmidi.ci {
     property public final int midiCIBufferSize;
     property public final int muid;
     property @NonNull public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> preferredProtocols;
-    property @NonNull public final kotlin.jvm.functions.Function3<dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,kotlin.Unit> processDiscoveryResponse;
+    property @NonNull public final kotlin.jvm.functions.Function4<dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,java.lang.Integer,kotlin.Unit> processDiscoveryResponse;
+    property @NonNull public final kotlin.jvm.functions.Function3<java.lang.Byte,java.lang.Integer,java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>,kotlin.Unit> processProfileInquiryResponse;
     property @NonNull public final kotlin.jvm.functions.Function2<java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,java.lang.Integer,kotlin.Unit> processReplyToInitiateProtocolNegotiation;
     property @NonNull public final kotlin.jvm.functions.Function2<java.lang.Integer,java.util.List<java.lang.Byte>,kotlin.Unit> processTestProtocolReply;
     property public final boolean protocolTested;
@@ -1673,17 +1681,17 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   public final class MidiCIProfileId {
-    ctor public MidiCIProfileId(byte fixed_7e, byte bank, byte number, byte version, byte level);
-    method public byte getBank();
-    method public byte getFixed_7e();
-    method public byte getLevel();
-    method public byte getNumber();
-    method public byte getVersion();
-    property public final byte bank;
-    property public final byte fixed_7e;
-    property public final byte level;
-    property public final byte number;
-    property public final byte version;
+    ctor public MidiCIProfileId(optional byte mid1_7e, byte mid2_bank, byte mid3_number, byte msi1_version, byte msi2_level);
+    method public byte getMid1_7e();
+    method public byte getMid2_bank();
+    method public byte getMid3_number();
+    method public byte getMsi1_version();
+    method public byte getMsi2_level();
+    property public final byte mid1_7e;
+    property public final byte mid2_bank;
+    property public final byte mid3_number;
+    property public final byte msi1_version;
+    property public final byte msi2_level;
   }
 
   public final class MidiCIProtocolTypeInfo {
@@ -1706,32 +1714,44 @@ package dev.atsushieno.ktmidi.ci {
     method @NonNull public dev.atsushieno.ktmidi.ci.DeviceDetails getDevice();
     method @Nullable public dev.atsushieno.ktmidi.ci.DeviceDetails getInitiatorDevice();
     method public int getMidiCIBufferSize();
+    method @NonNull public kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean,kotlin.Unit> getOnProfileSet();
     method @NonNull public kotlin.jvm.functions.Function1<java.lang.Integer,kotlin.Unit> getProcessConfirmNewProtocol();
     method @NonNull public kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode> getProcessDiscovery();
     method @NonNull public kotlin.jvm.functions.Function2<java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,java.lang.Integer,java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>> getProcessNegotiationInquiry();
+    method @NonNull public kotlin.jvm.functions.Function2<java.lang.Integer,java.lang.Integer,java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>> getProcessProfileInquiry();
     method @NonNull public kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo,java.lang.Integer,java.lang.Boolean> getProcessSetNewProtocol();
+    method @NonNull public kotlin.jvm.functions.Function5<java.lang.Byte,java.lang.Integer,java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean,java.lang.Boolean> getProcessSetProfile();
     method @NonNull public kotlin.jvm.functions.Function2<java.util.List<java.lang.Byte>,java.lang.Integer,java.lang.Boolean> getProcessTestNewProtocol();
+    method @NonNull public java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>> getProfileSet();
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> getSupportedProtocols();
     method public void processInput(@NonNull java.util.List<java.lang.Byte> data);
     method public void setCurrentMidiProtocol(@NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo currentMidiProtocol);
     method public void setDevice(@NonNull dev.atsushieno.ktmidi.ci.DeviceDetails device);
     method public void setInitiatorDevice(@Nullable dev.atsushieno.ktmidi.ci.DeviceDetails initiatorDevice);
     method public void setMidiCIBufferSize(int midiCIBufferSize);
+    method public void setOnProfileSet(@NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.MidiCIProfileId,? super java.lang.Boolean,kotlin.Unit> onProfileSet);
     method public void setProcessConfirmNewProtocol(@NonNull kotlin.jvm.functions.Function1<? super java.lang.Integer,kotlin.Unit> processConfirmNewProtocol);
     method public void setProcessDiscovery(@NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.DeviceDetails,? super java.lang.Integer,? extends dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode> processDiscovery);
     method public void setProcessNegotiationInquiry(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,? super java.lang.Integer,? extends java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>> processNegotiationInquiry);
+    method public void setProcessProfileInquiry(@NonNull kotlin.jvm.functions.Function2<? super java.lang.Integer,? super java.lang.Integer,? extends java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>> processProfileInquiry);
     method public void setProcessSetNewProtocol(@NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo,? super java.lang.Integer,java.lang.Boolean> processSetNewProtocol);
+    method public void setProcessSetProfile(@NonNull kotlin.jvm.functions.Function5<? super java.lang.Byte,? super java.lang.Integer,? super java.lang.Integer,? super dev.atsushieno.ktmidi.ci.MidiCIProfileId,? super java.lang.Boolean,java.lang.Boolean> processSetProfile);
     method public void setProcessTestNewProtocol(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<java.lang.Byte>,? super java.lang.Integer,java.lang.Boolean> processTestNewProtocol);
+    method public void setProfileSet(@NonNull java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>> profileSet);
     method public void setSupportedProtocols(@NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> supportedProtocols);
     property @NonNull public final dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo currentMidiProtocol;
     property @NonNull public final dev.atsushieno.ktmidi.ci.DeviceDetails device;
     property @Nullable public final dev.atsushieno.ktmidi.ci.DeviceDetails initiatorDevice;
     property public final int midiCIBufferSize;
+    property @NonNull public final kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean,kotlin.Unit> onProfileSet;
     property @NonNull public final kotlin.jvm.functions.Function1<java.lang.Integer,kotlin.Unit> processConfirmNewProtocol;
     property @NonNull public final kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode> processDiscovery;
     property @NonNull public final kotlin.jvm.functions.Function2<java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,java.lang.Integer,java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>> processNegotiationInquiry;
+    property @NonNull public final kotlin.jvm.functions.Function2<java.lang.Integer,java.lang.Integer,java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>> processProfileInquiry;
     property @NonNull public final kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo,java.lang.Integer,java.lang.Boolean> processSetNewProtocol;
+    property @NonNull public final kotlin.jvm.functions.Function5<java.lang.Byte,java.lang.Integer,java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean,java.lang.Boolean> processSetProfile;
     property @NonNull public final kotlin.jvm.functions.Function2<java.util.List<java.lang.Byte>,java.lang.Integer,java.lang.Boolean> processTestNewProtocol;
+    property @NonNull public final java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>> profileSet;
     property @NonNull public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> supportedProtocols;
   }
 

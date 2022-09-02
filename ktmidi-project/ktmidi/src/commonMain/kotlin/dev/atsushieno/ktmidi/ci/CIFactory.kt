@@ -9,13 +9,8 @@ class MidiCIProtocolTypeInfo(
     val reserved2: Byte
 )
 
-class MidiCIProfileId(
-    val fixed_7e: Byte,
-    val bank: Byte,
-    val number: Byte,
-    val version: Byte,
-    val level: Byte
-)
+// manufacture ID1,2,3 + manufacturer specific 1,2 ... or ... 0x7E, bank, number, version, level.
+class MidiCIProfileId(val mid1_7e: Byte = 0x7E, val mid2_bank: Byte, val mid3_number: Byte, val msi1_version: Byte, val msi2_level: Byte)
 
 object CIFactory {
 
@@ -247,19 +242,19 @@ object CIFactory {
 // Profile Configuration
 
     fun midiCIProfile(dst: MutableList<Byte>, offset: Int, info: MidiCIProfileId) {
-        dst[offset] = info.fixed_7e
-        dst[offset + 1] = info.bank
-        dst[offset + 2] = info.number
-        dst[offset + 3] = info.version
-        dst[offset + 4] = info.level
+        dst[offset] = info.mid1_7e
+        dst[offset + 1] = info.mid2_bank
+        dst[offset + 2] = info.mid3_number
+        dst[offset + 3] = info.msi1_version
+        dst[offset + 4] = info.msi2_level
     }
 
     fun midiCIProfileInquiry(
-        dst: MutableList<Byte>, source: Byte,
+        dst: MutableList<Byte>, destinationChannelOr7F: Byte,
         sourceMUID: Int, destinationMUID: Int
     ) {
         midiCIMessageCommon(
-            dst, source,
+            dst, destinationChannelOr7F,
             SUB_ID_2_PROFILE_INQUIRY,
             1, sourceMUID, destinationMUID
         )
@@ -268,21 +263,25 @@ object CIFactory {
     fun midiCIProfileInquiryReply(
         dst: MutableList<Byte>, source: Byte,
         sourceMUID: Int, destinationMUID: Int,
-        numEnabledProfiles: Byte, enabledProfiles: MutableList<MidiCIProfileId>,
-        numDisabledProfiles: Byte, disabledProfiles: MutableList<MidiCIProfileId>
+        enabledProfiles: List<MidiCIProfileId>,
+        disabledProfiles: List<MidiCIProfileId>
     ) {
         midiCIMessageCommon(
             dst, source,
             SUB_ID_2_PROFILE_INQUIRY_REPLY,
             1, sourceMUID, destinationMUID
         )
-        dst[13] = numEnabledProfiles
-        for (i in 0 until numEnabledProfiles)
-            midiCIProfile(dst, 14 + i * 5, enabledProfiles[i])
-        var pos: Int = 14 + numEnabledProfiles * 5
-        dst[pos++] = numDisabledProfiles
-        for (i in 0 until numDisabledProfiles)
-            midiCIProfile(dst, pos + i * 5, disabledProfiles[i])
+        dst[13] = (enabledProfiles.size and 0x7F).toByte()
+        dst[14] = ((enabledProfiles.size shr 7) and 0x7F).toByte()
+        enabledProfiles.forEachIndexed { i, p ->
+            midiCIProfile(dst, 15 + i * 5, p)
+        }
+        var pos: Int = 15 + enabledProfiles.size * 5
+        dst[pos++] = (disabledProfiles.size and 0x7F).toByte()
+        dst[pos++] = ((disabledProfiles.size shr 7) and 0x7F).toByte()
+        disabledProfiles.forEachIndexed { i, p ->
+            midiCIProfile(dst, pos + i * 5, p)
+        }
     }
 
     fun midiCIProfileSet(
