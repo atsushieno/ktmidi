@@ -21,7 +21,7 @@ class MidiCIInitiatorTest {
         assertEquals(MidiCIProtocolType.MIDI1, connector.midiProtocol)
         assertEquals(false, connector.protocolTested)
         assertEquals(0, connector.device.manufacturer)
-        assertEquals(60, connector.authorityLevel)
+        assertEquals(0x60, connector.authorityLevel)
         assertEquals(37564, connector.muid)
         assertContentEquals(MidiCIConstants.Midi2ThenMidi1Protocols, connector.preferredProtocols)
     }
