@@ -82,4 +82,6 @@ object CIRetrieval {
 
     fun midiCIGetProfileSpecificDataSize(sysex: List<Byte>) =
         sysex[17] + (sysex[18] shl 8) + (sysex[19] shl 16) + (sysex[20] shl 24)
+
+    fun midiCIGetMaxPropertyRequests(sysex: List<Byte>) = sysex[13]
 }

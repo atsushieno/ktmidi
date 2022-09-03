@@ -326,14 +326,14 @@ object CIFactory {
     // Property Exchange
     fun midiCIPropertyGetCapabilities(
         dst: MutableList<Byte>, destination: Byte, isReply: Boolean,
-        sourceMUID: Int, destinationMUID: Int, maxSupportedRequests: Byte
+        sourceMUID: Int, destinationMUID: Int, maxSimulutaneousRequests: Byte
     ) {
         midiCIMessageCommon(
             dst, destination,
             if (isReply) SUB_ID_2_PROPERTY_CAPABILITIES_REPLY else SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY,
             1, sourceMUID, destinationMUID
         )
-        dst[13] = maxSupportedRequests
+        dst[13] = maxSimulutaneousRequests
     }
 
     // common to all of: has data & reply, get data & reply, set data & reply, subscribe & reply, notify

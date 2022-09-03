@@ -58,13 +58,13 @@ object MidiCISystem {
 }
 
 object MidiCIConstants {
-    val CI_VERSION_AND_FORMAT: Byte = 0x1
+    const val CI_VERSION_AND_FORMAT: Byte = 0x1
 
-    val RECEIVABLE_MAX_SYSEX_SIZE = 4096
+    const val RECEIVABLE_MAX_SYSEX_SIZE = 4096
 
-    val RESPONDER_CI_CATEGORY_SUPPORTED: Byte = 0x7F
+    const val RESPONDER_CI_CATEGORY_SUPPORTED: Byte = 0x7F
 
-    val DEVICE_ID_MIDI_PORT: Byte = 0x7F
+    const val DEVICE_ID_MIDI_PORT: Byte = 0x7F
 
     val Midi1ProtocolTypeInfo = MidiCIProtocolTypeInfo(MidiCIProtocolType
         .MIDI1.toByte(), MidiCIProtocolValue.MIDI1.toByte(), 0, 0, 0)
@@ -99,7 +99,7 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
                       val muid: Int = Random.nextInt()) {
 
     var device: DeviceDetails = DeviceDetails.empty
-    var midiCIBufferSize = 128
+    var midiCIBufferSize = 1024
 
     var state: MidiCIInitiatorState = MidiCIInitiatorState.Initial
 
@@ -111,6 +111,9 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
     private var protocolTestData: List<Byte>? = null
 
     var preferredProtocols = MidiCIConstants.Midi2ThenMidi1Protocols
+
+    // FIXME: make them public once we start supporting Prpoerty Exchange.
+    //var establishedMaxSimulutaneousPropertyRequests: Byte? = null
 
     // Input handlers
 
@@ -153,6 +156,14 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
     var processTestProtocolReply = defaultProcessTestProtocolReply
 
     var processProfileInquiryResponse: (destinationChannel: Byte, sourceMUID: Int, profileSet: List<Pair<MidiCIProfileId, Boolean>>) -> Unit = { _, _, _ -> }
+
+    // FIXME: make them public once we start supporting Prpoerty Exchange.
+    /*
+    private val defaultProcessGetMaxSimultaneousPropertyReply: (destinationChannel: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Unit = { _, _, _, max ->
+        establishedMaxSimulutaneousPropertyRequests = max
+    }
+    var processGetMaxSimultaneousPropertyReply = defaultProcessGetMaxSimultaneousPropertyReply
+    */
 
     // Discovery
 
@@ -199,6 +210,20 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
         sendOutput(buf)
     }
 
+    // Property Exchange ... TODO: implement
+    //  (it's going to take long time, read the entire Common Rules for PE, support split chunks in reader and writer, and JSON serializers)
+
+    /*
+    fun requestPropertyExchangeCapabilities(destinationChannelOr7F: Byte, destinationMUID: Int, maxSimulutaneousPropertyRequests: Byte) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        CIFactory.midiCIPropertyGetCapabilities(buf, destinationChannelOr7F, false, muid, destinationMUID, maxSimulutaneousPropertyRequests)
+        sendOutput(buf)
+    }
+
+    fun requestHasPropertyData(destinationChannelOr7F: Byte, destinationMUID: Int, header: List<Byte>, body: List<Byte>) {
+
+    }
+    */
 
     // Reply handler
 
@@ -245,12 +270,17 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
             CIFactory.SUB_ID_2_PROFILE_INQUIRY_REPLY -> {
                 processProfileInquiryResponse(CIRetrieval.midiCIGetDestination(data),
                     CIRetrieval.midiCIGetSourceMUID(data),
-                    CIRetrieval.midiCIGetProfileSet(data)
-                )
+                    CIRetrieval.midiCIGetProfileSet(data))
             }
             // Property Exchange
+            // FIXME: make them public once we start supporting Prpoerty Exchange.
+            /*
             CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_REPLY -> {
-                // Reply to Property Exchange Capabilities
+                processGetMaxSimultaneousPropertyReply(
+                    CIRetrieval.midiCIGetDestination(data),
+                    CIRetrieval.midiCIGetSourceMUID(data),
+                    CIRetrieval.midiCIGetSourceMUID(data),
+                    CIRetrieval.midiCIGetMaxPropertyRequests(data))
             }
             CIFactory.SUB_ID_2_PROPERTY_HAS_DATA_REPLY -> {
                 // Reply to Property Exchange Capabilities
@@ -264,6 +294,7 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
             CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY -> {
                 // Reply to Property Exchange Capabilities
             }
+            */
         }
     }
 }
@@ -288,6 +319,10 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
 
     var initiatorDevice: DeviceDetails? = null
     var currentMidiProtocol: MidiCIProtocolTypeInfo = MidiCIConstants.Midi1ProtocolTypeInfo
+
+    // smaller value of initiator's maxSimulutaneousPropertyRequests vs. this.maxSimulutaneousPropertyRequests upon PEx inquiry request
+    // FIXME: enable this when we start supporting Property Exchange.
+    //var establishedMaxSimulutaneousPropertyRequests: Byte? = null
 
     @OptIn(ExperimentalTime::class)
     private var protocolTestTimeout: Duration? = null
@@ -345,6 +380,10 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
 
     var processProfileSpecificData: (sourceChannel: Byte, sourceMUID: Int, destinationMUID: Int, profileId: MidiCIProfileId, data: List<Byte>) -> Unit = { _, _, _, _, _ -> }
 
+    // FIXME: make them public once we start supporting Prpoerty Exchange.
+    // private val defaultProcessGetMaxSimultaneousPropertyRequests: (destinationChannelOr7F: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Byte = { _, _, _, max -> max }
+    //var processGetMaxSimultaneousPropertyRequests = defaultProcessGetMaxSimultaneousPropertyRequests
+
     @OptIn(ExperimentalTime::class)
     fun processInput(data: List<Byte>) {
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
@@ -376,6 +415,7 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 }
                 sendOutput(dst)
             }
+
             // Protocol Negotiation
             CIFactory.SUB_ID_2_PROTOCOL_NEGOTIATION_INQUIRY -> {
                 val requestedProtocols = CIRetrieval.midiCIGetSupportedProtocols(data)
@@ -414,6 +454,7 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 processConfirmNewProtocol(sourceMUID)
             }
+
             // Profile Configuration
             CIFactory.SUB_ID_2_PROFILE_INQUIRY -> {
                 // Reply to Property Exchange Capabilities
@@ -440,6 +481,7 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 CIFactory.midiCIProfileReport(dst, destination, enabled, muid, profileId)
                 sendOutput(dst)
             }
+
             CIFactory.SUB_ID_2_PROFILE_SPECIFIC_DATA -> {
                 val sourceChannel = CIRetrieval.midiCIGetDestination(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
@@ -448,6 +490,21 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 val dataLength = CIRetrieval.midiCIGetProfileSpecificDataSize(data)
                 processProfileSpecificData(sourceChannel, sourceMUID, destinationMUID, profileId, data.drop(21).take(dataLength))
             }
+
+            // Property Exchange - TODO: implement (future; see initiator comment)
+            /*
+            CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY -> {
+                val destination = CIRetrieval.midiCIGetDestination(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val destinationMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val max = CIRetrieval.midiCIGetMaxPropertyRequests(data)
+
+                establishedMaxSimulutaneousPropertyRequests = processGetMaxSimultaneousPropertyRequests(destination, sourceMUID, destinationMUID, max)
+
+                val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+                CIFactory.midiCIPropertyGetCapabilities(dst, destination, true, muid, sourceMUID, establishedMaxSimulutaneousPropertyRequests!!)
+                sendOutput(dst)
+            }*/
         }
     }
 }
