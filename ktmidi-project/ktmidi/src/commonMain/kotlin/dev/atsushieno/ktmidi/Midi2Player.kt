@@ -10,8 +10,8 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
     override fun getNextMessage() = messages[eventIdx]
 
     override fun getContextDeltaTimeInSeconds(m: Ump): Double {
-        if (deltaTimeSpec > 0)
-            return if(m.isJRTimestamp) currentTempo.toDouble() / 1_000_000 * m.jrTimestamp / tempoRatio else 0.0
+        return if (deltaTimeSpec > 0)
+            if (m.isJRTimestamp) currentTempo.toDouble() / 1_000_000 * m.jrTimestamp / tempoRatio else 0.0
         else
             TODO("Not implemented") // simpler JR Timestamp though
     }
@@ -21,7 +21,7 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
     private val umpConversionBuffer = ByteArray(16)
 
     override fun updateTempoAndTimeSignatureIfApplicable(m: Ump) {
-        if (m.messageType == MidiMessageType.SYSEX8_MDS && m.eventType == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
+        if (m.messageType == MidiMessageType.SYSEX8_MDS && m.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
             m.int2 % 0x100  == MidiMusic.META_EVENT) {
             when ((m.int3 / 0x100_00_00)) {
                 MidiMetaType.TEMPO -> {
@@ -107,7 +107,7 @@ class Midi2Player : MidiPlayer {
             override fun onEvent(e: Ump) {
                 when (e.messageType) {
                     MidiMessageType.SYSEX7 -> {
-                        when (e.eventType) {
+                        when (e.statusCode) {
                             Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> {
                                 if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
                                     e.toPlatformBytes(umpConversionBuffer, 0)
@@ -124,7 +124,7 @@ class Midi2Player : MidiPlayer {
                         }
                     }
                     MidiMessageType.SYSEX8_MDS -> {
-                        when (e.eventType) {
+                        when (e.statusCode) {
                             Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> {
                                 if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
                                     e.toPlatformBytes(umpConversionBuffer, 0)
@@ -145,7 +145,7 @@ class Midi2Player : MidiPlayer {
                             TODO("Not implemented")
                     }
                     MidiMessageType.MIDI1 -> {
-                        when (e.eventType) {
+                        when (e.statusCode) {
                             MidiChannelStatus.NOTE_OFF,
                             MidiChannelStatus.NOTE_ON -> {
                                 if (mutedChannels.contains(e.groupAndChannel))
@@ -206,7 +206,7 @@ internal class Midi2SimpleSeekProcessor(ticks: Int) : SeekProcessor<Ump> {
         current += if(message.isJRTimestamp) message.jrTimestamp else 0
         if (current >= seekTo)
             return SeekFilterResult.PASS_AND_TERMINATE
-        when (message.eventType) {
+        when (message.statusCode) {
             MidiChannelStatus.NOTE_ON, MidiChannelStatus.NOTE_OFF -> return SeekFilterResult.BLOCK
         }
         return SeekFilterResult.PASS

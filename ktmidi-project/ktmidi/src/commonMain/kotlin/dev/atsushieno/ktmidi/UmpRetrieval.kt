@@ -69,8 +69,12 @@ val Ump.statusByte: Int
     get() = (int1 shr 16) and 0xFF
 
 // First half of the 2nd. byte. (for MIDI1, MIDI2, Sysex7, Sysex8, System Messages)
-val Ump.eventType: Int
+val Ump.statusCode: Int
     get() = statusByte and 0xF0
+
+@Deprecated("Use statusCode instead", ReplaceWith("statusCode"))
+val Ump.eventType: Int
+    get() = statusCode
 
 // Second half of the 2nd. byte
 val Ump.channelInGroup: Int // 0..15
@@ -80,12 +84,12 @@ val Ump.groupAndChannel: Int // 0..255
     get() = group shl 4 and channelInGroup
 
 val Ump.isJRClock
-    get() = messageType == MidiMessageType.UTILITY && eventType == MidiUtilityStatus.JR_CLOCK
+    get() = messageType == MidiMessageType.UTILITY && statusCode == MidiUtilityStatus.JR_CLOCK
 val Ump.jrClock
     get() = if (isJRClock) (midi1Msb shl 8) + midi1Lsb else 0
 
 val Ump.isJRTimestamp
-    get()= messageType == MidiMessageType.UTILITY && eventType == MidiUtilityStatus.JR_TIMESTAMP
+    get()= messageType == MidiMessageType.UTILITY && statusCode == MidiUtilityStatus.JR_TIMESTAMP
 val Ump.jrTimestamp
     get() = if(isJRTimestamp) (midi1Msb shl 8) + midi1Lsb else 0
 
@@ -222,7 +226,7 @@ object UmpRetriever {
             if (fallback == UmpSysexBinaryRetrieverFallback.Break) return ret else throw UmpException("UMP iterator is empty")
         val pStart = iter.next()
         takeSysex7Bytes(pStart, ret, pStart.sysex7Size)
-        when (pStart.eventType) {
+        when (pStart.statusCode) {
             Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> return ret
             Midi2BinaryChunkStatus.SYSEX_CONTINUE, Midi2BinaryChunkStatus.SYSEX_END ->
                 if (fallback == UmpSysexBinaryRetrieverFallback.Break) return ret else throw UmpException("Unexpected sysex7 non-starter packet appeared")
@@ -230,7 +234,7 @@ object UmpRetriever {
         while (iter.hasNext()) {
             val pCont = iter.next()
             takeSysex7Bytes(pCont, ret, pCont.sysex7Size)
-            when (pCont.eventType) {
+            when (pCont.statusCode) {
                 Midi2BinaryChunkStatus.SYSEX_END -> break
                 Midi2BinaryChunkStatus.SYSEX_CONTINUE -> continue
                 else ->
@@ -267,7 +271,7 @@ object UmpRetriever {
             if (fallback == UmpSysexBinaryRetrieverFallback.Break) return ret else throw UmpException("UMP iterator is empty")
         val pStart = iter.next()
         takeSysex8Bytes(pStart, ret, pStart.sysex8Size)
-        when (pStart.eventType) {
+        when (pStart.statusCode) {
             Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> return ret
             Midi2BinaryChunkStatus.SYSEX_CONTINUE, Midi2BinaryChunkStatus.SYSEX_END ->
                 if (fallback == UmpSysexBinaryRetrieverFallback.Break) return ret else throw UmpException("Unexpected sysex8 non-starter packet appeared")
@@ -275,7 +279,7 @@ object UmpRetriever {
         while (iter.hasNext()) {
             val pCont = iter.next()
             takeSysex8Bytes(pCont, ret, pCont.sysex8Size)
-            when (pCont.eventType) {
+            when (pCont.statusCode) {
                 Midi2BinaryChunkStatus.SYSEX_END -> break
                 Midi2BinaryChunkStatus.SYSEX_CONTINUE -> continue
                 else ->

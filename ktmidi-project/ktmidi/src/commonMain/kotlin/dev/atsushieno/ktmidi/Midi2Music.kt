@@ -40,7 +40,7 @@ class Midi2Music {
         // - A meta event type byte
         fun isMetaEventMessageStarter(message: Ump) =
             message.messageType == MidiMessageType.SYSEX8_MDS &&
-                    when (message.eventType) {
+                    when (message.statusCode) {
                         Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP, Midi2BinaryChunkStatus.SYSEX_START ->
                             message.int1 % 0x100 == 0 &&
                                     message.int2 shr 8 == 0 &&

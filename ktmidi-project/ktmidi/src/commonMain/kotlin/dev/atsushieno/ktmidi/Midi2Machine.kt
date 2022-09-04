@@ -37,7 +37,7 @@ class Midi2Machine {
     fun processEvent(evt: Ump) {
         when (evt.messageType) {
             MidiMessageType.MIDI1 -> {
-                when (evt.eventType) {
+                when (evt.statusCode) {
                     MidiChannelStatus.NOTE_ON ->
                         withNoteRangeCheckV1(evt) {
                             channel(evt.groupAndChannel).noteVelocity[evt.midi1Msb] = (evt.midi1Lsb shl 9).toUShort()
@@ -80,7 +80,7 @@ class Midi2Machine {
                 }
             }
             MidiMessageType.MIDI2 -> {
-                when (evt.eventType) {
+                when (evt.statusCode) {
                     MidiChannelStatus.NOTE_ON ->
                         withNoteRangeCheckV2(evt) {
                             channel(evt.groupAndChannel).noteVelocity[evt.midi2Note] = evt.midi2Velocity16.toUShort()

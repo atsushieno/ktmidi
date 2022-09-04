@@ -16,7 +16,7 @@ class UmpTest {
         assertEquals(1, u1s.size, "fromBytes 1 => size")
         assertEquals(1, u1s[0].group, "fromBytes 1 => group")
         assertEquals(2, u1s[0].channelInGroup, "fromBytes 1 => channel")
-        assertEquals(0x90, u1s[0].eventType, "fromBytes 1 => eventType")
+        assertEquals(0x90, u1s[0].statusCode, "fromBytes 1 => statusCode")
         assertEquals(0x30, u1s[0].midi2Note, "fromBytes 1 => note")
         assertEquals(0xF000, u1s[0].midi2Velocity16, "fromBytes 1 => velocity16")
         val l2 = UmpFactory.midi2NoteOff(1, 2, 0x30, 0, 0, 0)
@@ -28,7 +28,7 @@ class UmpTest {
         assertEquals(2, u2s.size, "fromBytes 2 => size")
         assertEquals(1, u2s[1].group, "fromBytes 2 => group")
         assertEquals(2, u2s[1].channelInGroup, "fromBytes 2 => channel")
-        assertEquals(0x80, u2s[1].eventType, "fromBytes 2 => eventType")
+        assertEquals(0x80, u2s[1].statusCode, "fromBytes 2 => statusCode")
         assertEquals(0x30, u2s[1].midi2Note, "fromBytes 2 => note")
         assertEquals(0, u2s[1].midi2Velocity16, "fromBytes 2 => velocity16")
     }
