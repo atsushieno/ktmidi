@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import io.ktor.utils.io.core.*
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -89,12 +88,25 @@ class UmpTranslatorTest {
         assertContentEquals(listOf(0xE1, 1, 0x74).map { it.toByte() }, dst.take(size))
     }
 
+    @Test
+    fun testConvertUmpToMidi1Bytes1() {
+        val umps = listOf(
+            Ump(0x40904000E0000000),
+            Ump(0x00201000),
+            Ump(0x4080400000000000),
+        )
+        val dst = MutableList<Byte>(9) { 0 }
+        assertEquals(UmpTranslationResult.OK, UmpTranslator.translateUmpToMidi1Bytes(dst, umps.asSequence()))
+        val expected = listOf(0, 0x90, 0x40, 0x70, 0x80, 0x20, 0x80, 0x40, 0).map { it.toByte() }
+        assertContentEquals(expected, dst)
+    }
+
 
     @Test
     fun testConvertMidi1ToUmpNoteOn()
     {
         val bytes = listOf(0x91, 0x40, 0x78)
-        val context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        val context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         assertEquals(UmpTranslationResult.OK, UmpTranslator.translateMidi1BytesToUmp(context))
         assertEquals(3, context.midi1Pos)
@@ -107,7 +119,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpPAf()
     {
         val bytes = listOf(0xA1, 0x40, 0x60)
-        val context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        val context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // PAf
         assertEquals(UmpTranslationResult.OK, UmpTranslator.translateMidi1BytesToUmp(context))
@@ -121,7 +133,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpSimpleCC()
     {
         val bytes = listOf(0xB1, 0x07, 0x70)
-        val context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        val context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // PAf
         assertEquals(UmpTranslationResult.OK, UmpTranslator.translateMidi1BytesToUmp(context))
@@ -135,7 +147,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpValidRPN()
     {
         val bytes = listOf(0xB1, 101, 1, 0xB1, 100, 2, 0xB1, 6, 0x10, 0xB1, 38, 0x20)
-        val context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        val context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // RPN
         assertEquals(UmpTranslationResult.OK, UmpTranslator.translateMidi1BytesToUmp(context))
@@ -149,7 +161,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpValidNRPN()
     {
         val bytes = listOf(0xB1, 99, 1, 0xB1, 98, 2, 0xB1, 6, 0x10, 0xB1, 38, 0x20)
-        val context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        val context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // NRPN
         assertEquals(UmpTranslationResult.OK, UmpTranslator.translateMidi1BytesToUmp(context))
@@ -163,7 +175,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpInvalidRPN()
     {
         var bytes = listOf(0xB1, 101, 1)
-        var context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        var context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // only RPN MSB -> error
         assertEquals(UmpTranslationResult.INVALID_DTE_SEQUENCE, UmpTranslator.translateMidi1BytesToUmp(context))
@@ -172,14 +184,14 @@ class UmpTranslatorTest {
 
         // only RPN MSB and LSB -> error
         bytes = listOf(0xB1, 101, 1, 0xB1, 100, 2)
-        context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
         assertEquals(UmpTranslationResult.INVALID_DTE_SEQUENCE, UmpTranslator.translateMidi1BytesToUmp(context))
         assertEquals(6, context.midi1Pos)
         assertEquals(0, context.output.size)
 
         // only RPN MSB and LSB, and DTE MSB -> error
         bytes = listOf(0xB1, 101, 1, 0xB1, 100, 2, 0xB1, 6, 3)
-        context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
         assertEquals(UmpTranslationResult.INVALID_DTE_SEQUENCE, UmpTranslator.translateMidi1BytesToUmp(context))
         assertEquals(9, context.midi1Pos)
         assertEquals(0, context.output.size)
@@ -190,7 +202,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpInvalidNRPN()
     {
         var bytes = listOf(0xB1, 99, 1)
-        var context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        var context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // only NRPN MSB -> error
         assertEquals(UmpTranslationResult.INVALID_DTE_SEQUENCE, UmpTranslator.translateMidi1BytesToUmp(context))
@@ -199,14 +211,14 @@ class UmpTranslatorTest {
 
         // only NRPN MSB and LSB -> error
         bytes = listOf(0xB1, 99, 1, 0xB1, 98, 2)
-        context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
         assertEquals(UmpTranslationResult.INVALID_DTE_SEQUENCE, UmpTranslator.translateMidi1BytesToUmp(context))
         assertEquals(6, context.midi1Pos)
         assertEquals(0, context.output.size)
 
         // only NRPN MSB and LSB, and DTE MSB -> error
         bytes = listOf(0xB1, 99, 1, 0xB1, 98, 2, 0xB1, 6, 3)
-        context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
         assertEquals(UmpTranslationResult.INVALID_DTE_SEQUENCE, UmpTranslator.translateMidi1BytesToUmp(context))
         assertEquals(9, context.midi1Pos)
         assertEquals(0, context.output.size)
@@ -216,7 +228,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpSimpleProgramChange()
     {
         var bytes = listOf(0xC1, 0x30)
-        var context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        var context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // simple program change
         assertEquals(UmpTranslationResult.OK, UmpTranslator.translateMidi1BytesToUmp(context))
@@ -230,7 +242,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpBankMsbLsbAndProgramChange()
     {
         var bytes = listOf(0xB1, 0x00, 0x12, 0xB1, 0x20, 0x22, 0xC1, 0x30)
-        var context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        var context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // bank select MSB, bank select LSB, program change
         assertEquals(UmpTranslationResult.OK, UmpTranslator.translateMidi1BytesToUmp(context))
@@ -245,7 +257,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpBankMsbAndProgramChange()
     {
         var bytes = listOf(0xB1, 0x00, 0x12, 0xC1, 0x30)
-        var context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        var context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // bank select MSB, then program change (LSB skipped)
         assertEquals(UmpTranslationResult.OK, UmpTranslator.translateMidi1BytesToUmp(context))
@@ -260,7 +272,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpBankLsbAndProgramChange()
     {
         val bytes = listOf(0xB1, 0x20, 0x12, 0xC1, 0x30)
-        val context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        val context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // bank select LSB, then program change (MSB skipped)
         assertEquals(UmpTranslationResult.OK, UmpTranslator.translateMidi1BytesToUmp(context))
@@ -274,7 +286,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpCAf()
     {
         val bytes = listOf(0xD1, 0x60)
-        val context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        val context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // CAf
         assertEquals(UmpTranslationResult.OK, UmpTranslator.translateMidi1BytesToUmp(context))
@@ -288,7 +300,7 @@ class UmpTranslatorTest {
     fun  testConvertMidi1ToUmpPitchBend()
     {
         val bytes = listOf(0xE1, 0x20, 0x30)
-        val context = UmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
+        val context = Midi1ToUmpTranslatorContext(bytes.map { it.toByte()}, group = 7)
 
         // Pitchbend
         assertEquals(UmpTranslationResult.OK, UmpTranslator.translateMidi1BytesToUmp(context))

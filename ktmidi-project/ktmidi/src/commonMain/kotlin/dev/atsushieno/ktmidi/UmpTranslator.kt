@@ -2,18 +2,20 @@ package dev.atsushieno.ktmidi
 
 import kotlin.experimental.and
 
-class UmpTranslatorContext(val midi1: List<Byte>,
-                           // MIDI 2.0 Defalult Translation (UMP specification Appendix D.3) accepts only DTE LSB as
-                           // the conversion terminator, but we allow DTE LSB to come first, if this flag is enabled.
-                           val allowReorderedDTE: Boolean = false,
-                           // Destination protocol: can be MIDI1 UMP or MIDI2 UMP.
-                           val midiProtocol: Int = MidiCIProtocolType.MIDI2,
-                           // Group can be specified
-                           val group: Int,
-                           // Sysex conversion can be done to sysex8
-                           val useSysex8: Boolean = false,
-                           // When it is true, it means the input MIDI1 stream contains delta time. TODO: implement
-                           val isMidi1Smf: Boolean = false) {
+/**
+ - `allowReorderedDTE`: MIDI 2.0 Defalult Translation (UMP specification Appendix D.3) accepts only DTE LSB as
+   the conversion terminator, but we allow DTE LSB to come first, if this flag is enabled.
+ - midiProtocol: Destination protocol: can be MIDI1 UMP or MIDI2 UMP.
+ - group: the group in UMP can be specified
+ - useSysex8: Sysex conversion can be done to sysex8
+ - isMidi1Smf: When it is true, it means the input MIDI1 stream contains delta time. TODO: implement
+ */
+class Midi1ToUmpTranslatorContext(val midi1: List<Byte>,
+                                  val allowReorderedDTE: Boolean = false,
+                                  val midiProtocol: Int = MidiCIProtocolType.MIDI2,
+                                  val group: Int,
+                                  val useSysex8: Boolean = false,
+                                  val isMidi1Smf: Boolean = false) {
     var midi1Pos: Int = 0
     val output: MutableList<Ump> = mutableListOf()
 
@@ -35,43 +37,111 @@ class UmpTranslatorContext(val midi1: List<Byte>,
     var tempo: Int = 500000
 }
 
+class UmpToMidi1BytesTranslatorContext(val deltaTimeMasterClock: Int = 192,
+                                       val treatJRTimestampAsSmfDeltaTime: Boolean = false,
+                                       val skipDeltaTime: Boolean = false) {
+}
+
 object UmpTranslationResult {
     const val OK = 0
     const val INVALID_SYSEX = 0x10
     const val INVALID_DTE_SEQUENCE = 0x11
     const val INVALID_STATUS = 0x13
+    const val INCOMPLETE_SYSEX7 = 0x20
 }
 
 object UmpTranslator {
 
+    /**
+     Converts UMP stream (of either MIDI 1.0 or 2.0) to MIDI 1.0 bytestream, as per Default Translation,
+     with SMF delta time extension (otional).
+     JR Timestamps are expressed as SMF delta time field in a MIDI event.
+     As our MidiMusic2 can hold JR Timestamp fields to actually represent SMF-compatible ticks
+     (i.e. they need to be *converted* to UMP compatible JR Timestamp to conform to UMP specification),
+     the input UMP stream could contain such JR Timestamps (it is indeed intended to convert Midi2Music
+     track contents to SMF compatible events).
+
+     `treatJRTimestampAsSmfDeltaTime` argument determines whether this function converts JR Timestamp
+     values into SMPTE offset OR NOT.
+     In SMP, the deltaTime values can be either SMPTE offsets or tempo based ticks.
+     In argument UMP stream, the deltaTime values can be either JR Timestamp of tempo based ticks (note that
+     the ticks are NOT conforming to UMP spec. as explained above).
+     If the JR Timestamp value is NOT of the tempo based ticks, then we have to convert JR Timestamps
+     (of 1/31250 seconds) to SMPTE offsets.
+
+     When do you NOT need delta time information when translating MIDI2 UMP stream that contain JR Timestamps?
+     I cannot think of any usage scenario. IMO you will always need delta times.
+     But if you REALLY do not need them, then you can skip delta times by `skipDeltaTime = true`.
+     */
+    fun translateUmpToMidi1Bytes(dst: MutableList<Byte>, src: Sequence<Ump>, context: UmpToMidi1BytesTranslatorContext = UmpToMidi1BytesTranslatorContext()) : Int {
+        val dtc = Midi2Music.UmpDeltaTimeComputer()
+        var offset = 0
+        val sysex7 = mutableListOf<Byte>()
+        var deltaTime: Int = 0
+        src.forEach {
+            if (it.isJRTimestamp) {
+                if (!context.skipDeltaTime)
+                    // FIXME: this should take deltaTimeMasterClock (SMPTE MIDI Time Code) into account.
+                    deltaTime += if (context.treatJRTimestampAsSmfDeltaTime) dtc.messageToDeltaTime(it) else it.jrTimestamp
+                return@forEach
+            }
+            offset += translateSingleUmpToMidi1Bytes(dst, it, offset, if (context.skipDeltaTime) null else deltaTime, sysex7)
+            if (it.messageType == MidiMessageType.SYSEX7) {
+                if (it.statusCode == Midi2BinaryChunkStatus.SYSEX_END || it.statusCode ==
+                    Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP) {
+                    dst.addAll(MidiMessage.encode7BitLength(deltaTime))
+                    dst.add(0xF0.toByte())
+                    dst.addAll(MidiMessage.encode7BitLength(sysex7.size))
+                    dst.addAll(sysex7)
+                    sysex7.clear()
+                    dst.add(0xF7.toByte())
+                }
+            }
+            deltaTime = 0
+        }
+        return if (sysex7.any()) UmpTranslationResult.INCOMPLETE_SYSEX7 else UmpTranslationResult.OK
+    }
+
     /// Convert one single UMP (without JR Timestamp) to MIDI 1.0 Message (without delta time)
-    fun translateSingleUmpToMidi1Bytes(dst: MutableList<Byte>, ump: Ump) : Int {
+    fun translateSingleUmpToMidi1Bytes(dst: MutableList<Byte>, ump: Ump, dstOffset: Int = 0, deltaTime: Int? = null, sysex: MutableList<Byte>? = null) : Int {
         var midiEventSize = 0
         val statusCode = ump.statusByte and 0xF0
 
-        dst[0] = ump.statusByte.toByte()
+        var offset = dstOffset
+
+        val addDeltaTimeAndStatus = {
+            if (deltaTime != null) {
+                val list = MidiMessage.encode7BitLength(deltaTime).toList()
+                list.forEachIndexed { i, v -> dst[offset + i] = v }
+                offset += list.size
+            }
+
+            dst[offset] = ump.statusByte.toByte()
+        }
 
         when (ump.messageType) {
             MidiMessageType.SYSTEM -> {
+                addDeltaTimeAndStatus()
                 midiEventSize = 1
                 when (statusCode) {
                     0xF1, 0xF3, 0xF9 -> {
-                        dst[1] = ump.midi1Msb.toByte()
+                        dst[offset + 1] = ump.midi1Msb.toByte()
                         midiEventSize = 2
                     }
                 }
             }
 
             MidiMessageType.MIDI1 -> {
+                addDeltaTimeAndStatus()
                 midiEventSize = 3
-                dst[1] = ump.midi1Msb.toByte()
+                dst[offset + 1] = ump.midi1Msb.toByte()
                 when (statusCode) {
                     0xC0, 0xD0 -> {
                         midiEventSize = 2
                     }
 
                     else -> {
-                        dst[2] = ump.midi1Lsb.toByte()
+                        dst[offset + 2] = ump.midi1Lsb.toByte()
                     }
                 }
             }
@@ -79,100 +149,101 @@ object UmpTranslator {
             MidiMessageType.MIDI2 -> {
                 when (statusCode) {
                     MidiChannelStatus.RPN -> {
+                        addDeltaTimeAndStatus()
                         midiEventSize = 12
-                        dst[0] = (ump.channelInGroup + MidiChannelStatus.CC).toByte()
-                        dst[1] = MidiCC.RPN_MSB.toByte()
-                        dst[2] = ump.midi2RpnMsb.toByte()
-                        dst[3] = dst[0] // CC + channel
-                        dst[4] = MidiCC.RPN_LSB.toByte()
-                        dst[5] = ump.midi2RpnLsb.toByte()
-                        dst[6] = dst[0] // CC + channel
-                        dst[7] = MidiCC.DTE_MSB.toByte()
-                        dst[8] = ((ump.midi2RpnData shr 25) and 0x7Fu).toByte()
-                        dst[9] = dst[0] // CC + channel
-                        dst[10] = MidiCC.DTE_LSB.toByte()
-                        dst[11] = ((ump.midi2RpnData shr 18) and 0x7Fu).toByte()
+                        dst[offset + 0] = (ump.channelInGroup + MidiChannelStatus.CC).toByte()
+                        dst[offset + 1] = MidiCC.RPN_MSB.toByte()
+                        dst[offset + 2] = ump.midi2RpnMsb.toByte()
+                        dst[offset + 3] = dst[offset] // CC + channel
+                        dst[offset + 4] = MidiCC.RPN_LSB.toByte()
+                        dst[offset + 5] = ump.midi2RpnLsb.toByte()
+                        dst[offset + 6] = dst[offset] // CC + channel
+                        dst[offset + 7] = MidiCC.DTE_MSB.toByte()
+                        dst[offset + 8] = ((ump.midi2RpnData shr 25) and 0x7Fu).toByte()
+                        dst[offset + 9] = dst[offset] // CC + channel
+                        dst[offset + 10] = MidiCC.DTE_LSB.toByte()
+                        dst[offset + 11] = ((ump.midi2RpnData shr 18) and 0x7Fu).toByte()
                     }
 
                     MidiChannelStatus.NRPN -> {
+                        addDeltaTimeAndStatus()
                         midiEventSize = 12
-                        dst[0] = (ump.channelInGroup + MidiChannelStatus.CC).toByte()
-                        dst[1] = MidiCC.NRPN_MSB.toByte()
-                        dst[2] = ump.midi2NrpnMsb.toByte()
-                        dst[3] = dst[0] // CC + channel
-                        dst[4] = MidiCC.NRPN_LSB.toByte()
-                        dst[5] = ump.midi2NrpnLsb.toByte()
-                        dst[6] = dst[0] // CC + channel
-                        dst[7] = MidiCC.DTE_MSB.toByte()
-                        dst[8] = ((ump.midi2RpnData shr 25) and 0x7Fu).toByte()
-                        dst[9] = dst[0] // CC + channel
-                        dst[10] = MidiCC.DTE_LSB.toByte()
-                        dst[11] = ((ump.midi2RpnData shr 18) and 0x7Fu).toByte()
+                        dst[offset + 0] = (ump.channelInGroup + MidiChannelStatus.CC).toByte()
+                        dst[offset + 1] = MidiCC.NRPN_MSB.toByte()
+                        dst[offset + 2] = ump.midi2NrpnMsb.toByte()
+                        dst[offset + 3] = dst[offset] // CC + channel
+                        dst[offset + 4] = MidiCC.NRPN_LSB.toByte()
+                        dst[offset + 5] = ump.midi2NrpnLsb.toByte()
+                        dst[offset + 6] = dst[offset] // CC + channel
+                        dst[offset + 7] = MidiCC.DTE_MSB.toByte()
+                        dst[offset + 8] = ((ump.midi2RpnData shr 25) and 0x7Fu).toByte()
+                        dst[offset + 9] = dst[offset] // CC + channel
+                        dst[offset + 10] = MidiCC.DTE_LSB.toByte()
+                        dst[offset + 11] = ((ump.midi2RpnData shr 18) and 0x7Fu).toByte()
                     }
 
                     MidiChannelStatus.NOTE_OFF,
                     MidiChannelStatus.NOTE_ON -> {
+                        addDeltaTimeAndStatus()
                         midiEventSize = 3
-                        dst[1] = ump.midi2Note.toByte()
-                        dst[2] = (ump.midi2Velocity16 / 0x200).toByte()
+                        dst[offset + 1] = ump.midi2Note.toByte()
+                        dst[offset + 2] = (ump.midi2Velocity16 / 0x200).toByte()
                     }
 
                     MidiChannelStatus.PAF -> {
+                        addDeltaTimeAndStatus()
                         midiEventSize = 3
-                        dst[1] = ump.midi2Note.toByte()
-                        dst[2] = (ump.midi2PAfData / 0x2000000u).toByte()
+                        dst[offset + 1] = ump.midi2Note.toByte()
+                        dst[offset + 2] = (ump.midi2PAfData / 0x2000000u).toByte()
                     }
 
                     MidiChannelStatus.CC -> {
+                        addDeltaTimeAndStatus()
                         midiEventSize = 3
                         dst[1] = ump.midi2CCIndex.toByte()
                         dst[2] = (ump.midi2CCData / 0x2000000u).toByte()
                     }
 
                     MidiChannelStatus.PROGRAM -> {
+                        addDeltaTimeAndStatus()
                         if (0 != ump.midi2ProgramOptions and MidiProgramChangeOptions.BANK_VALID) {
                             midiEventSize = 8
-                            dst[0] = (ump.channelInGroup + MidiChannelStatus.CC).toByte()
-                            dst[1] = 0 // Bank MSB
-                            dst[2] = ump.midi2ProgramBankMsb.toByte()
-                            dst[3] = ((dst[0] and 0xF) + MidiChannelStatus.CC).toByte()
-                            dst[4] = 32 // Bank LSB
-                            dst[5] = ump.midi2ProgramBankLsb.toByte()
-                            dst[6] = ((dst[0] and 0xF) + MidiChannelStatus.PROGRAM).toByte()
-                            dst[7] = ump.midi2ProgramProgram.toByte()
+                            dst[offset + 0] = (ump.channelInGroup + MidiChannelStatus.CC).toByte()
+                            dst[offset + 1] = 0 // Bank MSB
+                            dst[offset + 2] = ump.midi2ProgramBankMsb.toByte()
+                            dst[offset + 3] = ((dst[offset] and 0xF) + MidiChannelStatus.CC).toByte()
+                            dst[offset + 4] = 32 // Bank LSB
+                            dst[offset + 5] = ump.midi2ProgramBankLsb.toByte()
+                            dst[offset + 6] = ((dst[offset] and 0xF) + MidiChannelStatus.PROGRAM).toByte()
+                            dst[offset + 7] = ump.midi2ProgramProgram.toByte()
                         } else {
                             midiEventSize = 2
-                            dst[1] = ump.midi2ProgramProgram.toByte()
+                            dst[offset + 1] = ump.midi2ProgramProgram.toByte()
                         }
                     }
 
                     MidiChannelStatus.CAF -> {
+                        addDeltaTimeAndStatus()
                         midiEventSize = 2
-                        dst[1] = (ump.midi2CAfData / 0x2000000u).toByte()
+                        dst[offset + 1] = (ump.midi2CAfData / 0x2000000u).toByte()
                     }
 
                     MidiChannelStatus.PITCH_BEND -> {
+                        addDeltaTimeAndStatus()
                         midiEventSize = 3
                         val pitchBendV1 = ump.midi2PitchBendData.toULong() / 0x40000u
                         // Note that it has to be translated to little endian pair
-                        dst[1] = (pitchBendV1 % 0x80u).toByte()
-                        dst[2] = (pitchBendV1 / 0x80u).toByte()
+                        dst[offset + 1] = (pitchBendV1 % 0x80u).toByte()
+                        dst[offset + 2] = (pitchBendV1 / 0x80u).toByte()
                     }
                     // skip for other status bytes; we cannot support them.
                 }
             }
 
             MidiMessageType.SYSEX7 -> {
-                // Within this function we cannot process multi-packet sysex. Thus, sysex other than in-one-packets are dropped.
-                if (Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP != ump.statusByte and 0xF0)
-                    midiEventSize = 0
-                else {
-                    midiEventSize = 2 + ump.sysex7Size
-                    dst.add(0xF0.toByte())
-                    val bytes = ump.toPlatformNativeBytes()
-                    dst.addAll(bytes.drop(2).take(midiEventSize - 2))
-                    dst.add(0xF7.toByte())
-                }
+                midiEventSize = 0
+                val bytes = ump.toPlatformNativeBytes()
+                sysex?.addAll(bytes.drop(2).take(ump.sysex7Size))
             }
 
             MidiMessageType.SYSEX8_MDS -> {
@@ -180,11 +251,12 @@ object UmpTranslator {
                 midiEventSize = 0
             }
         }
+        midiEventSize += offset - dstOffset
         return midiEventSize
     }
 
 
-    private fun convertMidi1DteToUmp(context: UmpTranslatorContext, channel: Int): Long {
+    private fun convertMidi1DteToUmp(context: Midi1ToUmpTranslatorContext, channel: Int): Long {
         val isRpn = (context.rpnState and 0x8080) == 0
         val msb = (if (isRpn) context.rpnState else context.nrpnState) shr 8
         val lsb = (if (isRpn) context.rpnState else context.nrpnState) and 0xFF
@@ -198,7 +270,7 @@ object UmpTranslator {
     }
 
     // Returns one of those UmpTranslationResult constants: 0 for success, others for failure
-    fun translateMidi1BytesToUmp(context: UmpTranslatorContext): Int {
+    fun translateMidi1BytesToUmp(context: Midi1ToUmpTranslatorContext): Int {
 
         while (context.midi1Pos < context.midi1.size) {
             // FIXME: implement deltaTime to JR Timestamp conversion.

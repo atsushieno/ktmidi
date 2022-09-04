@@ -14,7 +14,7 @@ class MidiMusic {
     }
 
     companion object {
-        val DEFAULT_TEMPO = 500000
+        const val DEFAULT_TEMPO = 500000
 
         const val SYSEX_EVENT = 0xF0
         const val SYSEX_END = 0xF7
