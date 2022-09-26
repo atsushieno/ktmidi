@@ -10,7 +10,7 @@ buildscript {
 }
 
 plugins {
-    id("com.android.library") version "7.2.0"
+    id("com.android.library") version "7.3.0"
     kotlin("multiplatform") version "1.7.10"
     id("org.jetbrains.dokka") version "1.7.10"
     id("maven-publish")
@@ -152,12 +152,8 @@ android {
         targetSdk = 32
     }
     buildTypes {
-        val debug by getting {
-            minifyEnabled(false)
-        }
-        val release by getting {
-            minifyEnabled(false)
-        }
+        val debug by getting
+        val release by getting
     }
 }
 

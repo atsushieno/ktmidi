@@ -25,27 +25,24 @@ jobs:
         echo y | sudo apt-get install doxygen cmake ninja-build libasound2-dev libjack-jackd2-0
     - name: stupid NDK setup workaround for GitHub Actions
       run: sudo mkdir -p /usr/local/lib/android/sdk/ndk && sudo chmod 777 /usr/local/lib/android/sdk/ndk
-    - name: build ktmidi-project
-      run: cd ktmidi-project && ./gradlew --warning-mode all build :ktmidi:publishToMavenLocal
-    - name: build extension-project
-      run: cd extension-project && ./gradlew --warning-mode all build
+    - name: build
+      run: ./gradlew --warning-mode all build publishToMavenLocal
     - name: upload build failure logs
       if: failure()
       uses: actions/upload-artifact@v2
       with:
         name: test-failure-logs
         path: |
-          ktmidi-project/ktmidi/build/reports/
-          extension-project/ktmidi-jvm-desktop/build/reports/
-          ktmidi-project/ktmidi/*.log
-          extension-project/ktmidi-jvm-desktop/*.log
+          ktmidi/build/reports/
+          ktmidi-jvm-desktop/build/reports/
+          ktmidi/*.log
+          ktmidi-jvm-desktop/*.log
     - name: upload artifact
       if: success()
       uses: actions/upload-artifact@v2
       with:
         name: ktmidi-artifacts
         path: |
-          ktmidi-project/ktmidi/build/libs/*.jar
-          ktmidi-project/ktmidi/build/outputs/aar/*.aar
-          extension-project/ktmidi-jvm-desktop/build/libs/*.jar
-
+          ktmidi/build/libs/*.jar
+          ktmidi/build/outputs/aar/*.aar
+          ktmidi-jvm-desktop/build/libs/*.jar

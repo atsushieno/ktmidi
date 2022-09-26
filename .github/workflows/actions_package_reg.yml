@@ -32,17 +32,11 @@ jobs:
         SIGNING_SECRET_KEY_RING_FILE: ${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}
     - name: rewrite build.gradle(.kts) to require signing
       run: |
-        sed -i "s/signing {}/signing { sign(publishing.publications) }/" ktmidi-project/ktmidi/build.gradle.kts
-        sed -i "s/signing {}/signing { sign publishing.publications }/" extension-project/ktmidi-jvm-desktop/build.gradle
+        sed -i "s/signing {}/signing { sign(publishing.publications) }/" ktmidi/build.gradle.kts
+        sed -i "s/signing {}/signing { sign publishing.publications }/" ktmidi-jvm-desktop/build.gradle
     - name: publish
       run: |
-        cd ktmidi-project && ./gradlew --warning-mode all build dokkaHtml :ktmidi:publishToMavenLocal
-        cd ..
-        cd extension-project && ./gradlew --warning-mode all build
-        cd ..
-        cd ktmidi-project && ./gradlew --warning-mode all publish
-        cd ..
-        cd extension-project && ./gradlew --warning-mode all publish
+        ./gradlew --warning-mode all build dokkaHtml publish
       env:
         USERNAME: atsushieno
         GITHUB_TOKEN: ${{ secrets.MAVEN_PAT }}
@@ -58,12 +52,11 @@ jobs:
       with:
         name: ktmidi-artifacts
         path: |
-          ktmidi-project/ktmidi/build/libs/*.jar
-          ktmidi-project/ktmidi/build/outputs/aar/*.aar
-          extension-project/ktmidi-jvm-desktop/build/libs/*.jar
+          ktmidi/build/libs/*.jar
+          ktmidi/build/outputs/aar/*.aar
+          ktmidi-jvm-desktop/build/libs/*.jar
     - name: deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@4.1.2
       with:
         branch: gh-pages
-        folder: ktmidi-project/ktmidi/build/dokka/html
-
+        folder: ktmidi/build/dokka/html
