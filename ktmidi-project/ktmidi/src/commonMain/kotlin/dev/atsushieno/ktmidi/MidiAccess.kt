@@ -140,9 +140,11 @@ internal abstract class EmptyMidiPort : MidiPort {
         // do nothing.
     }
 
+    private var _midiProtocol: Int = MidiCIProtocolType.MIDI1
+    // take whatever specified
     override var midiProtocol: Int
-        get() = MidiCIProtocolValue.MIDI1
-        set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
+        get() = _midiProtocol
+        set(v) { _midiProtocol = v }
 }
 
 internal class EmptyMidiPortDetails(override val id: String, name: String) : MidiPortDetails {
