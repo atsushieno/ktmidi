@@ -3,6 +3,9 @@ package dev.atsushieno.ktmidi
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.Runnable
 
+internal val Ump.metaEventType : Int
+    get() = if (this.messageType != MidiMessageType.SYSEX8_MDS) 0 else (this.int3 shr 8) and 0x7F
+
 internal class Midi2EventLooper(var messages: List<Ump>, private val timer: MidiPlayerTimer, private val deltaTimeSpec: Int)
     : MidiEventLooper<Ump>(timer) {
     override fun isEventIndexAtEnd() = eventIdx == messages.size
@@ -79,6 +82,8 @@ class Midi2Player : MidiPlayer {
         this.music = music
 
         val umpConversionBuffer = ByteArray(16)
+        val sysexBuffer = mutableListOf<Byte>()
+        var lastMetaEventType = 0
 
         messages = music.mergeTracks().tracks[0].messages
         looper = Midi2EventLooper(messages, timer, music.deltaTimeSpec)
@@ -109,7 +114,7 @@ class Midi2Player : MidiPlayer {
                     MidiMessageType.SYSEX7 -> {
                         when (e.statusCode) {
                             Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> {
-                                if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
+                                if (output.midiProtocol == MidiCIProtocolType.MIDI2) {
                                     e.toPlatformBytes(umpConversionBuffer, 0)
                                     output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                                 }
@@ -124,20 +129,27 @@ class Midi2Player : MidiPlayer {
                         }
                     }
                     MidiMessageType.SYSEX8_MDS -> {
-                        when (e.statusCode) {
-                            Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> {
-                                if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
-                                    e.toPlatformBytes(umpConversionBuffer, 0)
-                                    output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
-                                }
-                                else
-                                    throw UnsupportedOperationException("MIDI 2.0 SYSEX8/MDS not supported on devices that only support MIDI 1.0 protocol.")
+                        if (output.midiProtocol != MidiCIProtocolType.MIDI2)
+                            throw UnsupportedOperationException("MIDI 2.0 SYSEX8/MDS not supported on devices that only support MIDI 1.0 protocol.")
+
+                        if (e.statusCode == Midi2BinaryChunkStatus.SYSEX_START || e.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP) {
+                            sysexBuffer.clear()
+                            lastMetaEventType = if (Midi2Music.isMetaEventMessageStarter(e)) e.metaEventType else -1
+                        }
+
+                        e.toPlatformBytes(umpConversionBuffer, 0)
+                        sysexBuffer.addAll(umpConversionBuffer.asList())
+
+                        if (e.statusCode == Midi2BinaryChunkStatus.SYSEX_END || e.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP) {
+                            when (lastMetaEventType) {
+                                MidiMetaType.TEMPO -> tempo = e.int3 % 0x1000000 // FIXME: unify implementation with MidiDeltaTimeComputer?
+                                // FIXME: implement more meta events?
+                                else -> output.send(sysexBuffer.toByteArray(), 0, sysexBuffer.size, 0)
                             }
-                            else -> TODO("Longer sysex Not yet implemented")
                         }
                     }
                     MidiMessageType.MIDI2 -> {
-                        if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
+                        if (output.midiProtocol == MidiCIProtocolType.MIDI2) {
                             e.toPlatformBytes(umpConversionBuffer, 0)
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                         }
@@ -152,7 +164,7 @@ class Midi2Player : MidiPlayer {
                                     return // ignore messages for the masked channel.
                             }
                         }
-                        if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
+                        if (output.midiProtocol == MidiCIProtocolType.MIDI2) {
                             e.toPlatformBytes(umpConversionBuffer, 0)
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                         } else {
