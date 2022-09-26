@@ -1,11 +1,11 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.7.10'
+    id 'org.jetbrains.kotlin.jvm'
     id 'maven-publish'
     id 'signing'
 }
 
 dependencies {
-    implementation "dev.atsushieno:ktmidi:$version"
+    implementation project(":ktmidi")
     implementation 'dev.atsushieno:alsakt:0.1.4.3'
     implementation "dev.atsushieno:rtmidi-jna:0.1.3"
     implementation 'net.java.dev.jna:jna:5.12.1'
@@ -14,6 +14,11 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-datetime:0.4.0'
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit:1.7.10'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 test {

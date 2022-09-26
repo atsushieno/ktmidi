@@ -10,17 +10,12 @@ buildscript {
 }
 
 plugins {
-    id("com.android.library") version "7.3.0"
-    kotlin("multiplatform") version "1.7.10"
+    id("com.android.library")
+    kotlin("multiplatform")
     id("org.jetbrains.dokka") version "1.7.10"
     id("maven-publish")
     id("signing")
     id("me.tylerbwong.gradle.metalava") version "0.2.3"
-}
-
-repositories {
-    google()
-    mavenCentral()
 }
 
 kotlin {
@@ -88,7 +83,7 @@ kotlin {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
-                implementation("io.ktor:ktor-io:1.6.1")
+                implementation("io.ktor:ktor-io:2.1.0")
             }
         }
         val commonTest by getting {
@@ -102,7 +97,7 @@ kotlin {
         val jvmMain by getting
         val androidMain by getting {
             dependencies {
-                implementation("androidx.core:core-ktx:1.8.0")
+                implementation("androidx.core:core-ktx:1.9.0")
             }
         }
         val androidTest by getting {
