@@ -127,9 +127,9 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
             if (result == SeekFilterResult.BLOCK || result == SeekFilterResult.BLOCK_AND_TERMINATE)
                 return // ignore this event
         } else {
-            val ms = getContextDeltaTimeInSeconds(m)
-            if (ms > 0) {
-                timer.waitBySeconds(ms)
+            val sec = getContextDeltaTimeInSeconds(m)
+            if (sec > 0) {
+                timer.waitBySeconds(sec)
                 playDeltaTime += getDurationOfEvent(m)
             }
         }

@@ -5,6 +5,7 @@ import dev.atsushieno.ktmidi.JvmMidiAccess
 import dev.atsushieno.ktmidi.Midi1Player
 import dev.atsushieno.ktmidi.Midi2Music
 import dev.atsushieno.ktmidi.Midi2Player
+import dev.atsushieno.ktmidi.MidiCIProtocolType
 import dev.atsushieno.ktmidi.MidiMusic
 import dev.atsushieno.ktmidi.MidiPlayer
 import dev.atsushieno.ktmidi.RtMidiAccess
@@ -13,12 +14,13 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 import kotlin.system.exitProcess
 
-data class CommandLineOptions(val api: String? = null, val port: String? = null, val musicFile: String? = null)
+data class CommandLineOptions(val api: String? = null, val port: String? = null, val musicFile: String? = null, val midi2: Boolean = false)
 
 fun parseCommandLineArgs(args: Array<String>) = CommandLineOptions(
     api = args.firstOrNull { it.startsWith("-a:") }?.substring(3),
     port = args.firstOrNull { it.startsWith("-p:") }?.substring(3),
-    musicFile = args.firstOrNull { it.startsWith("-m:") }?.substring(3)
+    musicFile = args.firstOrNull { it.startsWith("-m:") }?.substring(3),
+    midi2 = args.contains("-2")
 )
 
 fun getMidiAccessApi(api: String?) = when (api) {
@@ -28,7 +30,9 @@ fun getMidiAccessApi(api: String?) = when (api) {
 }
 
 fun showUsage(api: String?) {
-    println("USAGE: PlayerSample [-a:api] [-p:port] [-m:music-file]")
+    println("USAGE: PlayerSample [-a:api] [-p:port] [-2] [-m:music-file]")
+    println()
+    println("-2 indicates that it specifies MIDI 2.0 protocol to the port")
     println()
     println("Available ports for -p option:")
     getMidiAccessApi(api).outputs.forEach { println(" - ${it.id} : ${it.name}") }
@@ -60,11 +64,17 @@ fun main(args: Array<String>) {
         player = if (file.exists() && File(opts.musicFile).canRead()) {
             try {
                 if (file.extension.lowercase() == "mid")
-                // MIDI1 player
+                    // MIDI1 player
                     Midi1Player(MidiMusic().apply { this.read(file.readBytes().asList()) }, midiOutput)
-                else
-                // MIDI2 player
+                else {
+                    // MIDI2 player
+                    // If -2 is specified, then the MidiOutput will receive UMPs. Otherwise, UMPs are converted to MIDI1.
+                    // (it is kind of complicated, as it is also possible that the device can receive MIDI1 UMPs,
+                    // but it is out of scope in this version.)
+                    if (opts.midi2)
+                        midiOutput.midiProtocol = MidiCIProtocolType.MIDI2
                     Midi2Player(Midi2Music().apply { this.read(file.readBytes().asList()) }, midiOutput)
+                }
             } catch(ex: Exception) {
                 println("File \"${opts.musicFile}\" could not be loaded: $ex")
                 ex.printStackTrace()

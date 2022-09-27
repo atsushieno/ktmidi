@@ -14,12 +14,15 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
 
     override fun getContextDeltaTimeInSeconds(m: Ump): Double {
         return if (deltaTimeSpec > 0)
-            if (m.isJRTimestamp) currentTempo.toDouble() / 1_000_000 * m.jrTimestamp / tempoRatio else 0.0
+            if (m.isJRTimestamp) currentTempo.toDouble() / 1_000_000 * m.jrTimestamp / deltaTimeSpec / tempoRatio else 0.0
         else
-            TODO("Not implemented") // simpler JR Timestamp though
+            if (m.isJRTimestamp) m.jrTimestamp * 1.0 / 31250 else 0.0
     }
 
-    override fun getDurationOfEvent(m: Ump) = if (m.isJRTimestamp) m.jrTimestamp else 0
+    override fun getDurationOfEvent(m: Ump) =
+        if (m.isJRTimestamp)
+            m.jrTimestamp
+        else 0
 
     private val umpConversionBuffer = ByteArray(16)
 
@@ -28,11 +31,11 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
             m.int2 % 0x100  == MidiMusic.META_EVENT) {
             when ((m.int3 / 0x100_00_00)) {
                 MidiMetaType.TEMPO -> {
-                    m.toPlatformBytes(umpConversionBuffer, 0, ByteOrder.nativeOrder())
+                    m.toPlatformBytes(umpConversionBuffer, 0, ByteOrder.BIG_ENDIAN)
                     currentTempo = MidiMusic.getSmfTempo(umpConversionBuffer, 12)
                 }
                 MidiMetaType.TIME_SIGNATURE -> {
-                    m.toPlatformBytes(umpConversionBuffer, 0, ByteOrder.nativeOrder())
+                    m.toPlatformBytes(umpConversionBuffer, 0, ByteOrder.BIG_ENDIAN)
                     currentTimeSignature.clear()
                     currentTimeSignature.addAll(umpConversionBuffer.drop(12).take(4))
                 }
@@ -81,6 +84,7 @@ class Midi2Player : MidiPlayer {
             : super(output, shouldDisposeOutput) {
         this.music = music
 
+        val umpTranslatorBuffer = MutableList<Byte>(16) { 0 }
         val umpConversionBuffer = ByteArray(16)
         val sysexBuffer = mutableListOf<Byte>()
         var lastMetaEventType = 0
@@ -88,7 +92,7 @@ class Midi2Player : MidiPlayer {
         messages = music.mergeTracks().tracks[0].messages
         looper = Midi2EventLooper(messages, timer, music.deltaTimeSpec)
         looper.starting = Runnable {
-            if (output.midiProtocol == MidiCIProtocolValue.MIDI2_V1) {
+            if (output.midiProtocol == MidiCIProtocolType.MIDI2) {
                 for (group in 0..15) {
                     // all control reset on all channels.
                     for (ch in 0..15) {
@@ -112,51 +116,68 @@ class Midi2Player : MidiPlayer {
             override fun onEvent(e: Ump) {
                 when (e.messageType) {
                     MidiMessageType.SYSEX7 -> {
-                        when (e.statusCode) {
-                            Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP -> {
-                                if (output.midiProtocol == MidiCIProtocolType.MIDI2) {
-                                    e.toPlatformBytes(umpConversionBuffer, 0)
-                                    output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
-                                }
-                                else {
-                                    e.toPlatformBytes(umpConversionBuffer, 0)
-                                    umpConversionBuffer[1] = 0xF0.toByte()
-                                    // FIXME: verify size and content
-                                    output.send(umpConversionBuffer, 1, e.sizeInBytes, 0)
-                                }
-                            }
-                            else -> TODO("Longer sysex Not yet implemented")
+                        if (output.midiProtocol != MidiCIProtocolType.MIDI2 && (e.statusCode == Midi2BinaryChunkStatus.SYSEX_START || e.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP)) {
+                            sysexBuffer.clear()
+                            sysexBuffer.add(0xF0.toByte())
+                        }
+
+                        if (output.midiProtocol != MidiCIProtocolType.MIDI2) {
+                            // get sysex8 bytes in the right order
+                            e.toPlatformBytes(umpConversionBuffer, 0, ByteOrder.BIG_ENDIAN)
+                            sysexBuffer.addAll(umpConversionBuffer.drop(2).take(e.sysex7Size))
+                        }
+                        e.toPlatformBytes(umpConversionBuffer, 0)
+
+                        if (output.midiProtocol == MidiCIProtocolType.MIDI2)
+                            output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
+                        else if (e.statusCode == Midi2BinaryChunkStatus.SYSEX_END || e.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP) {
+                            sysexBuffer.add(0xF7.toByte())
+                            output.send(sysexBuffer.toByteArray(), 0, sysexBuffer.size, 0)
                         }
                     }
                     MidiMessageType.SYSEX8_MDS -> {
-                        if (output.midiProtocol != MidiCIProtocolType.MIDI2)
-                            throw UnsupportedOperationException("MIDI 2.0 SYSEX8/MDS not supported on devices that only support MIDI 1.0 protocol.")
-
+                        // It is not supported for a device (port) that has midiProtocol as MIDI1 to accept Message Type 5.
+                        // However it is possible that the UMP sequence contains meta events which are not sent to the device.
+                        // Therefore, we throw UnsupportedOperationException only if it is NOT part of a meta event UMP.
                         if (e.statusCode == Midi2BinaryChunkStatus.SYSEX_START || e.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP) {
-                            sysexBuffer.clear()
                             lastMetaEventType = if (Midi2Music.isMetaEventMessageStarter(e)) e.metaEventType else -1
+                            if (lastMetaEventType >= 0)
+                                sysexBuffer.clear()
                         }
+                        if (lastMetaEventType < 0 && output.midiProtocol != MidiCIProtocolType.MIDI2)
+                            throw UnsupportedOperationException("MIDI 2.0 SYSEX8/MDS are not supported on devices that only support MIDI 1.0 protocol.")
 
+                        if (lastMetaEventType >= 0) {
+                            // get sysex8 bytes in the right order
+                            e.toPlatformBytes(umpConversionBuffer, 0, ByteOrder.BIG_ENDIAN)
+                            sysexBuffer.addAll(umpConversionBuffer.drop(3).take(e.sysex8Size - 1)) // -1 is for streamId
+                        }
                         e.toPlatformBytes(umpConversionBuffer, 0)
-                        sysexBuffer.addAll(umpConversionBuffer.asList())
 
                         if (e.statusCode == Midi2BinaryChunkStatus.SYSEX_END || e.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP) {
                             when (lastMetaEventType) {
-                                MidiMetaType.TEMPO -> tempo = e.int3 % 0x1000000 // FIXME: unify implementation with MidiDeltaTimeComputer?
                                 // FIXME: implement more meta events?
-                                else -> output.send(sysexBuffer.toByteArray(), 0, sysexBuffer.size, 0)
+                                MidiMetaType.TEMPO, MidiMetaType.TIME_SIGNATURE -> looper.updateTempoAndTimeSignatureIfApplicable(e)
+                                // for non-pseudo-meta events, just send it to the output. Note that MIDI1 output device does not support sysex8/mds.
+                                -1 -> output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                             }
                         }
+                        else if (lastMetaEventType < 0) // send only non-meta events to device.
+                            output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                     }
                     MidiMessageType.MIDI2 -> {
                         if (output.midiProtocol == MidiCIProtocolType.MIDI2) {
                             e.toPlatformBytes(umpConversionBuffer, 0)
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                         }
-                        else
-                            TODO("Not implemented")
+                        else {
+                            // send only if conversion was successful
+                            val size = UmpTranslator.translateSingleUmpToMidi1Bytes(umpTranslatorBuffer, e, 0)
+                            if (size > 0)
+                                output.send(umpTranslatorBuffer.toByteArray(), 0, size, 0)
+                        }
                     }
-                    MidiMessageType.MIDI1 -> {
+                    MidiMessageType.MIDI1, MidiMessageType.SYSTEM -> {
                         when (e.statusCode) {
                             MidiChannelStatus.NOTE_OFF,
                             MidiChannelStatus.NOTE_ON -> {
@@ -172,7 +193,7 @@ class Midi2Player : MidiPlayer {
                             umpConversionBuffer[0] = e.statusByte.toByte()
                             umpConversionBuffer[1] = e.midi1Msb.toByte()
                             umpConversionBuffer[2] = e.midi1Lsb.toByte()
-                            output.send(umpConversionBuffer, 0, 3, 0)
+                            output.send(umpConversionBuffer, 0, MidiEvent.fixedDataSize(e.statusCode.toByte()).toInt(), 0)
                         }
                     }
                 }
