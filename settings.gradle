@@ -18,4 +18,4 @@ rootProject.name = 'ktmidi-project'
 include(":ktmidi")
 include(":ktmidi-jvm-desktop")
 include(":input-sample")
-
+include(":player-sample")

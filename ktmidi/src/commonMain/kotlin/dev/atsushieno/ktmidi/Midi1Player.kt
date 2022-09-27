@@ -90,12 +90,18 @@ class Midi1Player : MidiPlayer {
                         if (mutedChannels.contains(e.channel.toUnsigned()))
                             return // ignore messages for the masked channel.
                     }
-                    MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> {
-                        if (buffer.size <= e.extraDataLength)
+                    MidiMusic.SYSEX_EVENT -> {
+                        if (buffer.size <= e.extraDataLength + 1) // +1 for possible F7 filling
                             buffer = ByteArray(buffer.size * 2)
                         buffer[0] = e.statusByte
-                        e.extraData!!.copyInto(buffer, 1, e.extraDataOffset, e.extraDataLength - 1)
-                        output.send(buffer, 0, e.extraDataLength + 1, 0)
+                        e.extraData!!.copyInto(buffer, 1, e.extraDataOffset, e.extraDataLength)
+                        if (e.extraData[e.extraDataOffset + e.extraDataLength - 1] != 0xF7.toByte())
+                            buffer[e.extraDataOffset + e.extraDataLength + 1] = 0xF7.toByte()
+                        output.send(buffer, 0, e.extraDataLength + 2, 0)
+                        return
+                    }
+                    MidiMusic.SYSEX_END -> {
+                        // do nothing. It is automatically filled
                         return
                     }
                     MidiMusic.META_EVENT -> {
