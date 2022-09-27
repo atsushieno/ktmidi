@@ -6,6 +6,9 @@ import android.content.Context
 import kotlinx.coroutines.delay
 
 class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
+    override val name: String
+        get() = "AndroidSDK"
+
     internal val manager: MidiManager = applicationContext.getSystemService(Service.MIDI_SERVICE) as MidiManager
     private val ports : List<AndroidPortDetails> = manager.devices.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
         .map { pair -> AndroidPortDetails(pair.first, pair.second) }

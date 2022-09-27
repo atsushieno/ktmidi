@@ -7,6 +7,9 @@ interface OnMidiEventListener {
 val emptyMidiAccess = EmptyMidiAccess()
 
 abstract class MidiAccess {
+    // FIXME: make it abstract in v0.4.0
+    open val name: String = "TODO: name it"
+
     abstract val inputs: Iterable<MidiPortDetails>
     abstract val outputs: Iterable<MidiPortDetails>
 
@@ -115,6 +118,9 @@ data class PortCreatorContext(
 // MidiAccess implementation.
 
 class EmptyMidiAccess : MidiAccess() {
+    override val name: String
+        get() = "(EMPTY)"
+
     override val inputs: Iterable<MidiPortDetails>
         get() = arrayListOf(EmptyMidiInput.instance.details)
     override val outputs: Iterable<MidiPortDetails>

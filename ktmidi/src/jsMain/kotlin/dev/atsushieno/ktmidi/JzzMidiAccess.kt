@@ -12,6 +12,8 @@ private suspend fun <T> Promise<T>.await(): T = suspendCoroutine { cont ->
 }
 
 class JzzMidiAccess private constructor(val useSysex: Boolean, private val jzz: dynamic) : MidiAccess() {
+    override val name: String
+        get() = "JZZ"
 
     companion object {
         // We avoid exposing mismatches around suspend functions within this class itself by

@@ -5,6 +5,8 @@ import javax.sound.midi.*
 internal typealias JvmMidiMessage = javax.sound.midi.MidiMessage
 
 class JvmMidiAccess : MidiAccess() {
+    override val name: String
+        get() = "JVM"
     override val inputs: Iterable<MidiPortDetails>
         get() = MidiSystem.getMidiDeviceInfo().map { i -> MidiSystem.getMidiDevice(i) }
             .flatMap { d -> d.receivers.map { r -> Pair(d, r) } }
