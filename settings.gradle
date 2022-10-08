@@ -17,5 +17,8 @@ pluginManagement {
 rootProject.name = 'ktmidi-project'
 include(":ktmidi")
 include(":ktmidi-jvm-desktop")
+include(":ktmidi-native-ext")
 include(":input-sample")
+include(":player-sample-lib")
 include(":player-sample")
+include(":player-sample-native")

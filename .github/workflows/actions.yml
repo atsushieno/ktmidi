@@ -26,7 +26,9 @@ jobs:
     - name: stupid NDK setup workaround for GitHub Actions
       run: sudo mkdir -p /usr/local/lib/android/sdk/ndk && sudo chmod 777 /usr/local/lib/android/sdk/ndk
     - name: build
-      run: ./gradlew --warning-mode all build publishToMavenLocal
+      run: |
+        ./build-rtmidi.sh
+        ./gradlew --warning-mode all build publishToMavenLocal
     - name: upload build failure logs
       if: failure()
       uses: actions/upload-artifact@v2

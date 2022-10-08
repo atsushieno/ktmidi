@@ -34,8 +34,10 @@ jobs:
       run: |
         sed -i "s/signing {}/signing { sign(publishing.publications) }/" ktmidi/build.gradle.kts
         sed -i "s/signing {}/signing { sign publishing.publications }/" ktmidi-jvm-desktop/build.gradle
+        sed -i "s/signing {}/signing { sign(publishing.publications) }/" ktmidi-native-ext/build.gradle.kts
     - name: publish
       run: |
+        ./build-rtmidi.sh
         ./gradlew --warning-mode all build dokkaHtml publish
       env:
         USERNAME: atsushieno
@@ -54,6 +56,7 @@ jobs:
         path: |
           ktmidi/build/libs/*.jar
           ktmidi/build/outputs/aar/*.aar
+          ktmidi-native/build/outputs/aar/*.aar
           ktmidi-jvm-desktop/build/libs/*.jar
     - name: deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@4.1.2

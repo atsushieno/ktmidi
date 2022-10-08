@@ -1,0 +1,11 @@
+headers = rtmidi/rtmidi_c.h
+# LAMESPEC: it should be possible to declare that librtmidi.a (or whatever per platform) can be embedded into .klib,
+#  but IF we did that, SHARED build runs into trouble:
+#  > librtmidi.a(rtmidi_c.cpp.o): requires dynamic R_X86_64_PC32 reloc against 'rtmidi_num_compiled_apis' which may overflow at runtime; recompile with -fPIC
+#  Apparently, it is trying to link librtmidi.a for the SHARED build.
+#  (you want both shared and static builds: `binaries {staticLib {} sharedLib {}`)
+#
+#staticLibraries = librtmidi.a
+#libraryPaths = external/rtmidi/dist-shared/lib external/rtmidi/dist-static/lib
+# It seems the relative paths could be resolved as from the top-level build.gradle(.kts).
+linkerOpts = -Lexternal/rtmidi/dist-shared/lib -Lexternal/rtmidi/dist-static/lib -lrtmidi

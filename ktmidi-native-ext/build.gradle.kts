@@ -1,48 +1,12 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
 
-buildscript {
-    repositories {
-        maven("https://plugins.gradle.org/m2/")
-    }
-    dependencies {
-        classpath("me.tylerbwong.gradle:metalava-gradle:0.2.3")
-    }
-}
-
 plugins {
-    id("com.android.library")
     kotlin("multiplatform")
-    id("org.jetbrains.dokka") version "1.7.10"
     id("maven-publish")
     id("signing")
-    id("me.tylerbwong.gradle.metalava") version "0.2.3"
 }
 
 kotlin {
-    jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
-        }
-        testRuns["test"].executionTask.configure {
-            useJUnit()
-        }
-    }
-    android {
-        publishLibraryVariantsGroupedByFlavor = true
-        publishLibraryVariants("debug", "release")
-    }
-    js(BOTH) {
-        browser {
-            testTask {
-                useKarma {
-                    useChromeHeadless()
-                    webpackConfig.cssSupport.enabled = true
-                }
-            }
-        }
-        nodejs {
-        }
-    }
     iosX64("ios") {
         binaries {
             framework {
@@ -75,13 +39,23 @@ kotlin {
         }
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
-
+    nativeTarget.apply {
+        compilations.getByName("main") {
+            cinterops {
+                val rtmidi by creating {
+                    packageName("dev.atsushieno.rtmidicinterop")
+                    includeDirs.allHeaders("../external/rtmidi/dist-shared/include")
+                }
+            }
+        }
+    }
+    
     sourceSets {
         val commonMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
                 implementation("io.ktor:ktor-io:2.1.0")
+                implementation(project(":ktmidi"))
             }
         }
         val commonTest by getting {
@@ -92,57 +66,10 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
             }
         }
-        val jvmMain by getting
-        val androidMain by getting {
-            dependencies {
-                implementation("androidx.core:core-ktx:1.9.0")
-            }
-        }
-        val androidTest by getting {
-            dependencies {
-                implementation(kotlin("test-junit"))
-                implementation("junit:junit:4.13.2")
-            }
-        }
-        val jvmTest by getting {
-            dependencies {
-                implementation(kotlin("test-junit"))
-            }
-        }
-        val jsMain by getting {
-            dependencies {
-                implementation(npm("jzz", "1.4.7"))
-            }
-        }
-        val jsTest by getting {
-            dependencies {
-                implementation(kotlin("test-js"))
-            }
-        }
         val nativeMain by getting
         val nativeTest by getting
         val iosMain by getting
         val iosTest by getting
-    }
-}
-
-metalava {
-    filename = "api/$name-api.txt"
-    outputKotlinNulls = false
-    includeSignatureVersion = false
-}
-
-android {
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["test"].assets.srcDir("src/commonTest/resources") // kind of hack...
-    defaultConfig {
-        compileSdk = 32
-        minSdk = 24
-        targetSdk = 32
-    }
-    buildTypes {
-        val debug by getting
-        val release by getting
     }
 }
 
@@ -157,7 +84,7 @@ afterEvaluate {
             artifact(javadocJar)
             pom {
                 name.set("ktmidi")
-                description.set("Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0")
+                description.set("Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - Native specific")
                 url.set("https://github.com/atsushieno/ktmidi")
                 scm {
                     url.set("https://github.com/atsushieno/ktmidi")

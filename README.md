@@ -9,10 +9,11 @@ ktmidi is a Kotlin Multiplatform library for MIDI Access API and MIDI data proce
 It provides various MIDI features, including:
 
 - MIDI 1.0 messages and 2.0 UMPs everywhere.
-- `MidiAccess` : MIDI access abstraction API like what Web MIDI API 1.0 is going to provide.
+- `MidiAccess` : MIDI access abstraction API like what Web MIDI API 1.0 provides.
   - There are actual implementations for some platform specific MIDI API within this library, and you can implement your own backend if you need.
   - Unlike `javax.sound.midi` API, this API also covers creating virtual ports wherever possible.
-    - `ktmidi-jvm-desktop` module actually contains ALSA MIDI Access implementation as well as [RtMidi](https://github.com/thestk/rtmidi) backend via [atsushieno/rtmidi-jna](https://github.com/atsushieno/rtmidi-jna) that support it (Unsupported platforms are left unsupported). Note that they are for Kotlin/JVM.
+    - `ktmidi-jvm-desktop` module contains ALSA backend as well as [RtMidi](https://github.com/thestk/rtmidi) backend via [atsushieno/rtmidi-jna](https://github.com/atsushieno/rtmidi-jna) that support it (Unsupported platforms are left unsupported). Note that they are for Kotlin/JVM.
+    - `ktmidi-native-ext` module contains RtMidi *native* backend for Kotlin-Native. It is built for both static and shared, and known to work as `player-sample-native` sample app module.
   - For Kotlin/JS, `JzzMidiAccess` which wraps [Jazz-Soft JZZ](https://jazz-soft.net/doc/JZZ/) is included. It should cover both node.js and web browsers.
 - `MidiMusic` and `Midi2Music` : reflects Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support is not based on standard, as there is nothing like SMF specification for MIDI 2.0 yet.)
   - No strongly-typed message types (something like NoteOnMessage, NoteOffMessage, and so on). There is no point of defining strongly-typed messages for each mere MIDI status byte - you wouldn't need message type abstraction.
@@ -23,6 +24,12 @@ It provides various MIDI features, including:
   - Midi messages are sent to its "message listeners". If you don't pass a Midi Access instance or a Midi Output instance, it will do nothing but event dispatching.
   - It is based on customizible scheduler `MidiPlayerTimer`.
   - Not realtime strict (as on GC-ed language / VM), but would suffice for general usage.
+
+There are three sample project modules for two sample programs:
+
+- `player-sample` is an example console MIDI player for Kotlin/JVM desktop.
+- `player-sample-native` is almost the same, but for Kotlin/Native desktop.
+- `input-sample` is an example console MIDI input receiver that dumps the MIDI messages it received, for Kotlin/JVM desktop.
 
 ## Using ktmidi
 
@@ -141,3 +148,5 @@ You can also find some real-world usage examples:
 ktmidi is distributed under the MIT license.
 
 [jazz-soft/JZZ](https://github.com/jazz-soft/JZZ) is included in ktmidi-js package and is distributed under the MIT license.
+
+[rtmidi](https://github.com/thestk/rtmidi/) is included in ktmidi-native-ext package and is distributed under the MIT license. (It is also indirectly referenced via rtmidi-jna, which may be a different version.)

@@ -1,18 +1,13 @@
 package dev.atsushieno.ktmidi.samples.playersample
 
-import dev.atsushieno.ktmidi.EmptyMidiAccess
-import dev.atsushieno.ktmidi.JvmMidiAccess
 import dev.atsushieno.ktmidi.Midi1Player
 import dev.atsushieno.ktmidi.Midi2Music
 import dev.atsushieno.ktmidi.Midi2Player
+import dev.atsushieno.ktmidi.MidiAccess
 import dev.atsushieno.ktmidi.MidiCIProtocolType
 import dev.atsushieno.ktmidi.MidiMusic
 import dev.atsushieno.ktmidi.MidiPlayer
-import dev.atsushieno.ktmidi.RtMidiAccess
 import dev.atsushieno.ktmidi.read
-import kotlinx.coroutines.runBlocking
-import java.io.File
-import kotlin.system.exitProcess
 
 data class CommandLineOptions(val api: String? = null, val port: String? = null, val musicFile: String? = null, val midi2: Boolean = false)
 
@@ -23,11 +18,11 @@ fun parseCommandLineArgs(args: Array<String>) = CommandLineOptions(
     midi2 = args.contains("-2")
 )
 
-fun getMidiAccessApi(api: String?) = when (api) {
-    "EMPTY" -> EmptyMidiAccess()
-    "JVM" -> JvmMidiAccess()
-    else -> RtMidiAccess()
-}
+expect fun getMidiAccessApi(api: String?): MidiAccess
+expect fun exitApplication(code: Int)
+expect fun canReadFile(file: String): Boolean
+expect fun getFileExtension(file: String): String
+expect fun readFileContents(file: String): List<Byte>
 
 fun showUsage(api: String?) {
     println("USAGE: PlayerSample [-a:api] [-p:port] [-2] [-m:music-file]")
@@ -38,7 +33,7 @@ fun showUsage(api: String?) {
     getMidiAccessApi(api).outputs.forEach { println(" - ${it.id} : ${it.name}") }
 }
 
-fun main(args: Array<String>) {
+suspend fun runMain(args: Array<String>) {
     val opts = parseCommandLineArgs(args)
 
     if (args.contains("-?") || args.contains("-h") || args.contains("--help")) {
@@ -46,26 +41,25 @@ fun main(args: Array<String>) {
         return
     }
 
-    val access = RtMidiAccess()
+    val access = getMidiAccessApi(opts.api)
     val portDetails = access.outputs.firstOrNull { it.id == opts.port }
         ?: access.outputs.firstOrNull { !it.name!!.contains("Through") }
         ?: access.outputs.firstOrNull()
     if (portDetails == null) {
         println("Could not connect to output device.")
-        exitProcess(2)
+        exitApplication(2)
     }
 
     lateinit var player: MidiPlayer
-    val midiOutput = runBlocking { access.openOutputAsync(portDetails.id) }
+    val midiOutput = access.openOutputAsync(portDetails!!.id)
 
     // load music from file
     if (opts.musicFile != null) {
-        val file = File(opts.musicFile)
-        player = if (file.exists() && File(opts.musicFile).canRead()) {
+        player = if (canReadFile(opts.musicFile)) {
             try {
-                if (file.extension.lowercase() == "mid")
+                if (getFileExtension(opts.musicFile).lowercase() == "mid")
                     // MIDI1 player
-                    Midi1Player(MidiMusic().apply { this.read(file.readBytes().asList()) }, midiOutput)
+                    Midi1Player(MidiMusic().apply { this.read(readFileContents(opts.musicFile)) }, midiOutput)
                 else {
                     // MIDI2 player
                     // If -2 is specified, then the MidiOutput will receive UMPs. Otherwise, UMPs are converted to MIDI1.
@@ -73,23 +67,25 @@ fun main(args: Array<String>) {
                     // but it is out of scope in this version.)
                     if (opts.midi2)
                         midiOutput.midiProtocol = MidiCIProtocolType.MIDI2
-                    Midi2Player(Midi2Music().apply { this.read(file.readBytes().asList()) }, midiOutput)
+                    Midi2Player(Midi2Music().apply { this.read(readFileContents(opts.musicFile)) }, midiOutput)
                 }
-            } catch(ex: Exception) {
+            } catch (ex: Exception) {
                 println("File \"${opts.musicFile}\" could not be loaded: $ex")
                 ex.printStackTrace()
-                exitProcess(1)
+                exitApplication(1)
+                throw Exception("Should not reach here")
             }
         } else {
             println("File \"${opts.musicFile}\" does not exist.")
             showUsage(opts.api)
-            exitProcess(1)
+            exitApplication(1)
+            throw Exception("Should not reach here")
         }
     }
     else {
         println("Music file was not specified.")
         showUsage(opts.api)
-        exitProcess(1)
+        exitApplication(1)
     }
 
     println("Using ${portDetails.name}")
@@ -106,3 +102,4 @@ fun main(args: Array<String>) {
 
     return
 }
+
