@@ -48,6 +48,17 @@ jobs:
         SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
         SIGNING_SECRET_KEY_RING_FILE: ${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}
         SONATYPE_STAGING_PROFILE_ID: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
+    - name: upload build failure logs
+      if: failure()
+      uses: actions/upload-artifact@v2
+      with:
+        name: test-failure-logs
+        path: |
+          ktmidi/build/reports/
+          ktmidi-jvm-desktop/build/reports/
+          ktmidi/*.log
+          ktmidi-native-ext/*.log
+          ktmidi-jvm-desktop/*.log
     - name: upload artifact
       if: success()
       uses: actions/upload-artifact@v2
@@ -56,7 +67,7 @@ jobs:
         path: |
           ktmidi/build/libs/*.jar
           ktmidi/build/outputs/aar/*.aar
-          ktmidi-native/build/outputs/aar/*.aar
+          ktmidi-native-ext/build/bin
           ktmidi-jvm-desktop/build/libs/*.jar
     - name: deploy to GitHub Pages
       uses: JamesIves/github-pages-deploy-action@4.1.2

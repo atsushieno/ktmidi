@@ -38,6 +38,7 @@ jobs:
           ktmidi/build/reports/
           ktmidi-jvm-desktop/build/reports/
           ktmidi/*.log
+          ktmidi-native-ext/*.log
           ktmidi-jvm-desktop/*.log
     - name: upload artifact
       if: success()
@@ -47,4 +48,5 @@ jobs:
         path: |
           ktmidi/build/libs/*.jar
           ktmidi/build/outputs/aar/*.aar
+          ktmidi-native-ext/build/bin
           ktmidi-jvm-desktop/build/libs/*.jar
