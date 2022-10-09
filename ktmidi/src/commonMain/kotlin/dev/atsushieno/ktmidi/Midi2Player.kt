@@ -29,15 +29,15 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
     override fun updateTempoAndTimeSignatureIfApplicable(m: Ump) {
         if (m.messageType == MidiMessageType.SYSEX8_MDS && m.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
             m.int2 % 0x100  == MidiMusic.META_EVENT) {
-            when ((m.int3 / 0x100_00_00)) {
+            when ((m.int3.toUnsigned() / 0x100 % 0x100).toInt()) {
                 MidiMetaType.TEMPO -> {
                     m.toPlatformBytes(umpConversionBuffer, 0, ByteOrder.BIG_ENDIAN)
-                    currentTempo = MidiMusic.getSmfTempo(umpConversionBuffer, 12)
+                    currentTempo = MidiMusic.getSmfTempo(umpConversionBuffer, 11)
                 }
                 MidiMetaType.TIME_SIGNATURE -> {
                     m.toPlatformBytes(umpConversionBuffer, 0, ByteOrder.BIG_ENDIAN)
                     currentTimeSignature.clear()
-                    currentTimeSignature.addAll(umpConversionBuffer.drop(12).take(4))
+                    currentTimeSignature.addAll(umpConversionBuffer.drop(11).take(4))
                 }
                 else -> {}
             }
