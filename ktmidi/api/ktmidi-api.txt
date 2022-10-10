@@ -7,6 +7,7 @@ package dev.atsushieno.ktmidi {
     method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
     method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
+    property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
   }
 
@@ -36,6 +37,7 @@ package dev.atsushieno.ktmidi {
     method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
     method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
+    property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
   }
 
@@ -251,6 +253,7 @@ package dev.atsushieno.ktmidi {
     method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
     method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
+    property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
   }
 
@@ -264,6 +267,7 @@ package dev.atsushieno.ktmidi {
     method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
     method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
+    property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
     property public final boolean useSysex;
     field @NonNull public static final dev.atsushieno.ktmidi.JzzMidiAccess.Companion Companion;
@@ -455,7 +459,9 @@ package dev.atsushieno.ktmidi {
     method public int getMetaEventType(@NonNull dev.atsushieno.ktmidi.Ump message);
     method @NonNull public kotlin.sequences.Sequence<kotlin.Pair<java.lang.Integer,dev.atsushieno.ktmidi.Ump>> getMetaEventsOfType(@NonNull Iterable<dev.atsushieno.ktmidi.Ump> messages, int metaType);
     method public int getPlayTimeMillisecondsAtTick(@NonNull Iterable<dev.atsushieno.ktmidi.Ump> messages, int ticks, int deltaTimeSpec);
+    method public int getTempoValue(@NonNull dev.atsushieno.ktmidi.Ump message);
     method public int getTotalPlayTimeMilliseconds(@NonNull Iterable<dev.atsushieno.ktmidi.Ump> messages, int deltaTimeSpec);
+    method public boolean isMetaEventMessage(@NonNull dev.atsushieno.ktmidi.Ump message, int metaType);
     method public boolean isMetaEventMessageStarter(@NonNull dev.atsushieno.ktmidi.Ump message);
   }
 
@@ -495,6 +501,9 @@ package dev.atsushieno.ktmidi {
     method @Nullable public suspend Object create(@NonNull dev.atsushieno.ktmidi.Midi2Music music, @NonNull dev.atsushieno.ktmidi.MidiAccess access, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi2Player> p);
   }
 
+  public final class Midi2PlayerKt {
+  }
+
   public final class Midi2ReaderWriterKt {
     method public static void read(@NonNull dev.atsushieno.ktmidi.Midi2Music, @NonNull java.util.List<java.lang.Byte> stream);
     method public static void write(@NonNull dev.atsushieno.ktmidi.Midi2Music, @NonNull java.util.List<java.lang.Byte> stream);
@@ -524,6 +533,7 @@ package dev.atsushieno.ktmidi {
     method public boolean getCanCreateVirtualPort();
     method public boolean getCanDetectStateChanges();
     method @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
+    method @NonNull public String getName();
     method @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
     method @NonNull public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> getStateChanged();
     method @Nullable public abstract suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
@@ -532,6 +542,7 @@ package dev.atsushieno.ktmidi {
     property public boolean canCreateVirtualPort;
     property public boolean canDetectStateChanges;
     property @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
+    property @NonNull public String name;
     property @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
     property @NonNull public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> stateChanged;
   }
@@ -880,6 +891,9 @@ package dev.atsushieno.ktmidi {
     method public int getPlayTimeMillisecondsAtTick(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, int ticks, int deltaTimeSpec);
     method public double getSmfBpm(@NonNull byte[] data, int offset);
     method public int getSmfTempo(@NonNull byte[] data, int offset);
+    method public double getSmpteDurationInSeconds(int smfDeltaTimeSpec, int ticks, optional int tempo, optional double tempoRatio);
+    method public int getSmpteTicksForSeconds(int smfDeltaTimeSpec, double duration, optional int tempo, optional double tempoRatio);
+    method public int getSmpteTicksPerSeconds(int smfDeltaTimeSpec);
     method public int getTotalPlayTimeMilliseconds(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, int deltaTimeSpec);
   }
 
@@ -897,6 +911,9 @@ package dev.atsushieno.ktmidi {
     method public void encode7BitLength();
     method public void getFixedSize();
     method public void getSmfBpm();
+    method public void getSmpteDurationInSeconds();
+    method public void getSmpteTicksForSeconds();
+    method public void getSmpteTicksPerSeconds();
     method public void midiEventConvert();
     method public void midiMusicGetPlayTimeMillisecondsAtTick();
     method public void smfReaderRead();
