@@ -4,13 +4,11 @@ import kotlinx.coroutines.Runnable
 
 internal class Midi1EventLooper(var messages: List<MidiMessage>, private val timer: MidiPlayerTimer,
                                private val deltaTimeSpec: Int) : MidiEventLooper<MidiMessage>(timer) {
-    init {
-        if (deltaTimeSpec < 0)
-            throw UnsupportedOperationException("SMPTe-based delta time is not implemented in this player.")
-    }
-
     override fun getContextDeltaTimeInSeconds(m: MidiMessage): Double {
-        return currentTempo.toDouble() / 1_000_000 * m.deltaTime / deltaTimeSpec / tempoRatio
+        return if (deltaTimeSpec < 0)
+            MidiMusic.getSmpteDurationInSeconds(deltaTimeSpec, m.deltaTime, currentTempo, tempoRatio)
+        else
+            currentTempo.toDouble() / 1_000_000 * m.deltaTime / deltaTimeSpec / tempoRatio
     }
 
     override fun getDurationOfEvent(m: MidiMessage) = m.deltaTime

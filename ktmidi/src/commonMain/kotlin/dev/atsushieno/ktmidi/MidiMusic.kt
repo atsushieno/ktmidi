@@ -20,6 +20,27 @@ class MidiMusic {
         const val SYSEX_END = 0xF7
         const val META_EVENT = 0xFF
 
+        /**
+         * Calculates ticks per seconds for SMPTE for a SMF delta time division specification raw value.
+         * `frameRate` should be one of 24,25,29, and 30. We dare to use UByte as the argument type to indicate that the argument is NOT the raw negative number in deltaTimeSpec.
+         */
+        fun getSmpteTicksPerSeconds(smfDeltaTimeSpec: Int) =
+            getSmpteTicksPerSeconds((-smfDeltaTimeSpec shr 8).toUByte(), smfDeltaTimeSpec and 0xFF)
+
+        private fun getSmpteTicksPerSeconds(nominalFrameRate: UByte, ticksPerFrame: Int) = getActualSmpteFrameRate(nominalFrameRate).toInt() * ticksPerFrame
+
+        // The valid values for SMPTE frameRate are 24, 25, 29, and 30, but 29 means 30 frames per second.
+        private fun getActualSmpteFrameRate(nominalFrameRate: UByte) =
+            if (nominalFrameRate == 29.toUByte()) 30u else nominalFrameRate
+
+        // Note that the default tempo expects that a quarter note in 0.5 sec. (in 120bpm)
+        fun getSmpteDurationInSeconds(smfDeltaTimeSpec: Int, ticks: Int, tempo: Int = DEFAULT_TEMPO, tempoRatio: Double = 1.0): Double =
+            tempo.toDouble() / 250_000 * ticks / getSmpteTicksPerSeconds(smfDeltaTimeSpec) / tempoRatio
+
+        // Note that the default tempo expects that a quarter note in 0.5 sec. (in 120bpm)
+        fun getSmpteTicksForSeconds(smfDeltaTimeSpec: Int, duration: Double, tempo: Int = DEFAULT_TEMPO, tempoRatio: Double = 1.0): Int =
+            (duration * tempoRatio / tempo * 250_000 * getSmpteTicksPerSeconds(smfDeltaTimeSpec)).toInt()
+
         fun getSmfTempo(data: ByteArray, offset: Int): Int {
             if (data.size < offset + 2)
                 throw IndexOutOfBoundsException("data array must be longer than argument offset $offset + 2")

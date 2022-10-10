@@ -13,9 +13,9 @@ data class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: In
 
     override fun toString(): String {
         return when (messageType) {
-            0, 1, 2 -> "[${int1.toString(16)}]"
-            3, 4 -> "[${int1.toString(16)}:${int2.toString(16)}]"
-            else -> "[${int1.toString(16)}:${int2.toString(16)}:${int3.toString(16)}:${int4.toString(16)}]"
+            0, 1, 2 -> "[${int1.toUnsigned().toString(16)}]"
+            3, 4 -> "[${int1.toUnsigned().toString(16)}:${int2.toUnsigned().toString(16)}]"
+            else -> "[${int1.toUnsigned().toString(16)}:${int2.toUnsigned().toString(16)}:${int3.toUnsigned().toString(16)}:${int4.toUnsigned().toString(16)}]"
         }
     }
 

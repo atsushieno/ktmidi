@@ -6,14 +6,10 @@ class Midi2Music {
     internal class UmpDeltaTimeComputer: DeltaTimeComputer<Ump>() {
         override fun messageToDeltaTime(message: Ump) = if (message.isJRTimestamp) message.jrTimestamp else 0
 
-        // FIXME: We should come up with some solid draft on this, but so far, META events are
-        //  going to be implemented as Sysex8 messages. Starts with [0xFF MetaType] ...
-        override fun isMetaEventMessage(message: Ump, metaType: Int) = isMetaEventMessageStarter(message) && (message.int3 shr 24) == metaType
+        override fun isMetaEventMessage(message: Ump, metaType: Int) = Midi2Music.isMetaEventMessage(message, metaType)
 
         // 3 bytes in Sysex8 pseudo meta message
-        override fun getTempoValue(message: Ump)
-            = if (isMetaEventMessage(message, MidiMetaType.TEMPO)) message.int3 % 0x1000000
-            else throw IllegalArgumentException("Attempt to calculate tempo from non-meta UMP")
+        override fun getTempoValue(message: Ump) = Midi2Music.getTempoValue(message)
     }
 
     companion object {
@@ -38,19 +34,27 @@ class Midi2Music {
         // - `0` sub ID 2 byte
         // - 0xFF 0xFF 0xFF indicate our META event
         // - A meta event type byte
+        // See https://github.com/atsushieno/ktmidi/blob/main/docs/MIDI2_FORMATS.md for details regarding meta events.
         fun isMetaEventMessageStarter(message: Ump) =
             message.messageType == MidiMessageType.SYSEX8_MDS &&
-                    when (message.statusCode) {
-                        Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP, Midi2BinaryChunkStatus.SYSEX_START ->
-                            message.int1 % 0x100 == 0 &&
-                                    message.int2 shr 8 == 0 &&
-                                    message.int2 and 0xFF == 0xFF &&
-                                    (message.int3 shr 16) and 0xFFFF == 0xFFFF
-                        else -> false // not a starter
-                    }
+                when (message.statusCode) {
+                    Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP, Midi2BinaryChunkStatus.SYSEX_START ->
+                        message.int1 % 0x100 == 0 &&
+                                message.int2 shr 8 == 0 &&
+                                message.int2 and 0xFF == 0xFF &&
+                                (message.int3 shr 16) and 0xFFFF == 0xFFFF
+                    else -> false // not a starter
+                }
 
         // returns meta event type if and only if the argument message is a META event within our own specification.
         fun getMetaEventType(message: Ump) : Int = if (isMetaEventMessageStarter(message)) message.int3 shr 8 % 0x100 else 0
+
+        fun isMetaEventMessage(message: Ump, metaType: Int) = isMetaEventMessageStarter(message) && ((message.int3 and 0xFF00) shr 8) == metaType
+
+        fun getTempoValue(message: Ump) =
+            if (isMetaEventMessage(message, MidiMetaType.TEMPO))
+                ((message.int3 and 0xFF) shl 16) + ((message.int4 shr 16) and 0xFFFF)
+            else throw IllegalArgumentException("Attempt to calculate tempo from non-meta UMP")
     }
 
     val tracks: MutableList<Midi2Track> = mutableListOf()

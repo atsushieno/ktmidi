@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi
 
+import kotlin.experimental.or
 import kotlin.math.round
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -13,6 +14,38 @@ class MidiMusicUnitTest {
     fun getSmfBpm() {
         assertEquals(120.0, round(MidiMusic.getSmfBpm(byteArrayOf(7, 0xA1.toByte(), 0x20), 0)), "120")
         assertEquals(140.0, round(MidiMusic.getSmfBpm(byteArrayOf(6, 0x8A.toByte(), 0xB1.toByte()), 0)), "140")
+    }
+
+    @Test
+    fun getSmpteTicksPerSeconds() {
+        assertEquals(2400, MidiMusic.getSmpteTicksPerSeconds(0xE764), "24 x 100")
+        assertEquals(2500, MidiMusic.getSmpteTicksPerSeconds(0xE664), "25 x 100")
+        assertEquals(3000, MidiMusic.getSmpteTicksPerSeconds(0xE264), "29 x 100")
+        assertEquals(3000, MidiMusic.getSmpteTicksPerSeconds(0xE164), "30 x 100")
+        assertEquals(1200, MidiMusic.getSmpteTicksPerSeconds(0xE732), "24 x 50")
+        assertEquals(1250, MidiMusic.getSmpteTicksPerSeconds(0xE632), "25 x 50")
+        assertEquals(1500, MidiMusic.getSmpteTicksPerSeconds(0xE232), "29 x 50")
+        assertEquals(1500, MidiMusic.getSmpteTicksPerSeconds(0xE132), "30 x 50")
+    }
+
+    @Test
+    fun getSmpteDurationInSeconds() {
+        // For 0E764 in 1.0 seconds, there should be 100 ticks * 24 frames for 2400 ticks.
+        // For tempo 500000 (msec. for a quarter note), 2400 means two quarter notes.
+        assertEquals(1.0, MidiMusic.getSmpteDurationInSeconds(0xE764, 1200, 500000, 1.0), "1200 in 24 x 100")
+        assertEquals(0.5, MidiMusic.getSmpteDurationInSeconds(0xE764, 600, 500000, 1.0), "600 in 24 x 100")
+        assertEquals(1.0, MidiMusic.getSmpteDurationInSeconds(0xE732, 600, 500000, 1.0), "600 in 24 x 50")
+        assertEquals(2.0, MidiMusic.getSmpteDurationInSeconds(0xE732, 1200, 500000, 1.0), "1200 in 24 x 50")
+    }
+
+    @Test
+    fun getSmpteTicksForSeconds() {
+        // For 0E764 in 1.0 seconds, there should be 100 ticks * 24 frames for 2400 ticks.
+        // For tempo 500000 (msec. for a quarter note), 2400 means two quarter notes.
+        assertEquals(1200, MidiMusic.getSmpteTicksForSeconds(0xE764, 1.0, 500000, 1.0), "1.0 in 24 x 100")
+        assertEquals(600, MidiMusic.getSmpteTicksForSeconds(0xE764, 0.5, 500000, 1.0), "0.5 in 24 x 100")
+        assertEquals(600, MidiMusic.getSmpteTicksForSeconds(0xE732, 1.0, 500000, 1.0), "1.0 in 24 x 50")
+        assertEquals(1200, MidiMusic.getSmpteTicksForSeconds(0xE732, 2.0, 500000, 1.0), "2.0 in 24 x 50")
     }
 
     @Test

@@ -30,10 +30,7 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
         if (m.messageType == MidiMessageType.SYSEX8_MDS && m.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
             m.int2 % 0x100  == MidiMusic.META_EVENT) {
             when ((m.int3.toUnsigned() / 0x100 % 0x100).toInt()) {
-                MidiMetaType.TEMPO -> {
-                    m.toPlatformBytes(umpConversionBuffer, 0, ByteOrder.BIG_ENDIAN)
-                    currentTempo = MidiMusic.getSmfTempo(umpConversionBuffer, 11)
-                }
+                MidiMetaType.TEMPO -> currentTempo = Midi2Music.getTempoValue(m)
                 MidiMetaType.TIME_SIGNATURE -> {
                     m.toPlatformBytes(umpConversionBuffer, 0, ByteOrder.BIG_ENDIAN)
                     currentTimeSignature.clear()
