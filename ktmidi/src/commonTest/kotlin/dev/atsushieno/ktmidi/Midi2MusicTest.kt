@@ -39,6 +39,6 @@ class Midi2MusicTest {
         // Note that "stream id" also counts in the packet size in sysex8 (hence 12, not 11).
         // Note that umpx is always serialized in BIG endian.
         assertContentEquals(musicFileIdentifier + listOf(0, 0, 0, 0) + listOf(0, 0, 0, 1) +musicTrackIdentifier +
-            listOf(0, 0, 0, 1) + listOf(0x50, 12, 0, 0, 0, 0, 0, ff, ff, ff, 3, 7, 0xA1.toByte(), 0x20, 0, 0), bytes, "umpx")
+            listOf(0, 0, 0, 16) + listOf(0x50, 12, 0, 0, 0, 0, 0, ff, ff, ff, 3, 7, 0xA1.toByte(), 0x20, 0, 0), bytes, "umpx")
     }
 }

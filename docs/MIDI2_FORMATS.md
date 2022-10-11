@@ -17,18 +17,18 @@ We provide two options for UMP-based music files:
 
 ```
 // Data Format:
-//   identifier: 0xAAAAAAAAAAAAAAAA (16 bytes)
-//   i32 deltaTimeSpec
-//   i32 numTracks
-//   tracks - each track contains:
-//       identifier: 0xEEEEEEEEEEEEEEEE (16 bytes)
-//       i32 numUMPs
-//       umps (i32, i64 or i128) in BIG endian
+//   - identifier 0xAAAAAAAAAAAAAAAA (16 bytes)
+//   - i32 deltaTimeSpec
+//   - i32 numTracks
+//   - tracks - each track contains these items in order:
+//       - identifier 0xEEEEEEEEEEEEEEEE (16 bytes)
+//       - i32 sizeInBytes
+//       - UMPs (i32, i64 or i128) in BIG endian
 ```
 
-If `deltaTimeSpec` is a positive integer, it works like the value in SMF header chunk. There is no "format" specifier in this format - if "numTracks" is 1 then it is obviously compatible with FORMAT 0.
+If `deltaTimeSpec` is a positive integer, it works like the `division` field value in SMF header chunk. There is no "format" specifier in this format - if "numTracks" is 1 then it is obviously compatible with FORMAT 0.
 
-All the UMPs are serialized in BIG endian for persistant stability across platforms.
+All the UMPs are serialized in BIG endian per 32-bit integer for persistant stability across platforms and better binary readability.
 
 ## META events
 

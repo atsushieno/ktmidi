@@ -27,13 +27,16 @@ internal class Midi2MusicWriter(val stream: MutableList<Byte>) {
         ret.add(music.tracks.size)
         for (track in music.tracks) {
             (0..3).forEach { _ -> ret.add(0xEEEEEEEE.toInt()) }
-            ret.add(track.messages.size)
-            for (message in track.messages)
+            ret.add(0) // stub for `size` field, to be replaced later
+            val trackStartOffset = ret.size
+            for (message in track.messages) {
                 when (message.messageType) {
                     5 -> ret.addAll(sequenceOf(message.int1, message.int2, message.int3, message.int4))
                     3, 4 -> ret.addAll(sequenceOf(message.int1, message.int2))
                     else -> ret.add(message.int1)
                 }
+            }
+            ret[trackStartOffset - 1] = (ret.size - trackStartOffset) * 4 // sizeof(Int)
         }
         return ret
     }
@@ -89,9 +92,13 @@ internal class Midi2MusicReader(val music: Midi2Music, stream: List<Byte>) {
     private fun readTrack(): Midi2Track {
         val ret = Midi2Track()
         expectIdentifier16(0xEE.toByte())
-        val numUMPs = reader.readInt32()
-        for (t in 0 until numUMPs)
-            ret.messages.add(reader.readUmp())
+        val numBytes = reader.readInt32()
+        var readSize = 0
+        while (readSize < numBytes) {
+            val ump = reader.readUmp()
+            readSize += ump.sizeInBytes
+            ret.messages.add(ump)
+        }
         return ret
     }
 }
