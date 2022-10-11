@@ -147,7 +147,6 @@ android {
 }
 
 afterEvaluate {
-
     val javadocJar by tasks.registering(Jar::class) {
         archiveClassifier.set("javadoc")
     }

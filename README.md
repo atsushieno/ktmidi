@@ -127,9 +127,9 @@ For hacking and/or contributing to ktmidi, please have a look at [docs/HACKING.m
 
 For Applications that use ktmidi, check out [this Discussions thread](https://github.com/atsushieno/ktmidi/discussions/14).
 
-API documentation is published at: https://atsushieno.github.io/ktmidi/
+<del>API documentation is published at: https://atsushieno.github.io/ktmidi/</del><ins>Currently, the API documentation is NOT updated because dokka is buggy and we cannot update the documentation via gradle. I hope they fix the bug at some stage, so that we don't have to completely dump dokka.</ins>
 
-The documentation can be built using `./gradlew dokkaHtml` and it will be generated locally at `build/dokka/html`.
+<del>The documentation can be built using `./gradlew dokkaHtml` and it will be generated locally at `build/dokka/html`.</del>
 
 There are couple of API/implementation design docs:
 
