@@ -6,7 +6,7 @@ plugins {
 
 allprojects {
     group = 'dev.atsushieno'
-    version = '0.3.20'
+    version = '0.4.0'
 
     repositories {
         google()
