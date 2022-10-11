@@ -3,9 +3,10 @@ package dev.atsushieno.ktmidi {
   public final class AndroidMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
     ctor public AndroidMidiAccess(@NonNull android.content.Context applicationContext);
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
+    method @NonNull public String getName();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
-    method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
-    method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
     property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
@@ -33,9 +34,10 @@ package dev.atsushieno.ktmidi {
   public final class EmptyMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
     ctor public EmptyMidiAccess();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
+    method @NonNull public String getName();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
-    method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
-    method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
     property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
@@ -249,9 +251,10 @@ package dev.atsushieno.ktmidi {
   public final class JvmMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
     ctor public JvmMidiAccess();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
+    method @NonNull public String getName();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
-    method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
-    method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
     property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
@@ -262,10 +265,11 @@ package dev.atsushieno.ktmidi {
 
   public final class JzzMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
+    method @NonNull public String getName();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
     method public boolean getUseSysex();
-    method @Nullable public suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
-    method @Nullable public suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
     property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
@@ -533,16 +537,16 @@ package dev.atsushieno.ktmidi {
     method public boolean getCanCreateVirtualPort();
     method public boolean getCanDetectStateChanges();
     method @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
-    method @NonNull public String getName();
+    method @NonNull public abstract String getName();
     method @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
     method @NonNull public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> getStateChanged();
-    method @Nullable public abstract suspend Object openInputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
-    method @Nullable public abstract suspend Object openOutputAsync(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    method @Nullable public abstract suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method @Nullable public abstract suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
     method public final void setStateChanged(@NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> stateChanged);
     property public boolean canCreateVirtualPort;
     property public boolean canDetectStateChanges;
     property @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
-    property @NonNull public String name;
+    property @NonNull public abstract String name;
     property @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
     property @NonNull public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> stateChanged;
   }

@@ -24,7 +24,7 @@ class JzzMidiAccessTest {
         async {
             val access = JzzMidiAccess.create(true)
             val outPort = access.outputs.firstOrNull() ?: return@async
-            val output = access.openOutputAsync(outPort.id)
+            val output = access.openOutput(outPort.id)
             output.send(byteArrayOf(0x90.toByte(), 0x30, 0x80.toByte()), 0, 3, 0)
             output.close()
         }.await()
@@ -36,7 +36,7 @@ class JzzMidiAccessTest {
         async {
             val access = JzzMidiAccess.create(true)
             val inPort = access.inputs.firstOrNull() ?: return@async
-            val input = withContext(Dispatchers.Default) { access.openInputAsync(inPort.id) }
+            val input = withContext(Dispatchers.Default) { access.openInput(inPort.id) }
             input.close()
         }.await()
     }

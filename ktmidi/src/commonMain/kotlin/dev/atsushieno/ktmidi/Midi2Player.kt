@@ -74,7 +74,7 @@ interface OnMidi2EventListener {
 class Midi2Player : MidiPlayer {
     companion object {
         suspend fun create(music: Midi2Music, access: MidiAccess, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer()) =
-            Midi2Player(music, access.openOutputAsync(access.outputs.first().id), timer, true)
+            Midi2Player(music, access.openOutput(access.outputs.first().id), timer, true)
     }
 
     constructor(music: Midi2Music, output: MidiOutput, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer(), shouldDisposeOutput: Boolean = false)

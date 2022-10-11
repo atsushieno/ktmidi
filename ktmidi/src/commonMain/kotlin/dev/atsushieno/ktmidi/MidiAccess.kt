@@ -7,14 +7,13 @@ interface OnMidiEventListener {
 val emptyMidiAccess = EmptyMidiAccess()
 
 abstract class MidiAccess {
-    // FIXME: make it abstract in v0.4.0
-    open val name: String = "TODO: name it"
+    abstract val name: String
 
     abstract val inputs: Iterable<MidiPortDetails>
     abstract val outputs: Iterable<MidiPortDetails>
 
-    abstract suspend fun openInputAsync(portId: String): MidiInput
-    abstract suspend fun openOutputAsync(portId: String): MidiOutput
+    abstract suspend fun openInput(portId: String): MidiInput
+    abstract suspend fun openOutput(portId: String): MidiOutput
 
     open val canDetectStateChanges = false
     var stateChanged : (MidiPortDetails) -> Unit = {}
@@ -126,13 +125,13 @@ class EmptyMidiAccess : MidiAccess() {
     override val outputs: Iterable<MidiPortDetails>
         get() = arrayListOf(EmptyMidiOutput.instance.details)
 
-    override suspend fun openInputAsync(portId: String): MidiInput {
+    override suspend fun openInput(portId: String): MidiInput {
         if (portId != EmptyMidiInput.instance.details.id)
             throw IllegalArgumentException("Port ID $portId does not exist.")
         return EmptyMidiInput.instance
     }
 
-    override suspend fun openOutputAsync(portId: String): MidiOutput {
+    override suspend fun openOutput(portId: String): MidiOutput {
         if (portId != EmptyMidiOutput.instance.details.id)
             throw IllegalArgumentException("Port ID $portId does not exist.")
         return EmptyMidiOutput.instance

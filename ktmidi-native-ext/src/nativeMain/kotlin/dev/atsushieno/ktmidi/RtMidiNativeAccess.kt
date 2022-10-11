@@ -39,6 +39,9 @@ class RtMidiNativeAccess() : MidiAccess() {
         }
     }
 
+    override val name: String
+        get() = "RtMidi-Native"
+
     // Ports
 
     private class RtMidiPortDetails(portIndex: UInt, override val name: String) : MidiPortDetails {
@@ -80,10 +83,10 @@ class RtMidiNativeAccess() : MidiAccess() {
     override suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput =
         RtMidiVirtualInput(context)
 
-    override suspend fun openInputAsync(portId: String): MidiInput =
+    override suspend fun openInput(portId: String): MidiInput =
         RtMidiInput(portId.toUInt())
 
-    override suspend fun openOutputAsync(portId: String): MidiOutput =
+    override suspend fun openOutput(portId: String): MidiOutput =
         RtMidiOutput(portId.toUInt())
 
     internal abstract class RtMidiPort : MidiPort {

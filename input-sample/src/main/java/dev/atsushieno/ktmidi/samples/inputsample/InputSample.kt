@@ -45,7 +45,7 @@ fun main(args: Array<String>) {
 
     println("Using ${portDetails.name}")
 
-    val midiInput = runBlocking { access.openInputAsync(portDetails.id) }
+    val midiInput = runBlocking { access.openInput(portDetails.id) }
     midiInput.setMessageReceivedListener(InputTester())
 
     println("Type something[CR] to quit.")

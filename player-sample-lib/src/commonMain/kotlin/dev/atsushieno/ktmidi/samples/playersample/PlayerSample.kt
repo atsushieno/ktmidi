@@ -51,7 +51,7 @@ suspend fun runMain(args: Array<String>) {
     }
 
     lateinit var player: MidiPlayer
-    val midiOutput = access.openOutputAsync(portDetails!!.id)
+    val midiOutput = access.openOutput(portDetails!!.id)
 
     // load music from file
     if (opts.musicFile != null) {

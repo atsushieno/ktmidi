@@ -19,6 +19,9 @@ class AlsaMidiAccess : MidiAccess() {
         private const val virtual_input_connected_cap = AlsaPortCapabilities.Read or AlsaPortCapabilities.SubsRead
     }
 
+    override val name: String
+        get() = "ALSA"
+
     private fun enumerateMatchingPorts ( seq: AlsaSequencer, cap:  Int) : Iterable<AlsaPortInfo> {
         val clientInfo = AlsaClientInfo().apply { client = -1 }
         return sequence {
@@ -73,7 +76,7 @@ class AlsaMidiAccess : MidiAccess() {
     override val outputs : Iterable<MidiPortDetails>
         get() = enumerateAvailableOutputPorts ().map { p -> AlsaMidiPortDetails (p) }
 
-    override suspend fun openInputAsync (portId: String): MidiInput {
+    override suspend fun openInput (portId: String): MidiInput {
         val sourcePort = inputs.firstOrNull { p -> p.id == portId } as AlsaMidiPortDetails?
             ?: throw IllegalArgumentException ("Port '$portId' does not exist.")
         val seq = AlsaSequencer (AlsaIOType.Input, AlsaIOMode.NonBlocking)
@@ -81,7 +84,7 @@ class AlsaMidiAccess : MidiAccess() {
         return AlsaMidiInput (seq, AlsaMidiPortDetails (appPort), sourcePort)
     }
 
-    override suspend fun openOutputAsync ( portId:String) : MidiOutput {
+    override suspend fun openOutput ( portId:String) : MidiOutput {
         val destPort = outputs.firstOrNull { p -> p.id == portId } as AlsaMidiPortDetails?
             ?: throw IllegalArgumentException ("Port '$portId' does not exist.")
         val seq = AlsaSequencer (AlsaIOType.Output, AlsaIOMode.None)

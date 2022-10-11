@@ -21,14 +21,14 @@ class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
     override val outputs: Iterable<MidiPortDetails>
         get() = ports.filter { p -> p.portInfo.type == MidiDeviceInfo.PortInfo.TYPE_INPUT }.asIterable()
 
-    override suspend fun openInputAsync(portId: String): MidiInput {
+    override suspend fun openInput(portId: String): MidiInput {
         val ip = inputs.first { i -> i.id == portId } as AndroidPortDetails
         val dev = openDevices.firstOrNull { d -> ip.device.id == d.info.id }
         val l = OpenDeviceListener(this, dev, ip)
         return l.openInput()
     }
 
-    override suspend fun openOutputAsync(portId: String): MidiOutput {
+    override suspend fun openOutput(portId: String): MidiOutput {
         val ip = outputs.first { i -> i.id == portId } as AndroidPortDetails
         val dev = openDevices.firstOrNull { d -> ip.device.id == d.info.id }
         val l = OpenDeviceListener(this, dev, ip)

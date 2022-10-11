@@ -32,14 +32,14 @@ class JzzMidiAccess private constructor(val useSysex: Boolean, private val jzz: 
         get() = jzz.info().outputs.map { item, index, _ -> JzzMidiPortDetails(item, index as Int, "jzz.out.$index") }
             .iterator().asSequence<MidiPortDetails>().asIterable()
 
-    override suspend fun openInputAsync(portId: String): MidiInput {
+    override suspend fun openInput(portId: String): MidiInput {
         val details = inputs.firstOrNull { it.id == portId }
             ?: throw IllegalArgumentException("Invalid port ID was requested: $portId")
         val port = jzz.openMidiIn(details.name)
         return JzzMidiInput(port, details, MidiCIProtocolType.MIDI1)
     }
 
-    override suspend fun openOutputAsync(portId: String): MidiOutput {
+    override suspend fun openOutput(portId: String): MidiOutput {
         val details = outputs.firstOrNull { it.id == portId }
             ?: throw IllegalArgumentException("Invalid port ID was requested: $portId")
         val port = jzz.openMidiOut(details.name)
