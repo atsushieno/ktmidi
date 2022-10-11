@@ -12,7 +12,7 @@ buildscript {
 plugins {
     id("com.android.library")
     kotlin("multiplatform")
-    id("org.jetbrains.dokka") version "1.7.10"
+    id("org.jetbrains.dokka")
     id("maven-publish")
     id("signing")
     id("me.tylerbwong.gradle.metalava") version "0.2.3"

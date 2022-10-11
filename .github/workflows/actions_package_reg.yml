@@ -38,9 +38,7 @@ jobs:
     - name: publish
       run: |
         ./build-rtmidi.sh
-        # FIXME: bring back dokka when its bug is gone https://stackoverflow.com/questions/71998578/execution-failed-for-task-appdokkahtml
-        #./gradlew --warning-mode all build dokkaHtml publish
-        ./gradlew --warning-mode all build publish
+        ./gradlew --warning-mode all build dokkaHtml publish
       env:
         USERNAME: atsushieno
         GITHUB_TOKEN: ${{ secrets.MAVEN_PAT }}
@@ -72,8 +70,6 @@ jobs:
           ktmidi-native-ext/build/bin
           ktmidi-jvm-desktop/build/libs/*.jar
     - name: deploy to GitHub Pages
-      # FIXME: enable this once dokka bug is gone (see above)
-      if: false
       uses: JamesIves/github-pages-deploy-action@4.1.2
       with:
         branch: gh-pages
