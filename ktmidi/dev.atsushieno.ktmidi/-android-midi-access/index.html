@@ -6,10 +6,18 @@
     <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
     <script>var pathToRoot = "../../../";</script>
     <script>const storage = localStorage.getItem("dokka-dark-mode")
-const savedDarkMode = storage ? JSON.parse(storage) : false
-if(savedDarkMode === true){
-    document.getElementsByTagName("html")[0].classList.add("theme-dark")
-}</script>
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
 <script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
 <link href="../../../styles/style.css" rel="Stylesheet">
 <link href="../../../styles/jetbrains-mono.css" rel="Stylesheet">
@@ -21,6 +29,7 @@ if(savedDarkMode === true){
 <script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
 <script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
 <script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
 </head>
 <body>
 <div class="navigation-wrapper" id="navigation-wrapper">
@@ -31,7 +40,7 @@ if(savedDarkMode === true){
             </a>
     </div>
     <div>
-0.3.19    </div>
+0.4.0    </div>
     <div class="pull-right d-flex">
         <div class="filter-section" id="filter-section">
                 <button class="platform-tag platform-selector jvm-like" data-active="" data-filter=":ktmidi:dokkaHtml/androidMain">android</button>
@@ -46,12 +55,12 @@ if(savedDarkMode === true){
     </div>
     <div id="main">
 <div class="main-content" id="content" pageIds="ktmidi::dev.atsushieno.ktmidi/AndroidMidiAccess///PointingToDeclaration//2008898718">
-  <div class="breadcrumbs"><a href="../../../index.html">ktmidi</a><span class="delimiter">/</span><a href="../index.html">dev.atsushieno.ktmidi</a><span class="delimiter">/</span><a href="index.html">AndroidMidiAccess</a></div>
+  <div class="breadcrumbs"><a href="../../../index.html">ktmidi</a><span class="delimiter">/</span><a href="../index.html">dev.atsushieno.ktmidi</a><span class="delimiter">/</span><span class="current">AndroidMidiAccess</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Android</span><wbr></wbr><span>Midi</span><wbr></wbr><span><span>Access</span></span></h1>
     <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark jvm-like" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">AndroidMidiAccess</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">applicationContext<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a></span></span><span class="token punctuation">)</span> : <span data-unresolved-link="dev.atsushieno.ktmidi/MidiAccess///PointingToDeclaration/">MidiAccess</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>    </div>
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">AndroidMidiAccess</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">applicationContext<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a></span></span><span class="token punctuation">)</span> : <span data-unresolved-link="dev.atsushieno.ktmidi/MidiAccess///PointingToDeclaration/">MidiAccess</span></div></div>    </div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="Constructors">Constructors</button><button class="section-tab" data-togglable="Functions">Functions</button><button class="section-tab" data-togglable="Properties">Properties</button></div>
@@ -68,8 +77,8 @@ if(savedDarkMode === true){
             <div>
               <div class="title">
                 <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark jvm-like" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="-android-midi-access.html"><span class="token function">AndroidMidiAccess</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">applicationContext<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a></span></span><span class="token punctuation">)</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                </div>
+                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">fun </span><a href="-android-midi-access.html"><span class="token function">AndroidMidiAccess</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">applicationContext<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a></span></span><span class="token punctuation">)</span></div></div>                </div>
               </div>
             </div>
           </div>
@@ -87,8 +96,8 @@ if(savedDarkMode === true){
             <div>
               <div class="title">
                 <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark jvm-like" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html#1717738848%2FFunctions%2F2008898718"><span class="token function">createVirtualInputSender</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/PortCreatorContext///PointingToDeclaration/">PortCreatorContext</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiOutput///PointingToDeclaration/">MidiOutput</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                </div>
+                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html#1717738848%2FFunctions%2F2008898718"><span class="token function">createVirtualInputSender</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/PortCreatorContext///PointingToDeclaration/">PortCreatorContext</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiOutput///PointingToDeclaration/">MidiOutput</span></div></div>                </div>
               </div>
             </div>
           </div>
@@ -104,42 +113,42 @@ if(savedDarkMode === true){
             <div>
               <div class="title">
                 <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark jvm-like" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html#1387687703%2FFunctions%2F2008898718"><span class="token function">createVirtualOutputReceiver</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/PortCreatorContext///PointingToDeclaration/">PortCreatorContext</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiInput///PointingToDeclaration/">MidiInput</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                </div>
+                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="index.html#1387687703%2FFunctions%2F2008898718"><span class="token function">createVirtualOutputReceiver</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/PortCreatorContext///PointingToDeclaration/">PortCreatorContext</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiInput///PointingToDeclaration/">MidiInput</span></div></div>                </div>
               </div>
             </div>
           </div>
         </div>
-<a data-name="-15174859%2FFunctions%2F2008898718" anchor-label="openInputAsync" id="-15174859%2FFunctions%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a>
+<a data-name="-1734923339%2FFunctions%2F2008898718" anchor-label="openInput" id="-1734923339%2FFunctions%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a>
         <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain">
           <div class="main-subrow keyValue ">
             <div class=""><span class="inline-flex">
-                <div><a href="open-input-async.html"><span>open</span><wbr></wbr><span>Input</span><wbr></wbr><span><span>Async</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-15174859%2FFunctions%2F2008898718"></span>
+                <div><a href="open-input.html"><span>open</span><wbr></wbr><span><span>Input</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1734923339%2FFunctions%2F2008898718"></span>
                   <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                 </span></span></div>
             <div>
               <div class="title">
                 <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark jvm-like" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="open-input-async.html"><span class="token function">openInputAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">portId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiInput///PointingToDeclaration/">MidiInput</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                </div>
+                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="open-input.html"><span class="token function">openInput</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">portId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiInput///PointingToDeclaration/">MidiInput</span></div></div>                </div>
               </div>
             </div>
           </div>
         </div>
-<a data-name="-1702115802%2FFunctions%2F2008898718" anchor-label="openOutputAsync" id="-1702115802%2FFunctions%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a>
+<a data-name="130418212%2FFunctions%2F2008898718" anchor-label="openOutput" id="130418212%2FFunctions%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a>
         <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain">
           <div class="main-subrow keyValue ">
             <div class=""><span class="inline-flex">
-                <div><a href="open-output-async.html"><span>open</span><wbr></wbr><span>Output</span><wbr></wbr><span><span>Async</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1702115802%2FFunctions%2F2008898718"></span>
+                <div><a href="open-output.html"><span>open</span><wbr></wbr><span><span>Output</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="130418212%2FFunctions%2F2008898718"></span>
                   <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
                 </span></span></div>
             <div>
               <div class="title">
                 <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
-                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark jvm-like" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="open-output-async.html"><span class="token function">openOutputAsync</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">portId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiOutput///PointingToDeclaration/">MidiOutput</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                </div>
+                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">suspend override </span><span class="token keyword">fun </span><a href="open-output.html"><span class="token function">openOutput</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">portId<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiOutput///PointingToDeclaration/">MidiOutput</span></div></div>                </div>
               </div>
             </div>
           </div>
@@ -157,8 +166,8 @@ if(savedDarkMode === true){
             <div>
               <div class="title">
                 <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
-                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark jvm-like" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><a data-name="1362902858%2FProperties%2F2008898718" anchor-label="canCreateVirtualPort" id="1362902858%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">val </span><a href="index.html#1362902858%2FProperties%2F2008898718">canCreateVirtualPort</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                </div>
+                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><a data-name="1362902858%2FProperties%2F2008898718" anchor-label="canCreateVirtualPort" id="1362902858%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">val </span><a href="index.html#1362902858%2FProperties%2F2008898718">canCreateVirtualPort</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></div></div>                </div>
               </div>
             </div>
           </div>
@@ -174,8 +183,8 @@ if(savedDarkMode === true){
             <div>
               <div class="title">
                 <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
-                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark jvm-like" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><a data-name="-1553554261%2FProperties%2F2008898718" anchor-label="canDetectStateChanges" id="-1553554261%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">val </span><a href="index.html#-1553554261%2FProperties%2F2008898718">canDetectStateChanges</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                </div>
+                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><a data-name="-1553554261%2FProperties%2F2008898718" anchor-label="canDetectStateChanges" id="-1553554261%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword"></span><span class="token keyword">val </span><a href="index.html#-1553554261%2FProperties%2F2008898718">canDetectStateChanges</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></div></div>                </div>
               </div>
             </div>
           </div>
@@ -191,8 +200,25 @@ if(savedDarkMode === true){
             <div>
               <div class="title">
                 <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
-                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark jvm-like" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><a data-name="-2123693662%2FProperties%2F2008898718" anchor-label="inputs" id="-2123693662%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="inputs.html">inputs</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-iterable/index.html">Iterable</a><span class="token operator">&lt;</span><span class="token keyword"></span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiPortDetails///PointingToDeclaration/">MidiPortDetails</span><span class="token operator">&gt;</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                </div>
+                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><a data-name="-2123693662%2FProperties%2F2008898718" anchor-label="inputs" id="-2123693662%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="inputs.html">inputs</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-iterable/index.html">Iterable</a><span class="token operator">&lt;</span><span class="token keyword"></span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiPortDetails///PointingToDeclaration/">MidiPortDetails</span><span class="token operator">&gt;</span></div></div>                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+<a data-name="-1915300160%2FProperties%2F2008898718" anchor-label="name" id="-1915300160%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a>
+        <div class="table-row" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain">
+          <div class="main-subrow keyValue ">
+            <div class=""><span class="inline-flex">
+                <div><a href="name.html"><span><span>name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1915300160%2FProperties%2F2008898718"></span>
+                  <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                </span></span></div>
+            <div>
+              <div class="title">
+                <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
+                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><a data-name="-1915300160%2FProperties%2F2008898718" anchor-label="name" id="-1915300160%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="name.html">name</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a></div></div>                </div>
               </div>
             </div>
           </div>
@@ -208,8 +234,8 @@ if(savedDarkMode === true){
             <div>
               <div class="title">
                 <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
-                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark jvm-like" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><a data-name="722772605%2FProperties%2F2008898718" anchor-label="outputs" id="722772605%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="outputs.html">outputs</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-iterable/index.html">Iterable</a><span class="token operator">&lt;</span><span class="token keyword"></span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiPortDetails///PointingToDeclaration/">MidiPortDetails</span><span class="token operator">&gt;</span><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                </div>
+                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><a data-name="722772605%2FProperties%2F2008898718" anchor-label="outputs" id="722772605%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="outputs.html">outputs</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-iterable/index.html">Iterable</a><span class="token operator">&lt;</span><span class="token keyword"></span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiPortDetails///PointingToDeclaration/">MidiPortDetails</span><span class="token operator">&gt;</span></div></div>                </div>
               </div>
             </div>
           </div>
@@ -225,8 +251,8 @@ if(savedDarkMode === true){
             <div>
               <div class="title">
                 <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted" data-togglable="Properties">
-                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark jvm-like" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
-<div class="content sourceset-depenent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><a data-name="1253840487%2FProperties%2F2008898718" anchor-label="stateChanged" id="1253840487%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="index.html#1253840487%2FProperties%2F2008898718">stateChanged</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiPortDetails///PointingToDeclaration/">MidiPortDetails</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div></div>                </div>
+                  <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":ktmidi:dokkaHtml/androidMain" data-filterable-set=":ktmidi:dokkaHtml/androidMain" data-active="" data-toggle=":ktmidi:dokkaHtml/androidMain">android</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":ktmidi:dokkaHtml/androidMain"><a data-name="1253840487%2FProperties%2F2008898718" anchor-label="stateChanged" id="1253840487%2FProperties%2F2008898718" data-filterable-set=":ktmidi:dokkaHtml/androidMain"></a><div class="symbol monospace"><span class="token keyword"></span><span class="token keyword">var </span><a href="index.html#1253840487%2FProperties%2F2008898718">stateChanged</a><span class="token operator">: </span><span class="token punctuation">(</span><span class="token keyword"></span><span data-unresolved-link="dev.atsushieno.ktmidi/MidiPortDetails///PointingToDeclaration/">MidiPortDetails</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><span class="token keyword"></span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></div></div>                </div>
               </div>
             </div>
           </div>
