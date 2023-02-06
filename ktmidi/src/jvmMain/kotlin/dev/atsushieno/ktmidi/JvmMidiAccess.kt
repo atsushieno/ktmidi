@@ -9,26 +9,40 @@ class JvmMidiAccess : MidiAccess() {
         get() = "JVM"
     override val inputs: Iterable<MidiPortDetails>
         get() = MidiSystem.getMidiDeviceInfo().map { i -> MidiSystem.getMidiDevice(i) }
-            .flatMap { d -> d.receivers.map { r -> Pair(d, r) } }
-            .mapIndexed { i, p -> JvmMidiReceiverPortDetails(p.first, i, p.second) }
+            .flatMap {
+                // make sure the device has an input port that can be retrieved
+                if (it.maxTransmitters == -1 || it.maxTransmitters > it.transmitters.count()) {
+                    listOf(it to it.transmitter)
+                } else {
+                    emptyList()
+                }
+            }
+            .mapIndexed { i, p -> JvmMidiTransmitterPortDetails(p.first, i, p.second) }
     override val outputs: Iterable<MidiPortDetails>
         get() = MidiSystem.getMidiDeviceInfo().map { i -> MidiSystem.getMidiDevice(i) }
-            .flatMap { d -> d.transmitters.map { t -> Pair(d, t) } }
-            .mapIndexed { i, p -> JvmMidiTransmitterPortDetails(p.first, i, p.second) }
+            .flatMap {
+                // make sure the device has an output port that can be retrieved
+                if (it.maxReceivers == -1 || it.maxReceivers > it.receivers.count()) {
+                    listOf(it to it.receiver)
+                } else {
+                    emptyList()
+                }
+            }
+            .mapIndexed { i, p -> JvmMidiReceiverPortDetails(p.first, i, p.second) }
 
     override suspend fun openInput(portId: String): MidiInput {
-        val port = outputs.firstOrNull { i -> i.id == portId }
+        val port = inputs.firstOrNull { i -> i.id == portId }
         if (port == null || port !is JvmMidiTransmitterPortDetails)
-            throw IllegalArgumentException("Output port $portId was not found")
+            throw IllegalArgumentException("Input port $portId was not found")
         if (!port.device.isOpen)
             port.device.open()
         return JvmMidiInput(port)
     }
 
     override suspend fun openOutput(portId: String): MidiOutput {
-        val port = inputs.firstOrNull { i -> i.id == portId }
+        val port = outputs.firstOrNull { i -> i.id == portId }
         if (port == null || port !is JvmMidiReceiverPortDetails)
-            throw IllegalArgumentException("Input port $portId was not found")
+            throw IllegalArgumentException("Output port $portId was not found")
         if (!port.device.isOpen)
             port.device.open()
         return JvmMidiOutput(port)
@@ -82,11 +96,7 @@ private class JvmMidiInput(val port: JvmMidiTransmitterPortDetails) : MidiInput 
         get() = MidiCIProtocolValue.MIDI1
         set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
 
-    private var listener: OnMidiReceivedEventListener = object : OnMidiReceivedEventListener {
-        override fun onEventReceived(data: ByteArray, start: Int, length: Int, timestamp: Long) {
-            // do nothing
-        }
-    }
+    private var listener: OnMidiReceivedEventListener? = null
 
     override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
         this.listener = listener
@@ -99,7 +109,7 @@ private class JvmMidiInput(val port: JvmMidiTransmitterPortDetails) : MidiInput 
             override fun send(msg: JvmMidiMessage?, timestampInMicroseconds: Long) {
                 if (msg == null)
                     return
-                listener.onEventReceived(msg.message, 0, msg.length, timestampInMicroseconds * 1000)
+                listener?.onEventReceived(msg.message, 0, msg.length, timestampInMicroseconds * 1000)
             }
         }
     }
