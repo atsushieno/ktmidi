@@ -252,7 +252,7 @@ enum class PlayerState {
     PAUSED,
 }
 
-interface SeekProcessor<TMessage> {
+fun interface SeekProcessor<TMessage> {
     fun filterMessage(message: TMessage): SeekFilterResult
 }
 

@@ -50,7 +50,7 @@ internal class Midi1EventLooper(var messages: List<MidiMessage>, private val tim
     }
 }
 
-interface OnMidiMessageListener {
+fun interface OnMidiMessageListener {
     fun onMessage(m: MidiMessage)
 }
 
