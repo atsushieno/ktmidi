@@ -120,8 +120,14 @@ class MidiMessage(val deltaTime: Int, evt: MidiEvent) {
     override fun toString(): String = "[$deltaTime:$event]"
 }
 
-class MidiEvent // MIDI 1.0 only
-{
+// MIDI 1.0 only
+data class MidiEvent(
+    val value: Int,
+    // This expects EndSysEx byte _inclusive_ for F0 message.
+    val extraData: ByteArray?,
+    val extraDataOffset: Int,
+    val extraDataLength: Int,
+) {
     companion object {
 
         fun convert(bytes: ByteArray, index: Int, size: Int) = sequence {
@@ -164,61 +170,82 @@ class MidiEvent // MIDI 1.0 only
             }
     }
 
-    constructor (value: Int) {
-        this.value = value
-        this.extraData = null
-        this.extraDataOffset = 0
-        this.extraDataLength = 0
-    }
+    constructor(value: Int) : this(
+        value,
+        null,
+        0,
+        0
+    )
 
-    constructor (
+    constructor(
         type: Int,
         arg1: Int,
         arg2: Int,
         extraData: ByteArray? = null,
         extraOffset: Int = 0,
-        extraLength: Int = extraData?.size ?: 0
-    ) {
-        this.value = (type.toUInt() + (arg1.toUInt() shl 8) + (arg2.toUInt() shl 16)).toInt()
-        this.extraData = extraData
-        this.extraDataOffset = extraOffset
-        this.extraDataLength = extraLength
+        extraLength: Int = extraData?.size ?: 0,
+    ) : this(
+        value = (type.toUInt() + (arg1.toUInt() shl 8) + (arg2.toUInt() shl 16)).toInt(),
+        extraData = extraData,
+        extraDataOffset = extraOffset,
+        extraDataLength = extraLength,
+    )
+
+    val statusByte: Byte = (value and 0xFF).toByte()
+
+    val eventType: Byte = when (statusByte.toUnsigned()) {
+        MidiMusic.META_EVENT,
+        MidiMusic.SYSEX_EVENT,
+        MidiMusic.SYSEX_END,
+        -> this.statusByte
+
+        else -> (value and 0xF0).toByte()
     }
 
-    var value: Int = 0
-
-    // This expects EndSysEx byte _inclusive_ for F0 message.
-    val extraData: ByteArray?
-    val extraDataOffset: Int
-    val extraDataLength: Int
-
-    val statusByte: Byte
-        get() = (value and 0xFF).toByte()
-
-    val eventType: Byte
-        get() =
-            when (statusByte.toUnsigned()) {
-                MidiMusic.META_EVENT,
-                MidiMusic.SYSEX_EVENT,
-                MidiMusic.SYSEX_END -> this.statusByte
-                else -> (value and 0xF0).toByte()
-            }
-
-    val msb: Byte
-        get() = ((value and 0xFF00) shr 8).toByte()
-
-
-    val lsb: Byte
-        get() = ((value and 0xFF0000) shr 16).toByte()
-
-    val metaType: Byte
-        get() = msb
-
-    val channel: Byte
-        get() = (value and 0x0F).toByte()
+    val msb: Byte = ((value and 0xFF00) shr 8).toByte()
+    val lsb: Byte = ((value and 0xFF0000) shr 16).toByte()
+    val metaType: Byte = msb
+    val channel: Byte = (value and 0x0F).toByte()
 
     override fun toString(): String {
         return value.toString(16)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as MidiEvent
+
+        if (value != other.value) return false
+        if (extraData != null) {
+            if (other.extraData == null) return false
+            if (!extraData.contentEquals(other.extraData)) return false
+        } else if (other.extraData != null) return false
+        if (extraDataOffset != other.extraDataOffset) return false
+        if (extraDataLength != other.extraDataLength) return false
+        if (statusByte != other.statusByte) return false
+        if (eventType != other.eventType) return false
+        if (msb != other.msb) return false
+        if (lsb != other.lsb) return false
+        if (metaType != other.metaType) return false
+        if (channel != other.channel) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = value
+        result = 31 * result + (extraData?.contentHashCode() ?: 0)
+        result = 31 * result + extraDataOffset
+        result = 31 * result + extraDataLength
+        result = 31 * result + statusByte
+        result = 31 * result + eventType
+        result = 31 * result + msb
+        result = 31 * result + lsb
+        result = 31 * result + metaType
+        result = 31 * result + channel
+        return result
     }
 }
 
