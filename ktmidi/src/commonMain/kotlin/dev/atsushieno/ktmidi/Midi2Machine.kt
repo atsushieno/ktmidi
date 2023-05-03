@@ -1,7 +1,7 @@
 package dev.atsushieno.ktmidi
 
 class Midi2Machine {
-    interface Listener {
+    fun interface Listener {
         fun onEvent(e: Ump)
     }
 

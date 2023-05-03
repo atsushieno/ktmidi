@@ -1,6 +1,6 @@
 package dev.atsushieno.ktmidi
 
-interface OnMidiEventListener {
+fun interface OnMidiEventListener {
     fun onEvent(e: MidiEvent)
 }
 
@@ -48,7 +48,7 @@ interface MidiPort {
     var midiProtocol: Int
 }
 
-interface OnMidiReceivedEventListener {
+fun interface OnMidiReceivedEventListener {
     fun onEventReceived(data: ByteArray, start: Int, length: Int, timestampInNanoseconds: Long)
 }
 

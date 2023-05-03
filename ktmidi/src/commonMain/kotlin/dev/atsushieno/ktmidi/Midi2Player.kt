@@ -66,7 +66,7 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
     }
 }
 
-interface OnMidi2EventListener {
+fun interface OnMidi2EventListener {
     fun onEvent(e: Ump)
 }
 
