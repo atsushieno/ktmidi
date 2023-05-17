@@ -108,8 +108,8 @@ class RtMidiAccess() : MidiAccess() {
             library.rtmidi_in_ignore_types(
                 rtmidi,
                 0,
-                0,
-                0,
+                1,
+                1,
             )
         }
     }
