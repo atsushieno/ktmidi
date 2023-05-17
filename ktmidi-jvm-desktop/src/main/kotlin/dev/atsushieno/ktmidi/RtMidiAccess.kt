@@ -105,6 +105,12 @@ class RtMidiAccess() : MidiAccess() {
             library.rtmidi_in_set_callback(rtmidi,
                 callback,
                 Pointer.NULL)
+            library.rtmidi_in_ignore_types(
+                rtmidi,
+                0,
+                0,
+                0,
+            )
         }
     }
 
