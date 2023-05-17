@@ -99,8 +99,8 @@ private class AndroidMidiInput(portDetails: AndroidPortDetails, private val impl
 
     class Receiver(private val parent: AndroidMidiInput) : MidiReceiver() {
 
-        override fun onSend(msg: ByteArray?, offset: Int, count: Int, timestamp: Long) {
-            parent.messageReceived.onEventReceived(msg!!, timestamp.toInt(), offset, count.toLong())
+        override fun onSend(msg: ByteArray, offset: Int, count: Int, timestamp: Long) {
+            parent.messageReceived.onEventReceived(msg, offset, count, timestamp)
         }
     }
 
