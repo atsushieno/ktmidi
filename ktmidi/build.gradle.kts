@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
-
 buildscript {
     repositories {
         maven("https://plugins.gradle.org/m2/")
@@ -43,13 +41,16 @@ kotlin {
         nodejs {
         }
     }
-    iosX64("ios") {
-        binaries {
-            framework {
-                baseName = "library"
-            }
+    val iosTargets = listOf(
+        iosX64(),
+        iosArm64(),
+        iosSimulatorArm64()
+    ).onEach {
+        it.binaries {
+            framework { baseName = "library" }
         }
     }
+
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
     val isMacOSX64 = hostOs == "Mac OS X"
@@ -121,8 +122,18 @@ kotlin {
         }
         val nativeMain by getting
         val nativeTest by getting
-        val iosMain by getting
-        val iosTest by getting
+        val iosMain by creating {
+            dependsOn(sourceSets["commonMain"])
+            sourceSets["iosX64Main"].dependsOn(this)
+            sourceSets["iosArm64Main"].dependsOn(this)
+            sourceSets["iosSimulatorArm64Main"].dependsOn(this)
+        }
+        val iosTest by creating {
+            dependsOn(sourceSets["commonTest"])
+            sourceSets["iosX64Test"].dependsOn(this)
+            sourceSets["iosArm64Test"].dependsOn(this)
+            sourceSets["iosSimulatorArm64Test"].dependsOn(this)
+        }
     }
 }
 
