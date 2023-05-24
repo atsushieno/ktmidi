@@ -3,6 +3,7 @@ package dev.atsushieno.ktmidi
 import android.app.Service
 import android.media.midi.*
 import android.content.Context
+import android.os.Build
 import kotlinx.coroutines.delay
 
 class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
@@ -10,7 +11,8 @@ class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
         get() = "AndroidSDK"
 
     internal val manager: MidiManager = applicationContext.getSystemService(Service.MIDI_SERVICE) as MidiManager
-    private val ports : List<AndroidPortDetails> = manager.devices.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
+    private val ports : List<AndroidPortDetails> = manager.devicesCompat
+        .flatMap { d -> d.ports.map { port -> Pair(d, port) } }
         .map { pair -> AndroidPortDetails(pair.first, pair.second) }
 
     internal val openDevices = mutableListOf<MidiDevice>()
@@ -127,6 +129,13 @@ private class AndroidMidiOutput(portDetails: AndroidPortDetails, private val imp
     : AndroidPort(portDetails, { impl.close() }), MidiOutput {
 
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
-        impl.send (mevent, offset, length, timestampInNanoseconds);
+        impl.send (mevent, offset, length, timestampInNanoseconds)
     }
 }
+
+private val MidiManager.devicesCompat: Set<MidiDeviceInfo>
+    get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getDevicesForTransport(MidiManager.TRANSPORT_MIDI_BYTE_STREAM)
+    } else {
+        devices.toSet()
+    }
