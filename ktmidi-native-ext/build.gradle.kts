@@ -44,7 +44,7 @@ kotlin {
             cinterops {
                 val rtmidi by creating {
                     packageName("dev.atsushieno.rtmidicinterop")
-                    includeDirs.allHeaders("../external/rtmidi/dist-shared/include")
+                    includeDirs.allHeaders("../external/rtmidi")
                 }
             }
         }

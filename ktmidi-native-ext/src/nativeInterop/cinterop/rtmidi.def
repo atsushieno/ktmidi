@@ -1,4 +1,4 @@
-headers = rtmidi/rtmidi_c.h
+headers = rtmidi_c.h
 # LAMESPEC: it should be possible to declare that librtmidi.a (or whatever per platform) can be embedded into .klib,
 #  but IF we did that, SHARED build runs into trouble:
 #  > librtmidi.a(rtmidi_c.cpp.o): requires dynamic R_X86_64_PC32 reloc against 'rtmidi_num_compiled_apis' which may overflow at runtime; recompile with -fPIC
