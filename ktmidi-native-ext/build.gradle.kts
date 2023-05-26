@@ -129,4 +129,29 @@ afterEvaluate {
 
     // keep it as is. It is replaced by CI release builds
     signing {}
+
+    val generateDummyKlib by tasks.registering(Zip::class) {
+        group = "KT-52344"
+        description = "workaround for KT-52344 - create an empty klib, since this project has no source code"
+        destinationDirectory.set(temporaryDir)
+        archiveFileName.set("kaylib-c.klib")
+        from(resources.text.fromString("intentionally empty file, as a workaround for https://youtrack.jetbrains.com/issue/KT-52344")) {
+            rename { "empty.txt" }
+        }
+    }
+
+    kotlin.targets.all {
+        val targetName = name
+
+        val generateDummyKlibTarget = tasks.register<Sync>("generateDummyKlib_$targetName") {
+            group = "KT-52344"
+            description = "workaround for KT-52344 - create an empty klib for $targetName, since this project has no source code"
+            from(generateDummyKlib)
+            into(layout.buildDirectory.dir("classes/kotlin/$targetName/main/klib"))
+        }
+
+        tasks.withType<GenerateModuleMetadata>().configureEach {
+            dependsOn(generateDummyKlibTarget)
+        }
+    }
 }
