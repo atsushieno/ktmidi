@@ -137,7 +137,7 @@ android {
     sourceSets["test"].assets.srcDir("src/commonTest/resources") // kind of hack...
     defaultConfig {
         compileSdk = 32
-        minSdk = 24
+        minSdk = 23
         targetSdk = 32
     }
     buildTypes {
