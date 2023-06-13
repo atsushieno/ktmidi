@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi
 
+import dev.atsushieno.ktmidi.ci.DeviceDetails
 import io.ktor.utils.io.core.*
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -13,12 +14,11 @@ class UmpFactoryTest {
     @Test
     fun testType0Messages() {
         /* type 0 */
-        assertEqualsFlipped(UmpFactory.noop(0), 0)
-        assertEqualsFlipped(UmpFactory.noop(1) ,  0x01000000)
-        assertEqualsFlipped(UmpFactory.jrClock(0, 0) ,  0x00100000)
-        assertEqualsFlipped(UmpFactory.jrClock(0, 1.0) ,  0x00107A12)
-        assertEqualsFlipped(UmpFactory.jrTimestamp(0, 0) ,  0x00200000)
-        assertEqualsFlipped(UmpFactory.jrTimestamp(1, 1.0) ,  0x01207A12)
+        assertEqualsFlipped(UmpFactory.noop(), 0)
+        assertEqualsFlipped(UmpFactory.jrClock(0) ,  0x00100000)
+        assertEqualsFlipped(UmpFactory.jrClock(1.0) ,  0x00107A12)
+        assertEqualsFlipped(UmpFactory.jrTimestamp(0) ,  0x00200000)
+        assertEqualsFlipped(UmpFactory.jrTimestamp(1.0) ,  0x00207A12)
     }
 
     @Test
@@ -315,6 +315,270 @@ class UmpFactoryTest {
         assertContentEquals(arrayOf(14, 0, 0x2E, 0x50, 18, 17, 16, 15, 22, 21, 20, 19, 26, 25, 24, 23), bytes27_2.toTypedArray(), "bytes26.2")
         assertContentEquals(arrayOf(27, 0, 0x32, 0x50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), bytes27_3.toTypedArray(), "bytes26.3")
     }
+
+    // Flex Data messages
+
+    @Test
+    fun testTempo() {
+        val tempo1 = UmpFactory.tempo(0, 0, 50_000_000)
+        assertEquals(0xD010_0000L, tempo1.int1.toUnsigned(), "tempo1.int1")
+        assertEquals(0x02FA_F080L, tempo1.int2.toUnsigned(), "tempo1.int2")
+        assertEquals(0, tempo1.int3, "tempo1.int3")
+        assertEquals(0, tempo1.int4, "tempo1.int4")
+
+        val tempo2 = UmpFactory.tempo(0xF, 0xE, 50_000_000)
+        assertEquals(0xDF1E_0000L, tempo2.int1.toUnsigned(), "tempo2.int1")
+        assertEquals(0x02FA_F080L, tempo2.int2.toUnsigned(), "tempo2.int2")
+        assertEquals(0, tempo2.int3, "tempo2.int3")
+        assertEquals(0, tempo2.int4, "tempo2.int4")
+    }
+
+    @Test
+    fun testTimeSignature() {
+        val ts1 = UmpFactory.timeSignature(0, 0, 3, 4, 0)
+        assertEquals(0xD010_0001L, ts1.int1.toUnsigned(), "ts1.int1")
+        assertEquals(0x0304_0000L, ts1.int2.toUnsigned(), "ts1.int2")
+        assertEquals(0, ts1.int3, "ts1.int3")
+        assertEquals(0, ts1.int4, "ts1.int4")
+
+        val ts2 = UmpFactory.timeSignature(0xF, 0xE, 5, 8, 32)
+        assertEquals(0xDF1E_0001L, ts2.int1.toUnsigned(), "ts2.int1")
+        assertEquals(0x0508_2000L, ts2.int2.toUnsigned(), "ts2.int2")
+        assertEquals(0, ts2.int3, "ts1.int3")
+        assertEquals(0, ts2.int4, "ts1.int4")
+    }
+
+    @Test
+    fun testMetronome() {
+        val metronome1 = UmpFactory.metronome(0, 0, 3, 4, 4, 1, 0, 0)
+        assertEquals(0xD010_0002L, metronome1.int1.toUnsigned(), "metronome1.int1")
+        assertEquals(0x0304_0401L, metronome1.int2.toUnsigned(), "metronome1.int2")
+        assertEquals(0, metronome1.int3, "metronome1.int3")
+        assertEquals(0, metronome1.int4, "metronome1.int4")
+
+        val metronome2 = UmpFactory.metronome(0xF, 0xE, 2, 3, 2, 0, 2, 3)
+        assertEquals(0xDF1E_0002L, metronome2.int1.toUnsigned(), "metronome2.int1")
+        assertEquals(0x0203_0200L, metronome2.int2.toUnsigned(), "metronome2.int2")
+        assertEquals(0x0203_0000L, metronome2.int3.toUnsigned(), "metronome2.int3")
+        assertEquals(0, metronome2.int4, "metronome2.int4")
+    }
+
+    @Test
+    fun testKeySignature() {
+        val ks1 = UmpFactory.keySignature(0, 0, 0, ChordSharpFlatsField.DOUBLE_SHARP, TonicNoteField.F) // F is 5(in ABCDEFG... not 3 in CDEFGAB !)
+        assertEquals(0xD000_0005L, ks1.int1.toUnsigned(), "ks1.int1")
+        assertEquals(0x2600_0000L, ks1.int2.toUnsigned(), "ks1.int2")
+        assertEquals(0, ks1.int3, "ks1.int3")
+        assertEquals(0, ks1.int4, "ks1.int4")
+
+        val ks2 = UmpFactory.keySignature(0xF, 1, 0xE, ChordSharpFlatsField.DOUBLE_FLAT, TonicNoteField.G) // G is 6, likewise
+        assertEquals(0xDF1E_0005L, ks2.int1.toUnsigned(), "ks2.int1")
+        assertEquals(0xE700_0000L, ks2.int2.toUnsigned(), "ks2.int2")
+        assertEquals(0, ks2.int3, "ks2.int3")
+        assertEquals(0, ks2.int4, "ks2.int4")
+    }
+
+    @Test
+    fun testChordName() {
+        val chordName1 = UmpFactory.chordName(0, 0, 0,
+            ChordSharpFlatsField.SHARP, TonicNoteField.F, ChordTypeField.MAJOR, ChordAlterationType.ADD_DEGREE + 1U, 1U, 2U, 3U,
+            ChordSharpFlatsField.SHARP, TonicNoteField.C, ChordTypeField.MAJOR, 1U, 2U)
+        assertEquals(0xD000_0006L, chordName1.int1.toUnsigned(), "chordName1.int1")
+        assertEquals(0x1601_1101L, chordName1.int2.toUnsigned(), "chordName1.int2")
+        assertEquals(0x0203_0000L, chordName1.int3.toUnsigned(), "chordName1.int3")
+        assertEquals(0x1301_0102L, chordName1.int4.toUnsigned(), "chordName1.int4")
+
+        val chordName2 = UmpFactory.chordName(0xF, 1, 0xE,
+            ChordSharpFlatsField.DOUBLE_FLAT, TonicNoteField.G, ChordTypeField.SEVENTH_SUSPENDED_4TH, ChordAlterationType.SUBTRACT_DEGREE + 1U, 0x21U, 0x32U, 3U,
+            ChordSharpFlatsField.FLAT, TonicNoteField.C, ChordTypeField.DIMINISHED_7TH, ChordAlterationType.RAISE_DEGREE + 0U, 2U)
+        assertEquals(0xDF1E_0006L, chordName2.int1.toUnsigned(), "chordName2.int1")
+        assertEquals(0xE71B_2121L, chordName2.int2.toUnsigned(), "chordName2.int2")
+        assertEquals(0x3203_0000L, chordName2.int3.toUnsigned(), "chordName2.int3")
+        assertEquals(0xF314_3002L, chordName2.int4.toUnsigned(), "chordName2.int4")
+    }
+
+    @Test
+    fun testMetadataText() {
+        val text1 = UmpFactory.metadataText(0, 0, 0, MetadataTextStatus.UNKNOWN, "TEST STRING")
+        assertEquals(1, text1.size)
+        assertEquals(0xD000_0100, text1[0].int1.toUnsigned(), "text1.int1")
+        assertEquals(0x5445_5354, text1[0].int2.toUnsigned(), "text1.int2")
+        assertEquals(0x2053_5452, text1[0].int3.toUnsigned(), "text1.int3")
+        assertEquals(0x494e_4700, text1[0].int4.toUnsigned(), "text1.int4")
+
+        // Text can end without \0.
+        val text2 = UmpFactory.metadataText(0, 0, 0, MetadataTextStatus.PROJECT_NAME, "TEST STRING1")
+        assertEquals(1, text2.size)
+        assertEquals(0xD000_0101, text2[0].int1.toUnsigned(), "text2.int1")
+        assertEquals(0x5445_5354, text2[0].int2.toUnsigned(), "text2.int2")
+        assertEquals(0x2053_5452, text2[0].int3.toUnsigned(), "text2.int3")
+        assertEquals(0x494e_4731, text2[0].int4.toUnsigned(), "text2.int4")
+
+        // multiple packets.
+        val text3 = UmpFactory.metadataText(0, 0, 5, MetadataTextStatus.UNKNOWN,
+            "Test String That Spans More.")
+        assertEquals(3, text3.size)
+        //"Test String That Spans More.".forEach { print(it.code.toString(16)) }
+        assertEquals(0xD045_0100, text3[0].int1.toUnsigned(), "text3[0].int1")
+        assertEquals(0x5465_7374, text3[0].int2.toUnsigned(), "text3[0].int2")
+        assertEquals(0x2053_7472, text3[0].int3.toUnsigned(), "text3[0].int3")
+        assertEquals(0x696e_6720, text3[0].int4.toUnsigned(), "text3[0].int4")
+        assertEquals(0xD085_0100, text3[1].int1.toUnsigned(), "text3[1].int1")
+        assertEquals(0x5468_6174, text3[1].int2.toUnsigned(), "text3[1].int2")
+        assertEquals(0x2053_7061, text3[1].int3.toUnsigned(), "text3[1].int3")
+        assertEquals(0x6e73_204d, text3[1].int4.toUnsigned(), "text3[1].int4")
+        assertEquals(0xD0C5_0100, text3[2].int1.toUnsigned(), "text3[2].int1")
+        assertEquals(0x6f72_652e, text3[2].int2.toUnsigned(), "text3[2].int2")
+        assertEquals(0, text3[2].int3.toUnsigned(), "text3[2].int3")
+        assertEquals(0, text3[2].int4.toUnsigned(), "text3[2].int4")
+    }
+
+    @Test
+    fun performanceText() {
+        // contains \0.
+        // LAMESPEC: does not this mean the rest of lyrics after the melisma ignored?
+        val text1 = UmpFactory.performanceText(0, 0, 5, PerformanceTextStatus.LYRICS,
+            "A melisma\u0000ah")
+        assertEquals(1, text1.size)
+        //"A melisma\u0000ah".forEach { print(it.code.toString(16)) }
+        assertEquals(0xD005_0201, text1[0].int1.toUnsigned(), "text1[0].int1")
+        assertEquals(0x4120_6d65, text1[0].int2.toUnsigned(), "text1[0].int2")
+        assertEquals(0x6c69_736d, text1[0].int3.toUnsigned(), "text1[0].int3")
+        assertEquals(0x6100_6168, text1[0].int4.toUnsigned(), "text1[0].int4")
+    }
+
+    // UMP Stream messages
+
+    @Test
+    fun testEndpointDiscovery() {
+        val ed1 = UmpFactory.endpointDiscovery(1, 1, 0x1F)
+        assertEquals(0xF000_0101L, ed1.int1.toUnsigned(), "ed1.int1")
+        assertEquals(0x1F, ed1.int2, "ed1.int2")
+        assertEquals(0, ed1.int3, "ed1.int3")
+        assertEquals(0, ed1.int4, "ed1.int4")
+    }
+
+    @Test
+    fun testEndpointInfoNotification() {
+        val en1 = UmpFactory.endpointInfoNotification(1, 1, true, 2,
+            midi2Capable = true,
+            midi1Capable = true,
+            supportsRxJR = false,
+            supportsTxJR = true
+        )
+        assertEquals(0xF001_0101L, en1.int1.toUnsigned(), "en1.int1")
+        assertEquals(0x8200_0301L, en1.int2.toUnsigned(), "en1.int2")
+        assertEquals(0, en1.int3, "en1.int3")
+        assertEquals(0, en1.int4, "en1.int4")
+    }
+
+    @Test
+    fun testDeviceIdentityNotification() {
+        val dn1 = UmpFactory.deviceIdentityNotification(DeviceDetails(0x123456, 0x789A, 0x7654, 0x32106543))
+        assertEquals(0xF002_0000L, dn1.int1.toUnsigned(), "dn1.int1")
+        assertEquals(0x0012_3456, dn1.int2, "dn1.int2")
+        assertEquals(0x789A_7654, dn1.int3, "dn1.int3")
+        assertEquals(0x3210_6543, dn1.int4, "dn1.int4")
+    }
+
+    @Test
+    fun testEndpointNameNotification() {
+        val en1 = UmpFactory.endpointNameNotification("EndpointName12") // 14 bytes
+        assertEquals(1, en1.size, "en1.size")
+        //"EndpointName12".forEach { print(it.code.toString(16)) }
+        assertEquals(0xF003_456eL, en1[0].int1.toUnsigned(), "en1[0].int1")
+        assertEquals(0x6470_6f69, en1[0].int2, "en1[0].int2")
+        assertEquals(0x6e74_4e61, en1[0].int3, "en1[0].int3")
+        assertEquals(0x6d65_3132, en1[0].int4, "en1[0].int4")
+
+        val en2 = UmpFactory.endpointNameNotification("EndpointName123") // 15 bytes
+        assertEquals(2, en2.size, "en2.size")
+        //"EndpointName123".forEach { print(it.code.toString(16)) }
+        assertEquals(0xF403_456eL, en2[0].int1.toUnsigned(), "en2[0].int1")
+        // ... skip the same ones
+        assertEquals(0xFC03_3300L, en2[1].int1.toUnsigned(), "en2[1].int1")
+        assertEquals(0, en2[1].int2, "en2[1].int2")
+        assertEquals(0, en2[1].int3, "en2[1].int3")
+        assertEquals(0, en2[1].int4, "en2[1].int4")
+    }
+
+    @Test
+    fun testProductInstanceIdNotification() {
+        val pn1 = UmpFactory.productInstanceNotification("ProductName 123") // 15 bytes
+        assertEquals(2, pn1.size, "pn1.size")
+        //"ProductName 123".forEach { print(it.code.toString(16)) }
+        assertEquals(0xF404_5072L, pn1[0].int1.toUnsigned(), "pn1[0].int1")
+        assertEquals(0xFC04_3300L, pn1[1].int1.toUnsigned(), "pn1[1].int1")
+        assertEquals(0, pn1[1].int2, "pn1[1].int2")
+        assertEquals(0, pn1[1].int3, "pn1[1].int3")
+        assertEquals(0, pn1[1].int4, "pn1[1].int4")
+    }
+
+    @Test
+    fun testStreamConfigRequest() {
+        val req1 = UmpFactory.streamConfigRequest(0x12, true, false)
+        assertEquals(0xF005_1202L, req1.int1.toUnsigned(), "req1.int1")
+        assertEquals(0, req1.int2, "req1.int2")
+        assertEquals(0, req1.int3, "req1.int3")
+        assertEquals(0, req1.int4, "req1.int4")
+
+    }
+
+    @Test
+    fun testStreamConfigNotification() {
+        val not1 = UmpFactory.streamConfigNotification(0x12, true, false)
+        assertEquals(0xF006_1202L, not1.int1.toUnsigned(), "not1.int1")
+        assertEquals(0, not1.int2, "not1.int2")
+        assertEquals(0, not1.int3, "not1.int3")
+        assertEquals(0, not1.int4, "not1.int4")
+
+    }
+
+    @Test
+    fun testFunctionBlockDiscovery() {
+        val d1 = UmpFactory.functionBlockDiscovery(5, 3)
+        assertEquals(0xF010_0503L, d1.int1.toUnsigned(), "d1.int1")
+        assertEquals(0, d1.int2, "d1.int2")
+        assertEquals(0, d1.int3, "d1.int3")
+        assertEquals(0, d1.int4, "d1.int4")
+
+    }
+
+    @Test
+    fun testFunctionBlockInfoNotification() {
+        val fb1 = UmpFactory.functionBlockInfoNotification(true, 5,
+            3, 2, 1,
+            0, 3, 1, 255U)
+        assertEquals(0xF011_8539L, fb1.int1.toUnsigned(), "fb1.int1")
+        assertEquals(0x000301FF, fb1.int2, "fb1.int2")
+        assertEquals(0, fb1.int3, "fb1.int3")
+        assertEquals(0, fb1.int4, "fb1.int4")
+
+    }
+
+    @Test
+    fun testFunctionBlockNameNotification() {
+        val fn1 = UmpFactory.functionBlockNameNotification(7, "FunctionName1") // 13 bytes
+        assertEquals(1, fn1.size, "en1.size")
+        //"FunctionName1".forEach { print(it.code.toString(16)) }
+        //616d653132
+        assertEquals(0xF012_0746L, fn1[0].int1.toUnsigned(), "fn1[0].int1")
+        assertEquals(0x756e_6374, fn1[0].int2, "fn1[0].int2")
+        assertEquals(0x696f_6e4e, fn1[0].int3, "fn1[0].int3")
+        assertEquals(0x616d_6531, fn1[0].int4, "fn1[0].int4")
+
+        val fn2 = UmpFactory.functionBlockNameNotification(7, "FunctionName12") // 14 bytes
+        assertEquals(2, fn2.size, "fn2.size")
+        //"FunctionName12".forEach { print(it.code.toString(16)) }
+        assertEquals(0xF412_0746L, fn2[0].int1.toUnsigned(), "fn2[0].int1")
+        // ... skip the same ones
+        assertEquals(0xFC12_0732L, fn2[1].int1.toUnsigned(), "fn2[1].int1")
+        assertEquals(0, fn2[1].int2, "fn2[1].int2")
+        assertEquals(0, fn2[1].int3, "fn2[1].int3")
+        assertEquals(0, fn2[1].int4, "fn2[1].int4")
+    }
+
+    // Conversion
 
     @Test
     fun fromPlatformBytes() {

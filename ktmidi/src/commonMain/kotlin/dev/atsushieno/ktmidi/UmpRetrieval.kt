@@ -86,12 +86,22 @@ val Ump.groupAndChannel: Int // 0..255
 val Ump.isJRClock
     get() = messageType == MidiMessageType.UTILITY && statusCode == MidiUtilityStatus.JR_CLOCK
 val Ump.jrClock
-    get() = if (isJRClock) (midi1Msb shl 8) + midi1Lsb else 0
+    get() = if (isJRClock) int1 and 0xFFFF else 0
 
 val Ump.isJRTimestamp
     get()= messageType == MidiMessageType.UTILITY && statusCode == MidiUtilityStatus.JR_TIMESTAMP
 val Ump.jrTimestamp
-    get() = if(isJRTimestamp) (midi1Msb shl 8) + midi1Lsb else 0
+    get() = if(isJRTimestamp) int1 and 0xFFFF else 0
+
+val Ump.isDCTPQ
+    get() = messageType == MidiMessageType.UTILITY && statusCode == MidiUtilityStatus.DCTPQ
+val Ump.dctpq
+    get() = if(isDCTPQ) int1 and 0xFFFF else 0
+
+val Ump.isDeltaClockstamp
+    get() = messageType == MidiMessageType.UTILITY && statusCode == MidiUtilityStatus.DELTA_CLOCKSTAMP
+val Ump.deltaClockstamp
+    get() = if(isDeltaClockstamp) int2 and 0xFFFFF else 0
 
 // 3rd. byte for MIDI 1.0 message
 val Ump.midi1Msb: Int

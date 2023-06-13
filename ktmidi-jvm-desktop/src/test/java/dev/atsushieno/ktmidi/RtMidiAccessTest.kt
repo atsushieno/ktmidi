@@ -8,9 +8,14 @@ class RtMidiAccessTest {
     @Test
     fun rtMidiAccessInfo() {
         // skip running this test on GH Actions Linux VMs (it's kind of hacky check but would be mostly harmless...)
-        val homeRunnwrWork = File("/home/runner/work")
-        if (System.getProperty("os.name").lowercase().contains("linux") && homeRunnwrWork.exists()) {
+        val homeRunnerWork = File("/home/runner/work")
+        if (System.getProperty("os.name").lowercase().contains("linux") && homeRunnerWork.exists()) {
             println("Test rtMidiAccessInfo() is skipped on GitHub Actions as ALSA is unavailable.")
+            return
+        }
+        // it does not work on M1 mac and arm64 Linux either
+        if (System.getProperty("os.arch") == "aarch64") {
+            println("Test rtMidiAccessInfo() is skipped as rtmidi-jna aarch64 builds are not available.")
             return
         }
 

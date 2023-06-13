@@ -2,8 +2,11 @@
 
 package dev.atsushieno.ktmidi
 
+import dev.atsushieno.ktmidi.ci.DeviceDetails
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.experimental.and
+import kotlin.math.min
 
 internal infix fun Byte.shl(n: Int): Int = this.toInt() shl n
 internal infix fun Byte.shr(n: Int): Int = this.toInt() shr n
@@ -14,6 +17,7 @@ const val JR_TIMESTAMP_TICKS_PER_SECOND = 31250
 const val MIDI_2_0_RESERVED: Byte = 0
 
 typealias UmpMdsHandler = (Long, Long, Int, Int, Any?) -> Unit
+typealias UmpStreamHandler = (Long, Long, Int, Int, Any?) -> Unit
 
 object UmpFactory {
 
@@ -26,37 +30,58 @@ object UmpFactory {
         return 0 /* wrong */
     }
 
-    // 4.8 Utility Messages
-    fun noop(group: Int): Int {
-        return group and 0xF shl 24
+    // 4.8 Utility Messages (note that they became groupless since 2023 June updates)
+    fun noop(): Int {
+        return 0
     }
 
-    fun jrClock(group: Int, senderClockTime16: Int): Int {
-        return noop(group) + (MidiUtilityStatus.JR_CLOCK shl 16) + senderClockTime16
-    }
+    @Deprecated("group has vanished in UMP June 2023 updates", replaceWith = ReplaceWith("noop()"))
+    fun noop(group: Int) = noop()
 
-    fun jrClock(group: Int, senderClockTimeSeconds: Double): Int {
+    fun jrClock(senderClockTime16: Int): Int {
+        return (MidiUtilityStatus.JR_CLOCK shl 16) + senderClockTime16
+    }
+    @Deprecated("group has vanished in UMP June 2023 updates", replaceWith = ReplaceWith("jrClock(senderClockTime16)"))
+    fun jrClock(group: Int, senderClockTime16: Int) = jrClock(senderClockTime16)
+
+    fun jrClock(senderClockTimeSeconds: Double): Int {
         val value = (senderClockTimeSeconds * JR_TIMESTAMP_TICKS_PER_SECOND).toInt()
-        return noop(group) + (MidiUtilityStatus.JR_CLOCK shl 16) + value
+        return (MidiUtilityStatus.JR_CLOCK shl 16) + value
     }
+    @Deprecated("group has vanished in UMP June 2023 updates", replaceWith = ReplaceWith("jrClock(senderClockTimeSeconds)"))
+    fun jrClock(group: Int, senderClockTimeSeconds: Double) = jrClock(senderClockTimeSeconds)
 
-    fun jrTimestamp(group: Int, senderClockTimestamp16: Int): Int {
+    fun jrTimestamp(senderClockTimestamp16: Int): Int {
         if (senderClockTimestamp16 > 0xFFFF)
             throw IllegalArgumentException("Argument timestamp value must be less than 65536. If you need multiple JR timestamps, use umpJRTimestamps() instead.")
-        return noop(group) + (MidiUtilityStatus.JR_TIMESTAMP shl 16) + senderClockTimestamp16
+        return (MidiUtilityStatus.JR_TIMESTAMP shl 16) + senderClockTimestamp16
     }
+    @Deprecated("group has vanished in UMP June 2023 updates", replaceWith = ReplaceWith("jrTimestamp(senderClockTimestamp16)"))
+    fun jrTimestamp(group: Int, senderClockTimestamp16: Int) = jrTimestamp(senderClockTimestamp16)
 
-    fun jrTimestamp(group: Int, senderClockTimestampSeconds: Double) =
-        jrTimestamp(group, ((senderClockTimestampSeconds * JR_TIMESTAMP_TICKS_PER_SECOND).toInt()))
+    fun jrTimestamp(senderClockTimestampSeconds: Double) =
+        jrTimestamp(((senderClockTimestampSeconds * JR_TIMESTAMP_TICKS_PER_SECOND).toInt()))
+    @Deprecated("group has vanished in UMP June 2023 updates", replaceWith = ReplaceWith("jrTimestamp(senderClockTimestampSeconds)"))
+    fun jrTimestamp(group: Int, senderClockTimestampSeconds: Double) = jrTimestamp(senderClockTimestampSeconds)
 
-    fun jrTimestamps(group: Int, senderClockTimestampTicks: Long): Sequence<Int> = sequence {
+    fun jrTimestamps(senderClockTimestampTicks: Long): Sequence<Int> = sequence {
         for (i in 0 until senderClockTimestampTicks / 0x10000)
-            yield(jrTimestamp(group, 0xFFFF))
-        yield(jrTimestamp(group, (senderClockTimestampTicks % 0x10000).toInt()))
+            yield(jrTimestamp(0xFFFF))
+        yield(jrTimestamp((senderClockTimestampTicks % 0x10000).toInt()))
     }
+    @Deprecated("group has vanished in UMP June 2023 updates", replaceWith = ReplaceWith("jrTimestamps(senderClockTimestampTicks)"))
+    fun jrTimestamps(group: Int, senderClockTimestampTicks: Long): Sequence<Int> = jrTimestamps(senderClockTimestampTicks)
 
-    fun jrTimestamps(group: Int, senderClockTimestampSeconds: Double) =
-        jrTimestamps(group, (senderClockTimestampSeconds * JR_TIMESTAMP_TICKS_PER_SECOND).toLong())
+    fun jrTimestamps(senderClockTimestampSeconds: Double) =
+        jrTimestamps((senderClockTimestampSeconds * JR_TIMESTAMP_TICKS_PER_SECOND).toLong())
+    @Deprecated("group has vanished in UMP June 2023 updates", replaceWith = ReplaceWith("jrTimestamps(senderClockTimestampSeconds)"))
+    fun jrTimestamps(group: Int, senderClockTimestampSeconds: Double) = jrTimestamps(senderClockTimestampSeconds)
+
+    // June 2023 updates
+    fun dctpq(numberOfTicksPerQuarterNote: UShort) = (MidiUtilityStatus.DCTPQ shl 16) + numberOfTicksPerQuarterNote.toInt()
+
+    // June 2023 updates
+    fun deltaClockstamp(ticks20: Int) = (MidiUtilityStatus.DELTA_CLOCKSTAMP shl 16) + (ticks20 and 0xFFFFF) // ticks20(bits) - 0..1048575
 
     // 4.3 System Common and System Real Time Messages
     fun systemMessage(group: Int, status: Byte, midi1Byte2: Byte, midi1Byte3: Byte): Int {
@@ -363,7 +388,7 @@ object UmpFactory {
         return (src shr (7 - index) * 8 and 0xFFu).toByte()
     }
 
-    private fun sysexGetPacketCount(numBytes: Int, radix: Int): Int {
+    private fun getPacketCountCommon(numBytes: Int, radix: Int): Int {
         return if (numBytes <= radix) 1 else (numBytes / radix + if (numBytes % radix != 0) 1 else 0)
     }
 
@@ -396,7 +421,7 @@ object UmpFactory {
             status = Midi2BinaryChunkStatus.SYSEX_START
             size = radix
         } else {
-            val isEnd = index == sysexGetPacketCount(numBytes8, radix) - 1
+            val isEnd = index == getPacketCountCommon(numBytes8, radix) - 1
             if (isEnd) {
                 size = if (numBytes8 % radix != 0) numBytes8 % radix else radix
                 status = Midi2BinaryChunkStatus.SYSEX_END
@@ -445,9 +470,7 @@ object UmpFactory {
         return i - if (srcData[0] == 0xF0.toByte()) 1 else 0
     }
 
-    fun sysex7GetPacketCount(numSysex7Bytes: Int): Int {
-        return sysexGetPacketCount(numSysex7Bytes, 6)
-    }
+    fun sysex7GetPacketCount(numSysex7Bytes: Int): Int = getPacketCountCommon(numSysex7Bytes, 6)
 
     fun sysex7GetPacketOf(group: Int, numBytes: Int, srcData: List<Byte>, index: Int): Long {
         val srcOffset = if (numBytes > 0 && srcData[0] == 0xF0.toByte()) 1 else 0
@@ -463,21 +486,6 @@ object UmpFactory {
             0
         )
         return result.first
-    }
-
-    @Deprecated("Use another sysex7Process overload that has sendUMP64 as the last parameter")
-    fun sysex7Process(
-        group: Int,
-        sysex: List<Byte>,
-        sendUMP64: (Long, Any?) -> Unit,
-        context: Any?
-    ) {
-        val length: Int = sysex7GetSysexLength(sysex)
-        val numPackets: Int = sysex7GetPacketCount(length)
-        for (p in 0 until numPackets) {
-            val ump = sysex7GetPacketOf(group, length, sysex, p)
-            sendUMP64(ump, context)
-        }
     }
 
     fun sysex7Process(
@@ -505,7 +513,7 @@ object UmpFactory {
 
     // 4.5 System Exclusive 8-Bit Messages
     fun sysex8GetPacketCount(numBytes: Int): Int {
-        return sysexGetPacketCount(numBytes, 13)
+        return getPacketCountCommon(numBytes, 13)
     }
 
     fun sysex8GetPacketOf(
@@ -573,8 +581,8 @@ object UmpFactory {
         return numTotalBytesInMDS / radix + if (numTotalBytesInMDS % radix != 0) 1 else 0
     }
 
-    fun mdsGetPayloadCount(numTotalBytesinChunk: Int): Int {
-        return numTotalBytesinChunk / 14 + if (numTotalBytesinChunk % 14 != 0) 1 else 0
+    fun mdsGetPayloadCount(numTotalBytesInChunk: Int): Int {
+        return numTotalBytesInChunk / 14 + if (numTotalBytesInChunk % 14 != 0) 1 else 0
     }
 
     private fun fillShort(dst8: ByteArray, offset: Int, v16: Int) {
@@ -621,15 +629,11 @@ object UmpFactory {
         return Pair(readInt64Bytes(dst8.asList(), 0), readInt64Bytes(dst8.asList(), 8))
     }
 
-    fun mdsProcess(group: Int, mdsId: Byte, data: List<Byte>, context: Any? = null, sendUmp: UmpMdsHandler) =
-        mdsProcess(group.toByte(), mdsId, data, data.size, sendUmp, context)
-
-    @Deprecated("Use another overload that takes sndUmp as the last parameter")
-    fun mdsProcess(group: Byte, mdsId: Byte, data: List<Byte>, length: Int, sendUmp: UmpMdsHandler, context: Any?) {
-        val numChunks = mdsGetChunkCount(length)
+    fun mdsProcess(group: Byte, mdsId: Byte, data: List<Byte>, context: Any? = null, sendUmp: UmpMdsHandler) {
+        val numChunks = mdsGetChunkCount(data.size)
         for (c in 0 until numChunks) {
             val maxChunkSize = 14 * 65535
-            val chunkSize = if (c + 1 == numChunks) length % maxChunkSize else maxChunkSize
+            val chunkSize = if (c + 1 == numChunks) data.size % maxChunkSize else maxChunkSize
             val numPayloads = mdsGetPayloadCount(chunkSize)
             for (p in 0 until numPayloads) {
                 val offset = 14 * (65536 * c + p)
@@ -640,7 +644,7 @@ object UmpFactory {
     }
 
     fun mds(
-        group: Int,
+        group: Byte,
         data: List<Byte>,
         mdsId: Byte = 0
     ): List<Ump> {
@@ -648,6 +652,244 @@ object UmpFactory {
         mdsProcess(group, mdsId, data) { l1, l2, _, _, _ -> ret.add(Ump(l1, l2)) }
         return ret
     }
+    @Deprecated("Use group as Byte", ReplaceWith("mds(group.toByte(), data, mdsId)"))
+    fun mds(group: Int, data: List<Byte>, mdsId: Byte = 0) = mds(group.toByte(), data, mdsId)
+
+    // Some common functions for UMP Stream and Flex Data
+
+    private fun textBytesToUmp(text: List<Byte>): Int = // the text can be empty (we call drop() unchecked)
+        (if (text.isEmpty()) 0 else text[0] shl 24) +
+                (if (text.size < 2) 0 else (text[1] shl 16)) +
+                (if (text.size < 3) 0 else (text[2] shl 8)) +
+                if (text.size < 4) 0 else text[3]
+
+    // UMP Stream (0xFn) - new in June 2023 updates
+
+    // text split by 14 bytes
+    private fun umpStreamTextPacket(format: Byte, status: Byte, text: ByteArray, index: Int, dataPrefix: Byte?): Ump {
+        val common = ((MidiMessageType.UMP_STREAM shl 28) + (format shl 26) + (status shl 16)).toUnsigned()
+        val first = if (text.size <= index) 0 else text[index]
+        return if (dataPrefix != null)
+            Ump(
+                (common + (dataPrefix shl 8) + (first)).toInt(),
+                textBytesToUmp(text.drop(index + 1)),
+                textBytesToUmp(text.drop(index + 5)),
+                textBytesToUmp(text.drop(index + 9))
+            )
+        else
+            Ump(
+                (common + (first shl 8) + if (text.size < index + 2) 0 else text[index + 1]).toInt(),
+                textBytesToUmp(text.drop(index + 2)),
+                textBytesToUmp(text.drop(index + 6)),
+                textBytesToUmp(text.drop(index + 10))
+            )
+    }
+
+    private fun umpStreamTextProcessCommon(status: Byte, text: ByteArray,
+                                           context: Any? = null,
+                                           capacity: Int = 14,
+                                           dataPrefix: Byte? = null,
+                                           sendUMP128: (Ump, Any?) -> Unit = { _, _ -> }
+    ) {
+        if (text.size <= capacity)
+            sendUMP128(umpStreamTextPacket(0, status, text, 0, dataPrefix), context)
+        else {
+            sendUMP128(umpStreamTextPacket(1, status, text, 0, dataPrefix), context)
+            val numPackets = text.size / capacity + if (text.size % capacity > 0) 1 else 0
+            (1 until text.size / capacity - if (text.size % capacity != 0) 0 else 1).forEach {
+                sendUMP128(umpStreamTextPacket(2, status, text, it * capacity, dataPrefix), context)
+            }
+            sendUMP128(umpStreamTextPacket(3, status, text, (numPackets - 1) * capacity, dataPrefix), context)
+        }
+    }
+
+    private fun umpStreamTextCommon(status: Byte, text: ByteArray) : List<Ump> {
+        val ret = mutableListOf<Ump>()
+        umpStreamTextProcessCommon(status, text) { ump, _ -> ret.add(ump) }
+        return ret
+    }
+
+    fun endpointDiscovery(umpVersionMajor: Byte, umpVersionMinor: Byte, filterBitmap: Byte) =
+        Ump(((umpVersionMajor * 0x100 + umpVersionMinor) + 0xF000_0000L).toInt(),
+            filterBitmap.toInt() and 0x1F,
+            0, 0)
+
+    fun endpointInfoNotification(umpVersionMajor: Byte, umpVersionMinor: Byte,
+                                 isStaticFunctionBlock: Boolean, functionBlockCount: Byte,
+                                 midi2Capable: Boolean, midi1Capable: Boolean,
+                                 supportsRxJR: Boolean, supportsTxJR: Boolean): Ump =
+        Ump((0xF001_0000L + umpVersionMajor * 0x100 + umpVersionMinor).toInt(),
+            (functionBlockCount * 0x1_00_0000 +
+                    (if (isStaticFunctionBlock) 0x80000000 else 0) +
+                    (if (midi2Capable) 0x200 else 0) +
+                    (if (midi1Capable) 0x100 else 0) +
+                    (if (supportsRxJR) 2 else 0) +
+                    if (supportsTxJR) 1 else 0
+                    ).toInt(),
+            0, 0)
+
+    fun deviceIdentityNotification(device: DeviceDetails) =
+        Ump(0xF002_0000L.toInt(),
+            device.manufacturer,
+            ((device.family.toUnsigned() shl 16) + device.familyModelNumber.toUnsigned()),
+            device.softwareRevisionLevel)
+
+    fun endpointNameNotification(name: String) = endpointNameNotification(name.toByteArray())
+    fun endpointNameNotification(name: ByteArray) = umpStreamTextCommon(3, name)
+
+    fun productInstanceNotification(id: String) = productInstanceNotification(id.toByteArray())
+    fun productInstanceNotification(id: ByteArray) = umpStreamTextCommon(4, id)
+
+    fun streamConfigRequest(protocol: Byte, rxJRTimestamp: Boolean, txJRTimestamp: Boolean) =
+        Ump((0xF005_0000L + (protocol.toUnsigned() shl 8) + (if (rxJRTimestamp) 2 else 0) + if (txJRTimestamp) 1 else 0).toInt(),
+            0, 0, 0)
+
+    fun streamConfigNotification(protocol: Byte, rxJRTimestamp: Boolean, txJRTimestamp: Boolean) =
+        Ump((0xF006_0000L + (protocol.toUnsigned() shl 8) + (if (rxJRTimestamp) 2 else 0) + if (txJRTimestamp) 1 else 0).toInt(),
+            0, 0, 0)
+
+    fun functionBlockDiscovery(fbNumber: Byte, filter: Byte) =
+        Ump((0xF010_0000L + (fbNumber.toUnsigned() shl 8) + filter.toUnsigned()).toInt(),
+            0, 0, 0)
+
+    fun functionBlockInfoNotification(isFbActive: Boolean, fbNumber: Byte, uiHint: Byte, midi1: Byte, direction: Byte,
+                                      firstGroup: Byte, numberOfGroupsSpanned: Byte,
+                                      midiCIMessageVersionFormat: Byte, maxSysEx8Streams: UByte) =
+        Ump((0xF011_0000L +
+                (if (isFbActive) 0x8000 else 0) + (fbNumber.toUnsigned() shl 8) +
+                ((uiHint and 3) shl 4) + ((midi1 and 3) shl 2) + (direction and 3).toUnsigned()).toInt(),
+            (firstGroup.toUnsigned() shl 24) + (numberOfGroupsSpanned.toUnsigned() shl 16) +
+                    (midiCIMessageVersionFormat.toUnsigned() shl 8) + maxSysEx8Streams.toInt(),
+            0, 0)
+
+    fun functionBlockNameNotification(blockNumber: Byte, name: String): List<Ump> {
+        val ret = mutableListOf<Ump>()
+        umpStreamTextProcessCommon(0x12, name.toByteArray(), capacity = 13, dataPrefix = blockNumber) { ump, _ -> ret.add(ump) }
+        return ret
+    }
+
+    fun startOfClip() = Ump(0xF020_0000L.toInt(), 0, 0, 0)
+    fun endOfClip() = Ump(0xF021_0000L.toInt(), 0, 0, 0)
+
+    // same as MDS...
+    /*
+    fun umpStreamGetChunkCount(numTotalBytesInStream: Int): Int {
+        val radix = 14 * 0x10000
+        return numTotalBytesInStream / radix + if (numTotalBytesInStream % radix != 0) 1 else 0
+    }
+
+    // same as MDS...
+    fun umpStreamGetPayloadCount(numTotalBytesInChunk: Int): Int {
+        return numTotalBytesInChunk / 14 + if (numTotalBytesInChunk % 14 != 0) 1 else 0
+    }
+
+    // same as MDS...
+    fun umpStreamProcess(status: Byte, data: List<Byte>, context: Any? = null, sendUmp: UmpStreamHandler) {
+        val numChunks = umpStreamGetChunkCount(data.size)
+        for (c in 0 until numChunks) {
+            val maxChunkSize = 14 * 65535
+            val chunkSize = if (c + 1 == numChunks) data.size % maxChunkSize else maxChunkSize
+            val numPayloads = mdsGetPayloadCount(chunkSize)
+            for (p in 0 until numPayloads) {
+                val offset = 14 * (65536 * c + p)
+                val result = umpStreamGetPayloadOf(status, chunkSize, data, offset)
+                sendUmp(result.first, result.second, c, p, context)
+            }
+        }
+    }
+
+    fun umpStream(status: Byte, data: List<Byte>) {
+        val ret = mutableListOf<Ump>()
+        umpStreamProcess(status, data)
+    }
+    */
+
+    // Flex Data (new in June 2023 updates)
+
+    private fun flexDataPacket(group: Byte,
+                       format: Byte,
+                       address: Byte, channel: Byte, statusBank: Byte, status: Byte, text: ByteArray, index: Int) = Ump(
+        (MidiMessageType.FlexData shl 28) + (group shl 24) + (format shl 22) + (address shl 20) +
+                (channel shl 16) + (statusBank shl 8) + status,
+        textBytesToUmp(text.drop(index)),
+        textBytesToUmp(text.drop(index + 4)),
+        textBytesToUmp(text.drop(index + 8))
+    )
+
+    fun flexDataProcess(
+        group: Byte, address: Byte, channel: Byte, statusBank: Byte, status: Byte, text: ByteArray,
+        context: Any? = null,
+        sendUMP128: (Ump, Any?) -> Unit = { _, _ -> }
+    ) {
+        if (text.size < 13)
+            sendUMP128(flexDataPacket(group, 0, address, channel, statusBank, status, text, 0), context)
+        else {
+            sendUMP128(flexDataPacket(group, 1, address, channel, statusBank, status, text, 0), context)
+            val numPackets = text.size / 12 + if (text.size % 12 > 0) 1 else 0
+            (1 until text.size / 12 - if (text.size % 12 != 0) 0 else 1).forEach {
+                sendUMP128(flexDataPacket(group, 2, address, channel, statusBank, status, text, it * 12), context)
+            }
+            sendUMP128(flexDataPacket(group, 3, address, channel, statusBank, status, text, (numPackets - 1) * 12), context)
+        }
+    }
+
+    fun flexDataText(group: Byte, address: Byte, channel: Byte, statusBank: Byte, status: Byte, text: String) =
+        flexDataText(group, address, channel, statusBank, status, text.toByteArray())
+
+    fun flexDataText(group: Byte, address: Byte, channel: Byte, statusBank: Byte, status: Byte, text: ByteArray) : List<Ump> {
+        val ret = mutableListOf<Ump>()
+        flexDataProcess(group, address, channel, statusBank, status, text) { ump, _ -> ret.add(ump) }
+        return ret
+    }
+
+    private fun binaryFlexData(group: Byte, address: Byte, channel: Byte, statusByte: Byte, int2: Int, int3: Int = 0, int4: Int = 0): Ump {
+        val int1 = (MidiMessageType.FlexData shl 28) + (group shl 24) + (address shl 20) + (channel shl 16) + statusByte
+        return Ump(int1, int2, int3, int4)
+    }
+
+    fun tempo(group: Byte, channel: Byte, numberOf10NanosecondsPerQuarterNote: Int) =
+        binaryFlexData(group, 1, channel, 0, numberOf10NanosecondsPerQuarterNote)
+
+    fun timeSignature(group: Byte, channel: Byte, numerator: Byte, denominator: Byte, numberOf32Notes: Byte) =
+        binaryFlexData(group, 1, channel, 1, (numerator shl 24) + (denominator shl 16) + (numberOf32Notes shl 8))
+
+    fun metronome(group: Byte, channel: Byte, numClocksPerPrimeryClick: Byte, barAccent1: Byte, barAccent2: Byte, barAccent3: Byte, numSubdivisionClick1: Byte, numSubdivisionClick2: Byte) =
+        binaryFlexData(group, 1, channel, 2,
+            (numClocksPerPrimeryClick shl 24) + (barAccent1 shl 16) + (barAccent2 shl 8) + barAccent3,
+            (numSubdivisionClick1 shl 24) + (numSubdivisionClick2 shl 16))
+
+    private fun sharpOrFlatsToInt(v: Byte) = if (v < 0) v + 0x10 else v.toInt()
+
+    fun keySignature(group: Byte, address: Byte, channel: Byte, sharpsOrFlats: Byte, tonicNote: Byte) =
+        binaryFlexData(group, address, channel, 5,
+            (sharpOrFlatsToInt(sharpsOrFlats) shl 28) + (tonicNote shl 24))
+
+    // Those "alteration" arguments are set to UInt as it will involve additions
+    fun chordName(group: Byte, address: Byte, channel: Byte,
+                  tonicSharpsFlats: Byte, chordTonic: Byte, chordType: Byte,
+                  alter1: UInt, alter2: UInt, alter3: UInt, alter4: UInt,
+                  bassSharpsFlats: Byte, bassNote: Byte, bassChordType: Byte,
+                  bassAlter1: UInt,
+                  bassAlter2: UInt
+                  ) =
+        binaryFlexData(group, address, channel, 6,
+            (sharpOrFlatsToInt(tonicSharpsFlats) shl 28) + (chordTonic shl 24) + (chordType shl 16) + (alter1 shl 8).toInt() + alter2.toInt(),
+            ((alter3 shl 24) + (alter4 shl 16)).toInt(),
+            (sharpOrFlatsToInt(bassSharpsFlats) shl 28) + (bassNote shl 24) + (bassChordType shl 16) + (bassAlter1 shl 8).toInt() + bassAlter2.toInt())
+
+    fun metadataText(group: Byte, address: Byte, channel: Byte, status: Byte, text: String) =
+        flexDataText(group, address, channel, 1, status, text)
+
+    fun metadataText(group: Byte, address: Byte, channel: Byte, status: Byte, text: ByteArray) =
+        flexDataText(group, address, channel, 1, status, text)
+
+    fun performanceText(group: Byte, address: Byte, channel: Byte, status: Byte, text: String) =
+        flexDataText(group, address, channel, 2, status, text)
+
+    fun performanceText(group: Byte, address: Byte, channel: Byte, status: Byte, text: ByteArray) =
+        flexDataText(group, address, channel, 2, status, text)
+
+    // Bytes conversions
 
     fun fromPlatformBytes(byteOrder: ByteOrder, bytes: List<Byte>) : Iterable<Ump> =
         sequence {

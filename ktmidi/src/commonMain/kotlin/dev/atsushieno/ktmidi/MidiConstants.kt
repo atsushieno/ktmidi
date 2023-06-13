@@ -7,12 +7,16 @@ object MidiMessageType { // MIDI 2.0
     const val SYSEX7 = 3
     const val MIDI2 = 4
     const val SYSEX8_MDS = 5
+    const val FlexData = 0xD // June 2023 updates
+    const val UMP_STREAM = 0xF // June 2023 updates
 }
 
 object MidiUtilityStatus {
-    const val NOP = 0
-    const val JR_CLOCK = 0x10
-    const val JR_TIMESTAMP = 0x20
+    const val NOP = 0x0000
+    const val JR_CLOCK = 0x0010
+    const val JR_TIMESTAMP = 0x0020
+    const val DCTPQ = 0x0030
+    const val DELTA_CLOCKSTAMP = 0x0040
 }
 
 object MidiSystemStatus {
@@ -53,6 +57,116 @@ object Midi2BinaryChunkStatus {
     const val SYSEX_END = 0x30
     const val MDS_HEADER = 0x80
     const val MDS_PAYLOAD = 0x90
+}
+
+object FlexDataAddress {
+    const val CHANNEL_FIELD: Byte = 0
+    const val GROUP: Byte = 1
+    // 2, 3 -> reserved
+}
+
+object FlexDataStatusBank {
+    const val SETUP_AND_PERFORMANCE: Byte = 0
+    const val METADATA_TEXT: Byte = 1
+    const val PERFORMANCE_TEXT: Byte = 2
+    // 3-FF -> reserved
+}
+
+object FlexDataStatus {
+    const val TEMPO: Byte = 0
+    const val TIME_SIGNATURE: Byte = 1
+    const val METRONOME: Byte = 2
+    const val KEY_SIGNATURE: Byte = 5
+    const val CHORD_NAME: Byte = 6
+}
+
+object MetadataTextStatus {
+    const val UNKNOWN: Byte = 0
+    const val PROJECT_NAME: Byte = 1
+    const val COMPOSITION_NAME: Byte = 2
+    const val MIDI_CLIP_NAME: Byte = 3
+    const val COPYRIGHT: Byte = 4
+    const val AUTHOR: Byte = 5
+    const val LYRICIST: Byte = 6
+    const val ARRANGER: Byte = 7
+    const val PUBLISHER: Byte = 8
+    const val PRIMARY_PERFORMER: Byte = 9
+    const val ACCOMPANYING_PERFORMER: Byte = 0xA
+    const val RECORDING_CONCERT_DATE: Byte = 0xB
+    const val RECORDING_CONCERT_LOCATION: Byte = 0xC
+}
+
+object PerformanceTextStatus {
+    const val UNKNOWN: Byte = 0
+    const val LYRICS: Byte = 1
+    const val LYRICS_LANGUAGE: Byte = 2
+    const val RUBY: Byte = 3
+    const val RUBY_LANGUAGE: Byte = 4
+}
+
+// Used by "Key Signature" Flex Data messages
+object TonicNoteField {
+    const val UNKNOWN: Byte = 0
+    const val NON_STANDARD: Byte = 0
+    const val A: Byte = 1
+    const val B: Byte = 2
+    const val C: Byte = 3
+    const val D: Byte = 4
+    const val E: Byte = 5
+    const val F: Byte = 6
+    const val G: Byte = 7
+    // 8-FF -> reserved
+}
+
+object ChordSharpFlatsField {
+    const val DOUBLE_SHARP: Byte = 2
+    const val SHARP: Byte = 1
+    const val NATURAL: Byte = 0
+    const val FLAT: Byte = -1
+    const val DOUBLE_FLAT: Byte = -2
+    const val BASS_NOTE_AS_CHORD_TONIC_NOTE: Byte = -8
+}
+
+object ChordTypeField {
+    const val CLEAR_CHORD: Byte = 0
+    const val NO_CHORD: Byte = 0
+    const val MAJOR: Byte = 1
+    const val MAJOR_6TH: Byte = 2
+    const val MAJOR_7TH: Byte = 3
+    const val MAJOR_9TH: Byte = 4
+    const val MAJOR_11TH: Byte = 5
+    const val MAJOR_13TH: Byte = 6
+    const val MINOR: Byte = 7
+    const val MINOR_6TH: Byte = 8
+    const val MINOR_7TH: Byte = 9
+    const val MINOR_9TH: Byte = 0xA
+    const val MINOR_11TH: Byte = 0xB
+    const val MINOR_13TH: Byte = 0xC
+    const val DOMINANT: Byte = 0xD
+    const val DOMINANT_9TH: Byte = 0xE
+    const val DOMINANT_11TH: Byte = 0xF
+    const val DOMINANT_13TH: Byte = 0x10
+    const val AUGMENTED: Byte = 0x11
+    const val AUGMENTED_7TH: Byte = 0x12
+    const val DIMINISHED: Byte = 0x13
+    const val DIMINISHED_7TH: Byte = 0x14
+    const val HALF_DIMINISHED: Byte = 0x15
+    const val MAJOR_MINOR: Byte = 0x16
+    const val MINOR_MAJOR: Byte = 0x16
+    const val PEDAL: Byte = 0x17
+    const val POWER: Byte = 0x18
+    const val SUSPENDED_2ND: Byte = 0x19
+    const val SUSPENDED_4TH: Byte = 0x1A
+    const val SEVENTH_SUSPENDED_4TH: Byte = 0x1B
+}
+
+// I choose Int because there will be degree to be added, then the results will become Int anyway!
+object ChordAlterationType {
+    const val NO_ALTERATION: UByte = 0x00U
+    const val ADD_DEGREE: UByte = 0x10U
+    const val SUBTRACT_DEGREE: UByte = 0x20U
+    const val RAISE_DEGREE: UByte = 0x30U
+    const val LOWER_DEGREE: UByte = 0x40U
 }
 
 object MidiCIProtocolBytes { // MIDI 2.0

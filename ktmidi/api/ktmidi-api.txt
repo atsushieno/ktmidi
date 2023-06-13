@@ -12,6 +12,59 @@ package dev.atsushieno.ktmidi {
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
   }
 
+  public final class ChordAlterationType {
+    field public static final byte ADD_DEGREE = 16; // 0x10
+    field @NonNull public static final dev.atsushieno.ktmidi.ChordAlterationType INSTANCE;
+    field public static final byte LOWER_DEGREE = 64; // 0x40
+    field public static final byte NO_ALTERATION = 0; // 0x0
+    field public static final byte RAISE_DEGREE = 48; // 0x30
+    field public static final byte SUBTRACT_DEGREE = 32; // 0x20
+  }
+
+  public final class ChordSharpFlatsField {
+    field public static final byte BASS_NOTE_AS_CHORD_TONIC_NOTE = -8; // 0xfffffff8
+    field public static final byte DOUBLE_FLAT = -2; // 0xfffffffe
+    field public static final byte DOUBLE_SHARP = 2; // 0x2
+    field public static final byte FLAT = -1; // 0xffffffff
+    field @NonNull public static final dev.atsushieno.ktmidi.ChordSharpFlatsField INSTANCE;
+    field public static final byte NATURAL = 0; // 0x0
+    field public static final byte SHARP = 1; // 0x1
+  }
+
+  public final class ChordTypeField {
+    field public static final byte AUGMENTED = 17; // 0x11
+    field public static final byte AUGMENTED_7TH = 18; // 0x12
+    field public static final byte CLEAR_CHORD = 0; // 0x0
+    field public static final byte DIMINISHED = 19; // 0x13
+    field public static final byte DIMINISHED_7TH = 20; // 0x14
+    field public static final byte DOMINANT = 13; // 0xd
+    field public static final byte DOMINANT_11TH = 15; // 0xf
+    field public static final byte DOMINANT_13TH = 16; // 0x10
+    field public static final byte DOMINANT_9TH = 14; // 0xe
+    field public static final byte HALF_DIMINISHED = 21; // 0x15
+    field @NonNull public static final dev.atsushieno.ktmidi.ChordTypeField INSTANCE;
+    field public static final byte MAJOR = 1; // 0x1
+    field public static final byte MAJOR_11TH = 5; // 0x5
+    field public static final byte MAJOR_13TH = 6; // 0x6
+    field public static final byte MAJOR_6TH = 2; // 0x2
+    field public static final byte MAJOR_7TH = 3; // 0x3
+    field public static final byte MAJOR_9TH = 4; // 0x4
+    field public static final byte MAJOR_MINOR = 22; // 0x16
+    field public static final byte MINOR = 7; // 0x7
+    field public static final byte MINOR_11TH = 11; // 0xb
+    field public static final byte MINOR_13TH = 12; // 0xc
+    field public static final byte MINOR_6TH = 8; // 0x8
+    field public static final byte MINOR_7TH = 9; // 0x9
+    field public static final byte MINOR_9TH = 10; // 0xa
+    field public static final byte MINOR_MAJOR = 22; // 0x16
+    field public static final byte NO_CHORD = 0; // 0x0
+    field public static final byte PEDAL = 23; // 0x17
+    field public static final byte POWER = 24; // 0x18
+    field public static final byte SEVENTH_SUSPENDED_4TH = 27; // 0x1b
+    field public static final byte SUSPENDED_2ND = 25; // 0x19
+    field public static final byte SUSPENDED_4TH = 26; // 0x1a
+  }
+
   public final class DefaultMidiModuleDatabase extends dev.atsushieno.ktmidi.MidiModuleDatabase {
     ctor public DefaultMidiModuleDatabase();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiModuleDefinition> all();
@@ -41,6 +94,28 @@ package dev.atsushieno.ktmidi {
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
     property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
+  }
+
+  public final class FlexDataAddress {
+    field public static final byte CHANNEL_FIELD = 0; // 0x0
+    field public static final byte GROUP = 1; // 0x1
+    field @NonNull public static final dev.atsushieno.ktmidi.FlexDataAddress INSTANCE;
+  }
+
+  public final class FlexDataStatus {
+    field public static final byte CHORD_NAME = 6; // 0x6
+    field @NonNull public static final dev.atsushieno.ktmidi.FlexDataStatus INSTANCE;
+    field public static final byte KEY_SIGNATURE = 5; // 0x5
+    field public static final byte METRONOME = 2; // 0x2
+    field public static final byte TEMPO = 0; // 0x0
+    field public static final byte TIME_SIGNATURE = 1; // 0x1
+  }
+
+  public final class FlexDataStatusBank {
+    field @NonNull public static final dev.atsushieno.ktmidi.FlexDataStatusBank INSTANCE;
+    field public static final byte METADATA_TEXT = 1; // 0x1
+    field public static final byte PERFORMANCE_TEXT = 2; // 0x2
+    field public static final byte SETUP_AND_PERFORMANCE = 0; // 0x0
   }
 
   public final class GeneralMidi {
@@ -299,6 +374,23 @@ package dev.atsushieno.ktmidi {
     property @NonNull public final java.util.List<dev.atsushieno.ktmidi.MidiModuleDatabase> list;
   }
 
+  public final class MetadataTextStatus {
+    field public static final byte ACCOMPANYING_PERFORMER = 10; // 0xa
+    field public static final byte ARRANGER = 7; // 0x7
+    field public static final byte AUTHOR = 5; // 0x5
+    field public static final byte COMPOSITION_NAME = 2; // 0x2
+    field public static final byte COPYRIGHT = 4; // 0x4
+    field @NonNull public static final dev.atsushieno.ktmidi.MetadataTextStatus INSTANCE;
+    field public static final byte LYRICIST = 6; // 0x6
+    field public static final byte MIDI_CLIP_NAME = 3; // 0x3
+    field public static final byte PRIMARY_PERFORMER = 9; // 0x9
+    field public static final byte PROJECT_NAME = 1; // 0x1
+    field public static final byte PUBLISHER = 8; // 0x8
+    field public static final byte RECORDING_CONCERT_DATE = 11; // 0xb
+    field public static final byte RECORDING_CONCERT_LOCATION = 12; // 0xc
+    field public static final byte UNKNOWN = 0; // 0x0
+  }
+
   public final class Midi1Player extends dev.atsushieno.ktmidi.MidiPlayer {
     ctor public Midi1Player(@NonNull dev.atsushieno.ktmidi.MidiMusic music, @NonNull dev.atsushieno.ktmidi.MidiOutput output, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional boolean shouldDisposeOutput);
     method public void addOnMessageListener(@NonNull dev.atsushieno.ktmidi.OnMidiMessageListener listener);
@@ -398,7 +490,7 @@ package dev.atsushieno.ktmidi {
     property @NonNull public final Iterable<dev.atsushieno.ktmidi.Midi2MachineChannel> usedChannels;
   }
 
-  public static interface Midi2Machine.Listener {
+  public static fun interface Midi2Machine.Listener {
     method public void onEvent(@NonNull dev.atsushieno.ktmidi.Ump e);
   }
 
@@ -816,12 +908,14 @@ package dev.atsushieno.ktmidi {
   }
 
   public final class MidiMessageType {
+    field public static final int FlexData = 13; // 0xd
     field @NonNull public static final dev.atsushieno.ktmidi.MidiMessageType INSTANCE;
     field public static final int MIDI1 = 2; // 0x2
     field public static final int MIDI2 = 4; // 0x4
     field public static final int SYSEX7 = 3; // 0x3
     field public static final int SYSEX8_MDS = 5; // 0x5
     field public static final int SYSTEM = 1; // 0x1
+    field public static final int UMP_STREAM = 15; // 0xf
     field public static final int UTILITY = 0; // 0x0
   }
 
@@ -1109,26 +1203,37 @@ package dev.atsushieno.ktmidi {
   }
 
   public final class MidiUtilityStatus {
+    field public static final int DCTPQ = 48; // 0x30
+    field public static final int DELTA_CLOCKSTAMP = 64; // 0x40
     field @NonNull public static final dev.atsushieno.ktmidi.MidiUtilityStatus INSTANCE;
     field public static final int JR_CLOCK = 16; // 0x10
     field public static final int JR_TIMESTAMP = 32; // 0x20
     field public static final int NOP = 0; // 0x0
   }
 
-  public interface OnMidi2EventListener {
+  public fun interface OnMidi2EventListener {
     method public void onEvent(@NonNull dev.atsushieno.ktmidi.Ump e);
   }
 
-  public interface OnMidiEventListener {
+  public fun interface OnMidiEventListener {
     method public void onEvent(@NonNull dev.atsushieno.ktmidi.MidiEvent e);
   }
 
-  public interface OnMidiMessageListener {
+  public fun interface OnMidiMessageListener {
     method public void onMessage(@NonNull dev.atsushieno.ktmidi.MidiMessage m);
   }
 
-  public interface OnMidiReceivedEventListener {
+  public fun interface OnMidiReceivedEventListener {
     method public void onEventReceived(@NonNull byte[] data, int start, int length, long timestampInNanoseconds);
+  }
+
+  public final class PerformanceTextStatus {
+    field @NonNull public static final dev.atsushieno.ktmidi.PerformanceTextStatus INSTANCE;
+    field public static final byte LYRICS = 1; // 0x1
+    field public static final byte LYRICS_LANGUAGE = 2; // 0x2
+    field public static final byte RUBY = 3; // 0x3
+    field public static final byte RUBY_LANGUAGE = 4; // 0x4
+    field public static final byte UNKNOWN = 0; // 0x0
   }
 
   public enum PlayerState {
@@ -1238,6 +1343,19 @@ package dev.atsushieno.ktmidi {
     method @Nullable public suspend Object getMidiPlayer(optional @Nullable dev.atsushieno.ktmidi.MidiPlayerTimer timeManager, optional @Nullable dev.atsushieno.ktmidi.MidiAccess midiAccess, optional @Nullable String resourceId, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player> p);
   }
 
+  public final class TonicNoteField {
+    field public static final byte A = 1; // 0x1
+    field public static final byte B = 2; // 0x2
+    field public static final byte C = 3; // 0x3
+    field public static final byte D = 4; // 0x4
+    field public static final byte E = 5; // 0x5
+    field public static final byte F = 6; // 0x6
+    field public static final byte G = 7; // 0x7
+    field @NonNull public static final dev.atsushieno.ktmidi.TonicNoteField INSTANCE;
+    field public static final byte NON_STANDARD = 0; // 0x0
+    field public static final byte UNKNOWN = 0; // 0x0
+  }
+
   public final class Ump {
     ctor public Ump(int int1, optional int int2, optional int int3, optional int int4);
     ctor public Ump(long long1, optional long long2);
@@ -1268,21 +1386,46 @@ package dev.atsushieno.ktmidi {
   }
 
   public final class UmpFactory {
+    method @NonNull public dev.atsushieno.ktmidi.Ump chordName(byte group, byte address, byte channel, byte tonicSharpsFlats, byte chordTonic, byte chordType, int alter1, int alter2, int alter3, int alter4, byte bassSharpsFlats, byte bassNote, byte bassChordType, int bassAlter1, int bassAlter2);
+    method public int dctpq(short numberOfTicksPerQuarterNote);
+    method public int deltaClockstamp(int ticks20);
+    method @NonNull public dev.atsushieno.ktmidi.Ump deviceIdentityNotification(@NonNull dev.atsushieno.ktmidi.ci.DeviceDetails device);
+    method @NonNull public dev.atsushieno.ktmidi.Ump endOfClip();
+    method @NonNull public dev.atsushieno.ktmidi.Ump endpointDiscovery(byte umpVersionMajor, byte umpVersionMinor, byte filterBitmap);
+    method @NonNull public dev.atsushieno.ktmidi.Ump endpointInfoNotification(byte umpVersionMajor, byte umpVersionMinor, boolean isStaticFunctionBlock, byte functionBlockCount, boolean midi2Capable, boolean midi1Capable, boolean supportsRxJR, boolean supportsTxJR);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> endpointNameNotification(@NonNull String name);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> endpointNameNotification(@NonNull byte[] name);
+    method public void flexDataProcess(byte group, byte address, byte channel, byte statusBank, byte status, @NonNull byte[] text, optional @Nullable Object context, optional @NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.Ump,java.lang.Object,kotlin.Unit> sendUMP128);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> flexDataText(byte group, byte address, byte channel, byte statusBank, byte status, @NonNull String text);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> flexDataText(byte group, byte address, byte channel, byte statusBank, byte status, @NonNull byte[] text);
     method @NonNull public Iterable<dev.atsushieno.ktmidi.Ump> fromPlatformBytes(@NonNull io.ktor.utils.io.core.ByteOrder byteOrder, @NonNull java.util.List<java.lang.Byte> bytes);
     method @NonNull public Iterable<dev.atsushieno.ktmidi.Ump> fromPlatformNativeBytes(@NonNull java.util.List<java.lang.Byte> bytes);
-    method public int jrClock(int group, int senderClockTime16);
-    method public int jrClock(int group, double senderClockTimeSeconds);
-    method public int jrTimestamp(int group, int senderClockTimestamp16);
-    method public int jrTimestamp(int group, double senderClockTimestampSeconds);
-    method @NonNull public kotlin.sequences.Sequence<java.lang.Integer> jrTimestamps(int group, long senderClockTimestampTicks);
-    method @NonNull public kotlin.sequences.Sequence<java.lang.Integer> jrTimestamps(int group, double senderClockTimestampSeconds);
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> mds(int group, @NonNull java.util.List<java.lang.Byte> data, optional byte mdsId);
+    method @NonNull public dev.atsushieno.ktmidi.Ump functionBlockDiscovery(byte fbNumber, byte filter);
+    method @NonNull public dev.atsushieno.ktmidi.Ump functionBlockInfoNotification(boolean isFbActive, byte fbNumber, byte uiHint, byte midi1, byte direction, byte firstGroup, byte numberOfGroupsSpanned, byte midiCIMessageVersionFormat, byte maxSysEx8Streams);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> functionBlockNameNotification(byte blockNumber, @NonNull String name);
+    method public int jrClock(int senderClockTime16);
+    method @Deprecated public int jrClock(int group, int senderClockTime16);
+    method public int jrClock(double senderClockTimeSeconds);
+    method @Deprecated public int jrClock(int group, double senderClockTimeSeconds);
+    method public int jrTimestamp(int senderClockTimestamp16);
+    method @Deprecated public int jrTimestamp(int group, int senderClockTimestamp16);
+    method public int jrTimestamp(double senderClockTimestampSeconds);
+    method @Deprecated public int jrTimestamp(int group, double senderClockTimestampSeconds);
+    method @NonNull public kotlin.sequences.Sequence<java.lang.Integer> jrTimestamps(long senderClockTimestampTicks);
+    method @Deprecated @NonNull public kotlin.sequences.Sequence<java.lang.Integer> jrTimestamps(int group, long senderClockTimestampTicks);
+    method @NonNull public kotlin.sequences.Sequence<java.lang.Integer> jrTimestamps(double senderClockTimestampSeconds);
+    method @Deprecated @NonNull public kotlin.sequences.Sequence<java.lang.Integer> jrTimestamps(int group, double senderClockTimestampSeconds);
+    method @NonNull public dev.atsushieno.ktmidi.Ump keySignature(byte group, byte address, byte channel, byte sharpsOrFlats, byte tonicNote);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> mds(byte group, @NonNull java.util.List<java.lang.Byte> data, optional byte mdsId);
+    method @Deprecated @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> mds(int group, @NonNull java.util.List<java.lang.Byte> data, optional byte mdsId);
     method public int mdsGetChunkCount(int numTotalBytesInMDS);
     method @NonNull public kotlin.Pair<java.lang.Long,java.lang.Long> mdsGetHeader(byte group, byte mdsId, int numBytesInChunk16, int numChunks16, int chunkIndex16, int manufacturerId16, int deviceId16, int subId16, int subId2_16);
-    method public int mdsGetPayloadCount(int numTotalBytesinChunk);
+    method public int mdsGetPayloadCount(int numTotalBytesInChunk);
     method @NonNull public kotlin.Pair<java.lang.Long,java.lang.Long> mdsGetPayloadOf(byte group, byte mdsId, int numBytes16, @NonNull java.util.List<java.lang.Byte> srcData, int offset);
-    method public void mdsProcess(int group, byte mdsId, @NonNull java.util.List<java.lang.Byte> data, optional @Nullable Object context, @NonNull kotlin.jvm.functions.Function5<? super java.lang.Long,? super java.lang.Long,? super java.lang.Integer,? super java.lang.Integer,java.lang.Object,kotlin.Unit> sendUmp);
-    method @Deprecated public void mdsProcess(byte group, byte mdsId, @NonNull java.util.List<java.lang.Byte> data, int length, @NonNull kotlin.jvm.functions.Function5<? super java.lang.Long,? super java.lang.Long,? super java.lang.Integer,? super java.lang.Integer,java.lang.Object,kotlin.Unit> sendUmp, @Nullable Object context);
+    method public void mdsProcess(byte group, byte mdsId, @NonNull java.util.List<java.lang.Byte> data, optional @Nullable Object context, @NonNull kotlin.jvm.functions.Function5<? super java.lang.Long,? super java.lang.Long,? super java.lang.Integer,? super java.lang.Integer,java.lang.Object,kotlin.Unit> sendUmp);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> metadataText(byte group, byte address, byte channel, byte status, @NonNull String text);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> metadataText(byte group, byte address, byte channel, byte status, @NonNull byte[] text);
+    method @NonNull public dev.atsushieno.ktmidi.Ump metronome(byte group, byte channel, byte numClocksPerPrimeryClick, byte barAccent1, byte barAccent2, byte barAccent3, byte numSubdivisionClick1, byte numSubdivisionClick2);
     method public int midi1CAf(int group, int channel, byte data);
     method public int midi1CC(int group, int channel, byte index, byte data);
     method public int midi1Message(int group, byte code, int channel, byte byte3, byte byte4);
@@ -1312,15 +1455,22 @@ package dev.atsushieno.ktmidi {
     method public long midi2RPN(int group, int channel, int bankAkaMSB8, int indexAkaLSB8, long dataAkaDTE32);
     method public long midi2RelativeNRPN(int group, int channel, int bankAkaMSB8, int indexAkaLSB8, long dataAkaDTE32);
     method public long midi2RelativeRPN(int group, int channel, int bankAkaMSB8, int indexAkaLSB8, long dataAkaDTE32);
-    method public int noop(int group);
+    method public int noop();
+    method @Deprecated public int noop(int group);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> performanceText(byte group, byte address, byte channel, byte status, @NonNull String text);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> performanceText(byte group, byte address, byte channel, byte status, @NonNull byte[] text);
     method public int pitch7_9(double pitch);
     method public int pitch7_9Split(byte semitone, double microtone0To1);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> productInstanceNotification(@NonNull String id);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> productInstanceNotification(@NonNull byte[] id);
+    method @NonNull public dev.atsushieno.ktmidi.Ump startOfClip();
+    method @NonNull public dev.atsushieno.ktmidi.Ump streamConfigNotification(byte protocol, boolean rxJRTimestamp, boolean txJRTimestamp);
+    method @NonNull public dev.atsushieno.ktmidi.Ump streamConfigRequest(byte protocol, boolean rxJRTimestamp, boolean txJRTimestamp);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> sysex7(int group, @NonNull java.util.List<java.lang.Byte> sysex);
     method public long sysex7Direct(int group, byte status, int numBytes, byte data1, byte data2, byte data3, byte data4, byte data5, byte data6);
     method public int sysex7GetPacketCount(int numSysex7Bytes);
     method public long sysex7GetPacketOf(int group, int numBytes, @NonNull java.util.List<java.lang.Byte> srcData, int index);
     method public int sysex7GetSysexLength(@NonNull java.util.List<java.lang.Byte> srcData);
-    method @Deprecated public void sysex7Process(int group, @NonNull java.util.List<java.lang.Byte> sysex, @NonNull kotlin.jvm.functions.Function2<? super java.lang.Long,java.lang.Object,kotlin.Unit> sendUMP64, @Nullable Object context);
     method public void sysex7Process(int group, @NonNull java.util.List<java.lang.Byte> sysex, optional @Nullable Object context, optional @NonNull kotlin.jvm.functions.Function2<? super java.lang.Long,java.lang.Object,kotlin.Unit> sendUMP64);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> sysex8(int group, @NonNull java.util.List<java.lang.Byte> sysex, optional byte streamId);
     method public int sysex8GetPacketCount(int numBytes);
@@ -1328,6 +1478,8 @@ package dev.atsushieno.ktmidi {
     method @Deprecated public void sysex8Process(int group, @NonNull java.util.List<java.lang.Byte> sysex, byte streamId, @NonNull kotlin.jvm.functions.Function3<? super java.lang.Long,? super java.lang.Long,java.lang.Object,kotlin.Unit> sendUMP128, @Nullable Object context);
     method public void sysex8Process(int group, @NonNull java.util.List<java.lang.Byte> sysex, optional byte streamId, optional @Nullable Object context, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Long,? super java.lang.Long,java.lang.Object,kotlin.Unit> sendUMP128);
     method public int systemMessage(int group, byte status, byte midi1Byte2, byte midi1Byte3);
+    method @NonNull public dev.atsushieno.ktmidi.Ump tempo(byte group, byte channel, int numberOf10NanosecondsPerQuarterNote);
+    method @NonNull public dev.atsushieno.ktmidi.Ump timeSignature(byte group, byte channel, byte numerator, byte denominator, byte numberOf32Notes);
     method public int umpGetNumBytes(int data);
     field @NonNull public static final dev.atsushieno.ktmidi.UmpFactory INSTANCE;
   }
@@ -1340,8 +1492,15 @@ package dev.atsushieno.ktmidi {
   public final class UmpFactoryTest {
     ctor public UmpFactoryTest();
     method public void fromPlatformBytes();
+    method public void performanceText();
     method public void sysex7Process();
     method public void sysex8Process();
+    method public void testChordName();
+    method public void testKeySignature();
+    method public void testMetadataText();
+    method public void testMetronome();
+    method public void testTempo();
+    method public void testTimeSignature();
     method public void testType0Messages();
     method public void testType1Messages();
     method public void testType2Messages();
@@ -1355,6 +1514,8 @@ package dev.atsushieno.ktmidi {
 
   public final class UmpRetrievalKt {
     method public static int getChannelInGroup(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getDctpq(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getDeltaClockstamp(@NonNull dev.atsushieno.ktmidi.Ump);
     method @Deprecated public static int getEventType(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getGroup(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getGroupAndChannel(@NonNull dev.atsushieno.ktmidi.Ump);
@@ -1411,6 +1572,8 @@ package dev.atsushieno.ktmidi {
     method public static int getSysex7Size(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getSysex8Size(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getSysex8StreamId(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static boolean isDCTPQ(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static boolean isDeltaClockstamp(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isJRClock(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isJRTimestamp(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static void toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull byte[] bytes, int offset, @NonNull io.ktor.utils.io.core.ByteOrder byteOrder);
