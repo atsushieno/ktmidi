@@ -3,10 +3,8 @@
 package dev.atsushieno.ktmidi
 
 import dev.atsushieno.ktmidi.ci.DeviceDetails
-import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.experimental.and
-import kotlin.math.min
 
 internal infix fun Byte.shl(n: Int): Int = this.toInt() shl n
 internal infix fun Byte.shr(n: Int): Int = this.toInt() shr n
@@ -17,7 +15,6 @@ const val JR_TIMESTAMP_TICKS_PER_SECOND = 31250
 const val MIDI_2_0_RESERVED: Byte = 0
 
 typealias UmpMdsHandler = (Long, Long, Int, Int, Any?) -> Unit
-typealias UmpStreamHandler = (Long, Long, Int, Int, Any?) -> Unit
 
 object UmpFactory {
 
@@ -415,19 +412,19 @@ object UmpFactory {
         val status: Int
         val size: Int
         if (numBytes8 <= radix) {
-            status = Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP
+            status = Midi2BinaryChunkStatus.COMPLETE_PACKET
             size = numBytes8 // single packet message
         } else if (index == 0) {
-            status = Midi2BinaryChunkStatus.SYSEX_START
+            status = Midi2BinaryChunkStatus.START
             size = radix
         } else {
             val isEnd = index == getPacketCountCommon(numBytes8, radix) - 1
             if (isEnd) {
                 size = if (numBytes8 % radix != 0) numBytes8 % radix else radix
-                status = Midi2BinaryChunkStatus.SYSEX_END
+                status = Midi2BinaryChunkStatus.END
             } else {
                 size = radix
-                status = Midi2BinaryChunkStatus.SYSEX_CONTINUE
+                status = Midi2BinaryChunkStatus.CONTINUE
             }
         }
         dst8[1] = (status + size + if (hasStreamId) 1 else 0).toByte()
@@ -754,12 +751,12 @@ object UmpFactory {
 
     fun functionBlockInfoNotification(isFbActive: Boolean, fbNumber: Byte, uiHint: Byte, midi1: Byte, direction: Byte,
                                       firstGroup: Byte, numberOfGroupsSpanned: Byte,
-                                      midiCIMessageVersionFormat: Byte, maxSysEx8Streams: UByte) =
+                                      midiCIMessageVersionFormat: Byte, maxSysEx8Streams: Int) =
         Ump((0xF011_0000L +
                 (if (isFbActive) 0x8000 else 0) + (fbNumber.toUnsigned() shl 8) +
                 ((uiHint and 3) shl 4) + ((midi1 and 3) shl 2) + (direction and 3).toUnsigned()).toInt(),
             (firstGroup.toUnsigned() shl 24) + (numberOfGroupsSpanned.toUnsigned() shl 16) +
-                    (midiCIMessageVersionFormat.toUnsigned() shl 8) + maxSysEx8Streams.toInt(),
+                    (midiCIMessageVersionFormat.toUnsigned() shl 8) + (maxSysEx8Streams and 0xFF),
             0, 0)
 
     fun functionBlockNameNotification(blockNumber: Byte, name: String): List<Ump> {
@@ -771,45 +768,12 @@ object UmpFactory {
     fun startOfClip() = Ump(0xF020_0000L.toInt(), 0, 0, 0)
     fun endOfClip() = Ump(0xF021_0000L.toInt(), 0, 0, 0)
 
-    // same as MDS...
-    /*
-    fun umpStreamGetChunkCount(numTotalBytesInStream: Int): Int {
-        val radix = 14 * 0x10000
-        return numTotalBytesInStream / radix + if (numTotalBytesInStream % radix != 0) 1 else 0
-    }
-
-    // same as MDS...
-    fun umpStreamGetPayloadCount(numTotalBytesInChunk: Int): Int {
-        return numTotalBytesInChunk / 14 + if (numTotalBytesInChunk % 14 != 0) 1 else 0
-    }
-
-    // same as MDS...
-    fun umpStreamProcess(status: Byte, data: List<Byte>, context: Any? = null, sendUmp: UmpStreamHandler) {
-        val numChunks = umpStreamGetChunkCount(data.size)
-        for (c in 0 until numChunks) {
-            val maxChunkSize = 14 * 65535
-            val chunkSize = if (c + 1 == numChunks) data.size % maxChunkSize else maxChunkSize
-            val numPayloads = mdsGetPayloadCount(chunkSize)
-            for (p in 0 until numPayloads) {
-                val offset = 14 * (65536 * c + p)
-                val result = umpStreamGetPayloadOf(status, chunkSize, data, offset)
-                sendUmp(result.first, result.second, c, p, context)
-            }
-        }
-    }
-
-    fun umpStream(status: Byte, data: List<Byte>) {
-        val ret = mutableListOf<Ump>()
-        umpStreamProcess(status, data)
-    }
-    */
-
     // Flex Data (new in June 2023 updates)
 
     private fun flexDataPacket(group: Byte,
                        format: Byte,
                        address: Byte, channel: Byte, statusBank: Byte, status: Byte, text: ByteArray, index: Int) = Ump(
-        (MidiMessageType.FlexData shl 28) + (group shl 24) + (format shl 22) + (address shl 20) +
+        (MidiMessageType.FLEX_DATA shl 28) + (group shl 24) + (format shl 22) + (address shl 20) +
                 (channel shl 16) + (statusBank shl 8) + status,
         textBytesToUmp(text.drop(index)),
         textBytesToUmp(text.drop(index + 4)),
@@ -843,7 +807,7 @@ object UmpFactory {
     }
 
     private fun binaryFlexData(group: Byte, address: Byte, channel: Byte, statusByte: Byte, int2: Int, int3: Int = 0, int4: Int = 0): Ump {
-        val int1 = (MidiMessageType.FlexData shl 28) + (group shl 24) + (address shl 20) + (channel shl 16) + statusByte
+        val int1 = (MidiMessageType.FLEX_DATA shl 28) + (group shl 24) + (address shl 20) + (channel shl 16) + statusByte
         return Ump(int1, int2, int3, int4)
     }
 

@@ -7,7 +7,7 @@ object MidiMessageType { // MIDI 2.0
     const val SYSEX7 = 3
     const val MIDI2 = 4
     const val SYSEX8_MDS = 5
-    const val FlexData = 0xD // June 2023 updates
+    const val FLEX_DATA = 0xD // June 2023 updates
     const val UMP_STREAM = 0xF // June 2023 updates
 }
 
@@ -51,12 +51,31 @@ object MidiChannelStatus {
 }
 
 object Midi2BinaryChunkStatus {
+    const val COMPLETE_PACKET = 0
+    const val START = 0x10
+    const val CONTINUE = 0x20
+    const val END = 0x30
+
+    @Deprecated("Use COMPLETE", ReplaceWith("COMPLETE"))
     const val SYSEX_IN_ONE_UMP = 0
+    @Deprecated("Use START", ReplaceWith("START"))
     const val SYSEX_START = 0x10
+    @Deprecated("Use CONTINUE", ReplaceWith("CONTINUE"))
     const val SYSEX_CONTINUE = 0x20
+    @Deprecated("Use END", ReplaceWith("END"))
     const val SYSEX_END = 0x30
+
     const val MDS_HEADER = 0x80
     const val MDS_PAYLOAD = 0x90
+}
+
+// Note the constant value differences from Midi2BinaryChunkStatus.
+// It is used by Flex Data and UMP Stream, which are both new in June 2023 updates.
+object Midi2BinaryChunkFormat {
+    const val COMPLETE_PACKET = 0
+    const val START = 1
+    const val CONTINUE = 2
+    const val END = 3
 }
 
 object FlexDataAddress {
@@ -160,13 +179,47 @@ object ChordTypeField {
     const val SEVENTH_SUSPENDED_4TH: Byte = 0x1B
 }
 
-// I choose Int because there will be degree to be added, then the results will become Int anyway!
 object ChordAlterationType {
     const val NO_ALTERATION: UByte = 0x00U
     const val ADD_DEGREE: UByte = 0x10U
     const val SUBTRACT_DEGREE: UByte = 0x20U
     const val RAISE_DEGREE: UByte = 0x30U
     const val LOWER_DEGREE: UByte = 0x40U
+}
+
+object UmpStreamStatus {
+    const val ENDPOINT_DISCOVERY: Byte = 0
+    const val ENDPOINT_INFO_NOTIFICATION: Byte = 1
+    const val DEVICE_IDENTITY_NOTIFICATION: Byte = 2
+    const val ENDPOINT_NAME_NOTIFICATION: Byte = 3
+    const val PRODUCT_INSTANCE_ID_NOTIFICATION: Byte = 4
+    const val STREAM_CONFIGURATION: Byte = 5
+    const val STREAM_CONFIGURATION_NOTIFICATION: Byte = 6
+    const val FUNCTION_BLOCK_DISCOVERY: Byte = 0x10
+    const val FUNCTION_BLOCK_INFO_NOTIFICATION: Byte = 0x11
+    const val FUNCTION_BLOCK_NAME_NOTIFICATION: Byte = 0x12
+    const val START_OF_CLIP: Byte = 0x20
+    const val END_OF_CLIP: Byte = 0x21
+}
+
+// indicates what the function block is *primarily* for.
+object FunctionBlockUiHint {
+    const val UNKNOWN = 0
+    const val RECEIVER = 1
+    const val SENDER = 2
+    const val BOTH = 3
+}
+
+object FunctionBlockDirection {
+    const val INPUT = 1
+    const val OUTPUT = 2
+    const val BIDIRECTIONAL = 3
+}
+
+object FunctionBlockMidi1Bandwidth {
+    const val NOT_AVAILABLE = 0
+    const val NO_LIMITATION = 1
+    const val UP_TO_31250BPS = 2
 }
 
 object MidiCIProtocolBytes { // MIDI 2.0

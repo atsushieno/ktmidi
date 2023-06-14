@@ -516,8 +516,8 @@ class UmpFactoryTest {
 
     @Test
     fun testStreamConfigRequest() {
-        val req1 = UmpFactory.streamConfigRequest(0x12, true, false)
-        assertEquals(0xF005_1202L, req1.int1.toUnsigned(), "req1.int1")
+        val req1 = UmpFactory.streamConfigRequest(3, rxJRTimestamp = true, txJRTimestamp = false)
+        assertEquals(0xF005_0302L, req1.int1.toUnsigned(), "req1.int1")
         assertEquals(0, req1.int2, "req1.int2")
         assertEquals(0, req1.int3, "req1.int3")
         assertEquals(0, req1.int4, "req1.int4")
@@ -526,8 +526,8 @@ class UmpFactoryTest {
 
     @Test
     fun testStreamConfigNotification() {
-        val not1 = UmpFactory.streamConfigNotification(0x12, true, false)
-        assertEquals(0xF006_1202L, not1.int1.toUnsigned(), "not1.int1")
+        val not1 = UmpFactory.streamConfigNotification(1, rxJRTimestamp = true, txJRTimestamp = false)
+        assertEquals(0xF006_0102L, not1.int1.toUnsigned(), "not1.int1")
         assertEquals(0, not1.int2, "not1.int2")
         assertEquals(0, not1.int3, "not1.int3")
         assertEquals(0, not1.int4, "not1.int4")
@@ -548,7 +548,7 @@ class UmpFactoryTest {
     fun testFunctionBlockInfoNotification() {
         val fb1 = UmpFactory.functionBlockInfoNotification(true, 5,
             3, 2, 1,
-            0, 3, 1, 255U)
+            0, 3, 1, 255)
         assertEquals(0xF011_8539L, fb1.int1.toUnsigned(), "fb1.int1")
         assertEquals(0x000301FF, fb1.int2, "fb1.int2")
         assertEquals(0, fb1.int3, "fb1.int3")
