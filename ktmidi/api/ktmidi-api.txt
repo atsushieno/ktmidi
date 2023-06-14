@@ -65,6 +65,14 @@ package dev.atsushieno.ktmidi {
     field public static final byte SUSPENDED_4TH = 26; // 0x1a
   }
 
+  public final class Dc {
+    ctor public Dc(int value);
+    method public int component1();
+    method @NonNull public dev.atsushieno.ktmidi.Dc copy(int value);
+    method public int getValue();
+    property public final int value;
+  }
+
   public final class DefaultMidiModuleDatabase extends dev.atsushieno.ktmidi.MidiModuleDatabase {
     ctor public DefaultMidiModuleDatabase();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiModuleDefinition> all();
@@ -570,9 +578,10 @@ package dev.atsushieno.ktmidi {
   public final class Midi2Music {
     ctor public Midi2Music();
     method public void addTrack(@NonNull dev.atsushieno.ktmidi.Midi2Track track);
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.Timed<dev.atsushieno.ktmidi.Ump>> filterEvents(@NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.Ump,java.lang.Boolean> filter);
     method public int getDeltaTimeSpec();
     method public byte getFormat();
-    method @NonNull public Iterable<kotlin.Pair<java.lang.Integer,dev.atsushieno.ktmidi.Ump>> getMetaEventsOfType(int metaType);
+    method @Deprecated @NonNull public Iterable<kotlin.Pair<java.lang.Integer,dev.atsushieno.ktmidi.Ump>> getMetaEventsOfType(int metaType);
     method public int getTimePositionInMillisecondsForTick(int ticks);
     method public int getTotalPlayTimeMilliseconds();
     method public int getTotalTicks();
@@ -586,13 +595,15 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class Midi2Music.Companion {
-    method public int getMetaEventType(@NonNull dev.atsushieno.ktmidi.Ump message);
-    method @NonNull public kotlin.sequences.Sequence<kotlin.Pair<java.lang.Integer,dev.atsushieno.ktmidi.Ump>> getMetaEventsOfType(@NonNull Iterable<dev.atsushieno.ktmidi.Ump> messages, int metaType);
+    method @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.Timed<dev.atsushieno.ktmidi.Ump>> filterEvents(@NonNull Iterable<dev.atsushieno.ktmidi.Ump> messages, @NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.Ump,java.lang.Boolean> filter);
+    method @Deprecated public int getMetaEventType(@NonNull dev.atsushieno.ktmidi.Ump message);
+    method @Deprecated @NonNull public kotlin.sequences.Sequence<kotlin.Pair<java.lang.Integer,dev.atsushieno.ktmidi.Ump>> getMetaEventsOfType(@NonNull Iterable<dev.atsushieno.ktmidi.Ump> messages, int metaType);
     method public int getPlayTimeMillisecondsAtTick(@NonNull Iterable<dev.atsushieno.ktmidi.Ump> messages, int ticks, int deltaTimeSpec);
     method public int getTempoValue(@NonNull dev.atsushieno.ktmidi.Ump message);
     method public int getTotalPlayTimeMilliseconds(@NonNull Iterable<dev.atsushieno.ktmidi.Ump> messages, int deltaTimeSpec);
-    method public boolean isMetaEventMessage(@NonNull dev.atsushieno.ktmidi.Ump message, int metaType);
+    method @Deprecated public boolean isMetaEventMessage(@NonNull dev.atsushieno.ktmidi.Ump message, int metaType);
     method public boolean isMetaEventMessageStarter(@NonNull dev.atsushieno.ktmidi.Ump message);
+    method public boolean isTempoMessage(@NonNull dev.atsushieno.ktmidi.Ump message);
   }
 
   public final class Midi2MusicKt {
@@ -999,9 +1010,10 @@ package dev.atsushieno.ktmidi {
   public final class MidiMusic {
     ctor public MidiMusic();
     method public void addTrack(@NonNull dev.atsushieno.ktmidi.MidiTrack track);
+    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiMessage> filterEvents(@NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.MidiMessage,java.lang.Boolean> filter);
     method public int getDeltaTimeSpec();
     method public byte getFormat();
-    method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiMessage> getMetaEventsOfType(int metaType);
+    method @Deprecated @NonNull public Iterable<dev.atsushieno.ktmidi.MidiMessage> getMetaEventsOfType(int metaType);
     method public int getTimePositionInMillisecondsForTick(int ticks);
     method public int getTotalPlayTimeMilliseconds();
     method public int getTotalTicks();
@@ -1019,7 +1031,8 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class MidiMusic.Companion {
-    method @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.MidiMessage> getMetaEventsOfType(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, int metaType);
+    method @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.MidiMessage> filterEvents(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, @NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.MidiMessage,java.lang.Boolean> filter);
+    method @Deprecated @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.MidiMessage> getMetaEventsOfType(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, int metaType);
     method public int getPlayTimeMillisecondsAtTick(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, int ticks, int deltaTimeSpec);
     method public double getSmfBpm(@NonNull byte[] data, int offset);
     method public int getSmfTempo(@NonNull byte[] data, int offset);
@@ -1030,6 +1043,7 @@ package dev.atsushieno.ktmidi {
   }
 
   public final class MidiMusicCommonKt {
+    method @NonNull public static dev.atsushieno.ktmidi.Dc getDc(int);
   }
 
   public final class MidiMusicKt {
@@ -1196,7 +1210,6 @@ package dev.atsushieno.ktmidi {
 
   public final class MidiReaderWriterKt {
     method public static void read(@NonNull dev.atsushieno.ktmidi.MidiMusic, @NonNull java.util.List<java.lang.Byte> stream);
-    method @Deprecated public static void write(@NonNull dev.atsushieno.ktmidi.MidiMusic, @NonNull java.util.List<java.lang.Byte> stream, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Boolean,? super dev.atsushieno.ktmidi.MidiMessage,? super java.util.List<java.lang.Byte>,java.lang.Integer> metaEventWriter);
     method public static void write(@NonNull dev.atsushieno.ktmidi.MidiMusic, @NonNull java.util.List<java.lang.Byte> stream, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Boolean,? super dev.atsushieno.ktmidi.MidiMessage,? super java.util.List<java.lang.Byte>,java.lang.Integer> metaEventWriter, optional boolean disableRunningStatus);
   }
 
@@ -1333,7 +1346,7 @@ package dev.atsushieno.ktmidi {
     method @NonNull public dev.atsushieno.ktmidi.MidiPortConnectionState getConnectionState();
     method @NonNull public dev.atsushieno.ktmidi.MidiPortDetails getDetails();
     method public int getMidiProtocol();
-    method public void setMidiProtocol(int v);
+    method public void setMidiProtocol(int _);
     property @NonNull public dev.atsushieno.ktmidi.MidiPortConnectionState connectionState;
     property @NonNull public dev.atsushieno.ktmidi.MidiPortDetails details;
     property public int midiProtocol;
@@ -1343,16 +1356,6 @@ package dev.atsushieno.ktmidi {
     ctor public SmfParserException();
     ctor public SmfParserException(@NonNull String message);
     ctor public SmfParserException(@NonNull String message, @NonNull Exception innerException);
-  }
-
-  @Deprecated public final class SmfWriter {
-    ctor @Deprecated public SmfWriter(@NonNull java.util.List<java.lang.Byte> stream, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Boolean,? super dev.atsushieno.ktmidi.MidiMessage,? super java.util.List<java.lang.Byte>,java.lang.Integer> metaEventWriter);
-    method @Deprecated public boolean getDisableRunningStatus();
-    method @Deprecated public void setDisableRunningStatus(boolean disableRunningStatus);
-    method @Deprecated public void writeHeader(short format, short tracks, short deltaTimeSpec);
-    method @Deprecated public void writeMusic(@NonNull dev.atsushieno.ktmidi.MidiMusic music);
-    method @Deprecated public void writeTrack(@NonNull dev.atsushieno.ktmidi.MidiTrack track);
-    property public final boolean disableRunningStatus;
   }
 
   public final class SmfWriterExtension {
@@ -1375,6 +1378,17 @@ package dev.atsushieno.ktmidi {
     method @NonNull public dev.atsushieno.ktmidi.MidiMusic getMidiMusic(@NonNull String resourceId);
     method @Nullable public suspend Object getMidiPlayer(@Nullable dev.atsushieno.ktmidi.MidiPlayerTimer timeManager, @Nullable dev.atsushieno.ktmidi.MidiMusic midiMusic, optional @Nullable dev.atsushieno.ktmidi.MidiAccess midiAccess, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player> p);
     method @Nullable public suspend Object getMidiPlayer(optional @Nullable dev.atsushieno.ktmidi.MidiPlayerTimer timeManager, optional @Nullable dev.atsushieno.ktmidi.MidiAccess midiAccess, optional @Nullable String resourceId, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player> p);
+  }
+
+  public final class Timed<T> {
+    ctor public Timed(@NonNull dev.atsushieno.ktmidi.Dc duration, @Nullable T value);
+    method @NonNull public dev.atsushieno.ktmidi.Dc component1();
+    method public T component2();
+    method @NonNull public dev.atsushieno.ktmidi.Timed<T> copy(@NonNull dev.atsushieno.ktmidi.Dc duration, T value);
+    method @NonNull public dev.atsushieno.ktmidi.Dc getDuration();
+    method public T getValue();
+    property @NonNull public final dev.atsushieno.ktmidi.Dc duration;
+    property public final T value;
   }
 
   public final class TonicNoteField {
@@ -1672,13 +1686,18 @@ package dev.atsushieno.ktmidi {
     method public static int getTimeSignatureNumberOf32thNotes(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getTimeSignatureNumerator(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getUmpStreamFormat(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static boolean isChordName(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isDCTPQ(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isDeltaClockstamp(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isEndOfClip(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isFlexData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isJRClock(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isJRTimestamp(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static boolean isKeySignature(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static boolean isMetronome(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isStartOfClip(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static boolean isTempo(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static boolean isTimeSignature(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isUmpStream(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static void toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull byte[] bytes, int offset, @NonNull io.ktor.utils.io.core.ByteOrder byteOrder);
     method public static void toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull byte[] bytes, int offset);

@@ -87,8 +87,8 @@ object UmpTranslator {
             }
             offset += translateSingleUmpToMidi1Bytes(dst, it, offset, if (context.skipDeltaTime) null else deltaTime, sysex7)
             if (it.messageType == MidiMessageType.SYSEX7) {
-                if (it.statusCode == Midi2BinaryChunkStatus.SYSEX_END || it.statusCode ==
-                    Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP) {
+                if (it.statusCode == Midi2BinaryChunkStatus.END || it.statusCode ==
+                    Midi2BinaryChunkStatus.COMPLETE_PACKET) {
                     dst.addAll(MidiMessage.encode7BitLength(deltaTime))
                     dst.add(0xF0.toByte())
                     dst.addAll(MidiMessage.encode7BitLength(sysex7.size))
@@ -321,10 +321,10 @@ object UmpTranslator {
                     var m2: Long = 0
                     val NO_ATTRIBUTE_TYPE: Byte = 0
                     val NO_ATTRIBUTE_DATA = 0
-                    var bankValid = false
-                    var bankMsbValid = false
-                    var bankLsbValid = false
-                    var skipEmitUmp = false
+                    //var bankValid = false
+                    //var bankMsbValid = false
+                    //var bankLsbValid = false
+                    //var skipEmitUmp = false
                     when (context.midi1[context.midi1Pos].toInt() and 0xF0) {
                         MidiChannelStatus.NOTE_OFF -> m2 = UmpFactory.midi2NoteOff(
                             context.group,

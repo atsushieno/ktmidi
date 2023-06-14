@@ -114,7 +114,7 @@ class MidiMusicUnitTest {
                 .map { v -> v.toByte() }.toByteArray()
         track.messages.add(MidiMessage(0, MidiEvent(0xF0, 0, 0, sysexData)))
         val bytes = mutableListOf<Byte>()
-        SmfWriter(bytes).writeMusic(music)
+        music.write(bytes)
         val trackHead = arrayOf('M'.code, 'T'.code, 'r'.code, 'k'.code, 0, 0, 0, 16, 0, 0xF0).map { v -> v.toByte() }.toByteArray()
         val headerChunkSize = 14 // MThd + sizeInfo(0 0 0 6) + actualSize(6 bytes)
         val actual = bytes.drop(headerChunkSize).toByteArray()

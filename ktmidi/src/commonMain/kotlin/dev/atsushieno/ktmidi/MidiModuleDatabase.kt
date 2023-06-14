@@ -8,7 +8,7 @@ abstract class MidiModuleDatabase {
 
 class MergedMidiModuleDatabase : MidiModuleDatabase {
     constructor(sources: Iterable<MidiModuleDatabase>) {
-        list = arrayListOf<MidiModuleDatabase>()
+        list = sources.toList()
     }
 
     val list: List<MidiModuleDatabase>

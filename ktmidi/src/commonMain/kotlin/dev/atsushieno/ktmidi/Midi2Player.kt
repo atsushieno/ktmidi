@@ -27,7 +27,7 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
     private val umpConversionBuffer = ByteArray(16)
 
     override fun updateTempoAndTimeSignatureIfApplicable(m: Ump) {
-        if (m.messageType == MidiMessageType.SYSEX8_MDS && m.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP &&
+        if (m.messageType == MidiMessageType.SYSEX8_MDS && m.statusCode == Midi2BinaryChunkStatus.COMPLETE_PACKET &&
             m.int2 % 0x100  == MidiMusic.META_EVENT) {
             when ((m.int3.toUnsigned() / 0x100 % 0x100).toInt()) {
                 MidiMetaType.TEMPO -> currentTempo = Midi2Music.getTempoValue(m)
@@ -113,7 +113,7 @@ class Midi2Player : MidiPlayer {
             override fun onEvent(e: Ump) {
                 when (e.messageType) {
                     MidiMessageType.SYSEX7 -> {
-                        if (output.midiProtocol != MidiCIProtocolType.MIDI2 && (e.statusCode == Midi2BinaryChunkStatus.SYSEX_START || e.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP)) {
+                        if (output.midiProtocol != MidiCIProtocolType.MIDI2 && (e.statusCode == Midi2BinaryChunkStatus.START || e.statusCode == Midi2BinaryChunkStatus.COMPLETE_PACKET)) {
                             sysexBuffer.clear()
                             sysexBuffer.add(0xF0.toByte())
                         }
@@ -127,7 +127,7 @@ class Midi2Player : MidiPlayer {
 
                         if (output.midiProtocol == MidiCIProtocolType.MIDI2)
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
-                        else if (e.statusCode == Midi2BinaryChunkStatus.SYSEX_END || e.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP) {
+                        else if (e.statusCode == Midi2BinaryChunkStatus.END || e.statusCode == Midi2BinaryChunkStatus.COMPLETE_PACKET) {
                             sysexBuffer.add(0xF7.toByte())
                             output.send(sysexBuffer.toByteArray(), 0, sysexBuffer.size, 0)
                         }
@@ -136,7 +136,7 @@ class Midi2Player : MidiPlayer {
                         // It is not supported for a device (port) that has midiProtocol as MIDI1 to accept Message Type 5.
                         // However it is possible that the UMP sequence contains meta events which are not sent to the device.
                         // Therefore, we throw UnsupportedOperationException only if it is NOT part of a meta event UMP.
-                        if (e.statusCode == Midi2BinaryChunkStatus.SYSEX_START || e.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP) {
+                        if (e.statusCode == Midi2BinaryChunkStatus.START || e.statusCode == Midi2BinaryChunkStatus.COMPLETE_PACKET) {
                             lastMetaEventType = if (Midi2Music.isMetaEventMessageStarter(e)) e.metaEventType else -1
                             if (lastMetaEventType >= 0)
                                 sysexBuffer.clear()
@@ -151,7 +151,7 @@ class Midi2Player : MidiPlayer {
                         }
                         e.toPlatformBytes(umpConversionBuffer, 0)
 
-                        if (e.statusCode == Midi2BinaryChunkStatus.SYSEX_END || e.statusCode == Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP) {
+                        if (e.statusCode == Midi2BinaryChunkStatus.END || e.statusCode == Midi2BinaryChunkStatus.COMPLETE_PACKET) {
                             when (lastMetaEventType) {
                                 // FIXME: implement more meta events?
                                 MidiMetaType.TEMPO, MidiMetaType.TIME_SIGNATURE -> looper.updateTempoAndTimeSignatureIfApplicable(e)

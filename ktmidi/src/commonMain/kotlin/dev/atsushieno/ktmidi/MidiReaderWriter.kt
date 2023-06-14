@@ -4,15 +4,6 @@ import kotlin.math.min
 
 typealias MetaEventWriter = (Boolean, MidiMessage, MutableList<Byte>) -> Int
 
-@Deprecated("Use MidiMusic.write() that takes disableRunningStatus argument")
-fun MidiMusic.write(
-    stream: MutableList<Byte>,
-    metaEventWriter: MetaEventWriter = SmfWriterExtension.DEFAULT_META_EVENT_WRITER
-) {
-    val w = SmfWriter(stream, metaEventWriter)
-    w.writeMusic(this)
-}
-
 fun MidiMusic.write(
     stream: MutableList<Byte>,
     metaEventWriter: MetaEventWriter = SmfWriterExtension.DEFAULT_META_EVENT_WRITER,
@@ -23,8 +14,7 @@ fun MidiMusic.write(
     w.writeMusic(this)
 }
 
-@Deprecated("It will become internal. Use MidiMusic.write() instead")
-class SmfWriter(
+internal class SmfWriter(
     private val stream: MutableList<Byte>,
     private var metaEventWriter: MetaEventWriter = SmfWriterExtension.DEFAULT_META_EVENT_WRITER
 ) {
