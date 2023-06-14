@@ -7,8 +7,12 @@ class MidiMusic {
     internal class SmfDeltaTimeComputer: DeltaTimeComputer<MidiMessage>() {
         override fun messageToDeltaTime(message: MidiMessage) = message.deltaTime
 
+        @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
         override fun isMetaEventMessage(message: MidiMessage, metaType: Int) =
             message.event.eventType.toUnsigned() == META_EVENT && message.event.msb.toInt() == metaType
+
+        override fun isTempoMessage(message: MidiMessage) =
+            message.event.eventType.toUnsigned() == META_EVENT && message.event.msb.toInt() == MidiMetaType.TEMPO
 
         override fun getTempoValue(message: MidiMessage) = getSmfTempo(message.event.extraData!!, message.event.extraDataOffset)
     }
@@ -53,8 +57,11 @@ class MidiMusic {
 
         private val calc = SmfDeltaTimeComputer()
 
+        @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
         fun getMetaEventsOfType(messages: Iterable<MidiMessage>, metaType: Int)
             = calc.getMetaEventsOfType(messages, metaType).map { p -> MidiMessage(p.first, p.second.event) }
+        fun filterEvents(messages: Iterable<MidiMessage>, filter: (MidiMessage) -> Boolean) =
+            calc.filterEvents(messages, filter).map { p -> MidiMessage(p.duration.value, p.value.event) }
 
         fun getTotalPlayTimeMilliseconds(messages: Iterable<MidiMessage>, deltaTimeSpec: Int) = calc.getTotalPlayTimeMilliseconds(messages, deltaTimeSpec)
 
@@ -71,10 +78,16 @@ class MidiMusic {
         this.tracks.add(track)
     }
 
+    @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
     fun getMetaEventsOfType(metaType: Int): Iterable<MidiMessage> {
         if (format != 0.toByte())
             return mergeTracks().getMetaEventsOfType(metaType)
         return getMetaEventsOfType(tracks[0].messages, metaType).asIterable()
+    }
+    fun filterEvents(filter: (MidiMessage) -> Boolean): Iterable<MidiMessage> {
+        if (format != 0.toByte())
+            return mergeTracks().filterEvents(filter)
+        return filterEvents(tracks[0].messages, filter).asIterable()
     }
 
     fun getTotalTicks(): Int {

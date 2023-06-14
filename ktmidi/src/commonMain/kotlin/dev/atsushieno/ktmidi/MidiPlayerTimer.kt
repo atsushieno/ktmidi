@@ -13,9 +13,6 @@ interface MidiPlayerTimer {
 
 @OptIn(ExperimentalTime::class)
 class SimpleAdjustingMidiPlayerTimer(private val timeSource: TimeSource = TimeSource.Monotonic) : MidiPlayerTimer {
-    @Deprecated("This constructor will be removed in the future")
-    constructor() : this(TimeSource.Monotonic)
-
     private lateinit var startedTime: TimeMark
     private var nominalTotalSeconds: Double = 0.0
 

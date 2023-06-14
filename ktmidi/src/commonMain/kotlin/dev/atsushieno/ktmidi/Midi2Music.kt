@@ -6,7 +6,9 @@ class Midi2Music {
     internal class UmpDeltaTimeComputer: DeltaTimeComputer<Ump>() {
         override fun messageToDeltaTime(message: Ump) = if (message.isJRTimestamp) message.jrTimestamp else 0
 
+        @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
         override fun isMetaEventMessage(message: Ump, metaType: Int) = Midi2Music.isMetaEventMessage(message, metaType)
+        override fun isTempoMessage(message: Ump) = message.isTempo
 
         // 3 bytes in Sysex8 pseudo meta message
         override fun getTempoValue(message: Ump) = Midi2Music.getTempoValue(message)
@@ -15,8 +17,11 @@ class Midi2Music {
     companion object {
         private val calc = UmpDeltaTimeComputer()
 
+        @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
         fun getMetaEventsOfType(messages: Iterable<Ump>, metaType: Int) =
             calc.getMetaEventsOfType(messages, metaType)
+        fun filterEvents(messages: Iterable<Ump>, filter: (Ump) -> Boolean) =
+            calc.filterEvents(messages, filter)
 
         fun getTotalPlayTimeMilliseconds(messages: Iterable<Ump>, deltaTimeSpec: Int) =
             if (deltaTimeSpec > 0)
@@ -38,7 +43,7 @@ class Midi2Music {
         fun isMetaEventMessageStarter(message: Ump) =
             message.messageType == MidiMessageType.SYSEX8_MDS &&
                 when (message.statusCode) {
-                    Midi2BinaryChunkStatus.SYSEX_IN_ONE_UMP, Midi2BinaryChunkStatus.SYSEX_START ->
+                    Midi2BinaryChunkStatus.COMPLETE_PACKET, Midi2BinaryChunkStatus.START ->
                         message.int1 % 0x100 == 0 &&
                                 message.int2 shr 8 == 0 &&
                                 message.int2 and 0xFF == 0xFF &&
@@ -47,12 +52,15 @@ class Midi2Music {
                 }
 
         // returns meta event type if and only if the argument message is a META event within our own specification.
+        @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
         fun getMetaEventType(message: Ump) : Int = if (isMetaEventMessageStarter(message)) message.int3 shr 8 % 0x100 else 0
 
+        @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
         fun isMetaEventMessage(message: Ump, metaType: Int) = isMetaEventMessageStarter(message) && ((message.int3 and 0xFF00) shr 8) == metaType
+        fun isTempoMessage(message: Ump) = calc.isTempoMessage(message)
 
         fun getTempoValue(message: Ump) =
-            if (isMetaEventMessage(message, MidiMetaType.TEMPO))
+            if (isTempoMessage(message))
                 ((message.int3 and 0xFF) shl 16) + ((message.int4 shr 16) and 0xFFFF)
             else throw IllegalArgumentException("Attempt to calculate tempo from non-meta UMP")
     }
@@ -71,10 +79,16 @@ class Midi2Music {
         this.tracks.add(track)
     }
 
+    @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
     fun getMetaEventsOfType(metaType: Int): Iterable<Pair<Int,Ump>> {
         if (tracks.size > 1)
             return mergeTracks().getMetaEventsOfType(metaType)
         return getMetaEventsOfType(tracks[0].messages, metaType).asIterable()
+    }
+    fun filterEvents(filter: (Ump) -> Boolean): Iterable<Timed<Ump>> {
+        if (tracks.size > 1)
+            return mergeTracks().filterEvents(filter)
+        return filterEvents(tracks[0].messages, filter).asIterable()
     }
 
     fun getTotalTicks(): Int {
@@ -166,7 +180,7 @@ internal class Midi2TrackMerger(private var source: Midi2Music) {
             if (i + 1 < l.size) {
                 val delta = l[i + 1].first - l[i].first
                 if (delta > 0)
-                    l3.addAll(UmpFactory.jrTimestamps(l[i].second.group, delta.toLong()).map { v -> Ump(v) })
+                    l3.addAll(UmpFactory.jrTimestamps(delta.toLong()).map { v -> Ump(v) })
                 timeAbs += delta
             }
             l3.add(l[i].second)
@@ -201,7 +215,7 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
         fun addMessage(timestampInsertAt: Int, e: Ump) {
             if (currentTimestamp != timestampInsertAt) {
                 val delta = timestampInsertAt - currentTimestamp
-                track.messages.addAll(UmpFactory.jrTimestamps(e.group, delta.toLong()).map { i -> Ump(i)})
+                track.messages.addAll(UmpFactory.jrTimestamps(delta.toLong()).map { i -> Ump(i)})
             }
             track.messages.add(e)
             currentTimestamp = timestampInsertAt
@@ -260,7 +274,7 @@ internal class Midi2DeltaTimeConverter internal constructor(private val source: 
         val dtc = Midi2Music.UmpDeltaTimeComputer()
 
         // first, get all meta events to detect tempo changes for later uses.
-        val allTempoChanges = source.getMetaEventsOfType(MidiMetaType.TEMPO.toInt()).toList()
+        val allTempoChanges = source.filterEvents { it.isTempo }.toList()
 
         for (srcTrack in source.tracks) {
             val dstTrack = Midi2Track()
@@ -277,17 +291,17 @@ internal class Midi2DeltaTimeConverter internal constructor(private val source: 
                     // taking those tempo changes into consideration.
                     var remainingTicks = ump.jrTimestamp
                     var durationMs = 0.0
-                    while (nextTempoChangeIndex < allTempoChanges.size && allTempoChanges[nextTempoChangeIndex].first < currentTicks + remainingTicks) {
-                        val ticksUntilNextTempoChange = allTempoChanges[nextTempoChangeIndex].first - currentTicks
+                    while (nextTempoChangeIndex < allTempoChanges.size && allTempoChanges[nextTempoChangeIndex].duration.value < currentTicks + remainingTicks) {
+                        val ticksUntilNextTempoChange = allTempoChanges[nextTempoChangeIndex].duration.value - currentTicks
                         durationMs += getContextDeltaTimeInMilliseconds(ticksUntilNextTempoChange, currentTempo, source.deltaTimeSpec)
-                        currentTempo = dtc.getTempoValue(allTempoChanges[nextTempoChangeIndex].second)
+                        currentTempo = dtc.getTempoValue(allTempoChanges[nextTempoChangeIndex].value)
                         nextTempoChangeIndex++
                         remainingTicks -= ticksUntilNextTempoChange
                         currentTicks += ticksUntilNextTempoChange
                     }
                     durationMs += getContextDeltaTimeInMilliseconds(remainingTicks, currentTempo, source.deltaTimeSpec)
                     currentTicks += remainingTicks
-                    dstTrack.messages.addAll(UmpFactory.jrTimestamps(ump.group, durationMs / 1000.0).map { i -> Ump(i)})
+                    dstTrack.messages.addAll(UmpFactory.jrTimestamps(durationMs / 1000.0).map { i -> Ump(i)})
                 }
                 else
                     dstTrack.messages.add(ump)

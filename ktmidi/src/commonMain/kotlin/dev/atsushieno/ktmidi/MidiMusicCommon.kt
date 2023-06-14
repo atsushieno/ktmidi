@@ -4,14 +4,35 @@ internal fun Byte.toUnsigned() = if (this < 0) 0x100 + this else this.toInt()
 internal fun Short.toUnsigned() = if (this < 0) 0x10000 + this else this.toInt()
 internal fun Int.toUnsigned() = if (this < 0) 0x100000000 + this else this.toLong()
 
+// DeltaClockstamp time unit
+data class Dc(val value: Int)
+
+val Int.dc
+    get() = Dc(this)
+
+data class Timed<T>(val duration: Dc, val value: T)
+
 internal abstract class DeltaTimeComputer<T> {
 
     abstract fun messageToDeltaTime(message: T) : Int
 
+    @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
     abstract fun isMetaEventMessage(message: T, metaType: Int) : Boolean
+
+    abstract fun isTempoMessage(message: T): Boolean
 
     abstract fun getTempoValue(message: T) : Int
 
+    fun filterEvents(messages: Iterable<T>, filter: (T) -> Boolean) : Sequence<Timed<T>> = sequence {
+        var v = 0
+        for (m in messages) {
+            v += messageToDeltaTime(m)
+            if (filter(m))
+                yield(Timed(v.dc, m))
+        }
+    }
+
+    @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
     fun getMetaEventsOfType(messages: Iterable<T>, metaType: Int) : Sequence<Pair<Int,T>> = sequence {
         var v = 0
         for (m in messages) {
@@ -39,7 +60,7 @@ internal abstract class DeltaTimeComputer<T> {
                 if (deltaTime != messageDeltaTime)
                     break
                 t += messageDeltaTime
-                if (isMetaEventMessage(m, MidiMetaType.TEMPO))
+                if (isTempoMessage(m))
                     tempo = getTempoValue(m)
             }
             return v.toInt()
