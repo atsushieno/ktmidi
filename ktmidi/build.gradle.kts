@@ -122,9 +122,8 @@ android {
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["test"].assets.srcDir("src/commonTest/resources") // kind of hack...
     defaultConfig {
-        compileSdk = 32
+        compileSdk = 33
         minSdk = 23
-        targetSdk = 32
     }
     buildTypes {
         val debug by getting
