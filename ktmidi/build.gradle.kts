@@ -43,13 +43,11 @@ kotlin {
         nodejs {
         }
     }
-    iosX64("ios") {
-        binaries {
-            framework {
-                baseName = "library"
-            }
-        }
-    }
+
+    iosArm64 { binaries { framework { baseName = "library" } } }
+    iosX64 { binaries { framework { baseName = "library" } } }
+    iosSimulatorArm64 { binaries {framework { baseName = "library" } } }
+
     val hostOs = System.getProperty("os.name")
     val isArm64 = System.getProperty("os.arch") == "aarch64"
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -107,8 +105,12 @@ kotlin {
         }
         val nativeMain by getting
         val nativeTest by getting
-        val iosMain by getting
-        val iosTest by getting
+        val iosArm64Main by getting
+        val iosArm64Test by getting
+        val iosSimulatorArm64Main by getting
+        val iosSimulatorArm64Test by getting
+        val iosX64Main by getting
+        val iosX64Test by getting
     }
 }
 
