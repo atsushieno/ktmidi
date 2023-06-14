@@ -209,9 +209,13 @@ val Ump.flexDataStatus: Byte
 val Ump.flexDataStatusBank: Byte
     get() = ((int1 and 0xFF00) shr 8).toByte()
 
+val Ump.isTempo
+    get() = messageType == MidiMessageType.FLEX_DATA && flexDataStatus == FlexDataStatus.TEMPO
 val Ump.tempo
     get() = int2
 
+val Ump.isTimeSignature
+    get() = messageType == MidiMessageType.FLEX_DATA && flexDataStatus == FlexDataStatus.TIME_SIGNATURE
 val Ump.timeSignatureNumerator
     get() = (int2 shr 24) and 0xFF
 val Ump.timeSignatureDenominator
@@ -219,6 +223,8 @@ val Ump.timeSignatureDenominator
 val Ump.timeSignatureNumberOf32thNotes
     get() = (int2 shr 8) and 0xFF
 
+val Ump.isMetronome
+    get() = messageType == MidiMessageType.FLEX_DATA && flexDataStatus == FlexDataStatus.METRONOME
 val Ump.metronomeClocksPerPrimaryClick
     get() = (int2 shr 24) and 0xFF
 val Ump.metronomeBarAccent1
@@ -237,11 +243,15 @@ private fun rawBitsToSharpsFlats(value: Int): Byte {
     return (if (v > 7) -16 + v else v).toByte()
 }
 
+val Ump.isKeySignature
+    get() = messageType == MidiMessageType.FLEX_DATA && flexDataStatus == FlexDataStatus.KEY_SIGNATURE
 val Ump.keySignatureSharpsFlats
     get() = rawBitsToSharpsFlats(int2 shr 28) // Note that we have to return negative values for any value more than 0x8
 val Ump.keySignatureTonicNote
     get() = ((int2 shr 24) and 0xF).toByte()
 
+val Ump.isChordName
+    get() = messageType == MidiMessageType.FLEX_DATA && flexDataStatus == FlexDataStatus.CHORD_NAME
 val Ump.chordNameSharpsFlats
     get() = rawBitsToSharpsFlats(int2 shr 28) // Note that we have to return negative values for any value more than 0x8
 val Ump.chordNameChordTonic
