@@ -321,10 +321,10 @@ object UmpTranslator {
                     var m2: Long = 0
                     val NO_ATTRIBUTE_TYPE: Byte = 0
                     val NO_ATTRIBUTE_DATA = 0
-                    //var bankValid = false
-                    //var bankMsbValid = false
-                    //var bankLsbValid = false
-                    //var skipEmitUmp = false
+                    var bankValid = false
+                    var bankMsbValid = false
+                    var bankLsbValid = false
+                    var skipEmitUmp = false
                     when (context.midi1[context.midi1Pos].toInt() and 0xF0) {
                         MidiChannelStatus.NOTE_OFF -> m2 = UmpFactory.midi2NoteOff(
                             context.group,
