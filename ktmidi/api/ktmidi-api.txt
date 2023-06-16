@@ -1532,7 +1532,7 @@ package dev.atsushieno.ktmidi {
     method public void sysex8Process(int group, @NonNull java.util.List<java.lang.Byte> sysex, optional byte streamId, optional @Nullable Object context, optional @NonNull kotlin.jvm.functions.Function3<? super java.lang.Long,? super java.lang.Long,java.lang.Object,kotlin.Unit> sendUMP128);
     method public int systemMessage(int group, byte status, byte midi1Byte2, byte midi1Byte3);
     method @NonNull public dev.atsushieno.ktmidi.Ump tempo(byte group, byte channel, int numberOf10NanosecondsPerQuarterNote);
-    method @NonNull public dev.atsushieno.ktmidi.Ump timeSignature(byte group, byte channel, byte numerator, byte denominator, byte numberOf32Notes);
+    method @NonNull public dev.atsushieno.ktmidi.Ump timeSignatureDirect(byte group, byte channel, byte numerator, byte rawDenominator, byte numberOf32Notes);
     method public int umpGetNumBytes(int data);
     field @NonNull public static final dev.atsushieno.ktmidi.UmpFactory INSTANCE;
   }
@@ -1563,7 +1563,7 @@ package dev.atsushieno.ktmidi {
     method public void testStreamConfigNotification();
     method public void testStreamConfigRequest();
     method public void testTempo();
-    method public void testTimeSignature();
+    method public void testTimeSignatureDirect();
     method public void testType0Messages();
     method public void testType1Messages();
     method public void testType2Messages();

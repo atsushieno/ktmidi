@@ -814,8 +814,8 @@ object UmpFactory {
     fun tempo(group: Byte, channel: Byte, numberOf10NanosecondsPerQuarterNote: Int) =
         binaryFlexData(group, 1, channel, 0, numberOf10NanosecondsPerQuarterNote)
 
-    fun timeSignature(group: Byte, channel: Byte, numerator: Byte, denominator: Byte, numberOf32Notes: Byte) =
-        binaryFlexData(group, 1, channel, 1, (numerator shl 24) + (denominator shl 16) + (numberOf32Notes shl 8))
+    fun timeSignatureDirect(group: Byte, channel: Byte, numerator: UByte, rawDenominator: UByte, numberOf32Notes: Byte) =
+        binaryFlexData(group, 1, channel, 1, (numerator.toInt() shl 24) + (rawDenominator.toInt() shl 16) + (numberOf32Notes shl 8))
 
     fun metronome(group: Byte, channel: Byte, numClocksPerPrimeryClick: Byte, barAccent1: Byte, barAccent2: Byte, barAccent3: Byte, numSubdivisionClick1: Byte, numSubdivisionClick2: Byte) =
         binaryFlexData(group, 1, channel, 2,

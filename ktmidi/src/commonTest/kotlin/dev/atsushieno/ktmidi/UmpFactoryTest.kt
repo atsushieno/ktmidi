@@ -334,14 +334,14 @@ class UmpFactoryTest {
     }
 
     @Test
-    fun testTimeSignature() {
-        val ts1 = UmpFactory.timeSignature(0, 0, 3, 4, 0)
+    fun testTimeSignatureDirect() {
+        val ts1 = UmpFactory.timeSignatureDirect(0, 0, 3u, 4u, 0)
         assertEquals(0xD010_0001L, ts1.int1.toUnsigned(), "ts1.int1")
         assertEquals(0x0304_0000L, ts1.int2.toUnsigned(), "ts1.int2")
         assertEquals(0, ts1.int3, "ts1.int3")
         assertEquals(0, ts1.int4, "ts1.int4")
 
-        val ts2 = UmpFactory.timeSignature(0xF, 0xE, 5, 8, 32)
+        val ts2 = UmpFactory.timeSignatureDirect(0xF, 0xE, 5u, 8u, 32)
         assertEquals(0xDF1E_0001L, ts2.int1.toUnsigned(), "ts2.int1")
         assertEquals(0x0508_2000L, ts2.int2.toUnsigned(), "ts2.int2")
         assertEquals(0, ts2.int3, "ts1.int3")
