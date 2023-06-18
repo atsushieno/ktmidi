@@ -15,7 +15,7 @@ It provides various MIDI features, including:
     - `ktmidi-jvm-desktop` module contains ALSA backend as well as [RtMidi](https://github.com/thestk/rtmidi) backend via [atsushieno/rtmidi-jna](https://github.com/atsushieno/rtmidi-jna) that support it (Unsupported platforms are left unsupported). Note that they are for Kotlin/JVM.
     - `ktmidi-native-ext` module contains RtMidi *native* backend for Kotlin-Native. It is built for both static and shared, and known to work as `player-sample-native` sample app module.
   - For Kotlin/JS, `JzzMidiAccess` which wraps [Jazz-Soft JZZ](https://jazz-soft.net/doc/JZZ/) is included. It should cover both node.js and web browsers.
-- `MidiMusic` and `Midi2Music` : reflects Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support is not based on standard, as there is nothing like SMF specification for MIDI 2.0 yet.)
+- `MidiMusic` and `Midi2Music` : reflects Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support only partially based on standard; `Midi2Track` follows MIDI Clip File specification but there is no multi-track comparable specification to SMF for MIDI 2.0 yet.)
   - No strongly-typed message types (something like NoteOnMessage, NoteOffMessage, and so on). There is no point of defining strongly-typed messages for each mere MIDI status byte - you wouldn't need message type abstraction.
   - No worries, there are contants of Int or Byte in `MidiChannelStatus`, `MidiCC`, `MidiRpn`, `MidiMetaType` etc. so that you don't have to remember the actual constant numbers.
   - `MidiMusic.read()` reads and `MidiMusic.write()` writes to SMF (standard MIDI format) files with MIDI messages, with `Midi1TrackMerger`, `Midi2TrackMerger`, `Midi1TrackSplitter` and `Midi2TrackSplitter` that help you implement sequential event processing for your own MIDI players, or per-track editors if needed.
@@ -96,7 +96,7 @@ It would be useful for general MIDI 2.0 software tools such as MIDI 2.0 UMP play
 Here is a list of MIDI 2.0 extensibility in this API:
 
 - `MidiInput` and `MidiOutput` now has `midiProtocol` property which can be get and/or set. When `MidiCIProtocolType.MIDI2` is specified, then the I/O object is supposed to process UMPs (Universal MIDI Packets).
-- `Midi2Music` is a feature parity with `MidiMusic`, but all the messages are stored as UMPs. However, since SMF concepts of time calculation (namely delta time quantization / specification) is useful, we optionally blend it into UMPs and their JR Timestamp messages are actually fake - they store delta times just like SMF. Also there are tailored support for meta events equivalent. See [docs/design/MidiMusic.md](docs/design/MidiMusic.md) for details.
+- `Midi2Music` is a feature parity with `MidiMusic`, but all the messages are stored as UMPs. Since ktmidi 0.5.0 we support the Delta Clockstamps as well as DCTPQ, as well as Flex Data messages that correspond to SMF meta events (though not fully, as it is technically impossible). See [docs/MIDI2_FORMATS.md](docs/MIDI2_FORMATS.md) for details.
 - `Midi2Player` is a feature parity with `MidiPlayer`.
 - `UmpFactory` class contains a bunch of utility functions that are used to construct UMP integer values.
 - `dev.atsushieno.ktmidi.ci` package contains a bunch of utility functions that are used to construct MIDI-CI system exclusive packets.
@@ -105,7 +105,7 @@ Here is a list of MIDI 2.0 extensibility in this API:
 
 ### SMF alternative format
 
-Since there is no comparable standard music file format like SMF for MIDI 2.0, we had to come up with our own. See [docs/MIDI2_FORMATS.md](docs/MIDI2_FORMATS.md) for details.
+MIDI 2.0 June 2023 updates comes with a brand-new MIDI Clip File specification, which calls itself "SMF2". Though it is not a multi-track music file format like SMF. Therefore, we still have our own format. See [docs/MIDI2_FORMATS.md](docs/MIDI2_FORMATS.md) for details.
 
 [mugene-ng](https://github.com/atsushieno/mugene-ng) can generate music files based on this format.
 
