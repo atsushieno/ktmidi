@@ -58,11 +58,16 @@ internal class SmfWriter(
         writeInt(getTrackDataSize(track))
 
         var runningStatus: Byte = 0
+        var wroteEndOfTrack = false
 
         for (e in track.messages) {
             write7bitEncodedInt(e.deltaTime)
             when (e.event.eventType.toUnsigned()) {
-                MidiMusic.META_EVENT -> metaEventWriter(false, e, stream)
+                MidiMusic.META_EVENT -> {
+                    metaEventWriter(false, e, stream)
+                    if (e.event.metaType == MidiMetaType.END_OF_TRACK.toByte())
+                        wroteEndOfTrack = true
+                }
                 MidiMusic.SYSEX_EVENT -> {
                     stream.add(e.event.eventType)
                     val seBytes = e.event.extraData
@@ -87,6 +92,9 @@ internal class SmfWriter(
             }
             runningStatus = e.event.statusByte
         }
+        if (!wroteEndOfTrack)
+            // deltaTime, meta status = 0xFF, size-of-meta = 0, end-of-track = 0x2F
+            stream.addAll(sequenceOf(0, 0xFF.toByte(), 0x2F, 0))
     }
 
     private fun get7BitEncodedLength(value: Int): Int {
@@ -106,13 +114,18 @@ internal class SmfWriter(
     private fun getTrackDataSize(track: MidiTrack): Int {
         var size = 0
         var runningStatus: Byte = 0
+        var wroteEndOfTrack = false
         for (e in track.messages) {
             // delta time
             size += get7BitEncodedLength(e.deltaTime)
 
             // arguments
             when (e.event.eventType.toUnsigned()) {
-                MidiMusic.META_EVENT -> size += metaEventWriter(true, e, mutableListOf())
+                MidiMusic.META_EVENT -> {
+                    size += metaEventWriter(true, e, mutableListOf())
+                    if (e.event.metaType == MidiMetaType.END_OF_TRACK.toByte())
+                        wroteEndOfTrack = true
+                }
                 MidiMusic.SYSEX_EVENT -> {
                     size++
                     if (e.event.extraData != null) {
@@ -132,6 +145,8 @@ internal class SmfWriter(
 
             runningStatus = e.event.statusByte
         }
+        if (!wroteEndOfTrack)
+            size += 4
         return size
     }
 

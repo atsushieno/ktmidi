@@ -13,17 +13,19 @@ We provide two options for UMP-based music files:
 
 ## data formats
 
-`Midi2Music` and therefore `Midi2Player` accept files in the format described below:
+`Midi2Music` and therefore `Midi2Player` accept files in the format described below. Note that it has been revised to reflect UMP June 2023 updates.
 
 ```
 // Data Format:
-//   - identifier 0xAAAAAAAAAAAAAAAA (16 bytes)
+//   - identifier "AAAAAAAAEEEEEEEE" in ASCII (16 bytes)
 //   - i32 deltaTimeSpec
 //   - i32 numTracks
 //   - tracks - each track contains these items in order:
-//       - identifier 0xEEEEEEEEEEEEEEEE (16 bytes)
-//       - i32 sizeInBytes
-//       - UMPs (i32, i64 or i128) in BIG endian
+//     - identifier "SMF2CLIP" in ASCII (8 bytes)
+//     - DCS(0) + DCTPQ
+//     - DCS(0) + Start of Clip
+//     - sequence of DCS-prepended UMPs (i32, i64 or i128) in BIG endian.
+//     - DCS(0) + "End of Clip".
 ```
 
 `deltaTimeSpec` is used for the same purpose as that of `MidiMusic`  (the value in SMF is to determine the semantics on the timestamp values). We would emit DCTPQ (Delta Clockstamps Ticks Per Quater notes) messages in each track, but since we need a *uniform* and *consistent* single deltaTimeSpec across ALL the tracks, it is ignored. We will use the value in the header section.
@@ -31,6 +33,8 @@ We provide two options for UMP-based music files:
 If `deltaTimeSpec` is a positive integer, it works like the `division` field value in SMF header chunk. There is no "format" specifier in this format - if "numTracks" is 1 then it is obviously compatible with FORMAT 0.
 
 All the UMPs are serialized in BIG endian per 32-bit integer for persistant stability across platforms and better binary readability.
+
+To conform to MIDI Clip File format, All those UMPs in a track come with Delta Clockstamp. If we support Profile Configuration UMPs then they will not come with DCS (as per MIDI Clip File specification describes), but we do not, so far.
 
 ## META events that cannot be mapped 
 

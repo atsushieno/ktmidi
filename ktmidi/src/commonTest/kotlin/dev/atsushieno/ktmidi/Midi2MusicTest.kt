@@ -4,8 +4,8 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
-val musicFileIdentifier = List(16) {0xAA.toByte()}
-val musicTrackIdentifier = List(16) {0xEE.toByte()}
+val musicFileIdentifier = List(8) {'A'.code.toByte()} + List(8) {'E'.code.toByte()}
+val musicTrackIdentifier = "SMF2CLIP".map { it.code.toByte() }
 
 class Midi2MusicTest {
 
@@ -20,14 +20,17 @@ class Midi2MusicTest {
         ))
         val store = mutableListOf<Byte>()
         music.write(store)
-        val music2 = Midi2Music().apply { read(store) }
+        val music2 = Midi2Music().apply { read(store, removeEmptyDeltaClockstamps = false) }
         assertEquals(music.tracks.size, music2.tracks.size, "tracks")
         val track = music2.tracks[0]
         assertEquals(track.messages.size, music2.tracks[0].messages.size, "messages")
-        assertEquals(MidiMessageType.MIDI2, track.messages[0].messageType, "[0].messageType")
-        assertEquals(MidiMessageType.UTILITY, track.messages[1].messageType, "[1].messageType")
-        assertEquals(true, track.messages[1].isDeltaClockstamp, "[1] is DC")
-        assertEquals(MidiMessageType.MIDI2, track.messages[2].messageType, "[2].messageType")
+        assertEquals(true, track.messages[1].isDCTPQ, "[1] is DCTPQ")
+        assertEquals(true, track.messages[2].isDeltaClockstamp, "[2] is DCS")
+        assertEquals(true, track.messages[3].isStartOfClip, "[3] is Start of Clip")
+        assertEquals(true, track.messages[4].isDeltaClockstamp, "[4] is DCS")
+        assertEquals(MidiMessageType.MIDI2, track.messages[5].messageType, "[5].messageType")
+        assertEquals(true, track.messages[6].isDeltaClockstamp, "[6] is DC")
+        assertEquals(MidiMessageType.MIDI2, track.messages[7].messageType, "[6].messageType")
     }
 
     @Test
@@ -43,7 +46,23 @@ class Midi2MusicTest {
         music.write(bytes)
         // Note that "stream id" also counts in the packet size in sysex8 (hence 12, not 11).
         // Note that umpx is always serialized in BIG endian.
-        assertContentEquals(musicFileIdentifier + listOf(0, 0, 0, 0) + listOf(0, 0, 0, 1) +musicTrackIdentifier +
-            listOf(0, 0, 0, 16) + listOf(0x50, 12, 0, 0, 0, 0, 0, ff, ff, ff, 3, 7, 0xA1.toByte(), 0x20, 0, 0), bytes, "umpx")
+        val expected = musicFileIdentifier + listOf(0, 0, 1, 0xE0.toByte()) + listOf(0, 0, 0, 1) +musicTrackIdentifier +
+            // DCS(0)
+            listOf(0x00, 0x40, 0, 0) +
+            // DCTPQ
+            listOf(0x00, 0x30, 1, 0xE0.toByte()) +
+            // DCS(0)
+            listOf(0x00, 0x40, 0, 0) +
+            // Start of Clip
+            listOf(0xF0.toByte(), 0x20, 0, 0) + List(12) { 0.toByte() } +
+            // DCS(0)
+            listOf(0x00, 0x40, 0, 0) +
+            // SysEx8
+            listOf(0x50, 12, 0, 0, 0, 0, 0, ff, ff, ff, 3, 7, 0xA1.toByte(), 0x20, 0, 0) +
+            // DCS(0)
+            listOf(0x00, 0x40, 0, 0) +
+            // End of Clip
+            listOf(0xF0.toByte(), 0x21, 0, 0) + List(12) { 0.toByte() }
+        assertContentEquals(expected, bytes, "umpx")
     }
 }

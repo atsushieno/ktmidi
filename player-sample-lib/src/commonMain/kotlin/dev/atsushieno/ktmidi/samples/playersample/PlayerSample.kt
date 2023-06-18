@@ -67,7 +67,7 @@ suspend fun runMain(args: Array<String>) {
                     // but it is out of scope in this version.)
                     if (opts.midi2)
                         midiOutput.midiProtocol = MidiCIProtocolType.MIDI2
-                    Midi2Player(Midi2Music().apply { this.read(readFileContents(opts.musicFile)) }, midiOutput)
+                    Midi2Player(Midi2Music().apply { this.read(readFileContents(opts.musicFile), true) }, midiOutput)
                 }
             } catch (ex: Exception) {
                 println("File \"${opts.musicFile}\" could not be loaded: $ex")

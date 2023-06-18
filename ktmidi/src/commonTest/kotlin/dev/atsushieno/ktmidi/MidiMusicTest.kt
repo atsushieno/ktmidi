@@ -115,10 +115,10 @@ class MidiMusicUnitTest {
         track.messages.add(MidiMessage(0, MidiEvent(0xF0, 0, 0, sysexData)))
         val bytes = mutableListOf<Byte>()
         music.write(bytes)
-        val trackHead = arrayOf('M'.code, 'T'.code, 'r'.code, 'k'.code, 0, 0, 0, 16, 0, 0xF0).map { v -> v.toByte() }.toByteArray()
+        val trackHead = arrayOf('M'.code, 'T'.code, 'r'.code, 'k'.code, 0, 0, 0, 20, 0, 0xF0).map { v -> v.toByte() }.toByteArray()
         val headerChunkSize = 14 // MThd + sizeInfo(0 0 0 6) + actualSize(6 bytes)
         val actual = bytes.drop(headerChunkSize).toByteArray()
-        assertContentEquals(trackHead + sysexData + byteArrayOf(0xF7.toByte()), actual, "SMF track")
+        assertContentEquals(trackHead + sysexData + byteArrayOf(0xF7.toByte(), 0, 0xFF.toByte(), 0x2F, 0), actual, "SMF track")
 
         bytes.clear()
         SmfWriter(bytes).writeMusic(music)
@@ -127,7 +127,7 @@ class MidiMusicUnitTest {
         music.read(bytes)
         val evt = music.tracks.first().messages.first().event
         assertContentEquals(sysexData, evt.extraData!!.drop(evt.extraDataOffset).take(evt.extraDataLength).toByteArray(), "read")
-        assertEquals(headerChunkSize + trackHead.size + sysexData.size + 1, bytes.size, "music bytes size")
+        assertEquals(headerChunkSize + trackHead.size + sysexData.size + 1 + 4, bytes.size, "music bytes size")
     }
 
     // U and L cannot share case-insensitively identical fields for JNI signature...

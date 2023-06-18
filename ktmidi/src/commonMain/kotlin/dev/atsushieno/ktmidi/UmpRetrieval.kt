@@ -13,12 +13,15 @@ val Ump.groupByte: Int
 val Ump.messageType: Int
     get() = (int1 shr 28) and 0xF
 
-val Ump.sizeInBytes
+val Ump.sizeInInts
     get() = when(messageType) {
-        MidiMessageType.SYSEX8_MDS, MidiMessageType.FLEX_DATA, MidiMessageType.UMP_STREAM -> 16
-        MidiMessageType.SYSEX7, MidiMessageType.MIDI2 -> 8
-        else -> 4
+        MidiMessageType.SYSEX8_MDS, MidiMessageType.FLEX_DATA, MidiMessageType.UMP_STREAM -> 4
+        MidiMessageType.SYSEX7, MidiMessageType.MIDI2 -> 2
+        else -> 1
     }
+
+val Ump.sizeInBytes
+    get() = sizeInInts * 4
 
 private fun toPlatformBytes(bytes: ByteArray, value: Int, offset: Int, byteOrder: ByteOrder) {
     if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
@@ -60,6 +63,13 @@ fun Ump.toPlatformBytes(byteOrder: ByteOrder) : ByteArray {
 }
 
 fun Ump.toPlatformNativeBytes() = this.toPlatformBytes(ByteOrder.nativeOrder())
+
+fun Ump.toInts() = when (this.sizeInInts) {
+    4 -> listOf(int1, int2, int3, int4)
+    2 -> listOf(int1, int2)
+    1 -> listOf(int1)
+    else -> listOf()
+}
 
 // Second half of the 1st. byte
 val Ump.group: Int

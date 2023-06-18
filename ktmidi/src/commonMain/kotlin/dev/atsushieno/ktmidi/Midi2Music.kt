@@ -73,7 +73,7 @@ class Midi2Music {
     // This brings in kind of hack in the UMP content.
     // When a positive value is explicitly given, then it is interpreted as the same qutantization as what SMF does
     // and the actual "ticks" in JR Timestamp messages are delta time (i.e. fake), not 1/31250 msec.
-    var deltaTimeSpec: Int = 0
+    var deltaTimeSpec: Int = 480 // Now that it must be a valid DCTPQ, give this default value.
 
     @Deprecated("It had never been useful. Now it only reflects isSingleTrack property value. No effect on setter.")
     var format: Int
