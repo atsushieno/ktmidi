@@ -98,7 +98,7 @@ val Ump.dctpq
 val Ump.isDeltaClockstamp
     get() = messageType == MidiMessageType.UTILITY && statusCode == MidiUtilityStatus.DELTA_CLOCKSTAMP
 val Ump.deltaClockstamp
-    get() = if(isDeltaClockstamp) int2 and 0xFFFFF else 0
+    get() = if(isDeltaClockstamp) int1 and 0xFFFFF else 0
 
 // 3rd. byte for MIDI 1.0 message
 val Ump.midi1Msb: Int

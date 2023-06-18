@@ -580,16 +580,18 @@ package dev.atsushieno.ktmidi {
     method public void addTrack(@NonNull dev.atsushieno.ktmidi.Midi2Track track);
     method @NonNull public Iterable<dev.atsushieno.ktmidi.Timed<dev.atsushieno.ktmidi.Ump>> filterEvents(@NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.Ump,java.lang.Boolean> filter);
     method public int getDeltaTimeSpec();
-    method public byte getFormat();
+    method @Deprecated public int getFormat();
     method @Deprecated @NonNull public Iterable<kotlin.Pair<java.lang.Integer,dev.atsushieno.ktmidi.Ump>> getMetaEventsOfType(int metaType);
     method public int getTimePositionInMillisecondsForTick(int ticks);
     method public int getTotalPlayTimeMilliseconds();
     method public int getTotalTicks();
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Midi2Track> getTracks();
+    method public boolean isSingleTrack();
     method public void setDeltaTimeSpec(int deltaTimeSpec);
-    method public void setFormat(byte format);
+    method @Deprecated public void setFormat(int _);
     property public final int deltaTimeSpec;
-    property public final byte format;
+    property @Deprecated public final int format;
+    property public final boolean isSingleTrack;
     property @NonNull public final java.util.List<dev.atsushieno.ktmidi.Midi2Track> tracks;
     field @NonNull public static final dev.atsushieno.ktmidi.Midi2Music.Companion Companion;
   }
@@ -607,7 +609,7 @@ package dev.atsushieno.ktmidi {
   }
 
   public final class Midi2MusicKt {
-    method @NonNull public static dev.atsushieno.ktmidi.Midi2Music convertDeltaTimesToJRTimestamps(@NonNull dev.atsushieno.ktmidi.Midi2Music);
+    method @Deprecated @NonNull public static dev.atsushieno.ktmidi.Midi2Music convertDeltaTimesToJRTimestamps(@NonNull dev.atsushieno.ktmidi.Midi2Music);
     method @NonNull public static dev.atsushieno.ktmidi.Midi2Music mergeTracks(@NonNull dev.atsushieno.ktmidi.Midi2Music);
     method @NonNull public static dev.atsushieno.ktmidi.Midi2Music splitTracksByChannel(@NonNull dev.atsushieno.ktmidi.Midi2Track);
   }
@@ -1448,6 +1450,7 @@ package dev.atsushieno.ktmidi {
     method @NonNull public dev.atsushieno.ktmidi.Ump endpointInfoNotification(byte umpVersionMajor, byte umpVersionMinor, boolean isStaticFunctionBlock, byte functionBlockCount, boolean midi2Capable, boolean midi1Capable, boolean supportsRxJR, boolean supportsTxJR);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> endpointNameNotification(@NonNull String name);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> endpointNameNotification(@NonNull byte[] name);
+    method @NonNull public dev.atsushieno.ktmidi.Ump flexDataCompleteBinary(byte group, byte address, byte channel, byte statusByte, int int2, optional int int3, optional int int4);
     method public void flexDataProcess(byte group, byte address, byte channel, byte statusBank, byte status, @NonNull byte[] text, optional @Nullable Object context, optional @NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.Ump,java.lang.Object,kotlin.Unit> sendUMP128);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> flexDataText(byte group, byte address, byte channel, byte statusBank, byte status, @NonNull String text);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> flexDataText(byte group, byte address, byte channel, byte statusBank, byte status, @NonNull byte[] text);

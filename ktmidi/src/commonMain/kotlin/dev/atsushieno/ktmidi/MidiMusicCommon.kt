@@ -14,6 +14,8 @@ data class Timed<T>(val duration: Dc, val value: T)
 
 internal abstract class DeltaTimeComputer<T> {
 
+    // Note that this does not mention any "unit".
+    // Therefore, in UMP Delta Clockstamps and JR Timestamps must be used *exclusively*.
     abstract fun messageToDeltaTime(message: T) : Int
 
     @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")

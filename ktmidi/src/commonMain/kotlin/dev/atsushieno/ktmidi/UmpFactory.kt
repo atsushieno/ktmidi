@@ -64,7 +64,7 @@ object UmpFactory {
     fun jrTimestamps(senderClockTimestampTicks: Long): Sequence<Int> = sequence {
         for (i in 0 until senderClockTimestampTicks / 0x10000)
             yield(jrTimestamp(0xFFFF))
-        yield(jrTimestamp((senderClockTimestampTicks % 0x10000).toInt()))
+        yield(jrTimestamp((senderClockTimestampTicks % 0xFFFF).toInt()))
     }
     @Deprecated("group has vanished in UMP June 2023 updates", replaceWith = ReplaceWith("jrTimestamps(senderClockTimestampTicks)"))
     fun jrTimestamps(group: Int, senderClockTimestampTicks: Long): Sequence<Int> = jrTimestamps(senderClockTimestampTicks)

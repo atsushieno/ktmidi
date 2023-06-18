@@ -4,7 +4,10 @@ class Midi2Track(val messages: MutableList<Ump> = mutableListOf())
 
 class Midi2Music {
     internal class UmpDeltaTimeComputer: DeltaTimeComputer<Ump>() {
-        override fun messageToDeltaTime(message: Ump) = if (message.isJRTimestamp) message.jrTimestamp else 0
+        // Note that this does not mention any "unit".
+        // Therefore, in UMP Delta Clockstamps and JR Timestamps must be used *exclusively*.
+        override fun messageToDeltaTime(message: Ump) =
+            if (message.isDeltaClockstamp) message.deltaClockstamp else if (message.isJRTimestamp) message.jrTimestamp else 0
 
         @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
         override fun isMetaEventMessage(message: Ump, metaType: Int) = Midi2Music.isMetaEventMessage(message, metaType)
@@ -72,8 +75,13 @@ class Midi2Music {
     // and the actual "ticks" in JR Timestamp messages are delta time (i.e. fake), not 1/31250 msec.
     var deltaTimeSpec: Int = 0
 
-    // There is no "format" specifier in this format but we leave it so far.
-    var format: Byte = 0
+    @Deprecated("It had never been useful. Now it only reflects isSingleTrack property value. No effect on setter.")
+    var format: Int
+        get() = if (isSingleTrack) 0 else 1
+        set(_) {}
+
+    val isSingleTrack: Boolean
+        get() = tracks.size == 1
 
     fun addTrack(track: Midi2Track) {
         this.tracks.add(track)
@@ -92,25 +100,21 @@ class Midi2Music {
     }
 
     fun getTotalTicks(): Int {
-        if (format != 0.toByte())
+        if (!isSingleTrack)
             return mergeTracks().getTotalTicks()
-        return tracks[0].messages.sumOf { m: Ump -> m.jrTimestamp }
+        return tracks[0].messages.filter { it.isDeltaClockstamp}.sumOf { it.deltaClockstamp }
     }
 
     fun getTotalPlayTimeMilliseconds(): Int {
-        if (format != 0.toByte())
+        if (!isSingleTrack)
             return mergeTracks().getTotalPlayTimeMilliseconds()
         return getTotalPlayTimeMilliseconds(tracks[0].messages, deltaTimeSpec)
     }
 
     fun getTimePositionInMillisecondsForTick(ticks: Int): Int {
-        if (format != 0.toByte())
+        if (!isSingleTrack)
             return mergeTracks().getTimePositionInMillisecondsForTick(ticks)
         return getPlayTimeMillisecondsAtTick(tracks[0].messages, ticks, deltaTimeSpec)
-    }
-
-    init {
-        this.format = 1
     }
 }
 
@@ -180,7 +184,7 @@ internal class Midi2TrackMerger(private var source: Midi2Music) {
             if (i + 1 < l.size) {
                 val delta = l[i + 1].first - l[i].first
                 if (delta > 0)
-                    l3.addAll(UmpFactory.jrTimestamps(delta.toLong()).map { v -> Ump(v) })
+                    l3.add(Ump(UmpFactory.deltaClockstamp(delta)))
                 timeAbs += delta
             }
             l3.add(l[i].second)
@@ -188,7 +192,6 @@ internal class Midi2TrackMerger(private var source: Midi2Music) {
         }
 
         val m = Midi2Music()
-        m.format = 0
         m.deltaTimeSpec = source.deltaTimeSpec
         m.tracks.add(Midi2Track(l3))
         return m
@@ -215,7 +218,7 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
         fun addMessage(timestampInsertAt: Int, e: Ump) {
             if (currentTimestamp != timestampInsertAt) {
                 val delta = timestampInsertAt - currentTimestamp
-                track.messages.addAll(UmpFactory.jrTimestamps(delta.toLong()).map { i -> Ump(i)})
+                track.messages.add(Ump(UmpFactory.deltaClockstamp(delta)))
             }
             track.messages.add(e)
             currentTimestamp = timestampInsertAt
@@ -261,13 +264,14 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
     }
 }
 
+@Deprecated("We do not emit JR Timestamp for deltaTime anymore, so it is unnecessary")
 fun Midi2Music.convertDeltaTimesToJRTimestamps() : Midi2Music =
     if (deltaTimeSpec > 0) Midi2DeltaTimeConverter(this).deltaTimetoJRTimestamp() else this
 
 internal class Midi2DeltaTimeConverter internal constructor(private val source: Midi2Music) {
+    @Deprecated("We do not emit JR Timestamp for deltaTime anymore, so it is unnecessary")
     fun deltaTimetoJRTimestamp() : Midi2Music {
         val result = Midi2Music().apply {
-            format = source.format
             deltaTimeSpec = 0
         }
 

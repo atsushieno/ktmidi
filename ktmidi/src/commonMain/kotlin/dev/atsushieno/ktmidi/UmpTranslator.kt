@@ -79,6 +79,10 @@ object UmpTranslator {
         val sysex7 = mutableListOf<Byte>()
         var deltaTime: Int = 0
         src.forEach {
+            if (it.isDeltaClockstamp) {
+                deltaTime += it.deltaClockstamp
+                return@forEach
+            }
             if (it.isJRTimestamp) {
                 if (!context.skipDeltaTime)
                     // FIXME: this should take deltaTimeMasterClock (SMPTE MIDI Time Code) into account.
@@ -248,6 +252,11 @@ object UmpTranslator {
 
             MidiMessageType.SYSEX8_MDS -> {
                 // By the UMP specification they cannot be translated in Default Translation
+                midiEventSize = 0
+            }
+
+            else -> {
+                // The sepcification does not state anything else, including Flex Data and UMP Stream messages -> ignore
                 midiEventSize = 0
             }
         }

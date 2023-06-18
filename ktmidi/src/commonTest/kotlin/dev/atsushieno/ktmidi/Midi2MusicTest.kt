@@ -15,14 +15,19 @@ class Midi2MusicTest {
         music.addTrack(Midi2Track())
         music.tracks[0].messages.addAll(listOf(
             Ump(UmpFactory.midi2NoteOn(0, 1, 0x36, 0, 100 shl 8, 0)),
-            Ump(UmpFactory.jrTimestamp(31250)),
+            Ump(UmpFactory.deltaClockstamp(31250)),
             Ump(UmpFactory.midi2NoteOff(0, 1, 0x36, 0, 100 shl 8, 0))
         ))
         val store = mutableListOf<Byte>()
         music.write(store)
         val music2 = Midi2Music().apply { read(store) }
         assertEquals(music.tracks.size, music2.tracks.size, "tracks")
-        assertEquals(music.tracks[0].messages.size, music2.tracks[0].messages.size, "messages")
+        val track = music2.tracks[0]
+        assertEquals(track.messages.size, music2.tracks[0].messages.size, "messages")
+        assertEquals(MidiMessageType.MIDI2, track.messages[0].messageType, "[0].messageType")
+        assertEquals(MidiMessageType.UTILITY, track.messages[1].messageType, "[1].messageType")
+        assertEquals(true, track.messages[1].isDeltaClockstamp, "[1] is DC")
+        assertEquals(MidiMessageType.MIDI2, track.messages[2].messageType, "[2].messageType")
     }
 
     @Test
