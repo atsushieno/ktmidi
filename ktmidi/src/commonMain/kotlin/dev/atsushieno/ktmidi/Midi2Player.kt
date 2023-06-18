@@ -13,8 +13,13 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
     override fun getNextMessage() = messages[eventIdx]
 
     override fun getContextDeltaTimeInSeconds(m: Ump): Double {
-        return if (deltaTimeSpec > 0)
-            if (m.isJRTimestamp) currentTempo.toDouble() / 1_000_000 * m.jrTimestamp / deltaTimeSpec / tempoRatio else 0.0
+        return if (deltaTimeSpec > 0) {
+            if (m.isDeltaClockstamp)
+                currentTempo.toDouble() / 1_000_000 * m.deltaClockstamp / deltaTimeSpec / tempoRatio
+            else if (m.isJRTimestamp)
+                currentTempo.toDouble() / 1_000_000 * m.jrTimestamp / deltaTimeSpec / tempoRatio
+            else 0.0
+        }
         else
             if (m.isJRTimestamp) m.jrTimestamp * 1.0 / 31250 else 0.0
     }
@@ -233,7 +238,12 @@ internal class Midi2SimpleSeekProcessor(ticks: Int) : SeekProcessor<Ump> {
     private var current: Int = 0
 
     override fun filterMessage(message: Ump): SeekFilterResult {
-        current += if(message.isJRTimestamp) message.jrTimestamp else 0
+        current +=
+            if(message.isDeltaClockstamp)
+                message.deltaClockstamp
+            else if(message.isJRTimestamp)
+                message.jrTimestamp
+            else 0
         if (current >= seekTo)
             return SeekFilterResult.PASS_AND_TERMINATE
         when (message.statusCode) {

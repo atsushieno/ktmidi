@@ -125,11 +125,19 @@ internal class Midi2TrackMerger(private var source: Midi2Music) {
     internal fun getMergedMessages(): Midi2Music {
         var l = mutableListOf<Pair<Int,Ump>>()
 
+        var jrTimestampShowedUp = false
+
         for (track in source.tracks) {
             var absTime = 0
             for (mev in track.messages) {
-                if (mev.isJRTimestamp)
+                if (mev.isDeltaClockstamp) {
+                    if (jrTimestampShowedUp)
+                        throw UnsupportedOperationException("The source contains both JR Timestamp and Delta Clockstamp, which is not supported.")
+                    absTime += mev.deltaClockstamp
+                } else if (mev.isJRTimestamp) {
                     absTime += mev.jrTimestamp
+                    jrTimestampShowedUp = true
+                }
                 else
                     l.add(Pair(absTime, mev))
             }
@@ -183,8 +191,13 @@ internal class Midi2TrackMerger(private var source: Midi2Music) {
         while (i < l.size) {
             if (i + 1 < l.size) {
                 val delta = l[i + 1].first - l[i].first
-                if (delta > 0)
-                    l3.add(Ump(UmpFactory.deltaClockstamp(delta)))
+                if (delta > 0) {
+                    if (jrTimestampShowedUp) {
+                        l3.addAll(UmpFactory.jrTimestamps(delta.toLong()).map { Ump(it) })
+                    } else {
+                        l3.add(Ump(UmpFactory.deltaClockstamp(delta)))
+                    }
+                }
                 timeAbs += delta
             }
             l3.add(l[i].second)
@@ -245,9 +258,16 @@ open class Midi2TrackSplitter(private val source: MutableList<Ump>) {
 
     fun split(): Midi2Music {
         var totalDeltaTime = 0
+        var jrTimestampShowedUp = false
         for (e in source) {
-            if (e.isJRTimestamp)
+            if (e.isDeltaClockstamp) {
+                if (jrTimestampShowedUp)
+                    throw UnsupportedOperationException("The source contains both JR Timestamp and Delta Clockstamp, which is not supported.")
+                totalDeltaTime += e.deltaClockstamp
+            } else if (e.isJRTimestamp) {
+                jrTimestampShowedUp = true
                 totalDeltaTime += e.jrTimestamp
+            }
             val id: Int = getTrackId(e)
             getTrack(id).addMessage(totalDeltaTime, e)
         }

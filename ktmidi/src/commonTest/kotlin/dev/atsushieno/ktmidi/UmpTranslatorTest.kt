@@ -8,14 +8,12 @@ class UmpTranslatorTest {
     @Test
     fun testConvertSingleUmpToMidi1 ()
     {
-        var ump = Ump(0L)
         val dst = MutableList<Byte>(16) { 0 }
-        var size = 0
 
         // MIDI1 Channel Voice Messages
 
-        ump = Ump(UmpFactory.midi1NoteOff(0, 1, 40, 0x70))
-        size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
+        var ump = Ump(UmpFactory.midi1NoteOff(0, 1, 40, 0x70))
+        var size = UmpTranslator.translateSingleUmpToMidi1Bytes(dst, ump)
         assertEquals(3,  size)
         assertContentEquals(listOf(0x81, 40, 0x70).map { it.toByte() }, dst.take(size))
 
@@ -92,7 +90,20 @@ class UmpTranslatorTest {
     fun testConvertUmpToMidi1Bytes1() {
         val umps = listOf(
             Ump(0x40904000E0000000),
-            Ump(0x00201000),
+            Ump(0x00401000),
+            Ump(0x4080400000000000),
+        )
+        val dst = MutableList<Byte>(9) { 0 }
+        assertEquals(UmpTranslationResult.OK, UmpTranslator.translateUmpToMidi1Bytes(dst, umps.asSequence()))
+        val expected = listOf(0, 0x90, 0x40, 0x70, 0x80, 0x20, 0x80, 0x40, 0).map { it.toByte() }
+        assertContentEquals(expected, dst)
+    }
+
+    @Test
+    fun testConvertUmpToMidi1Bytes2() {
+        val umps = listOf(
+            Ump(0x40904000E0000000),
+            Ump(0x00201000), // JR Timestamps instead of Delta Clockstamp - still works (we don't have to support it though)
             Ump(0x4080400000000000),
         )
         val dst = MutableList<Byte>(9) { 0 }
