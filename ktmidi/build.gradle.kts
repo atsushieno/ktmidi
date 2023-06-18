@@ -31,7 +31,7 @@ kotlin {
         publishLibraryVariantsGroupedByFlavor = true
         publishLibraryVariants("debug", "release")
     }
-    js(BOTH) {
+    js(IR) {
         browser {
             testTask {
                 useKarma {
