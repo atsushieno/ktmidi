@@ -31,7 +31,7 @@ internal class Midi2MusicWriter(val stream: MutableList<Byte>) {
             val trackStartOffset = ret.size
             for (message in track.messages) {
                 when (message.messageType) {
-                    5 -> ret.addAll(sequenceOf(message.int1, message.int2, message.int3, message.int4))
+                    5, 0xD, 0xF -> ret.addAll(sequenceOf(message.int1, message.int2, message.int3, message.int4))
                     3, 4 -> ret.addAll(sequenceOf(message.int1, message.int2))
                     else -> ret.add(message.int1)
                 }
@@ -60,9 +60,9 @@ internal class UmpStreamReader(val reader: Reader, val byteOrder: ByteOrder) {
 
     fun readUmp(): Ump {
         val int1 = readInt32()
-        return when (int1 shr 28) {
-            5 -> Ump(int1, readInt32(), readInt32(), readInt32())
-            3, 4 -> Ump(int1, readInt32())
+        return when ((int1.toUInt()) shr 28) {
+            5u, 0xDu, 0xFu -> Ump(int1, readInt32(), readInt32(), readInt32())
+            3u, 4u -> Ump(int1, readInt32())
             else -> Ump(int1)
         }
     }

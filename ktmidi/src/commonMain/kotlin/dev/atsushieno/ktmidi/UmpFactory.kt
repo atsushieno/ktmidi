@@ -806,26 +806,26 @@ object UmpFactory {
         return ret
     }
 
-    private fun binaryFlexData(group: Byte, address: Byte, channel: Byte, statusByte: Byte, int2: Int, int3: Int = 0, int4: Int = 0): Ump {
+    fun flexDataCompleteBinary(group: Byte, address: Byte, channel: Byte, statusByte: Byte, int2: Int, int3: Int = 0, int4: Int = 0): Ump {
         val int1 = (MidiMessageType.FLEX_DATA shl 28) + (group shl 24) + (address shl 20) + (channel shl 16) + statusByte
         return Ump(int1, int2, int3, int4)
     }
 
     fun tempo(group: Byte, channel: Byte, numberOf10NanosecondsPerQuarterNote: Int) =
-        binaryFlexData(group, 1, channel, 0, numberOf10NanosecondsPerQuarterNote)
+        flexDataCompleteBinary(group, 1, channel, 0, numberOf10NanosecondsPerQuarterNote)
 
     fun timeSignatureDirect(group: Byte, channel: Byte, numerator: UByte, rawDenominator: UByte, numberOf32Notes: Byte) =
-        binaryFlexData(group, 1, channel, 1, (numerator.toInt() shl 24) + (rawDenominator.toInt() shl 16) + (numberOf32Notes shl 8))
+        flexDataCompleteBinary(group, 1, channel, 1, (numerator.toInt() shl 24) + (rawDenominator.toInt() shl 16) + (numberOf32Notes shl 8))
 
     fun metronome(group: Byte, channel: Byte, numClocksPerPrimeryClick: Byte, barAccent1: Byte, barAccent2: Byte, barAccent3: Byte, numSubdivisionClick1: Byte, numSubdivisionClick2: Byte) =
-        binaryFlexData(group, 1, channel, 2,
+        flexDataCompleteBinary(group, 1, channel, 2,
             (numClocksPerPrimeryClick shl 24) + (barAccent1 shl 16) + (barAccent2 shl 8) + barAccent3,
             (numSubdivisionClick1 shl 24) + (numSubdivisionClick2 shl 16))
 
     private fun sharpOrFlatsToInt(v: Byte) = if (v < 0) v + 0x10 else v.toInt()
 
     fun keySignature(group: Byte, address: Byte, channel: Byte, sharpsOrFlats: Byte, tonicNote: Byte) =
-        binaryFlexData(group, address, channel, 5,
+        flexDataCompleteBinary(group, address, channel, 5,
             (sharpOrFlatsToInt(sharpsOrFlats) shl 28) + (tonicNote shl 24))
 
     // Those "alteration" arguments are set to UInt as it will involve additions
@@ -836,7 +836,7 @@ object UmpFactory {
                   bassAlter1: UInt,
                   bassAlter2: UInt
                   ) =
-        binaryFlexData(group, address, channel, 6,
+        flexDataCompleteBinary(group, address, channel, 6,
             (sharpOrFlatsToInt(tonicSharpsFlats) shl 28) + (chordTonic shl 24) + (chordType shl 16) + (alter1 shl 8).toInt() + alter2.toInt(),
             ((alter3 shl 24) + (alter4 shl 16)).toInt(),
             (sharpOrFlatsToInt(bassSharpsFlats) shl 28) + (bassNote shl 24) + (bassChordType shl 16) + (bassAlter1 shl 8).toInt() + bassAlter2.toInt())
