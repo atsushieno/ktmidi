@@ -148,22 +148,222 @@ package dev.atsushieno.ktmidi {
     field public static final int UNKNOWN = 0; // 0x0
   }
 
-  public final class GeneralMidi {
-    ctor public GeneralMidi();
-    field @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi.Companion Companion;
+  @Deprecated public final class GeneralMidi {
+    ctor @Deprecated public GeneralMidi();
+    field @Deprecated @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi.Companion Companion;
   }
 
-  public static final class GeneralMidi.Companion {
-    method @NonNull public String[] getDRUM_KITS_GM2();
-    method @NonNull public String[] getINSTRUMENT_CATEGORIES();
-    method @NonNull public String[] getINSTRUMENT_NAMES();
+  @Deprecated public static final class GeneralMidi.Companion {
+    method @Deprecated @NonNull public String[] getDRUM_KITS_GM2();
+    method @Deprecated @NonNull public String[] getINSTRUMENT_CATEGORIES();
+    method @Deprecated @NonNull public String[] getINSTRUMENT_NAMES();
     property @NonNull public final String[] DRUM_KITS_GM2;
     property @NonNull public final String[] INSTRUMENT_CATEGORIES;
     property @NonNull public final String[] INSTRUMENT_NAMES;
   }
 
-  public static final class GeneralMidi.Companion.Instruments {
-    ctor public GeneralMidi.Companion.Instruments();
+  @Deprecated public static final class GeneralMidi.Companion.Instruments {
+    ctor @Deprecated public GeneralMidi.Companion.Instruments();
+    field @Deprecated public static final int ACCORDION = 21; // 0x15
+    field @Deprecated public static final int ACOUSTIC_BASS = 32; // 0x20
+    field @Deprecated public static final int ACOUSTIC_GRAND_PIANO = 0; // 0x0
+    field @Deprecated public static final int ACOUSTIC_GUITAR_NYLON = 24; // 0x18
+    field @Deprecated public static final int ACOUSTIC_GUITAR_STEEL = 25; // 0x19
+    field @Deprecated public static final int AGOGO = 113; // 0x71
+    field @Deprecated public static final int ALTO_SAX = 65; // 0x41
+    field @Deprecated public static final int APPLAUSE = 126; // 0x7e
+    field @Deprecated public static final int BAGPIPE = 109; // 0x6d
+    field @Deprecated public static final int BANJO = 105; // 0x69
+    field @Deprecated public static final int BARITONE_SAX = 67; // 0x43
+    field @Deprecated public static final int BASSOON = 70; // 0x46
+    field @Deprecated public static final int BIRD_TWEET = 123; // 0x7b
+    field @Deprecated public static final int BLOWN_BOTTLE = 76; // 0x4c
+    field @Deprecated public static final int BRASS_SECTION = 61; // 0x3d
+    field @Deprecated public static final int BREATH_NOISE = 121; // 0x79
+    field @Deprecated public static final int BRIGHT_ACOUSTIC_PIANO = 1; // 0x1
+    field @Deprecated public static final int CELESTA = 8; // 0x8
+    field @Deprecated public static final int CELLO = 42; // 0x2a
+    field @Deprecated public static final int CHOIR_AAHS = 52; // 0x34
+    field @Deprecated public static final int CHURCH_ORGAN = 29; // 0x1d
+    field @Deprecated public static final int CLARINET = 71; // 0x47
+    field @Deprecated public static final int CLAVI = 7; // 0x7
+    field @Deprecated public static final int CONTRABASS = 43; // 0x2b
+    field @Deprecated @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi.Companion.Instruments.Companion Companion;
+    field @Deprecated public static final int DISTORTION_GUITAR = 30; // 0x1e
+    field @Deprecated public static final int DRAWBAR_ORGAN = 16; // 0x10
+    field @Deprecated public static final int DULCIMER = 15; // 0xf
+    field @Deprecated public static final int ELECTRIC_BASS_FINGER = 33; // 0x21
+    field @Deprecated public static final int ELECTRIC_BASS_PICK = 34; // 0x22
+    field @Deprecated public static final int ELECTRIC_GRAND_PIANO = 2; // 0x2
+    field @Deprecated public static final int ELECTRIC_GUITAR_CLEAN = 27; // 0x1b
+    field @Deprecated public static final int ELECTRIC_GUITAR_JAZZ = 26; // 0x1a
+    field @Deprecated public static final int ELECTRIC_GUITAR_MUTED = 28; // 0x1c
+    field @Deprecated public static final int ELECTRIC_PIANO_1 = 4; // 0x4
+    field @Deprecated public static final int ELECTRIC_PIANO_2 = 5; // 0x5
+    field @Deprecated public static final int ENGLISH_HORN = 69; // 0x45
+    field @Deprecated public static final int FIDDLE = 110; // 0x6e
+    field @Deprecated public static final int FLUTE = 73; // 0x49
+    field @Deprecated public static final int FRENCH_HORN = 60; // 0x3c
+    field @Deprecated public static final int FRETLESS_BASS = 35; // 0x23
+    field @Deprecated public static final int FX_ATMOSPHERE = 99; // 0x63
+    field @Deprecated public static final int FX_BRIGHTNESS = 100; // 0x64
+    field @Deprecated public static final int FX_CRYSTAL = 98; // 0x62
+    field @Deprecated public static final int FX_ECHOES = 102; // 0x66
+    field @Deprecated public static final int FX_GOBLINS = 101; // 0x65
+    field @Deprecated public static final int FX_RAIN = 96; // 0x60
+    field @Deprecated public static final int FX_SCIFI = 103; // 0x67
+    field @Deprecated public static final int FX_SOUNDTRACK = 97; // 0x61
+    field @Deprecated public static final int GLOCKENSPIEL = 9; // 0x9
+    field @Deprecated public static final int GUITARHARMONICS = 31; // 0x1f
+    field @Deprecated public static final int GUITAR_FRET_NOISE = 120; // 0x78
+    field @Deprecated public static final int GUNSHOT = 127; // 0x7f
+    field @Deprecated public static final int HARMONICA = 22; // 0x16
+    field @Deprecated public static final int HARPSICHORD = 6; // 0x6
+    field @Deprecated public static final int HELICOPTER = 125; // 0x7d
+    field @Deprecated public static final int HONKYTONK_PIANO = 3; // 0x3
+    field @Deprecated public static final int KALIMBA = 108; // 0x6c
+    field @Deprecated public static final int KOTO = 107; // 0x6b
+    field @Deprecated public static final int LEAD_BASS_AND_LEAD = 87; // 0x57
+    field @Deprecated public static final int LEAD_CALLIOPE = 82; // 0x52
+    field @Deprecated public static final int LEAD_CHARANG = 84; // 0x54
+    field @Deprecated public static final int LEAD_CHIFF = 83; // 0x53
+    field @Deprecated public static final int LEAD_FIFTHS = 86; // 0x56
+    field @Deprecated public static final int LEAD_SAWTOOTH = 81; // 0x51
+    field @Deprecated public static final int LEAD_SQUARE = 80; // 0x50
+    field @Deprecated public static final int LEAD_VOICE = 85; // 0x55
+    field @Deprecated public static final int MARIMBA = 12; // 0xc
+    field @Deprecated public static final int MELODIC_TOM = 117; // 0x75
+    field @Deprecated public static final int MUSIC_BOX = 10; // 0xa
+    field @Deprecated public static final int MUTED_TRUMPET = 59; // 0x3b
+    field @Deprecated public static final int OBOE = 68; // 0x44
+    field @Deprecated public static final int OCARINA = 79; // 0x4f
+    field @Deprecated public static final int ORCHESTRAL_HARP = 46; // 0x2e
+    field @Deprecated public static final int ORCHESTRA_HIT = 55; // 0x37
+    field @Deprecated public static final int OVERDRIVEN_GUITAR = 29; // 0x1d
+    field @Deprecated public static final int PAD_BOWED = 92; // 0x5c
+    field @Deprecated public static final int PAD_CHOIR = 91; // 0x5b
+    field @Deprecated public static final int PAD_HALO = 94; // 0x5e
+    field @Deprecated public static final int PAD_METALLIC = 93; // 0x5d
+    field @Deprecated public static final int PAD_NEWAGE = 88; // 0x58
+    field @Deprecated public static final int PAD_POLYSYNTH = 90; // 0x5a
+    field @Deprecated public static final int PAD_SWEEP = 95; // 0x5f
+    field @Deprecated public static final int PAD_WARM = 89; // 0x59
+    field @Deprecated public static final int PAN_FLUTE = 75; // 0x4b
+    field @Deprecated public static final int PERCUSSIVE_ORGAN = 17; // 0x11
+    field @Deprecated public static final int PICCOLO = 72; // 0x48
+    field @Deprecated public static final int PIZZICATO_STRINGS = 45; // 0x2d
+    field @Deprecated public static final int RECORDER = 74; // 0x4a
+    field @Deprecated public static final int REED_ORGAN = 20; // 0x14
+    field @Deprecated public static final int REVERSE_CYMBAL = 119; // 0x77
+    field @Deprecated public static final int ROCK_ORGAN = 18; // 0x12
+    field @Deprecated public static final int SEASHORE = 122; // 0x7a
+    field @Deprecated public static final int SHAKUHACHI = 77; // 0x4d
+    field @Deprecated public static final int SHAMISEN = 106; // 0x6a
+    field @Deprecated public static final int SHANAI = 111; // 0x6f
+    field @Deprecated public static final int SITAR = 104; // 0x68
+    field @Deprecated public static final int SLAP_BASS_1 = 36; // 0x24
+    field @Deprecated public static final int SLAP_BASS_2 = 37; // 0x25
+    field @Deprecated public static final int SOPRANO_SAX = 64; // 0x40
+    field @Deprecated public static final int STEEL_DRUMS = 114; // 0x72
+    field @Deprecated public static final int STRING_ENSEMBLE_1 = 48; // 0x30
+    field @Deprecated public static final int STRING_ENSEMBLE_2 = 49; // 0x31
+    field @Deprecated public static final int SYNTH_BASS_1 = 38; // 0x26
+    field @Deprecated public static final int SYNTH_BASS_2 = 39; // 0x27
+    field @Deprecated public static final int SYNTH_BRASS_1 = 62; // 0x3e
+    field @Deprecated public static final int SYNTH_BRASS_2 = 63; // 0x3f
+    field @Deprecated public static final int SYNTH_DRUM = 118; // 0x76
+    field @Deprecated public static final int SYNTH_STRINGS_1 = 50; // 0x32
+    field @Deprecated public static final int SYNTH_STRINGS_2 = 51; // 0x33
+    field @Deprecated public static final int SYNTH_VOICE = 54; // 0x36
+    field @Deprecated public static final int TAIKO_DRUM = 116; // 0x74
+    field @Deprecated public static final int TANGO_ACCORDION = 23; // 0x17
+    field @Deprecated public static final int TELEPHONE_RING = 124; // 0x7c
+    field @Deprecated public static final int TENOR_SAX = 66; // 0x42
+    field @Deprecated public static final int TIMPANI = 47; // 0x2f
+    field @Deprecated public static final int TINKLE_BELL = 112; // 0x70
+    field @Deprecated public static final int TREMOLO_STRINGS = 44; // 0x2c
+    field @Deprecated public static final int TROMBONE = 57; // 0x39
+    field @Deprecated public static final int TRUMPET = 56; // 0x38
+    field @Deprecated public static final int TUBA = 58; // 0x3a
+    field @Deprecated public static final int TUBULAR_BELLS = 14; // 0xe
+    field @Deprecated public static final int VIBRAPHONE = 11; // 0xb
+    field @Deprecated public static final int VIOLA = 41; // 0x29
+    field @Deprecated public static final int VIOLIN = 40; // 0x28
+    field @Deprecated public static final int VOICE_OOHS = 53; // 0x35
+    field @Deprecated public static final int WHISTLE = 78; // 0x4e
+    field @Deprecated public static final int WOODBLOCK = 115; // 0x73
+    field @Deprecated public static final int XYLOPHONE = 13; // 0xd
+  }
+
+  @Deprecated public static final class GeneralMidi.Companion.Instruments.Companion {
+  }
+
+  @Deprecated public static final class GeneralMidi.Companion.Percussions {
+    ctor @Deprecated public GeneralMidi.Companion.Percussions();
+    field @Deprecated public static final int ACOUSTIC_BASS_DRUM = 34; // 0x22
+    field @Deprecated public static final int ACOUSTIC_SNARE = 37; // 0x25
+    field @Deprecated public static final int BASS_DRUM_1 = 35; // 0x23
+    field @Deprecated public static final int CABASA = 68; // 0x44
+    field @Deprecated public static final int CHINESE_CYMBAL = 51; // 0x33
+    field @Deprecated public static final int CLAVES = 74; // 0x4a
+    field @Deprecated public static final int CLOSED_HI_HAT = 41; // 0x29
+    field @Deprecated public static final int COWBELL = 55; // 0x37
+    field @Deprecated public static final int CRASH_CYMBAL_1 = 48; // 0x30
+    field @Deprecated public static final int CRASH_CYMBAL_2 = 56; // 0x38
+    field @Deprecated @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi.Companion.Percussions.Companion Companion;
+    field @Deprecated public static final int ELECTRIC_SNARE = 39; // 0x27
+    field @Deprecated public static final int HAND_CLAP = 38; // 0x26
+    field @Deprecated public static final int HIGH_AGOGO = 66; // 0x42
+    field @Deprecated public static final int HIGH_FLOOR_TOM = 42; // 0x2a
+    field @Deprecated public static final int HIGH_TIMBALE = 64; // 0x40
+    field @Deprecated public static final int HIGH_TOM = 49; // 0x31
+    field @Deprecated public static final int HI_BONGO = 59; // 0x3b
+    field @Deprecated public static final int HI_MID_TOM = 47; // 0x2f
+    field @Deprecated public static final int HI_WOOD_BLOCK = 75; // 0x4b
+    field @Deprecated public static final int LONG_GUIRO = 73; // 0x49
+    field @Deprecated public static final int LONG_WHISTLE = 71; // 0x47
+    field @Deprecated public static final int LOW_AGOGO = 67; // 0x43
+    field @Deprecated public static final int LOW_BONGO = 60; // 0x3c
+    field @Deprecated public static final int LOW_CONGA = 63; // 0x3f
+    field @Deprecated public static final int LOW_FLOOR_TOM = 40; // 0x28
+    field @Deprecated public static final int LOW_MID_TOM = 46; // 0x2e
+    field @Deprecated public static final int LOW_TIMBALE = 65; // 0x41
+    field @Deprecated public static final int LOW_TOM = 44; // 0x2c
+    field @Deprecated public static final int LOW_WOOD_BLOCK = 76; // 0x4c
+    field @Deprecated public static final int MARACAS = 69; // 0x45
+    field @Deprecated public static final int MUTE_CUICA = 77; // 0x4d
+    field @Deprecated public static final int MUTE_HI_CONGA = 61; // 0x3d
+    field @Deprecated public static final int MUTE_TRIANGLE = 79; // 0x4f
+    field @Deprecated public static final int OPEN_CUICA = 78; // 0x4e
+    field @Deprecated public static final int OPEN_HI_CONGA = 62; // 0x3e
+    field @Deprecated public static final int OPEN_HI_HAT = 45; // 0x2d
+    field @Deprecated public static final int OPEN_TRIANGLE = 80; // 0x50
+    field @Deprecated public static final int PEDAL_HI_HAT = 43; // 0x2b
+    field @Deprecated public static final int RIDE_BELL = 52; // 0x34
+    field @Deprecated public static final int RIDE_CYMBAL_1 = 50; // 0x32
+    field @Deprecated public static final int RIDE_CYMBAL_2 = 58; // 0x3a
+    field @Deprecated public static final int SHORT_GUIRO = 72; // 0x48
+    field @Deprecated public static final int SHORT_WHISTLE = 70; // 0x46
+    field @Deprecated public static final int SIDE_STICK = 36; // 0x24
+    field @Deprecated public static final int SPLASH_CYMBAL = 54; // 0x36
+    field @Deprecated public static final int TAMBOURINE = 53; // 0x35
+    field @Deprecated public static final int VIBRASLAP = 57; // 0x39
+  }
+
+  @Deprecated public static final class GeneralMidi.Companion.Percussions.Companion {
+  }
+
+  public final class GeneralMidi2 {
+    method @NonNull public String[] getCategories();
+    method @NonNull public String[] getDrumkits();
+    method @NonNull public String[] getInstrumentNames();
+    property @NonNull public final String[] categories;
+    property @NonNull public final String[] drumkits;
+    property @NonNull public final String[] instrumentNames;
+    field @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi2 INSTANCE;
+  }
+
+  public static final class GeneralMidi2.Instruments {
     field public static final int ACCORDION = 21; // 0x15
     field public static final int ACOUSTIC_BASS = 32; // 0x20
     field public static final int ACOUSTIC_GRAND_PIANO = 0; // 0x0
@@ -188,7 +388,6 @@ package dev.atsushieno.ktmidi {
     field public static final int CLARINET = 71; // 0x47
     field public static final int CLAVI = 7; // 0x7
     field public static final int CONTRABASS = 43; // 0x2b
-    field @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi.Companion.Instruments.Companion Companion;
     field public static final int DISTORTION_GUITAR = 30; // 0x1e
     field public static final int DRAWBAR_ORGAN = 16; // 0x10
     field public static final int DULCIMER = 15; // 0xf
@@ -221,6 +420,7 @@ package dev.atsushieno.ktmidi {
     field public static final int HARPSICHORD = 6; // 0x6
     field public static final int HELICOPTER = 125; // 0x7d
     field public static final int HONKYTONK_PIANO = 3; // 0x3
+    field @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi2.Instruments INSTANCE;
     field public static final int KALIMBA = 108; // 0x6c
     field public static final int KOTO = 107; // 0x6b
     field public static final int LEAD_BASS_AND_LEAD = 87; // 0x57
@@ -295,11 +495,7 @@ package dev.atsushieno.ktmidi {
     field public static final int XYLOPHONE = 13; // 0xd
   }
 
-  public static final class GeneralMidi.Companion.Instruments.Companion {
-  }
-
-  public static final class GeneralMidi.Companion.Percussions {
-    ctor public GeneralMidi.Companion.Percussions();
+  public static final class GeneralMidi2.Percussions {
     field public static final int ACOUSTIC_BASS_DRUM = 34; // 0x22
     field public static final int ACOUSTIC_SNARE = 37; // 0x25
     field public static final int BASS_DRUM_1 = 35; // 0x23
@@ -310,7 +506,6 @@ package dev.atsushieno.ktmidi {
     field public static final int COWBELL = 55; // 0x37
     field public static final int CRASH_CYMBAL_1 = 48; // 0x30
     field public static final int CRASH_CYMBAL_2 = 56; // 0x38
-    field @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi.Companion.Percussions.Companion Companion;
     field public static final int ELECTRIC_SNARE = 39; // 0x27
     field public static final int HAND_CLAP = 38; // 0x26
     field public static final int HIGH_AGOGO = 66; // 0x42
@@ -320,6 +515,7 @@ package dev.atsushieno.ktmidi {
     field public static final int HI_BONGO = 59; // 0x3b
     field public static final int HI_MID_TOM = 47; // 0x2f
     field public static final int HI_WOOD_BLOCK = 75; // 0x4b
+    field @NonNull public static final dev.atsushieno.ktmidi.GeneralMidi2.Percussions INSTANCE;
     field public static final int LONG_GUIRO = 73; // 0x49
     field public static final int LONG_WHISTLE = 71; // 0x47
     field public static final int LOW_AGOGO = 67; // 0x43
@@ -348,9 +544,6 @@ package dev.atsushieno.ktmidi {
     field public static final int SPLASH_CYMBAL = 54; // 0x36
     field public static final int TAMBOURINE = 53; // 0x35
     field public static final int VIBRASLAP = 57; // 0x39
-  }
-
-  public static final class GeneralMidi.Companion.Percussions.Companion {
   }
 
   public final class JvmMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
@@ -648,7 +841,8 @@ package dev.atsushieno.ktmidi {
   }
 
   public final class Midi2ReaderWriterKt {
-    method public static void read(@NonNull dev.atsushieno.ktmidi.Midi2Music, @NonNull java.util.List<java.lang.Byte> stream);
+    method @Deprecated public static void read(@NonNull dev.atsushieno.ktmidi.Midi2Music, @NonNull java.util.List<java.lang.Byte> stream);
+    method public static void read(@NonNull dev.atsushieno.ktmidi.Midi2Music, @NonNull java.util.List<java.lang.Byte> stream, optional boolean removeEmptyDeltaClockstamps);
     method public static void write(@NonNull dev.atsushieno.ktmidi.Midi2Music, @NonNull java.util.List<java.lang.Byte> stream);
   }
 
@@ -1676,6 +1870,7 @@ package dev.atsushieno.ktmidi {
     method public static int getMidi2RpnMsb(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2Velocity16(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getSizeInBytes(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static int getSizeInInts(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getStatusByte(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getStatusCode(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getStreamConfigProtocol(@NonNull dev.atsushieno.ktmidi.Ump);
@@ -1702,6 +1897,7 @@ package dev.atsushieno.ktmidi {
     method public static boolean isTempo(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isTimeSignature(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isUmpStream(@NonNull dev.atsushieno.ktmidi.Ump);
+    method @NonNull public static java.util.List<java.lang.Integer> toInts(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static void toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull byte[] bytes, int offset, @NonNull io.ktor.utils.io.core.ByteOrder byteOrder);
     method public static void toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull byte[] bytes, int offset);
     method @NonNull public static byte[] toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull io.ktor.utils.io.core.ByteOrder byteOrder);
@@ -1818,6 +2014,7 @@ package dev.atsushieno.ktmidi {
     method public void testConvertMidi1ToUmpValidRPN();
     method public void testConvertSingleUmpToMidi1();
     method public void testConvertUmpToMidi1Bytes1();
+    method public void testConvertUmpToMidi1Bytes2();
   }
 
   public class VirtualMidiPlayerTimer implements dev.atsushieno.ktmidi.MidiPlayerTimer {
@@ -1831,6 +2028,14 @@ package dev.atsushieno.ktmidi {
     method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit> p);
     property public final double totalProceededSeconds;
     property public final double totalWaitedSeconds;
+  }
+
+  public final class WellKnownNames {
+    method @NonNull public java.util.Map<java.lang.Integer,java.lang.String> getCcFullNames();
+    method @NonNull public java.util.Map<java.lang.Integer,java.lang.String> getCcNames();
+    property @NonNull public final java.util.Map<java.lang.Integer,java.lang.String> ccFullNames;
+    property @NonNull public final java.util.Map<java.lang.Integer,java.lang.String> ccNames;
+    field @NonNull public static final dev.atsushieno.ktmidi.WellKnownNames INSTANCE;
   }
 
 }
