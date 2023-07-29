@@ -5,8 +5,8 @@ package dev.atsushieno.ktmidi {
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
     method @NonNull public String getName();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
-    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
-    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput>);
+    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput>);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
     property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
@@ -88,6 +88,8 @@ package dev.atsushieno.ktmidi {
   }
 
   public enum DteTarget {
+    method @NonNull public static dev.atsushieno.ktmidi.DteTarget valueOf(@NonNull String name) throws java.lang.IllegalArgumentException;
+    method @NonNull public static dev.atsushieno.ktmidi.DteTarget[] values();
     enum_constant public static final dev.atsushieno.ktmidi.DteTarget NRPN;
     enum_constant public static final dev.atsushieno.ktmidi.DteTarget RPN;
   }
@@ -97,8 +99,8 @@ package dev.atsushieno.ktmidi {
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
     method @NonNull public String getName();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
-    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
-    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput>);
+    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput>);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
     property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
@@ -551,8 +553,8 @@ package dev.atsushieno.ktmidi {
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
     method @NonNull public String getName();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
-    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
-    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput>);
+    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput>);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
     property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
@@ -566,8 +568,8 @@ package dev.atsushieno.ktmidi {
     method @NonNull public String getName();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
     method public boolean getUseSysex();
-    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
-    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
+    method @Nullable public suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput>);
+    method @Nullable public suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput>);
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
     property @NonNull public String name;
     property @NonNull public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
@@ -576,7 +578,7 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class JzzMidiAccess.Companion {
-    method @Nullable public suspend Object create(boolean useSysex, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.JzzMidiAccess> p);
+    method @Nullable public suspend Object create(boolean useSysex, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.JzzMidiAccess>);
   }
 
   public final class JzzMidiAccessKt {
@@ -628,7 +630,7 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class Midi1Player.Companion {
-    method @Nullable public suspend Object create(@NonNull dev.atsushieno.ktmidi.MidiMusic music, @NonNull dev.atsushieno.ktmidi.MidiAccess access, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player> p);
+    method @Nullable public suspend Object create(@NonNull dev.atsushieno.ktmidi.MidiMusic music, @NonNull dev.atsushieno.ktmidi.MidiAccess access, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player>);
   }
 
   public final class Midi1PlayerTest {
@@ -658,12 +660,12 @@ package dev.atsushieno.ktmidi {
     method public int getTempo();
     method public boolean getUseSysex8();
     method public boolean isMidi1Smf();
-    method public void setBankState(int bankState);
-    method public void setDteState(int dteState);
-    method public void setMidi1Pos(int midi1Pos);
-    method public void setNrpnState(int nrpnState);
-    method public void setRpnState(int rpnState);
-    method public void setTempo(int tempo);
+    method public void setBankState(int);
+    method public void setDteState(int);
+    method public void setMidi1Pos(int);
+    method public void setNrpnState(int);
+    method public void setRpnState(int);
+    method public void setTempo(int);
     property public final boolean allowReorderedDTE;
     property public final int bankState;
     property public final int dteState;
@@ -720,7 +722,7 @@ package dev.atsushieno.ktmidi {
     method @NonNull public Iterable<dev.atsushieno.ktmidi.Midi2MachineChannel> getUsedChannels();
     method public void processEvent(@NonNull dev.atsushieno.ktmidi.Ump evt);
     method public void removeListener(@NonNull dev.atsushieno.ktmidi.Midi2Machine.Listener listener);
-    method public void setDiagnosticsHandler(@NonNull kotlin.jvm.functions.Function2<? super java.lang.String,? super dev.atsushieno.ktmidi.Ump,kotlin.Unit> diagnosticsHandler);
+    method public void setDiagnosticsHandler(@NonNull kotlin.jvm.functions.Function2<? super java.lang.String,? super dev.atsushieno.ktmidi.Ump,kotlin.Unit>);
     property @NonNull public final kotlin.jvm.functions.Function2<java.lang.String,dev.atsushieno.ktmidi.Ump,kotlin.Unit> diagnosticsHandler;
     property @NonNull public final Iterable<dev.atsushieno.ktmidi.Midi2MachineChannel> usedChannels;
   }
@@ -748,10 +750,10 @@ package dev.atsushieno.ktmidi {
     method public void processMidi1Dte(byte value, boolean isMsb);
     method public void processMidi1DteDecrement();
     method public void processMidi1DteIncrement();
-    method public void setCaf(int caf);
-    method public void setDteTarget(@NonNull dev.atsushieno.ktmidi.DteTarget dteTarget);
-    method public void setPitchbend(int pitchbend);
-    method public void setProgram(byte program);
+    method public void setCaf(int);
+    method public void setDteTarget(@NonNull dev.atsushieno.ktmidi.DteTarget);
+    method public void setPitchbend(int);
+    method public void setProgram(byte);
     property public final int caf;
     property @NonNull public final kotlin.UInt[] controls;
     property @NonNull public final dev.atsushieno.ktmidi.DteTarget dteTarget;
@@ -780,8 +782,8 @@ package dev.atsushieno.ktmidi {
     method public int getTotalTicks();
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Midi2Track> getTracks();
     method public boolean isSingleTrack();
-    method public void setDeltaTimeSpec(int deltaTimeSpec);
-    method @Deprecated public void setFormat(int _);
+    method public void setDeltaTimeSpec(int);
+    method @Deprecated public void setFormat(int);
     property public final int deltaTimeSpec;
     property @Deprecated public final int format;
     property public final boolean isSingleTrack;
@@ -834,7 +836,7 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class Midi2Player.Companion {
-    method @Nullable public suspend Object create(@NonNull dev.atsushieno.ktmidi.Midi2Music music, @NonNull dev.atsushieno.ktmidi.MidiAccess access, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi2Player> p);
+    method @Nullable public suspend Object create(@NonNull dev.atsushieno.ktmidi.Midi2Music music, @NonNull dev.atsushieno.ktmidi.MidiAccess access, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi2Player>);
   }
 
   public final class Midi2PlayerKt {
@@ -865,17 +867,17 @@ package dev.atsushieno.ktmidi {
 
   public abstract class MidiAccess {
     ctor public MidiAccess();
-    method @Nullable public suspend Object createVirtualInputSender(@NonNull dev.atsushieno.ktmidi.PortCreatorContext context, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
-    method @Nullable public suspend Object createVirtualOutputReceiver(@NonNull dev.atsushieno.ktmidi.PortCreatorContext context, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
+    method @Nullable public suspend Object createVirtualInputSender(@NonNull dev.atsushieno.ktmidi.PortCreatorContext context, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput>);
+    method @Nullable public suspend Object createVirtualOutputReceiver(@NonNull dev.atsushieno.ktmidi.PortCreatorContext context, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput>);
     method public boolean getCanCreateVirtualPort();
     method public boolean getCanDetectStateChanges();
     method @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
     method @NonNull public abstract String getName();
     method @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
     method @NonNull public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> getStateChanged();
-    method @Nullable public abstract suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput> p);
-    method @Nullable public abstract suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput> p);
-    method public final void setStateChanged(@NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> stateChanged);
+    method @Nullable public abstract suspend Object openInput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput>);
+    method @Nullable public abstract suspend Object openOutput(@NonNull String portId, @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput>);
+    method public final void setStateChanged(@NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit>);
     property public boolean canCreateVirtualPort;
     property public boolean canDetectStateChanges;
     property @NonNull public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
@@ -894,9 +896,9 @@ package dev.atsushieno.ktmidi {
     method public int getLsb();
     method public int getMsb();
     method @Nullable public String getName();
-    method public void setLsb(int lsb);
-    method public void setMsb(int msb);
-    method public void setName(@Nullable String name);
+    method public void setLsb(int);
+    method public void setMsb(int);
+    method public void setName(@Nullable String);
     property public final int lsb;
     property public final int msb;
     property @Nullable public final String name;
@@ -1040,7 +1042,7 @@ package dev.atsushieno.ktmidi {
     method public byte getMsb();
     method public byte getStatusByte();
     method public int getValue();
-    method public void setValue(int value);
+    method public void setValue(int);
     property public final byte channel;
     property public final byte eventType;
     property @Nullable public final byte[] extraData;
@@ -1078,8 +1080,8 @@ package dev.atsushieno.ktmidi {
     ctor public MidiInstrumentDefinition();
     method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> getDrumMaps();
     method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> getMaps();
-    method public void setDrumMaps(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> drumMaps);
-    method public void setMaps(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> maps);
+    method public void setDrumMaps(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap>);
+    method public void setMaps(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap>);
     property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> drumMaps;
     property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> maps;
   }
@@ -1088,8 +1090,8 @@ package dev.atsushieno.ktmidi {
     ctor public MidiInstrumentMap();
     method @Nullable public String getName();
     method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiProgramDefinition> getPrograms();
-    method public void setName(@Nullable String name);
-    method public void setPrograms(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiProgramDefinition> programs);
+    method public void setName(@Nullable String);
+    method public void setPrograms(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiProgramDefinition>);
     property @Nullable public final String name;
     property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiProgramDefinition> programs;
   }
@@ -1100,7 +1102,7 @@ package dev.atsushieno.ktmidi {
     method @NonNull public dev.atsushieno.ktmidi.MidiMachineChannel[] getChannels();
     method public void processEvent(@NonNull dev.atsushieno.ktmidi.MidiEvent evt);
     method public void removeOnEventReceivedListener(@NonNull dev.atsushieno.ktmidi.OnMidiEventListener listener);
-    method public void setChannels(@NonNull dev.atsushieno.ktmidi.MidiMachineChannel[] channels);
+    method public void setChannels(@NonNull dev.atsushieno.ktmidi.MidiMachineChannel[]);
     property @NonNull public final dev.atsushieno.ktmidi.MidiMachineChannel[] channels;
   }
 
@@ -1119,10 +1121,10 @@ package dev.atsushieno.ktmidi {
     method public void processDte(byte value, boolean isMsb);
     method public void processDteDecrement();
     method public void processDteIncrement();
-    method public void setCaf(byte caf);
-    method public void setDteTarget(@NonNull dev.atsushieno.ktmidi.DteTarget dteTarget);
-    method public void setPitchbend(short pitchbend);
-    method public void setProgram(byte program);
+    method public void setCaf(byte);
+    method public void setDteTarget(@NonNull dev.atsushieno.ktmidi.DteTarget);
+    method public void setPitchbend(short);
+    method public void setProgram(byte);
     property public final byte caf;
     property @NonNull public final byte[] controls;
     property @NonNull public final dev.atsushieno.ktmidi.DteTarget dteTarget;
@@ -1195,9 +1197,9 @@ package dev.atsushieno.ktmidi {
     method @NonNull public dev.atsushieno.ktmidi.MidiInstrumentDefinition getInstrument();
     method @Nullable public String getMatch();
     method @Nullable public String getName();
-    method public void setInstrument(@NonNull dev.atsushieno.ktmidi.MidiInstrumentDefinition instrument);
-    method public void setMatch(@Nullable String match);
-    method public void setName(@Nullable String name);
+    method public void setInstrument(@NonNull dev.atsushieno.ktmidi.MidiInstrumentDefinition);
+    method public void setMatch(@Nullable String);
+    method public void setName(@Nullable String);
     property @NonNull public final dev.atsushieno.ktmidi.MidiInstrumentDefinition instrument;
     property @Nullable public final String match;
     property @Nullable public final String name;
@@ -1214,8 +1216,8 @@ package dev.atsushieno.ktmidi {
     method public int getTotalPlayTimeMilliseconds();
     method public int getTotalTicks();
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.MidiTrack> getTracks();
-    method public void setDeltaTimeSpec(int deltaTimeSpec);
-    method public void setFormat(byte format);
+    method public void setDeltaTimeSpec(int);
+    method public void setFormat(byte);
     property public final int deltaTimeSpec;
     property public final byte format;
     property @NonNull public final java.util.List<dev.atsushieno.ktmidi.MidiTrack> tracks;
@@ -1330,11 +1332,11 @@ package dev.atsushieno.ktmidi {
     method public final void pause();
     method public final void play();
     method public abstract void seek(int ticks);
-    method public final void setFinished(@Nullable Runnable v);
+    method public final void setFinished(@Nullable Runnable);
     method public abstract void setMutedChannels(@NonNull Iterable<java.lang.Integer> mutedChannels);
-    method public final void setPlaybackCompletedToEnd(@Nullable Runnable v);
-    method public final void setTempo(int v);
-    method public final void setTempoChangeRatio(double v);
+    method public final void setPlaybackCompletedToEnd(@Nullable Runnable);
+    method public final void setTempo(int);
+    method public final void setTempoChangeRatio(double);
     method public final void stop();
     property public final int bpm;
     property @Nullable public final Runnable finished;
@@ -1350,7 +1352,7 @@ package dev.atsushieno.ktmidi {
 
   public interface MidiPlayerTimer {
     method public void stop();
-    method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit> p);
+    method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit>);
   }
 
   public final class MidiPlayerTimerTest {
@@ -1363,13 +1365,15 @@ package dev.atsushieno.ktmidi {
     method @NonNull public dev.atsushieno.ktmidi.MidiPortConnectionState getConnectionState();
     method @NonNull public dev.atsushieno.ktmidi.MidiPortDetails getDetails();
     method public int getMidiProtocol();
-    method public void setMidiProtocol(int midiProtocol);
+    method public void setMidiProtocol(int);
     property @NonNull public abstract dev.atsushieno.ktmidi.MidiPortConnectionState connectionState;
     property @NonNull public abstract dev.atsushieno.ktmidi.MidiPortDetails details;
     property public abstract int midiProtocol;
   }
 
   public enum MidiPortConnectionState {
+    method @NonNull public static dev.atsushieno.ktmidi.MidiPortConnectionState valueOf(@NonNull String name) throws java.lang.IllegalArgumentException;
+    method @NonNull public static dev.atsushieno.ktmidi.MidiPortConnectionState[] values();
     enum_constant public static final dev.atsushieno.ktmidi.MidiPortConnectionState CLOSED;
     enum_constant public static final dev.atsushieno.ktmidi.MidiPortConnectionState OPEN;
   }
@@ -1396,9 +1400,9 @@ package dev.atsushieno.ktmidi {
     method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiBankDefinition> getBanks();
     method public int getIndex();
     method @Nullable public String getName();
-    method public void setBanks(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiBankDefinition> banks);
-    method public void setIndex(int index);
-    method public void setName(@Nullable String name);
+    method public void setBanks(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiBankDefinition>);
+    method public void setIndex(int);
+    method public void setName(@Nullable String);
     property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiBankDefinition> banks;
     property public final int index;
     property @Nullable public final String name;
@@ -1480,6 +1484,8 @@ package dev.atsushieno.ktmidi {
   }
 
   public enum PlayerState {
+    method @NonNull public static dev.atsushieno.ktmidi.PlayerState valueOf(@NonNull String name) throws java.lang.IllegalArgumentException;
+    method @NonNull public static dev.atsushieno.ktmidi.PlayerState[] values();
     enum_constant public static final dev.atsushieno.ktmidi.PlayerState PAUSED;
     enum_constant public static final dev.atsushieno.ktmidi.PlayerState PLAYING;
     enum_constant public static final dev.atsushieno.ktmidi.PlayerState STOPPED;
@@ -1496,10 +1502,10 @@ package dev.atsushieno.ktmidi {
     method @NonNull public String getManufacturer();
     method @NonNull public String getPortName();
     method @NonNull public String getVersion();
-    method public void setApplicationName(@NonNull String applicationName);
-    method public void setManufacturer(@NonNull String manufacturer);
-    method public void setPortName(@NonNull String portName);
-    method public void setVersion(@NonNull String version);
+    method public void setApplicationName(@NonNull String);
+    method public void setManufacturer(@NonNull String);
+    method public void setPortName(@NonNull String);
+    method public void setVersion(@NonNull String);
     property @NonNull public final String applicationName;
     property @NonNull public final String manufacturer;
     property @NonNull public final String portName;
@@ -1507,6 +1513,8 @@ package dev.atsushieno.ktmidi {
   }
 
   public enum SeekFilterResult {
+    method @NonNull public static dev.atsushieno.ktmidi.SeekFilterResult valueOf(@NonNull String name) throws java.lang.IllegalArgumentException;
+    method @NonNull public static dev.atsushieno.ktmidi.SeekFilterResult[] values();
     enum_constant public static final dev.atsushieno.ktmidi.SeekFilterResult BLOCK;
     enum_constant public static final dev.atsushieno.ktmidi.SeekFilterResult BLOCK_AND_TERMINATE;
     enum_constant public static final dev.atsushieno.ktmidi.SeekFilterResult PASS;
@@ -1520,7 +1528,7 @@ package dev.atsushieno.ktmidi {
   public final class SimpleAdjustingMidiPlayerTimer implements dev.atsushieno.ktmidi.MidiPlayerTimer {
     ctor public SimpleAdjustingMidiPlayerTimer(optional @NonNull kotlin.time.TimeSource timeSource);
     method public void stop();
-    method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit> p);
+    method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit>);
   }
 
   public final class SimpleVirtualMidiInput extends dev.atsushieno.ktmidi.SimpleVirtualMidiPort implements dev.atsushieno.ktmidi.MidiInput {
@@ -1532,7 +1540,7 @@ package dev.atsushieno.ktmidi {
     ctor public SimpleVirtualMidiOutput(@NonNull dev.atsushieno.ktmidi.MidiPortDetails details, @NonNull kotlin.jvm.functions.Function0<kotlin.Unit> onDispose);
     method @NonNull public kotlin.jvm.functions.Function4<byte[],java.lang.Integer,java.lang.Integer,java.lang.Long,kotlin.Unit> getOnSend();
     method public void send(@NonNull byte[] mevent, int offset, int length, long timestampInNanoseconds);
-    method public void setOnSend(@NonNull kotlin.jvm.functions.Function4<? super byte[],? super java.lang.Integer,? super java.lang.Integer,? super java.lang.Long,kotlin.Unit> onSend);
+    method public void setOnSend(@NonNull kotlin.jvm.functions.Function4<? super byte[],? super java.lang.Integer,? super java.lang.Integer,? super java.lang.Long,kotlin.Unit>);
     property @NonNull public final kotlin.jvm.functions.Function4<byte[],java.lang.Integer,java.lang.Integer,java.lang.Long,kotlin.Unit> onSend;
   }
 
@@ -1542,7 +1550,7 @@ package dev.atsushieno.ktmidi {
     method @NonNull public dev.atsushieno.ktmidi.MidiPortConnectionState getConnectionState();
     method @NonNull public dev.atsushieno.ktmidi.MidiPortDetails getDetails();
     method public int getMidiProtocol();
-    method public void setMidiProtocol(int _);
+    method public void setMidiProtocol(int);
     property @NonNull public dev.atsushieno.ktmidi.MidiPortConnectionState connectionState;
     property @NonNull public dev.atsushieno.ktmidi.MidiPortDetails details;
     property public int midiProtocol;
@@ -1572,8 +1580,8 @@ package dev.atsushieno.ktmidi {
   public static final class TestHelper.Companion {
     method @NonNull public dev.atsushieno.ktmidi.MidiMusic getMidiMusic();
     method @NonNull public dev.atsushieno.ktmidi.MidiMusic getMidiMusic(@NonNull String resourceId);
-    method @Nullable public suspend Object getMidiPlayer(@Nullable dev.atsushieno.ktmidi.MidiPlayerTimer timeManager, @Nullable dev.atsushieno.ktmidi.MidiMusic midiMusic, optional @Nullable dev.atsushieno.ktmidi.MidiAccess midiAccess, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player> p);
-    method @Nullable public suspend Object getMidiPlayer(optional @Nullable dev.atsushieno.ktmidi.MidiPlayerTimer timeManager, optional @Nullable dev.atsushieno.ktmidi.MidiAccess midiAccess, optional @Nullable String resourceId, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player> p);
+    method @Nullable public suspend Object getMidiPlayer(@Nullable dev.atsushieno.ktmidi.MidiPlayerTimer timeManager, @Nullable dev.atsushieno.ktmidi.MidiMusic midiMusic, optional @Nullable dev.atsushieno.ktmidi.MidiAccess midiAccess, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player>);
+    method @Nullable public suspend Object getMidiPlayer(optional @Nullable dev.atsushieno.ktmidi.MidiPlayerTimer timeManager, optional @Nullable dev.atsushieno.ktmidi.MidiAccess midiAccess, optional @Nullable String resourceId, optional @NonNull kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.Midi1Player>);
   }
 
   public final class Timed<T> {
@@ -1624,6 +1632,8 @@ package dev.atsushieno.ktmidi {
   }
 
   public enum UmpBinaryRetrieverFallback {
+    method @NonNull public static dev.atsushieno.ktmidi.UmpBinaryRetrieverFallback valueOf(@NonNull String name) throws java.lang.IllegalArgumentException;
+    method @NonNull public static dev.atsushieno.ktmidi.UmpBinaryRetrieverFallback[] values();
     enum_constant public static final dev.atsushieno.ktmidi.UmpBinaryRetrieverFallback Break;
     enum_constant public static final dev.atsushieno.ktmidi.UmpBinaryRetrieverFallback Exception;
   }
@@ -2022,10 +2032,10 @@ package dev.atsushieno.ktmidi {
     method public final double getTotalProceededSeconds();
     method public final double getTotalWaitedSeconds();
     method public void proceedBySeconds(double addedSeconds);
-    method public final void setTotalProceededSeconds(double totalProceededSeconds);
-    method public final void setTotalWaitedSeconds(double totalWaitedSeconds);
+    method public final void setTotalProceededSeconds(double);
+    method public final void setTotalWaitedSeconds(double);
     method public void stop();
-    method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit> p);
+    method @Nullable public suspend Object waitBySeconds(double addedSeconds, @NonNull kotlin.coroutines.Continuation<? super kotlin.Unit>);
     property public final double totalProceededSeconds;
     property public final double totalWaitedSeconds;
   }
@@ -2185,6 +2195,8 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   public enum MidiCIDiscoveryResponseCode {
+    method @NonNull public static dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode valueOf(@NonNull String name) throws java.lang.IllegalArgumentException;
+    method @NonNull public static dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode[] values();
     enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode InvalidateMUID;
     enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode NAK;
     enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode Reply;
@@ -2209,17 +2221,17 @@ package dev.atsushieno.ktmidi.ci {
     method public void processInput(@NonNull java.util.List<java.lang.Byte> data);
     method public void requestProfiles(byte destinationChannelOr7F, int destinationMUID);
     method public void sendDiscovery(optional byte ciCategorySupported);
-    method public void setCurrentMidiProtocol(@NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo currentMidiProtocol);
-    method public void setDevice(@NonNull dev.atsushieno.ktmidi.ci.DeviceDetails device);
-    method public void setMidiCIBufferSize(int midiCIBufferSize);
+    method public void setCurrentMidiProtocol(@NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo);
+    method public void setDevice(@NonNull dev.atsushieno.ktmidi.ci.DeviceDetails);
+    method public void setMidiCIBufferSize(int);
     method public void setNewProtocol(int destinationMUID, byte authorityLevel, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo newProtocolType);
-    method public void setPreferredProtocols(@NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> preferredProtocols);
-    method public void setProcessDiscoveryResponse(@NonNull kotlin.jvm.functions.Function4<? super dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,? super dev.atsushieno.ktmidi.ci.DeviceDetails,? super java.lang.Integer,? super java.lang.Integer,kotlin.Unit> processDiscoveryResponse);
-    method public void setProcessProfileInquiryResponse(@NonNull kotlin.jvm.functions.Function3<? super java.lang.Byte,? super java.lang.Integer,? super java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>,kotlin.Unit> processProfileInquiryResponse);
-    method public void setProcessReplyToInitiateProtocolNegotiation(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,? super java.lang.Integer,kotlin.Unit> processReplyToInitiateProtocolNegotiation);
-    method public void setProcessTestProtocolReply(@NonNull kotlin.jvm.functions.Function2<? super java.lang.Integer,? super java.util.List<java.lang.Byte>,kotlin.Unit> processTestProtocolReply);
-    method public void setProtocolTested(boolean protocolTested);
-    method public void setState(@NonNull dev.atsushieno.ktmidi.ci.MidiCIInitiatorState state);
+    method public void setPreferredProtocols(@NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>);
+    method public void setProcessDiscoveryResponse(@NonNull kotlin.jvm.functions.Function4<? super dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,? super dev.atsushieno.ktmidi.ci.DeviceDetails,? super java.lang.Integer,? super java.lang.Integer,kotlin.Unit>);
+    method public void setProcessProfileInquiryResponse(@NonNull kotlin.jvm.functions.Function3<? super java.lang.Byte,? super java.lang.Integer,? super java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>,kotlin.Unit>);
+    method public void setProcessReplyToInitiateProtocolNegotiation(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,? super java.lang.Integer,kotlin.Unit>);
+    method public void setProcessTestProtocolReply(@NonNull kotlin.jvm.functions.Function2<? super java.lang.Integer,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
+    method public void setProtocolTested(boolean);
+    method public void setState(@NonNull dev.atsushieno.ktmidi.ci.MidiCIInitiatorState);
     method public void testNewProtocol(int destinationMUID, byte authorityLevel, @NonNull java.util.List<java.lang.Byte> testData48Bytes);
     property public final byte authorityLevel;
     property @NonNull public final dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo currentMidiProtocol;
@@ -2236,6 +2248,8 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   public enum MidiCIInitiatorState {
+    method @NonNull public static dev.atsushieno.ktmidi.ci.MidiCIInitiatorState valueOf(@NonNull String name) throws java.lang.IllegalArgumentException;
+    method @NonNull public static dev.atsushieno.ktmidi.ci.MidiCIInitiatorState[] values();
     enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiatorState DISCOVERED;
     enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiatorState DISCOVERY_SENT;
     enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiatorState ESTABLISHED;
@@ -2296,21 +2310,21 @@ package dev.atsushieno.ktmidi.ci {
     method @NonNull public java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>> getProfileSet();
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> getSupportedProtocols();
     method public void processInput(@NonNull java.util.List<java.lang.Byte> data);
-    method public void setCurrentMidiProtocol(@NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo currentMidiProtocol);
-    method public void setDevice(@NonNull dev.atsushieno.ktmidi.ci.DeviceDetails device);
-    method public void setInitiatorDevice(@Nullable dev.atsushieno.ktmidi.ci.DeviceDetails initiatorDevice);
-    method public void setMidiCIBufferSize(int midiCIBufferSize);
-    method public void setOnProfileSet(@NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.MidiCIProfileId,? super java.lang.Boolean,kotlin.Unit> onProfileSet);
-    method public void setProcessConfirmNewProtocol(@NonNull kotlin.jvm.functions.Function1<? super java.lang.Integer,kotlin.Unit> processConfirmNewProtocol);
-    method public void setProcessDiscovery(@NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.DeviceDetails,? super java.lang.Integer,? extends dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode> processDiscovery);
-    method public void setProcessNegotiationInquiry(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,? super java.lang.Integer,? extends java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>> processNegotiationInquiry);
-    method public void setProcessProfileInquiry(@NonNull kotlin.jvm.functions.Function2<? super java.lang.Integer,? super java.lang.Integer,? extends java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>> processProfileInquiry);
-    method public void setProcessProfileSpecificData(@NonNull kotlin.jvm.functions.Function5<? super java.lang.Byte,? super java.lang.Integer,? super java.lang.Integer,? super dev.atsushieno.ktmidi.ci.MidiCIProfileId,? super java.util.List<java.lang.Byte>,kotlin.Unit> processProfileSpecificData);
-    method public void setProcessSetNewProtocol(@NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo,? super java.lang.Integer,java.lang.Boolean> processSetNewProtocol);
-    method public void setProcessSetProfile(@NonNull kotlin.jvm.functions.Function5<? super java.lang.Byte,? super java.lang.Integer,? super java.lang.Integer,? super dev.atsushieno.ktmidi.ci.MidiCIProfileId,? super java.lang.Boolean,java.lang.Boolean> processSetProfile);
-    method public void setProcessTestNewProtocol(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<java.lang.Byte>,? super java.lang.Integer,java.lang.Boolean> processTestNewProtocol);
-    method public void setProfileSet(@NonNull java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>> profileSet);
-    method public void setSupportedProtocols(@NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> supportedProtocols);
+    method public void setCurrentMidiProtocol(@NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo);
+    method public void setDevice(@NonNull dev.atsushieno.ktmidi.ci.DeviceDetails);
+    method public void setInitiatorDevice(@Nullable dev.atsushieno.ktmidi.ci.DeviceDetails);
+    method public void setMidiCIBufferSize(int);
+    method public void setOnProfileSet(@NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.MidiCIProfileId,? super java.lang.Boolean,kotlin.Unit>);
+    method public void setProcessConfirmNewProtocol(@NonNull kotlin.jvm.functions.Function1<? super java.lang.Integer,kotlin.Unit>);
+    method public void setProcessDiscovery(@NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.DeviceDetails,? super java.lang.Integer,? extends dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode>);
+    method public void setProcessNegotiationInquiry(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,? super java.lang.Integer,? extends java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>>);
+    method public void setProcessProfileInquiry(@NonNull kotlin.jvm.functions.Function2<? super java.lang.Integer,? super java.lang.Integer,? extends java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>>);
+    method public void setProcessProfileSpecificData(@NonNull kotlin.jvm.functions.Function5<? super java.lang.Byte,? super java.lang.Integer,? super java.lang.Integer,? super dev.atsushieno.ktmidi.ci.MidiCIProfileId,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
+    method public void setProcessSetNewProtocol(@NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo,? super java.lang.Integer,java.lang.Boolean>);
+    method public void setProcessSetProfile(@NonNull kotlin.jvm.functions.Function5<? super java.lang.Byte,? super java.lang.Integer,? super java.lang.Integer,? super dev.atsushieno.ktmidi.ci.MidiCIProfileId,? super java.lang.Boolean,java.lang.Boolean>);
+    method public void setProcessTestNewProtocol(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<java.lang.Byte>,? super java.lang.Integer,java.lang.Boolean>);
+    method public void setProfileSet(@NonNull java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>);
+    method public void setSupportedProtocols(@NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>);
     property @NonNull public final dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo currentMidiProtocol;
     property @NonNull public final dev.atsushieno.ktmidi.ci.DeviceDetails device;
     property @Nullable public final dev.atsushieno.ktmidi.ci.DeviceDetails initiatorDevice;
@@ -2335,7 +2349,7 @@ package dev.atsushieno.ktmidi.ci {
 
   public final class MidiCISystem {
     method @NonNull public kotlin.time.TimeSource getTimeSource();
-    method public void setTimeSource(@NonNull kotlin.time.TimeSource timeSource);
+    method public void setTimeSource(@NonNull kotlin.time.TimeSource);
     property @NonNull public final kotlin.time.TimeSource timeSource;
     field @NonNull public static final dev.atsushieno.ktmidi.ci.MidiCISystem INSTANCE;
   }

@@ -1,11 +1,6 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
-
 buildscript {
     repositories {
         maven("https://plugins.gradle.org/m2/")
-    }
-    dependencies {
-        classpath("me.tylerbwong.gradle:metalava-gradle:0.2.3")
     }
 }
 
@@ -15,14 +10,12 @@ plugins {
     id("org.jetbrains.dokka")
     id("maven-publish")
     id("signing")
-    id("me.tylerbwong.gradle.metalava") version "0.2.3"
+    id("me.tylerbwong.gradle.metalava")
 }
 
 kotlin {
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
-        }
+        jvmToolchain(17)
         testRuns["test"].executionTask.configure {
             useJUnit()
         }
@@ -36,7 +29,7 @@ kotlin {
             testTask {
                 useKarma {
                     useChromeHeadless()
-                    webpackConfig.cssSupport.enabled = true
+                    //webpackConfig.cssSupport.enabled = true
                 }
             }
         }
@@ -58,29 +51,29 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-                implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
-                implementation("io.ktor:ktor-io:2.1.0")
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.datetime)
+                implementation(libs.ktor.io)
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.coroutines.test)
             }
         }
         val jvmMain by getting
         val androidMain by getting {
             dependencies {
-                implementation("androidx.core:core-ktx:1.9.0")
+                implementation(libs.core.ktx)
             }
         }
         val androidTest by getting {
             dependencies {
                 implementation(kotlin("test-junit"))
-                implementation("junit:junit:4.13.2")
+                implementation(libs.junit)
             }
         }
         val jvmTest by getting {
@@ -122,6 +115,7 @@ metalava {
 }
 
 android {
+    namespace = "dev.atsusheno.ktmidi"
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["test"].assets.srcDir("src/commonTest/resources") // kind of hack...
     defaultConfig {
@@ -132,61 +126,53 @@ android {
         val debug by getting
         val release by getting
     }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }
 
-afterEvaluate {
-    val javadocJar by tasks.registering(Jar::class) {
-        archiveClassifier.set("javadoc")
-    }
+val javadocJar by tasks.registering(Jar::class) {
+    archiveClassifier.set("javadoc")
+}
 
-    publishing {
-        publications.withType<MavenPublication> {
-            artifact(javadocJar)
-            pom {
-                name.set("ktmidi")
-                description.set("Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0")
+publishing {
+    publications.withType<MavenPublication> {
+        artifact(javadocJar)
+        pom {
+            name.set("ktmidi")
+            description.set("Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0")
+            url.set("https://github.com/atsushieno/ktmidi")
+            scm {
                 url.set("https://github.com/atsushieno/ktmidi")
-                scm {
-                    url.set("https://github.com/atsushieno/ktmidi")
-                }
-                licenses {
-                    license {
-                        name.set("the MIT License")
-                        url.set("https://github.com/atsushieno/ktmidi/blob/main/LICENSE")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("atsushieno")
-                        name.set("Atsushi Eno")
-                        email.set("atsushieno@gmail.com")
-                    }
+            }
+            licenses {
+                license {
+                    name.set("the MIT License")
+                    url.set("https://github.com/atsushieno/ktmidi/blob/main/LICENSE")
                 }
             }
-        }
-
-        repositories {
-            /*
-                maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/atsushieno/ktmidi")
-                    credentials {
-                        username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                        password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-                    }
-                }
-                */
-            maven {
-                name = "OSSRH"
-                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-                credentials {
-                    username = System.getenv("OSSRH_USERNAME")
-                    password = System.getenv("OSSRH_PASSWORD")
+            developers {
+                developer {
+                    id.set("atsushieno")
+                    name.set("Atsushi Eno")
+                    email.set("atsushieno@gmail.com")
                 }
             }
         }
     }
 
-    // keep it as is. It is replaced by CI release builds
-    signing {}
+    repositories {
+        maven {
+            name = "OSSRH"
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = System.getenv("OSSRH_USERNAME")
+                password = System.getenv("OSSRH_PASSWORD")
+            }
+        }
+    }
 }
+
+// keep it as is. It is replaced by CI release builds
+signing {}
