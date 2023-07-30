@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
     implementation project(":ktmidi")
     implementation project(":ktmidi-jvm-desktop")
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.9.0"
@@ -15,7 +15,7 @@ mainClassName = "dev.atsushieno.ktmidi.samples.inputsample.InputSampleKt"
 
 jar {
     manifest {
-        attributes["Main-Class"] = application.mainClass
+        attributes["Main-Class"] = application.mainClassName
     }
 }
 
@@ -28,6 +28,6 @@ run {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
