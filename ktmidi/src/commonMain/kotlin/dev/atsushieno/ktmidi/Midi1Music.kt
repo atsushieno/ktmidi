@@ -2,24 +2,22 @@
 
 package dev.atsushieno.ktmidi
 
-@Deprecated("Use Midi1Music which provides more consistent concepts")
-class MidiMusic {
+class Midi1Music {
 
-    internal class SmfDeltaTimeComputer: DeltaTimeComputer<MidiMessage>() {
-        override fun messageToDeltaTime(message: MidiMessage) = message.deltaTime
+    internal class SmfDeltaTimeComputer: DeltaTimeComputer<Midi1Event>() {
+        override fun messageToDeltaTime(message: Midi1Event) = message.deltaTime
 
-        override fun isTempoMessage(message: MidiMessage) =
-            message.event.eventType.toUnsigned() == META_EVENT && message.event.msb.toInt() == MidiMetaType.TEMPO
+        override fun isTempoMessage(message: Midi1Event) =
+            message.event.eventType.toUnsigned() == Midi1Status.META && message.event.msb.toInt() == MidiMetaType.TEMPO
 
-        override fun getTempoValue(message: MidiMessage) = getSmfTempo(message.event.extraData!!, message.event.extraDataOffset)
+        override fun getTempoValue(message: Midi1Event): Int {
+            val e = message.event as Midi1CompoundMessage
+            return getSmfTempo(e.extraData!!, e.extraDataOffset)
+        }
     }
 
     companion object {
         const val DEFAULT_TEMPO = 500000
-
-        const val SYSEX_EVENT = 0xF0
-        const val SYSEX_END = 0xF7
-        const val META_EVENT = 0xFF
 
         /**
          * Calculates ticks per seconds for SMPTE for a SMF delta time division specification raw value.
@@ -54,25 +52,25 @@ class MidiMusic {
 
         private val calc = SmfDeltaTimeComputer()
 
-        fun filterEvents(messages: Iterable<MidiMessage>, filter: (MidiMessage) -> Boolean) =
-            calc.filterEvents(messages, filter).map { p -> MidiMessage(p.duration.value, p.value.event) }
+        fun filterEvents(messages: Iterable<Midi1Event>, filter: (Midi1Event) -> Boolean) =
+            calc.filterEvents(messages, filter).map { p -> Midi1Event(p.duration.value, p.value.event) }
 
-        fun getTotalPlayTimeMilliseconds(messages: Iterable<MidiMessage>, deltaTimeSpec: Int) = calc.getTotalPlayTimeMilliseconds(messages, deltaTimeSpec)
+        fun getTotalPlayTimeMilliseconds(messages: Iterable<Midi1Event>, deltaTimeSpec: Int) = calc.getTotalPlayTimeMilliseconds(messages, deltaTimeSpec)
 
-        fun getPlayTimeMillisecondsAtTick(messages: Iterable<MidiMessage>, ticks: Int, deltaTimeSpec: Int) = calc.getPlayTimeMillisecondsAtTick(messages, ticks, deltaTimeSpec)
+        fun getPlayTimeMillisecondsAtTick(messages: Iterable<Midi1Event>, ticks: Int, deltaTimeSpec: Int) = calc.getPlayTimeMillisecondsAtTick(messages, ticks, deltaTimeSpec)
     }
 
-    val tracks: MutableList<MidiTrack> = mutableListOf()
+    val tracks: MutableList<Midi1Track> = mutableListOf()
 
     var deltaTimeSpec: Int = 0
 
     var format: Byte = 0
 
-    fun addTrack(track: MidiTrack) {
+    fun addTrack(track: Midi1Track) {
         this.tracks.add(track)
     }
 
-    fun filterEvents(filter: (MidiMessage) -> Boolean): Iterable<MidiMessage> {
+    fun filterEvents(filter: (Midi1Event) -> Boolean): Iterable<Midi1Event> {
         if (format != 0.toByte())
             return mergeTracks().filterEvents(filter)
         return filterEvents(tracks[0].messages, filter).asIterable()
@@ -81,7 +79,7 @@ class MidiMusic {
     fun getTotalTicks(): Int {
         if (format != 0.toByte())
             return mergeTracks().getTotalTicks()
-        return tracks[0].messages.sumOf { m: MidiMessage -> m.deltaTime }
+        return tracks[0].messages.sumOf { m: Midi1Event -> m.deltaTime }
     }
 
     fun getTotalPlayTimeMilliseconds(): Int {
@@ -101,11 +99,9 @@ class MidiMusic {
     }
 }
 
-@Deprecated("Use Midi1Track which provides more consistent concepts")
-class MidiTrack(val messages: MutableList<MidiMessage> = mutableListOf())
+class Midi1Track(val messages: MutableList<Midi1Event> = mutableListOf())
 
-@Deprecated("Use Midi1Event (note that there is also Midi1Message which is NOT the type to update from this one)")
-class MidiMessage(val deltaTime: Int, evt: MidiEvent) {
+class Midi1Event(val deltaTime: Int, evt: Midi1Message) {
     companion object {
         fun encode7BitLength(length: Int): Sequence<Byte> =
             sequence {
@@ -118,35 +114,29 @@ class MidiMessage(val deltaTime: Int, evt: MidiEvent) {
             }
     }
 
-    val event: MidiEvent = evt
+    val event: Midi1Message = evt
 
     override fun toString(): String = "[$deltaTime:$event]"
 }
 
-@Deprecated("Use Midi1Message (note that there is also Midi1Event which is NOT the type to update from this one)")
-class MidiEvent // MIDI 1.0 only
-{
+interface Midi1Message {
     companion object {
-
-        fun convert(bytes: ByteArray, index: Int, size: Int) = sequence {
+        fun convert(bytes: ByteArray, index: Int, size: Int) = sequence<Midi1Message> {
             var i = index
             val end = index + size
             while (i < end) {
                 if (bytes[i].toUnsigned() == 0xF0) {
-                    yield(MidiEvent(0xF0, 0, 0, bytes, i, size))
+                    yield(Midi1CompoundMessage(0xF0, 0, 0, bytes, i, size))
                     i += size
                 } else {
                     if (end < i + fixedDataSize(bytes[i]))
                         throw Exception("Received data was incomplete to build MIDI status message for '${bytes[i]}' status.")
                     val z = fixedDataSize(bytes[i])
                     yield(
-                        MidiEvent(
+                        Midi1SimpleMessage(
                             bytes[i].toUnsigned(),
                             (if (z > 0) bytes[i + 1].toUnsigned() else 0),
                             (if (z > 1) bytes[i + 2].toUnsigned() else 0),
-                            null,
-                            0,
-                            0
                         )
                     )
                     i += z + 1
@@ -168,33 +158,7 @@ class MidiEvent // MIDI 1.0 only
             }
     }
 
-    constructor (value: Int) {
-        this.value = value
-        this.extraData = null
-        this.extraDataOffset = 0
-        this.extraDataLength = 0
-    }
-
-    constructor (
-        type: Int,
-        arg1: Int,
-        arg2: Int,
-        extraData: ByteArray? = null,
-        extraOffset: Int = 0,
-        extraLength: Int = extraData?.size ?: 0
-    ) {
-        this.value = (type.toUInt() + (arg1.toUInt() shl 8) + (arg2.toUInt() shl 16)).toInt()
-        this.extraData = extraData
-        this.extraDataOffset = extraOffset
-        this.extraDataLength = extraLength
-    }
-
-    var value: Int = 0
-
-    // This expects EndSysEx byte _inclusive_ for F0 message.
-    val extraData: ByteArray?
-    val extraDataOffset: Int
-    val extraDataLength: Int
+    val value: Int
 
     val statusByte: Byte
         get() = (value and 0xFF).toByte()
@@ -202,15 +166,14 @@ class MidiEvent // MIDI 1.0 only
     val eventType: Byte
         get() =
             when (statusByte.toUnsigned()) {
-                MidiMusic.META_EVENT,
-                MidiMusic.SYSEX_EVENT,
-                MidiMusic.SYSEX_END -> this.statusByte
+                Midi1Status.META,
+                Midi1Status.SYSEX,
+                Midi1Status.SYSEX_END -> this.statusByte
                 else -> (value and 0xF0).toByte()
             }
 
     val msb: Byte
         get() = ((value and 0xFF00) shr 8).toByte()
-
 
     val lsb: Byte
         get() = ((value and 0xFF0000) shr 16).toByte()
@@ -220,32 +183,59 @@ class MidiEvent // MIDI 1.0 only
 
     val channel: Byte
         get() = (value and 0x0F).toByte()
+}
+
+data class Midi1SimpleMessage(override val value: Int) : Midi1Message {
+    constructor(type: Int, arg1: Int, arg2: Int)
+            : this((type.toUInt() + (arg1.toUInt() shl 8) + (arg2.toUInt() shl 16)).toInt())
+}
+
+class Midi1CompoundMessage : Midi1Message {
+    constructor (
+        type: Int,
+        arg1: Int,
+        arg2: Int,
+        extraData: ByteArray? = null,
+        extraOffset: Int = 0,
+        extraLength: Int = extraData?.size ?: 0
+    ){
+        this.value = (type.toUInt() + (arg1.toUInt() shl 8) + (arg2.toUInt() shl 16)).toInt()
+        this.extraData = extraData
+        this.extraDataOffset = extraOffset
+        this.extraDataLength = extraLength
+    }
+    // A simple (non-F0h, non-FFh) message could be respresented in a 32-bit int
+    final override val value: Int
+
+    // They are used by SysEx and meta events (if used for SMF)
+    // `extraData` *might* contain EndSysEx (F7) byte.
+    val extraData: ByteArray?
+    val extraDataOffset: Int
+    val extraDataLength: Int
 
     override fun toString(): String {
         return value.toString(16)
     }
 }
 
-@Deprecated("Use Midi1Music.mergeTracks()")
-fun MidiMusic.mergeTracks() : MidiMusic =
-    MidiTrackMerger(this).getMergedMessages()
+fun Midi1Music.mergeTracks() : Midi1Music =
+    Midi1TrackMerger(this).getMergedMessages()
 
 
-@Deprecated("Use Midi1TrackMerger")
-internal class MidiTrackMerger(private var source: MidiMusic) {
-    internal fun getMergedMessages(): MidiMusic {
-        var l = mutableListOf<MidiMessage>()
+internal class Midi1TrackMerger(private var source: Midi1Music) {
+    internal fun getMergedMessages(): Midi1Music {
+        var l = mutableListOf<Midi1Event>()
 
         for (track in source.tracks) {
             var delta = 0
             for (mev in track.messages) {
                 delta += mev.deltaTime
-                l.add(MidiMessage(delta, mev.event))
+                l.add(Midi1Event(delta, mev.event))
             }
         }
 
         if (l.size == 0) {
-            val ret = MidiMusic()
+            val ret = Midi1Music()
             ret.deltaTimeSpec = source.deltaTimeSpec // empty (why did you need to sort your song file?)
             return ret
         }
@@ -273,7 +263,7 @@ internal class MidiTrackMerger(private var source: MidiMusic) {
         val idxOrdered = indexList.sortedBy { n -> l[n].deltaTime }
 
         // now build a new event list based on the sorted blocks.
-        val l2 = mutableListOf<MidiMessage>()
+        val l2 = mutableListOf<Midi1Event>()
         var idx: Int
         i = 0
         while (i < idxOrdered.size) {
@@ -292,31 +282,31 @@ internal class MidiTrackMerger(private var source: MidiMusic) {
         var waitToNext = l[0].deltaTime
         i = 0
         while (i < l.size - 1) {
-            if (l[i].event.value != 0) { // if non-dummy
+            val e = l[i].event
+            if (e is Midi1SimpleMessage && e.value != 0) { // if non-dummy
                 val tmp = l[i + 1].deltaTime - l[i].deltaTime
-                l[i] = MidiMessage(waitToNext, l[i].event)
+                l[i] = Midi1Event(waitToNext, l[i].event)
                 waitToNext = tmp
             }
             i++
         }
-        l[l.size - 1] = MidiMessage(waitToNext, l[l.size - 1].event)
+        l[l.size - 1] = Midi1Event(waitToNext, l[l.size - 1].event)
 
-        val m = MidiMusic()
+        val m = Midi1Music()
         m.deltaTimeSpec = source.deltaTimeSpec
         m.format = 0
-        m.tracks.add(MidiTrack(l))
+        m.tracks.add(Midi1Track(l))
         return m
     }
 }
 
-fun MidiTrack.splitTracksByChannel(deltaTimeSpec: Byte) : MidiMusic =
-    MidiTrackSplitter(messages, deltaTimeSpec).split()
+fun Midi1Track.splitTracksByChannel(deltaTimeSpec: Byte) : Midi1Music =
+    Midi1TrackSplitter(messages, deltaTimeSpec).split()
 
-@Deprecated("Use Midi1TrackSplitter")
-open class MidiTrackSplitter(private val source: MutableList<MidiMessage>, private val deltaTimeSpec: Byte) {
+open class Midi1TrackSplitter(private val source: MutableList<Midi1Event>, private val deltaTimeSpec: Byte) {
     companion object {
-        fun split(source: MutableList<MidiMessage>, deltaTimeSpec: Byte): MidiMusic {
-            return MidiTrackSplitter(source, deltaTimeSpec).split()
+        fun split(source: MutableList<Midi1Event>, deltaTimeSpec: Byte): Midi1Music {
+            return Midi1TrackSplitter(source, deltaTimeSpec).split()
         }
     }
 
@@ -325,10 +315,10 @@ open class MidiTrackSplitter(private val source: MutableList<MidiMessage>, priva
     internal class SplitTrack(val trackID: Int) {
 
         private var totalDeltaTime: Int
-        val track: MidiTrack = MidiTrack()
+        val track: Midi1Track = Midi1Track()
 
-        fun addMessage(deltaInsertAt: Int, e: MidiMessage) {
-            val e2 = MidiMessage(deltaInsertAt - totalDeltaTime, e.event)
+        fun addMessage(deltaInsertAt: Int, e: Midi1Event) {
+            val e2 = Midi1Event(deltaInsertAt - totalDeltaTime, e.event)
             track.messages.add(e2)
             totalDeltaTime = deltaInsertAt
         }
@@ -350,14 +340,14 @@ open class MidiTrackSplitter(private val source: MutableList<MidiMessage>, priva
     // Override it to customize track dispatcher. It would be
     // useful to split note messages out from non-note ones,
     // to ease data reading.
-    open fun getTrackId(e: MidiMessage): Int {
+    open fun getTrackId(e: Midi1Event): Int {
         return when (e.event.eventType.toUnsigned()) {
-            MidiMusic.META_EVENT, MidiMusic.SYSEX_EVENT, MidiMusic.SYSEX_END -> -1
+            Midi1Status.META, Midi1Status.SYSEX, Midi1Status.SYSEX_END -> -1
             else -> e.event.channel.toUnsigned()
         }
     }
 
-    fun split(): MidiMusic {
+    fun split(): Midi1Music {
         var totalDeltaTime = 0
         for (e in source) {
             totalDeltaTime += e.deltaTime
@@ -365,7 +355,7 @@ open class MidiTrackSplitter(private val source: MutableList<MidiMessage>, priva
             getTrack(id).addMessage(totalDeltaTime, e)
         }
 
-        val m = MidiMusic()
+        val m = Midi1Music()
         m.deltaTimeSpec = deltaTimeSpec.toInt()
         for (t in tracks.values)
             m.tracks.add(t.track)

@@ -1,9 +1,5 @@
 package dev.atsushieno.ktmidi
 
-fun interface OnMidiEventListener {
-    fun onEvent(e: MidiEvent)
-}
-
 val emptyMidiAccess = EmptyMidiAccess()
 
 abstract class MidiAccess {

@@ -33,7 +33,7 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
 
     override fun updateTempoAndTimeSignatureIfApplicable(m: Ump) {
         if (m.messageType == MidiMessageType.SYSEX8_MDS && m.statusCode == Midi2BinaryChunkStatus.COMPLETE_PACKET &&
-            m.int2 % 0x100  == MidiMusic.META_EVENT) {
+            m.int2 % 0x100  == Midi1Status.META) {
             when ((m.int3.toUnsigned() / 0x100 % 0x100).toInt()) {
                 MidiMetaType.TEMPO -> currentTempo = Midi2Music.getTempoValue(m)
                 MidiMetaType.TIME_SIGNATURE -> {
@@ -195,7 +195,7 @@ class Midi2Player : MidiPlayer {
                             umpConversionBuffer[0] = e.statusByte.toByte()
                             umpConversionBuffer[1] = e.midi1Msb.toByte()
                             umpConversionBuffer[2] = e.midi1Lsb.toByte()
-                            output.send(umpConversionBuffer, 0, MidiEvent.fixedDataSize(e.statusCode.toByte()).toInt(), 0)
+                            output.send(umpConversionBuffer, 0, Midi1Message.fixedDataSize(e.statusCode.toByte()).toInt(), 0)
                         }
                     }
                 }

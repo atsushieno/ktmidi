@@ -6,15 +6,15 @@ class TestHelper {
         fun getMidiMusic(): MidiMusic {
             var music = MidiMusic()
             music.deltaTimeSpec = 192
-            var track = MidiTrack()
+            var track = Midi1Track()
             var ch = 1
-            track.messages.add(MidiMessage(188, MidiEvent(MidiChannelStatus.PROGRAM + ch, 1, 0, null, 0, 0)))
+            track.messages.add(Midi1Event(188, Midi1Message(MidiChannelStatus.PROGRAM + ch, 1, 0, null, 0, 0)))
             for (i in 0 until 100) {
                 track.messages.add(
-                    MidiMessage(4, MidiEvent(MidiChannelStatus.NOTE_ON + ch, 60, 120, null, 0, 0))
+                    Midi1Event(4, Midi1Message(MidiChannelStatus.NOTE_ON + ch, 60, 120, null, 0, 0))
                 )
                 track.messages.add(
-                    MidiMessage(44, MidiEvent(MidiChannelStatus.NOTE_OFF + ch, 60, 0, null, 0, 0))
+                    Midi1Event(44, Midi1Message(MidiChannelStatus.NOTE_OFF + ch, 60, 0, null, 0, 0))
                 )
             }
 

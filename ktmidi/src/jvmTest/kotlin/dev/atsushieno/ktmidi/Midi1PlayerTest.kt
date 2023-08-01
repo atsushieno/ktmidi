@@ -106,7 +106,7 @@ class Midi1PlayerTest {
         assertEquals(4988, music.getTotalTicks(), "music total ticks")
         val totalTime = music.getTotalPlayTimeMilliseconds()
         assertEquals(12989, totalTime, "music total milliseconds")
-        val qmsec = MidiMusic.getPlayTimeMillisecondsAtTick(music.tracks[0].messages, 4998, 192)
+        val qmsec = Midi1Music.getPlayTimeMillisecondsAtTick(music.tracks[0].messages, 4998, 192)
         assertEquals(totalTime, qmsec, "milliseconds at end by ticks")
         runBlocking {
             val player = TestHelper.getMidiPlayer(vt, music)

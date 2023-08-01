@@ -1,25 +1,15 @@
 package dev.atsushieno.ktmidi
 
-@Deprecated("At this state there is only deprecated use, and it has old naming")
-fun interface OnMidiEventListener {
-    fun onEvent(e: MidiEvent)
-}
-
-@Deprecated("Use Midi1Machine instead which resolves several design issues")
-class MidiMachine {
-    private val event_received_handlers = arrayListOf<OnMidiEventListener>()
-
-    fun addOnEventReceivedListener(listener: OnMidiEventListener) {
-        event_received_handlers.add(listener)
+class Midi1Machine {
+    fun interface OnMidiMessageListener {
+        fun onMessage(e: Midi1Message)
     }
 
-    fun removeOnEventReceivedListener(listener: OnMidiEventListener) {
-        event_received_handlers.remove(listener)
-    }
+    val eventListeners by lazy { mutableListOf<OnMidiMessageListener>() }
 
-    var channels = Array<MidiMachineChannel>(16) { MidiMachineChannel() }
+    var channels = Array(16) { Midi1MachineChannel() }
 
-    fun processEvent(evt: MidiEvent) {
+    fun processMessage(evt: Midi1Message) {
         when (evt.eventType.toUnsigned()) {
             MidiChannelStatus.NOTE_ON ->
                 channels[evt.channel.toUnsigned()].noteVelocity[evt.msb.toUnsigned()] = evt.lsb
@@ -56,57 +46,68 @@ class MidiMachine {
             MidiChannelStatus.PITCH_BEND ->
                 channels[evt.channel.toUnsigned()].pitchbend = ((evt.msb.toUnsigned() shl 7) + evt.lsb).toShort()
         }
-        for (receiver in event_received_handlers)
-            receiver.onEvent(evt)
+
+        eventListeners.forEach { it.onMessage(evt) }
     }
 }
 
-class MidiMachineChannel {
+class Midi1MachineChannel {
     val noteVelocity = ByteArray(128)
     val pafVelocity = ByteArray(128)
     val controls = ByteArray(128)
-    val rpns = ShortArray(128) // only 5 should be used though
-    val nrpns = ShortArray(128)
+    val rpns = ShortArray(128 * 128) // only 5 should be used though
+    val nrpns = ShortArray(128 * 128)
     var program: Byte = 0
     var caf: Byte = 0
     var pitchbend: Short = 8192
     var dteTarget: DteTarget = DteTarget.RPN
     private var dte_target_value: Byte = 0
 
+    @Deprecated("Use currentRPN (of Int type)")
     val rpnTarget: Short
         get() = ((controls[MidiCC.RPN_MSB].toUnsigned() shl 7) + controls[MidiCC.RPN_LSB]).toShort()
 
+    val currentRPN: Int
+        get() = ((controls[MidiCC.RPN_MSB].toUnsigned() shl 7) + controls[MidiCC.RPN_LSB])
+    val currentNRPN: Int
+        get() = ((controls[MidiCC.NRPN_MSB].toUnsigned() shl 7) + controls[MidiCC.NRPN_LSB])
 
     fun processDte(value: Byte, isMsb: Boolean) {
-        var arr: ShortArray
+        lateinit var arr: ShortArray
+        var target = 0
         when (dteTarget) {
             DteTarget.RPN -> {
-                dte_target_value = controls[(if (isMsb) MidiCC.RPN_MSB else MidiCC.RPN_LSB)]
+                target = currentRPN
                 arr = rpns
             }
             DteTarget.NRPN -> {
-                dte_target_value = controls[(if (isMsb) MidiCC.NRPN_MSB else MidiCC.NRPN_LSB)]
+                target = currentNRPN
                 arr = nrpns
             }
         }
-        var cur = arr[dte_target_value.toUnsigned()].toInt()
+        val cur = arr[target].toInt()
         if (isMsb)
-            arr[dte_target_value.toUnsigned()] = (cur and 0x007F + ((value.toUnsigned() and 0x7F) shl 7)).toShort()
+            arr[target] = (cur and 0x007F + ((value.toUnsigned() and 0x7F) shl 7)).toShort()
         else
-            arr[dte_target_value.toUnsigned()] = (cur and 0x3FF0 + (value.toUnsigned() and 0x7F)).toShort()
+            arr[target] = (cur and 0x3FF0 + (value.toUnsigned() and 0x7F)).toShort()
     }
 
     fun processDteIncrement() {
         when (dteTarget) {
-            DteTarget.RPN -> rpns[dte_target_value.toUnsigned()]++
-            DteTarget.NRPN -> nrpns[dte_target_value.toUnsigned()]++
+            DteTarget.RPN -> rpns[controls[MidiCC.RPN_MSB] * 0x80 + controls[MidiCC.RPN_LSB]]++
+            DteTarget.NRPN -> nrpns[controls[MidiCC.NRPN_MSB] * 0x80 + controls[MidiCC.NRPN_LSB]]++
         }
     }
 
     fun processDteDecrement() {
         when (dteTarget) {
-            DteTarget.RPN -> rpns[dte_target_value.toUnsigned()]--
-            DteTarget.NRPN -> nrpns[dte_target_value.toUnsigned()]--
+            DteTarget.RPN -> rpns[controls[MidiCC.RPN_MSB] * 0x80 + controls[MidiCC.RPN_LSB]]--
+            DteTarget.NRPN -> nrpns[controls[MidiCC.NRPN_MSB] * 0x80 + controls[MidiCC.NRPN_LSB]]--
         }
     }
+}
+
+enum class DteTarget {
+    RPN,
+    NRPN
 }

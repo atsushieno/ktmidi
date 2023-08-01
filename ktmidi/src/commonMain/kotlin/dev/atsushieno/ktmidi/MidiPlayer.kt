@@ -18,7 +18,7 @@ internal abstract class MidiEventLooperBase {
 
     var state: PlayerState
     internal var eventIdx = 0
-    var currentTempo = MidiMusic.DEFAULT_TEMPO
+    var currentTempo = Midi1Music.DEFAULT_TEMPO
     var currentTimeSignature = MutableList<Byte>(4) { 0 }
     var playDeltaTime: Int = 0
 

@@ -18,9 +18,6 @@ internal abstract class DeltaTimeComputer<T> {
     // Therefore, in UMP Delta Clockstamps and JR Timestamps must be used *exclusively*.
     abstract fun messageToDeltaTime(message: T) : Int
 
-    @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
-    abstract fun isMetaEventMessage(message: T, metaType: Int) : Boolean
-
     abstract fun isTempoMessage(message: T): Boolean
 
     abstract fun getTempoValue(message: T) : Int
@@ -34,16 +31,6 @@ internal abstract class DeltaTimeComputer<T> {
         }
     }
 
-    @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
-    fun getMetaEventsOfType(messages: Iterable<T>, metaType: Int) : Sequence<Pair<Int,T>> = sequence {
-        var v = 0
-        for (m in messages) {
-            v += messageToDeltaTime(m)
-            if (isMetaEventMessage(m, metaType))
-                yield(Pair(v, m))
-        }
-    }
-
     fun getTotalPlayTimeMilliseconds(messages: Iterable<T>, deltaTimeSpec: Int): Int {
         return getPlayTimeMillisecondsAtTick(messages, messages.sumOf { m -> messageToDeltaTime(m) }, deltaTimeSpec)
     }
@@ -52,7 +39,7 @@ internal abstract class DeltaTimeComputer<T> {
         if (deltaTimeSpec < 0)
             throw UnsupportedOperationException("non-tick based DeltaTime")
         else {
-            var tempo: Int = MidiMusic.DEFAULT_TEMPO
+            var tempo: Int = Midi1Music.DEFAULT_TEMPO
             var v = 0.0
             var t = 0
             for (m in messages) {

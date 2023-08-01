@@ -93,9 +93,9 @@ object UmpTranslator {
             if (it.messageType == MidiMessageType.SYSEX7) {
                 if (it.statusCode == Midi2BinaryChunkStatus.END || it.statusCode ==
                     Midi2BinaryChunkStatus.COMPLETE_PACKET) {
-                    dst.addAll(MidiMessage.encode7BitLength(deltaTime))
+                    dst.addAll(Midi1Event.encode7BitLength(deltaTime))
                     dst.add(0xF0.toByte())
-                    dst.addAll(MidiMessage.encode7BitLength(sysex7.size))
+                    dst.addAll(Midi1Event.encode7BitLength(sysex7.size))
                     dst.addAll(sysex7)
                     sysex7.clear()
                     dst.add(0xF7.toByte())
@@ -115,7 +115,7 @@ object UmpTranslator {
 
         val addDeltaTimeAndStatus = {
             if (deltaTime != null) {
-                val list = MidiMessage.encode7BitLength(deltaTime).toList()
+                val list = Midi1Event.encode7BitLength(deltaTime).toList()
                 list.forEachIndexed { i, v -> dst[offset + i] = v }
                 offset += list.size
             }
@@ -307,7 +307,7 @@ object UmpTranslator {
                 context.midi1Pos += sysexSize + 1 // +1 for 0xF7
             } else {
                 // fixed sized message
-                val len = MidiEvent.fixedDataSize(context.midi1[context.midi1Pos]) + 1
+                val len = Midi1Message.fixedDataSize(context.midi1[context.midi1Pos]) + 1
                 val byte2 = context.midi1[context.midi1Pos + 1].toInt()
                 val byte3 = if (len > 2) context.midi1[context.midi1Pos + 2].toInt() else 0
                 val channel = context.midi1[context.midi1Pos].toInt() and 0xF

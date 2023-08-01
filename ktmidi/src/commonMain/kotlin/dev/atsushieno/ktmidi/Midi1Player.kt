@@ -2,43 +2,36 @@ package dev.atsushieno.ktmidi
 
 import kotlinx.coroutines.Runnable
 
-internal class Midi1EventLooper(var messages: List<MidiMessage>, private val timer: MidiPlayerTimer,
-                               private val deltaTimeSpec: Int) : MidiEventLooper<MidiMessage>(timer) {
-    override fun getContextDeltaTimeInSeconds(m: MidiMessage): Double {
+internal class Midi1EventLooper(var messages: List<Midi1Event>, private val timer: MidiPlayerTimer,
+                                private val deltaTimeSpec: Int) : MidiEventLooper<Midi1Event>(timer) {
+    override fun getContextDeltaTimeInSeconds(m: Midi1Event): Double {
         return if (deltaTimeSpec < 0)
-            MidiMusic.getSmpteDurationInSeconds(deltaTimeSpec, m.deltaTime, currentTempo, tempoRatio)
+            Midi1Music.getSmpteDurationInSeconds(deltaTimeSpec, m.deltaTime, currentTempo, tempoRatio)
         else
             currentTempo.toDouble() / 1_000_000 * m.deltaTime / deltaTimeSpec / tempoRatio
     }
 
-    override fun getDurationOfEvent(m: MidiMessage) = m.deltaTime
+    override fun getDurationOfEvent(m: Midi1Event) = m.deltaTime
 
     override fun isEventIndexAtEnd(): Boolean = eventIdx == messages.size
 
-    override fun getNextMessage(): MidiMessage = messages[eventIdx]
+    override fun getNextMessage(): Midi1Event = messages[eventIdx]
 
-    override fun updateTempoAndTimeSignatureIfApplicable(m: MidiMessage) {
+    override fun updateTempoAndTimeSignatureIfApplicable(m: Midi1Event) {
         if (m.event.statusByte.toUnsigned() == 0xFF) {
-            if (m.event.msb.toInt() == MidiMetaType.TEMPO)
-                currentTempo = MidiMusic.getSmfTempo(m.event.extraData!!, m.event.extraDataOffset)
-            else if (m.event.msb.toInt() == MidiMetaType.TIME_SIGNATURE && m.event.extraDataLength == 4) {
+            val e = m.event as Midi1CompoundMessage
+            if (e.msb.toInt() == MidiMetaType.TEMPO)
+                currentTempo = Midi1Music.getSmfTempo(e.extraData!!, e.extraDataOffset)
+            else if (e.msb.toInt() == MidiMetaType.TIME_SIGNATURE && e.extraDataLength == 4) {
                 currentTimeSignature.clear()
-                currentTimeSignature.addAll(m.event.extraData!!.drop(m.event.extraDataOffset).take(m.event.extraDataLength))
+                currentTimeSignature.addAll(e.extraData!!.drop(e.extraDataOffset).take(e.extraDataLength))
             }
         }
     }
 
-    private val messageHandlers = mutableListOf<OnMidiMessageListener>()
+    val messageHandlers = mutableListOf<OnMidi1MessageListener>()
 
-    fun addOnMessageListener(listener: OnMidiMessageListener) {
-        messageHandlers.add(listener)
-    }
-
-    fun removeOnMessageListener(listener: OnMidiMessageListener) {
-        messageHandlers.remove(listener)
-    }
-
-    override fun onEvent(m: MidiMessage) {
+    override fun onEvent(m: Midi1Event) {
         for (er in messageHandlers)
             er.onMessage(m)
 
@@ -46,10 +39,15 @@ internal class Midi1EventLooper(var messages: List<MidiMessage>, private val tim
 
     override fun mute() {
         for (i in 0..15)
-            onEvent(MidiMessage(0, MidiEvent(i + MidiChannelStatus.CC, MidiCC.ALL_SOUND_OFF, 0, null, 0, 0)))
+            onEvent(Midi1Event(0, Midi1SimpleMessage(i + MidiChannelStatus.CC, MidiCC.ALL_SOUND_OFF, 0)))
     }
 }
 
+fun interface OnMidi1MessageListener {
+    fun onMessage(m: Midi1Event)
+}
+
+@Deprecated("Use OnMidi1MessageListener")
 fun interface OnMidiMessageListener {
     fun onMessage(m: MidiMessage)
 }
@@ -58,11 +56,11 @@ fun interface OnMidiMessageListener {
 // Provides asynchronous player control.
 class Midi1Player : MidiPlayer {
     companion object {
-        suspend fun create(music: MidiMusic, access: MidiAccess, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer()) =
+        suspend fun create(music: Midi1Music, access: MidiAccess, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer()) =
             Midi1Player(music, access.openOutput(access.outputs.first().id), timer, true)
     }
 
-    constructor(music: MidiMusic, output: MidiOutput, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer(), shouldDisposeOutput: Boolean = false)
+    constructor(music: Midi1Music, output: MidiOutput, timer: MidiPlayerTimer = SimpleAdjustingMidiPlayerTimer(), shouldDisposeOutput: Boolean = false)
         : super(output, shouldDisposeOutput) {
 
         this.music = music
@@ -79,8 +77,8 @@ class Midi1Player : MidiPlayer {
             }
         }
 
-        val listener = object : OnMidiMessageListener {
-            override fun onMessage(m: MidiMessage) {
+        val listener = object : OnMidi1MessageListener {
+            override fun onMessage(m: Midi1Event) {
                 val e = m.event
                 when (e.eventType.toUnsigned()) {
                     MidiChannelStatus.NOTE_OFF,
@@ -88,26 +86,27 @@ class Midi1Player : MidiPlayer {
                         if (mutedChannels.contains(e.channel.toUnsigned()))
                             return // ignore messages for the masked channel.
                     }
-                    MidiMusic.SYSEX_EVENT -> {
+                    Midi1Status.SYSEX -> {
+                        val s = e as Midi1CompoundMessage
                         if (buffer.size <= e.extraDataLength + 1) // +1 for possible F7 filling
                             buffer = ByteArray(buffer.size * 2)
                         buffer[0] = e.statusByte
-                        e.extraData!!.copyInto(buffer, 1, e.extraDataOffset, e.extraDataLength)
-                        if (e.extraData[e.extraDataOffset + e.extraDataLength - 1] != 0xF7.toByte())
-                            buffer[e.extraDataOffset + e.extraDataLength + 1] = 0xF7.toByte()
-                        output.send(buffer, 0, e.extraDataLength + 2, 0)
+                        e.extraData!!.copyInto(buffer, 1, s.extraDataOffset, s.extraDataLength)
+                        if (e.extraData[s.extraDataOffset + s.extraDataLength - 1] != 0xF7.toByte())
+                            buffer[s.extraDataOffset + s.extraDataLength + 1] = 0xF7.toByte()
+                        output.send(buffer, 0, s.extraDataLength + 2, 0)
                         return
                     }
-                    MidiMusic.SYSEX_END -> {
+                    Midi1Status.SYSEX_END -> {
                         // do nothing. It is automatically filled
                         return
                     }
-                    MidiMusic.META_EVENT -> {
+                    Midi1Status.META -> {
                         // do nothing.
                         return
                     }
                 }
-                val size = MidiEvent.fixedDataSize(e.statusByte)
+                val size = Midi1Message.fixedDataSize(e.statusByte)
                 buffer[0] = e.statusByte
                 buffer[1] = e.msb
                 buffer[2] = e.lsb
@@ -117,24 +116,24 @@ class Midi1Player : MidiPlayer {
         addOnMessageListener(listener)
     }
 
-    private val music: MidiMusic
+    private val music: Midi1Music
     private var buffer = ByteArray(0x100)
-    internal var messages: MutableList<MidiMessage>
-    override val looper: Midi1EventLooper
+    internal var messages: MutableList<Midi1Event>
+    final override val looper: Midi1EventLooper
 
-    fun addOnMessageListener(listener: OnMidiMessageListener) {
-        looper.addOnMessageListener(listener)
+    fun addOnMessageListener(listener: OnMidi1MessageListener) {
+        looper.messageHandlers.add(listener)
     }
 
-    fun removeOnMessageListener(listener: OnMidiMessageListener) {
-        looper.removeOnMessageListener(listener)
+    fun removeOnMessageListener(listener: OnMidi1MessageListener) {
+        looper.messageHandlers.remove(listener)
     }
 
     override val positionInMilliseconds: Long
         get() = music.getTimePositionInMillisecondsForTick(playDeltaTime).toLong()
 
     override val totalPlayTimeMilliseconds: Int
-        get() = MidiMusic.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
+        get() = Midi1Music.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
 
     override fun seek(ticks: Int) {
         looper.seek(SimpleMidi1SeekProcessor(ticks), ticks)
@@ -149,11 +148,11 @@ class Midi1Player : MidiPlayer {
     }
 }
 
-internal class SimpleMidi1SeekProcessor(ticks: Int) : SeekProcessor<MidiMessage> {
+internal class SimpleMidi1SeekProcessor(ticks: Int) : SeekProcessor<Midi1Event> {
     private var seek_to: Int = ticks
     private var current: Int = 0
 
-    override fun filterMessage(message: MidiMessage): SeekFilterResult {
+    override fun filterMessage(message: Midi1Event): SeekFilterResult {
         current += message.deltaTime
         if (current >= seek_to)
             return SeekFilterResult.PASS_AND_TERMINATE

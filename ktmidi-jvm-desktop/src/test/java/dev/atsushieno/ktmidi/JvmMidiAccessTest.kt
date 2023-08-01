@@ -33,11 +33,11 @@ class JvmMidiAccessTest {
         assertEquals(MidiPortConnectionState.OPEN, input.connectionState)
         assertEquals(MidiPortConnectionState.OPEN, output.connectionState)
 
-        val inputEvents = mutableListOf<Sequence<MidiEvent>>()
+        val inputEvents = mutableListOf<Sequence<Midi1Message>>()
         // collect inputs from output? How does the real time sequencer route data?
         input.setMessageReceivedListener(object : OnMidiReceivedEventListener {
             override fun onEventReceived(data: ByteArray, start: Int, length: Int, timestampInNanoseconds: Long) {
-                val events = MidiEvent.convert(data, start, length)
+                val events = Midi1Message.convert(data, start, length)
                 inputEvents.add(events)
             }
         })

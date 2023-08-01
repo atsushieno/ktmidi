@@ -222,6 +222,12 @@ object FunctionBlockMidi1Bandwidth {
     const val UP_TO_31250BPS = 2
 }
 
+object Midi1Status {
+    const val SYSEX = 0xF0
+    const val SYSEX_END = 0xF7
+    const val META = 0xFF
+}
+
 object MidiCIProtocolBytes { // MIDI 2.0
     const val TYPE = 0
     const val VERSION = 1

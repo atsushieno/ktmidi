@@ -9,8 +9,6 @@ class Midi2Music {
         override fun messageToDeltaTime(message: Ump) =
             if (message.isDeltaClockstamp) message.deltaClockstamp else if (message.isJRTimestamp) message.jrTimestamp else 0
 
-        @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
-        override fun isMetaEventMessage(message: Ump, metaType: Int) = Midi2Music.isMetaEventMessage(message, metaType)
         override fun isTempoMessage(message: Ump) = message.isTempo
 
         // 3 bytes in Sysex8 pseudo meta message
@@ -20,9 +18,6 @@ class Midi2Music {
     companion object {
         private val calc = UmpDeltaTimeComputer()
 
-        @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
-        fun getMetaEventsOfType(messages: Iterable<Ump>, metaType: Int) =
-            calc.getMetaEventsOfType(messages, metaType)
         fun filterEvents(messages: Iterable<Ump>, filter: (Ump) -> Boolean) =
             calc.filterEvents(messages, filter)
 
@@ -87,12 +82,6 @@ class Midi2Music {
         this.tracks.add(track)
     }
 
-    @Deprecated("It is going to be impossible to support in SMF2 so we will remove it")
-    fun getMetaEventsOfType(metaType: Int): Iterable<Pair<Int,Ump>> {
-        if (tracks.size > 1)
-            return mergeTracks().getMetaEventsOfType(metaType)
-        return getMetaEventsOfType(tracks[0].messages, metaType).asIterable()
-    }
     fun filterEvents(filter: (Ump) -> Boolean): Iterable<Timed<Ump>> {
         if (tracks.size > 1)
             return mergeTracks().filterEvents(filter)
@@ -305,7 +294,7 @@ internal class Midi2DeltaTimeConverter internal constructor(private val source: 
             result.addTrack(dstTrack)
 
             var currentTicks = 0
-            var currentTempo = MidiMusic.DEFAULT_TEMPO
+            var currentTempo = Midi1Music.DEFAULT_TEMPO
             var nextTempoChangeIndex = 0
 
             for (ump in srcTrack.messages) {
