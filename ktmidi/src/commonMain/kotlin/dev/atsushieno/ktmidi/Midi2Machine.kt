@@ -8,14 +8,16 @@ class Midi2Machine {
     var diagnosticsHandler: (String, Ump?) -> Unit =
         { message, ump -> throw UnsupportedOperationException(message + (if (ump != null) " : $ump" else null)) }
 
-    private val listeners = arrayListOf<Listener>()
+    val eventListeners by lazy { mutableListOf<Listener>() }
 
+    @Deprecated("directly use eventListeners property")
     fun addListener(listener: Listener) {
-        listeners.add(listener)
+        eventListeners.add(listener)
     }
 
+    @Deprecated("directly use eventListeners property")
     fun removeListener(listener: Listener) {
-        listeners.remove(listener)
+        eventListeners.remove(listener)
     }
 
     private val channels = mutableMapOf<Int,Midi2MachineChannel>()
@@ -139,7 +141,7 @@ class Midi2Machine {
                 }
             }
         }
-        for (receiver in listeners)
+        for (receiver in eventListeners)
             receiver.onEvent(evt)
     }
 }
@@ -162,6 +164,7 @@ class Midi2MachineChannel {
     var dteTarget: DteTarget = DteTarget.RPN
     private var dte_target_value: Byte = 0
 
+    // This SHOULD NOT HAPPEN, but in case they were sent as legacy MIDI 1.0 messages...
     fun processMidi1Dte(value: Byte, isMsb: Boolean) {
         var arr: Array<UInt>
         when (dteTarget) {
@@ -181,19 +184,21 @@ class Midi2MachineChannel {
             arr[dte_target_value.toUnsigned()] = (cur and 0xFE000000.toUInt()) + (value shl 18).toUInt()
     }
 
-    // FIXME: should this be like this?? It feels so wrong. Shouldn't they be multiplied by 18 bits?
+    // This SHOULD NOT HAPPEN, but in case they were sent as legacy MIDI 1.0 messages...
+    // increment as if it were sent in 7-bit precision -> translate it to 32-bit context
     fun processMidi1DteIncrement() {
         when (dteTarget) {
-            DteTarget.RPN -> rpns[dte_target_value.toUnsigned()]++
-            DteTarget.NRPN -> nrpns[dte_target_value.toUnsigned()]++
+            DteTarget.RPN -> rpns[dte_target_value.toUnsigned()] += (1u shl 25)
+            DteTarget.NRPN -> nrpns[dte_target_value.toUnsigned()] += (1u shl 25)
         }
     }
 
-    // FIXME: should this be like this?? It feels so wrong. Shouldn't they be multiplied by 18 bits?
+    // This SHOULD NOT HAPPEN, but in case they were sent as legacy MIDI 1.0 messages...
+    // increment as if it were sent in 7-bit precision -> translate it to 32-bit context
     fun processMidi1DteDecrement() {
         when (dteTarget) {
-            DteTarget.RPN -> rpns[dte_target_value.toUnsigned()]--
-            DteTarget.NRPN -> nrpns[dte_target_value.toUnsigned()]--
+            DteTarget.RPN -> rpns[dte_target_value.toUnsigned()] -= (1u shl 25)
+            DteTarget.NRPN -> nrpns[dte_target_value.toUnsigned()] -= (1u shl 25)
         }
     }
 }

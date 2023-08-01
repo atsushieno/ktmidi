@@ -55,6 +55,7 @@ class Midi1MachineChannel {
     val noteVelocity = ByteArray(128)
     val pafVelocity = ByteArray(128)
     val controls = ByteArray(128)
+    // They store values sent by DTE (MSB+LSB), per index (MSB+LSB)
     val rpns = ShortArray(128 * 128) // only 5 should be used though
     val nrpns = ShortArray(128 * 128)
     var program: Byte = 0
