@@ -84,8 +84,7 @@ internal class JzzMidiInput(private val impl: dynamic, details: MidiPortDetails,
     }
 
     private val outFunc : dynamic = { midi : dynamic ->
-        val arr = midi.data
-        this.listener?.onEventReceived(arr, 0, arr.length, 0)
+        this.listener?.onEventReceived(midi as ByteArray, 0, midi.length as Int, 0)
     }
 
     init {
