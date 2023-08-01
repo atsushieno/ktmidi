@@ -1,13 +1,6 @@
 package dev.atsushieno.ktmidi.samples.playersample
 
-import dev.atsushieno.ktmidi.Midi1Player
-import dev.atsushieno.ktmidi.Midi2Music
-import dev.atsushieno.ktmidi.Midi2Player
-import dev.atsushieno.ktmidi.MidiAccess
-import dev.atsushieno.ktmidi.MidiCIProtocolType
-import dev.atsushieno.ktmidi.MidiMusic
-import dev.atsushieno.ktmidi.MidiPlayer
-import dev.atsushieno.ktmidi.read
+import dev.atsushieno.ktmidi.*
 
 data class CommandLineOptions(val api: String? = null, val port: String? = null, val musicFile: String? = null, val midi2: Boolean = false)
 
@@ -59,7 +52,7 @@ suspend fun runMain(args: Array<String>) {
             try {
                 if (getFileExtension(opts.musicFile).lowercase() == "mid")
                     // MIDI1 player
-                    Midi1Player(MidiMusic().apply { this.read(readFileContents(opts.musicFile)) }, midiOutput)
+                    Midi1Player(Midi1Music().apply { this.read(readFileContents(opts.musicFile)) }, midiOutput)
                 else {
                     // MIDI2 player
                     // If -2 is specified, then the MidiOutput will receive UMPs. Otherwise, UMPs are converted to MIDI1.

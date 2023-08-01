@@ -3,18 +3,18 @@ package dev.atsushieno.ktmidi
 class TestHelper {
     companion object {
         @OptIn(ExperimentalUnsignedTypes::class)
-        fun getMidiMusic(): MidiMusic {
-            var music = MidiMusic()
+        fun getMidiMusic(): Midi1Music {
+            var music = Midi1Music()
             music.deltaTimeSpec = 192
             var track = Midi1Track()
             var ch = 1
-            track.messages.add(Midi1Event(188, Midi1Message(MidiChannelStatus.PROGRAM + ch, 1, 0, null, 0, 0)))
+            track.messages.add(Midi1Event(188, Midi1SimpleMessage(MidiChannelStatus.PROGRAM + ch, 1, 0)))
             for (i in 0 until 100) {
                 track.messages.add(
-                    Midi1Event(4, Midi1Message(MidiChannelStatus.NOTE_ON + ch, 60, 120, null, 0, 0))
+                    Midi1Event(4, Midi1SimpleMessage(MidiChannelStatus.NOTE_ON + ch, 60, 120))
                 )
                 track.messages.add(
-                    Midi1Event(44, Midi1Message(MidiChannelStatus.NOTE_OFF + ch, 60, 0, null, 0, 0))
+                    Midi1Event(44, Midi1SimpleMessage(MidiChannelStatus.NOTE_OFF + ch, 60, 0))
                 )
             }
 
@@ -22,7 +22,7 @@ class TestHelper {
             return music
         }
 
-        fun getMidiMusic(resourceId: String): MidiMusic {
+        fun getMidiMusic(resourceId: String): Midi1Music {
             TODO()
             //using (var stream = typeof (TestHelper).Assembly.GetManifestResourceStream (resourceId))
             //return MidiMusic.Read (stream)
@@ -30,7 +30,7 @@ class TestHelper {
 
         suspend fun getMidiPlayer(
             timeManager: MidiPlayerTimer?,
-            midiMusic: MidiMusic?,
+            midiMusic: Midi1Music?,
             midiAccess: MidiAccess? = null
         ): Midi1Player {
             val access = midiAccess ?: emptyMidiAccess
