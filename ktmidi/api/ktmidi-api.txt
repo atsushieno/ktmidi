@@ -642,11 +642,11 @@ package dev.atsushieno.ktmidi {
   public final class Midi1Machine {
     ctor public Midi1Machine();
     method @NonNull public dev.atsushieno.ktmidi.Midi1MachineChannel[] getChannels();
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Midi1Machine.OnMidiMessageListener> getEventListeners();
+    method public error.NonExistentClass getEventListeners();
     method public void processMessage(@NonNull dev.atsushieno.ktmidi.Midi1Message evt);
     method public void setChannels(@NonNull dev.atsushieno.ktmidi.Midi1MachineChannel[] channels);
     property @NonNull public final dev.atsushieno.ktmidi.Midi1MachineChannel[] channels;
-    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.Midi1Machine.OnMidiMessageListener> eventListeners;
+    property public final error.NonExistentClass eventListeners;
   }
 
   public static fun interface Midi1Machine.OnMidiMessageListener {
@@ -707,7 +707,7 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class Midi1Message.Companion {
-    method @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.Midi1Message> convert(@NonNull byte[] bytes, int index, int size);
+    method public error.NonExistentClass convert(@NonNull byte[] bytes, int index, int size);
     method public byte fixedDataSize(byte statusByte);
   }
 
@@ -731,7 +731,7 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class Midi1Music.Companion {
-    method @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.Midi1Event> filterEvents(@NonNull Iterable<dev.atsushieno.ktmidi.Midi1Event> messages, @NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.Midi1Event,java.lang.Boolean> filter);
+    method public error.NonExistentClass filterEvents(@NonNull Iterable<dev.atsushieno.ktmidi.Midi1Event> messages, @NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.Midi1Event,java.lang.Boolean> filter);
     method public int getPlayTimeMillisecondsAtTick(@NonNull Iterable<dev.atsushieno.ktmidi.Midi1Event> messages, int ticks, int deltaTimeSpec);
     method public double getSmfBpm(@NonNull byte[] data, int offset);
     method public int getSmfTempo(@NonNull byte[] data, int offset);
@@ -768,20 +768,20 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class Midi1MusicUnitTest.L.Companion {
-    method public int getD();
-    method public int getE();
-    method public int getH();
-    method public int getK();
-    method public int getR();
-    method public int getS();
-    method public int getT();
-    property public final int d;
-    property public final int e;
-    property public final int h;
-    property public final int k;
-    property public final int r;
-    property public final int s;
-    property public final int t;
+    method public error.NonExistentClass getD();
+    method public error.NonExistentClass getE();
+    method public error.NonExistentClass getH();
+    method public error.NonExistentClass getK();
+    method public error.NonExistentClass getR();
+    method public error.NonExistentClass getS();
+    method public error.NonExistentClass getT();
+    property public final error.NonExistentClass d;
+    property public final error.NonExistentClass e;
+    property public final error.NonExistentClass h;
+    property public final error.NonExistentClass k;
+    property public final error.NonExistentClass r;
+    property public final error.NonExistentClass s;
+    property public final error.NonExistentClass t;
   }
 
   public static final class Midi1MusicUnitTest.U {
@@ -790,10 +790,10 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class Midi1MusicUnitTest.U.Companion {
-    method public int getM();
-    method public int getT();
-    property public final int M;
-    property public final int T;
+    method public error.NonExistentClass getM();
+    method public error.NonExistentClass getT();
+    property public final error.NonExistentClass M;
+    property public final error.NonExistentClass T;
   }
 
   public final class Midi1Player extends dev.atsushieno.ktmidi.MidiPlayer {
@@ -932,13 +932,13 @@ package dev.atsushieno.ktmidi {
     method @Deprecated public void addListener(@NonNull dev.atsushieno.ktmidi.Midi2Machine.Listener listener);
     method @NonNull public dev.atsushieno.ktmidi.Midi2MachineChannel channel(int index);
     method @NonNull public kotlin.jvm.functions.Function2<java.lang.String,dev.atsushieno.ktmidi.Ump,kotlin.Unit> getDiagnosticsHandler();
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Midi2Machine.Listener> getEventListeners();
+    method public error.NonExistentClass getEventListeners();
     method @NonNull public Iterable<dev.atsushieno.ktmidi.Midi2MachineChannel> getUsedChannels();
     method public void processEvent(@NonNull dev.atsushieno.ktmidi.Ump evt);
     method @Deprecated public void removeListener(@NonNull dev.atsushieno.ktmidi.Midi2Machine.Listener listener);
     method public void setDiagnosticsHandler(@NonNull kotlin.jvm.functions.Function2<? super java.lang.String,? super dev.atsushieno.ktmidi.Ump,kotlin.Unit> diagnosticsHandler);
     property @NonNull public final kotlin.jvm.functions.Function2<java.lang.String,dev.atsushieno.ktmidi.Ump,kotlin.Unit> diagnosticsHandler;
-    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.Midi2Machine.Listener> eventListeners;
+    property public final error.NonExistentClass eventListeners;
     property @NonNull public final Iterable<dev.atsushieno.ktmidi.Midi2MachineChannel> usedChannels;
   }
 
@@ -1029,10 +1029,10 @@ package dev.atsushieno.ktmidi {
   }
 
   public final class Midi2MusicTestKt {
-    method @NonNull public static java.util.List<java.lang.Byte> getMusicFileIdentifier();
-    method @NonNull public static java.util.List<java.lang.Byte> getMusicTrackIdentifier();
-    property @NonNull public static final java.util.List<java.lang.Byte> musicFileIdentifier;
-    property @NonNull public static final java.util.List<java.lang.Byte> musicTrackIdentifier;
+    method public static error.NonExistentClass getMusicFileIdentifier();
+    method public static error.NonExistentClass getMusicTrackIdentifier();
+    property public static final error.NonExistentClass musicFileIdentifier;
+    property public static final error.NonExistentClass musicTrackIdentifier;
   }
 
   public final class Midi2Player extends dev.atsushieno.ktmidi.MidiPlayer {
@@ -1270,7 +1270,7 @@ package dev.atsushieno.ktmidi {
   }
 
   @Deprecated public static final class MidiEvent.Companion {
-    method @Deprecated @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.MidiEvent> convert(@NonNull byte[] bytes, int index, int size);
+    method @Deprecated public error.NonExistentClass convert(@NonNull byte[] bytes, int index, int size);
     method @Deprecated public byte fixedDataSize(byte statusByte);
   }
 
@@ -1291,22 +1291,22 @@ package dev.atsushieno.ktmidi {
 
   public final class MidiInstrumentDefinition {
     ctor public MidiInstrumentDefinition();
-    method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> getDrumMaps();
-    method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> getMaps();
-    method public void setDrumMaps(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> drumMaps);
-    method public void setMaps(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> maps);
-    property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> drumMaps;
-    property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiInstrumentMap> maps;
+    method public error.NonExistentClass getDrumMaps();
+    method public error.NonExistentClass getMaps();
+    method public void setDrumMaps(error.NonExistentClass drumMaps);
+    method public void setMaps(error.NonExistentClass maps);
+    property public final error.NonExistentClass drumMaps;
+    property public final error.NonExistentClass maps;
   }
 
   public final class MidiInstrumentMap {
     ctor public MidiInstrumentMap();
     method @Nullable public String getName();
-    method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiProgramDefinition> getPrograms();
+    method public error.NonExistentClass getPrograms();
     method public void setName(@Nullable String name);
-    method public void setPrograms(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiProgramDefinition> programs);
+    method public void setPrograms(error.NonExistentClass programs);
     property @Nullable public final String name;
-    property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiProgramDefinition> programs;
+    property public final error.NonExistentClass programs;
   }
 
   @Deprecated public final class MidiMachine {
@@ -1441,7 +1441,7 @@ package dev.atsushieno.ktmidi {
   }
 
   @Deprecated public static final class MidiMusic.Companion {
-    method @Deprecated @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.MidiMessage> filterEvents(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, @NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.MidiMessage,java.lang.Boolean> filter);
+    method @Deprecated public error.NonExistentClass filterEvents(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, @NonNull kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.MidiMessage,java.lang.Boolean> filter);
     method @Deprecated public int getPlayTimeMillisecondsAtTick(@NonNull Iterable<dev.atsushieno.ktmidi.MidiMessage> messages, int ticks, int deltaTimeSpec);
     method @Deprecated public double getSmfBpm(@NonNull byte[] data, int offset);
     method @Deprecated public int getSmfTempo(@NonNull byte[] data, int offset);
@@ -1556,13 +1556,13 @@ package dev.atsushieno.ktmidi {
 
   public final class MidiProgramDefinition {
     ctor public MidiProgramDefinition();
-    method @NonNull public java.util.ArrayList<dev.atsushieno.ktmidi.MidiBankDefinition> getBanks();
+    method public error.NonExistentClass getBanks();
     method public int getIndex();
     method @Nullable public String getName();
-    method public void setBanks(@NonNull java.util.ArrayList<dev.atsushieno.ktmidi.MidiBankDefinition> banks);
+    method public void setBanks(error.NonExistentClass banks);
     method public void setIndex(int index);
     method public void setName(@Nullable String name);
-    property @NonNull public final java.util.ArrayList<dev.atsushieno.ktmidi.MidiBankDefinition> banks;
+    property public final error.NonExistentClass banks;
     property public final int index;
     property @Nullable public final String name;
   }
@@ -1798,7 +1798,7 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class Ump.Companion {
-    method @NonNull public kotlin.sequences.Sequence<dev.atsushieno.ktmidi.Ump> fromBytes(@NonNull byte[] bytes, int offset, int count);
+    method public error.NonExistentClass fromBytes(@NonNull byte[] bytes, int offset, int count);
   }
 
   public enum UmpBinaryRetrieverFallback {
@@ -1820,11 +1820,11 @@ package dev.atsushieno.ktmidi {
     method @NonNull public dev.atsushieno.ktmidi.Ump endOfClip();
     method @NonNull public dev.atsushieno.ktmidi.Ump endpointDiscovery(byte umpVersionMajor, byte umpVersionMinor, byte filterBitmap);
     method @NonNull public dev.atsushieno.ktmidi.Ump endpointInfoNotification(byte umpVersionMajor, byte umpVersionMinor, boolean isStaticFunctionBlock, byte functionBlockCount, boolean midi2Capable, boolean midi1Capable, boolean supportsRxJR, boolean supportsTxJR);
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> endpointNameNotification(@NonNull String name);
+    method public error.NonExistentClass endpointNameNotification(@NonNull String name);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> endpointNameNotification(@NonNull byte[] name);
     method @NonNull public dev.atsushieno.ktmidi.Ump flexDataCompleteBinary(byte group, byte address, byte channel, byte statusByte, int int2, optional int int3, optional int int4);
     method public void flexDataProcess(byte group, byte address, byte channel, byte statusBank, byte status, @NonNull byte[] text, optional @Nullable Object context, optional @NonNull kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.Ump,java.lang.Object,kotlin.Unit> sendUMP128);
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> flexDataText(byte group, byte address, byte channel, byte statusBank, byte status, @NonNull String text);
+    method public error.NonExistentClass flexDataText(byte group, byte address, byte channel, byte statusBank, byte status, @NonNull String text);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> flexDataText(byte group, byte address, byte channel, byte statusBank, byte status, @NonNull byte[] text);
     method @NonNull public Iterable<dev.atsushieno.ktmidi.Ump> fromPlatformBytes(@NonNull io.ktor.utils.io.core.ByteOrder byteOrder, @NonNull java.util.List<java.lang.Byte> bytes);
     method @NonNull public Iterable<dev.atsushieno.ktmidi.Ump> fromPlatformNativeBytes(@NonNull java.util.List<java.lang.Byte> bytes);
@@ -1851,7 +1851,7 @@ package dev.atsushieno.ktmidi {
     method public int mdsGetPayloadCount(int numTotalBytesInChunk);
     method @NonNull public kotlin.Pair<java.lang.Long,java.lang.Long> mdsGetPayloadOf(byte group, byte mdsId, int numBytes16, @NonNull java.util.List<java.lang.Byte> srcData, int offset);
     method public void mdsProcess(byte group, byte mdsId, @NonNull java.util.List<java.lang.Byte> data, optional @Nullable Object context, @NonNull kotlin.jvm.functions.Function5<? super java.lang.Long,? super java.lang.Long,? super java.lang.Integer,? super java.lang.Integer,java.lang.Object,kotlin.Unit> sendUmp);
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> metadataText(byte group, byte address, byte channel, byte status, @NonNull String text);
+    method public error.NonExistentClass metadataText(byte group, byte address, byte channel, byte status, @NonNull String text);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> metadataText(byte group, byte address, byte channel, byte status, @NonNull byte[] text);
     method @NonNull public dev.atsushieno.ktmidi.Ump metronome(byte group, byte channel, byte numClocksPerPrimeryClick, byte barAccent1, byte barAccent2, byte barAccent3, byte numSubdivisionClick1, byte numSubdivisionClick2);
     method public int midi1CAf(int group, int channel, byte data);
@@ -1885,11 +1885,11 @@ package dev.atsushieno.ktmidi {
     method public long midi2RelativeRPN(int group, int channel, int bankAkaMSB8, int indexAkaLSB8, long dataAkaDTE32);
     method public int noop();
     method @Deprecated public int noop(int group);
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> performanceText(byte group, byte address, byte channel, byte status, @NonNull String text);
+    method public error.NonExistentClass performanceText(byte group, byte address, byte channel, byte status, @NonNull String text);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> performanceText(byte group, byte address, byte channel, byte status, @NonNull byte[] text);
     method public int pitch7_9(double pitch);
     method public int pitch7_9Split(byte semitone, double microtone0To1);
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> productInstanceNotification(@NonNull String id);
+    method public error.NonExistentClass productInstanceNotification(@NonNull String id);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.Ump> productInstanceNotification(@NonNull byte[] id);
     method @NonNull public dev.atsushieno.ktmidi.Ump startOfClip();
     method @NonNull public dev.atsushieno.ktmidi.Ump streamConfigNotification(byte protocol, boolean rxJRTimestamp, boolean txJRTimestamp);
@@ -1952,12 +1952,12 @@ package dev.atsushieno.ktmidi {
 
   public final class UmpRetrievalKt {
     method public static int getChannelInGroup(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getChordNameAlter1(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getChordNameAlter2(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getChordNameAlter3(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getChordNameAlter4(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getChordNameBassAlter1(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getChordNameBassAlter2(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getChordNameAlter1(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getChordNameAlter2(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getChordNameAlter3(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getChordNameAlter4(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getChordNameBassAlter1(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getChordNameBassAlter2(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static byte getChordNameBassChordType(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static byte getChordNameBassNote(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static byte getChordNameBassSharpsFlats(@NonNull dev.atsushieno.ktmidi.Ump);
@@ -2023,27 +2023,27 @@ package dev.atsushieno.ktmidi {
     method public static int getMidi1PitchBendData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi1Program(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi1Velocity(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getMidi2CAfData(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getMidi2CCData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getMidi2CAfData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getMidi2CCData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2CCIndex(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2Note(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2NoteAttributeData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2NoteAttributeType(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getMidi2NrpnData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getMidi2NrpnData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2NrpnLsb(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2NrpnMsb(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getMidi2PAfData(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getMidi2PerNoteACCData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getMidi2PAfData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getMidi2PerNoteACCData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2PerNoteACCIndex(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2PerNoteManagementOptions(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getMidi2PerNoteRCCData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getMidi2PerNoteRCCData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2PerNoteRCCIndex(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getMidi2PitchBendData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getMidi2PitchBendData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2ProgramBankLsb(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2ProgramBankMsb(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2ProgramOptions(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2ProgramProgram(@NonNull dev.atsushieno.ktmidi.Ump);
-    method public static int getMidi2RpnData(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass getMidi2RpnData(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2RpnLsb(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2RpnMsb(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static int getMidi2Velocity16(@NonNull dev.atsushieno.ktmidi.Ump);
@@ -2075,7 +2075,7 @@ package dev.atsushieno.ktmidi {
     method public static boolean isTempo(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isTimeSignature(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static boolean isUmpStream(@NonNull dev.atsushieno.ktmidi.Ump);
-    method @NonNull public static java.util.List<java.lang.Integer> toInts(@NonNull dev.atsushieno.ktmidi.Ump);
+    method public static error.NonExistentClass toInts(@NonNull dev.atsushieno.ktmidi.Ump);
     method public static void toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull byte[] bytes, int offset, @NonNull io.ktor.utils.io.core.ByteOrder byteOrder);
     method public static void toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull byte[] bytes, int offset);
     method @NonNull public static byte[] toPlatformBytes(@NonNull dev.atsushieno.ktmidi.Ump, @NonNull io.ktor.utils.io.core.ByteOrder byteOrder);
@@ -2209,10 +2209,10 @@ package dev.atsushieno.ktmidi {
   }
 
   public final class WellKnownNames {
-    method @NonNull public java.util.Map<java.lang.Integer,java.lang.String> getCcFullNames();
-    method @NonNull public java.util.Map<java.lang.Integer,java.lang.String> getCcNames();
-    property @NonNull public final java.util.Map<java.lang.Integer,java.lang.String> ccFullNames;
-    property @NonNull public final java.util.Map<java.lang.Integer,java.lang.String> ccNames;
+    method public error.NonExistentClass getCcFullNames();
+    method public error.NonExistentClass getCcNames();
+    property public final error.NonExistentClass ccFullNames;
+    property public final error.NonExistentClass ccNames;
     field @NonNull public static final dev.atsushieno.ktmidi.WellKnownNames INSTANCE;
   }
 
@@ -2300,7 +2300,7 @@ package dev.atsushieno.ktmidi.ci {
     method public int midiCIGetProfileSpecificDataSize(@NonNull java.util.List<java.lang.Byte> sysex);
     method public int midiCIGetSourceMUID(@NonNull java.util.List<java.lang.Byte> sysex);
     method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> midiCIGetSupportedProtocols(@NonNull java.util.List<java.lang.Byte> sysex);
-    method @NonNull public java.util.List<java.lang.Byte> midiCIGetTestData(@NonNull java.util.List<java.lang.Byte> sysex);
+    method public error.NonExistentClass midiCIGetTestData(@NonNull java.util.List<java.lang.Byte> sysex);
     field @NonNull public static final dev.atsushieno.ktmidi.ci.CIRetrieval INSTANCE;
   }
 
@@ -2339,13 +2339,13 @@ package dev.atsushieno.ktmidi.ci {
 
   public final class MidiCIConstants {
     method @NonNull public dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo getMidi1ProtocolTypeInfo();
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> getMidi1ThenMidi2Protocols();
+    method public error.NonExistentClass getMidi1ThenMidi2Protocols();
     method @NonNull public dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo getMidi2ProtocolTypeInfo();
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> getMidi2ThenMidi1Protocols();
+    method public error.NonExistentClass getMidi2ThenMidi1Protocols();
     property @NonNull public final dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo Midi1ProtocolTypeInfo;
-    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> Midi1ThenMidi2Protocols;
+    property public final error.NonExistentClass Midi1ThenMidi2Protocols;
     property @NonNull public final dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo Midi2ProtocolTypeInfo;
-    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> Midi2ThenMidi1Protocols;
+    property public final error.NonExistentClass Midi2ThenMidi1Protocols;
     field public static final byte CI_VERSION_AND_FORMAT = 1; // 0x1
     field public static final byte DEVICE_ID_MIDI_PORT = 127; // 0x7f
     field @NonNull public static final dev.atsushieno.ktmidi.ci.MidiCIConstants INSTANCE;
@@ -2376,7 +2376,7 @@ package dev.atsushieno.ktmidi.ci {
     method @NonNull public dev.atsushieno.ktmidi.ci.DeviceDetails getDevice();
     method public int getMidiCIBufferSize();
     method public int getMuid();
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> getPreferredProtocols();
+    method public error.NonExistentClass getPreferredProtocols();
     method @NonNull public kotlin.jvm.functions.Function4<dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,java.lang.Integer,kotlin.Unit> getProcessDiscoveryResponse();
     method @NonNull public kotlin.jvm.functions.Function3<java.lang.Byte,java.lang.Integer,java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>,kotlin.Unit> getProcessProfileInquiryResponse();
     method @NonNull public kotlin.jvm.functions.Function2<java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,java.lang.Integer,kotlin.Unit> getProcessReplyToInitiateProtocolNegotiation();
@@ -2391,7 +2391,7 @@ package dev.atsushieno.ktmidi.ci {
     method public void setDevice(@NonNull dev.atsushieno.ktmidi.ci.DeviceDetails device);
     method public void setMidiCIBufferSize(int midiCIBufferSize);
     method public void setNewProtocol(int destinationMUID, byte authorityLevel, @NonNull dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo newProtocolType);
-    method public void setPreferredProtocols(@NonNull java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> preferredProtocols);
+    method public void setPreferredProtocols(error.NonExistentClass preferredProtocols);
     method public void setProcessDiscoveryResponse(@NonNull kotlin.jvm.functions.Function4<? super dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,? super dev.atsushieno.ktmidi.ci.DeviceDetails,? super java.lang.Integer,? super java.lang.Integer,kotlin.Unit> processDiscoveryResponse);
     method public void setProcessProfileInquiryResponse(@NonNull kotlin.jvm.functions.Function3<? super java.lang.Byte,? super java.lang.Integer,? super java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>,kotlin.Unit> processProfileInquiryResponse);
     method public void setProcessReplyToInitiateProtocolNegotiation(@NonNull kotlin.jvm.functions.Function2<? super java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,? super java.lang.Integer,kotlin.Unit> processReplyToInitiateProtocolNegotiation);
@@ -2404,7 +2404,7 @@ package dev.atsushieno.ktmidi.ci {
     property @NonNull public final dev.atsushieno.ktmidi.ci.DeviceDetails device;
     property public final int midiCIBufferSize;
     property public final int muid;
-    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo> preferredProtocols;
+    property public final error.NonExistentClass preferredProtocols;
     property @NonNull public final kotlin.jvm.functions.Function4<dev.atsushieno.ktmidi.ci.MidiCIDiscoveryResponseCode,dev.atsushieno.ktmidi.ci.DeviceDetails,java.lang.Integer,java.lang.Integer,kotlin.Unit> processDiscoveryResponse;
     property @NonNull public final kotlin.jvm.functions.Function3<java.lang.Byte,java.lang.Integer,java.util.List<kotlin.Pair<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Boolean>>,kotlin.Unit> processProfileInquiryResponse;
     property @NonNull public final kotlin.jvm.functions.Function2<java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo>,java.lang.Integer,kotlin.Unit> processReplyToInitiateProtocolNegotiation;
