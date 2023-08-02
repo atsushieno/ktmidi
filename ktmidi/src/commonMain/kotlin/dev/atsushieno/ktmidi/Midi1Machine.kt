@@ -88,9 +88,9 @@ class Midi1MachineChannel {
         }
         val cur = arr[target].toInt()
         if (isMsb)
-            arr[target] = (cur and 0x007F + ((value.toUnsigned() and 0x7F) shl 7)).toShort()
+            arr[target] = ((cur and 0x007F) + ((value.toUnsigned() and 0x7F) shl 7)).toShort()
         else
-            arr[target] = (cur and 0x3FF0 + (value.toUnsigned() and 0x7F)).toShort()
+            arr[target] = ((cur and 0x3F80) + (value.toUnsigned() and 0x7F)).toShort()
     }
 
     fun processDteIncrement() {
