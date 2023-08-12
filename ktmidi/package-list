@@ -838,13 +838,15 @@ $dokka.location:dev.atsushieno.ktmidi/Midi1Event///PointingToDeclaration/ktmidi
 $dokka.location:dev.atsushieno.ktmidi/Midi1Event/Midi1Event/#kotlin.Int#dev.atsushieno.ktmidi.Midi1Message/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-event/-midi1-event.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Event/deltaTime/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-event/delta-time.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Event/event/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-event/event.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Event/message/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-event/message.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Event/toString/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-event/to-string.html
-$dokka.location:dev.atsushieno.ktmidi/Midi1Machine.OnMidiMessageListener///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/-on-midi-message-listener/index.html
-$dokka.location:dev.atsushieno.ktmidi/Midi1Machine.OnMidiMessageListener/onMessage/#dev.atsushieno.ktmidi.Midi1Message/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/-on-midi-message-listener/on-message.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Machine.OnMidi1MessageListener///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/-on-midi1-message-listener/index.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Machine.OnMidi1MessageListener/onMessage/#dev.atsushieno.ktmidi.Midi1Message/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/-on-midi1-message-listener/on-message.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Machine///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/index.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Machine/Midi1Machine/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/-midi1-machine.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Machine/channels/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/channels.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Machine/eventListeners/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/event-listeners.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Machine/messageListeners/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/message-listeners.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Machine/processMessage/#dev.atsushieno.ktmidi.Midi1Message/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/process-message.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1MachineChannel///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine-channel/index.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1MachineChannel/Midi1MachineChannel/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine-channel/-midi1-machine-channel.html
@@ -873,6 +875,7 @@ $dokka.location:dev.atsushieno.ktmidi/Midi1Message/lsb/#/PointingToDeclaration/
 $dokka.location:dev.atsushieno.ktmidi/Midi1Message/metaType/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/meta-type.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Message/msb/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/msb.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Message/statusByte/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/status-byte.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Message/statusCode/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/status-code.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Message/value/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/value.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Music.Companion///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-music/-companion/index.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Music.Companion/DEFAULT_TEMPO/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-music/-companion/-d-e-f-a-u-l-t_-t-e-m-p-o.html
@@ -898,9 +901,9 @@ $dokka.location:dev.atsushieno.ktmidi/Midi1Player.Companion///PointingToDeclarat
 $dokka.location:dev.atsushieno.ktmidi/Midi1Player.Companion/create/#dev.atsushieno.ktmidi.Midi1Music#dev.atsushieno.ktmidi.MidiAccess#dev.atsushieno.ktmidi.MidiPlayerTimer/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-player/-companion/create.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Player///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-player/index.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Player/Midi1Player/#dev.atsushieno.ktmidi.Midi1Music#dev.atsushieno.ktmidi.MidiOutput#dev.atsushieno.ktmidi.MidiPlayerTimer#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-player/-midi1-player.html
-$dokka.location:dev.atsushieno.ktmidi/Midi1Player/addOnMessageListener/#dev.atsushieno.ktmidi.OnMidi1MessageListener/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-player/add-on-message-listener.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Player/addOnEventListener/#dev.atsushieno.ktmidi.OnMidi1EventListener/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-player/add-on-event-listener.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Player/positionInMilliseconds/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-player/position-in-milliseconds.html
-$dokka.location:dev.atsushieno.ktmidi/Midi1Player/removeOnMessageListener/#dev.atsushieno.ktmidi.OnMidi1MessageListener/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-player/remove-on-message-listener.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Player/removeOnEventListener/#dev.atsushieno.ktmidi.OnMidi1EventListener/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-player/remove-on-event-listener.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Player/seek/#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-player/seek.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Player/setMutedChannels/#kotlin.collections.Iterable[kotlin.Int]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-player/set-muted-channels.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Player/totalPlayTimeMilliseconds/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-player/total-play-time-milliseconds.html
@@ -929,6 +932,7 @@ $dokka.location:dev.atsushieno.ktmidi/Midi1ToUmpTranslatorContext/tempo/#/Pointi
 $dokka.location:dev.atsushieno.ktmidi/Midi1ToUmpTranslatorContext/useSysex8/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-to-ump-translator-context/use-sysex8.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Track///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-track/index.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Track/Midi1Track/#kotlin.collections.MutableList[dev.atsushieno.ktmidi.Midi1Event]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-track/-midi1-track.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Track/events/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-track/events.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Track/messages/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-track/messages.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1TrackSplitter.Companion///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-track-splitter/-companion/index.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1TrackSplitter.Companion/split/#kotlin.collections.MutableList[dev.atsushieno.ktmidi.Midi1Event]#kotlin.Byte/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-track-splitter/-companion/split.html
@@ -1353,8 +1357,8 @@ $dokka.location:dev.atsushieno.ktmidi/MidiUtilityStatus/DELTA_CLOCKSTAMP/#/Point
 $dokka.location:dev.atsushieno.ktmidi/MidiUtilityStatus/JR_CLOCK/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-utility-status/-j-r_-c-l-o-c-k.html
 $dokka.location:dev.atsushieno.ktmidi/MidiUtilityStatus/JR_TIMESTAMP/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-utility-status/-j-r_-t-i-m-e-s-t-a-m-p.html
 $dokka.location:dev.atsushieno.ktmidi/MidiUtilityStatus/NOP/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-utility-status/-n-o-p.html
-$dokka.location:dev.atsushieno.ktmidi/OnMidi1MessageListener///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-on-midi1-message-listener/index.html
-$dokka.location:dev.atsushieno.ktmidi/OnMidi1MessageListener/onMessage/#dev.atsushieno.ktmidi.Midi1Event/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-on-midi1-message-listener/on-message.html
+$dokka.location:dev.atsushieno.ktmidi/OnMidi1EventListener///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-on-midi1-event-listener/index.html
+$dokka.location:dev.atsushieno.ktmidi/OnMidi1EventListener/onEvent/#dev.atsushieno.ktmidi.Midi1Event/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-on-midi1-event-listener/on-event.html
 $dokka.location:dev.atsushieno.ktmidi/OnMidi2EventListener///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-on-midi2-event-listener/index.html
 $dokka.location:dev.atsushieno.ktmidi/OnMidi2EventListener/onEvent/#dev.atsushieno.ktmidi.Ump/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-on-midi2-event-listener/on-event.html
 $dokka.location:dev.atsushieno.ktmidi/OnMidiEventListener///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-on-midi-event-listener/index.html
@@ -1389,7 +1393,7 @@ $dokka.location:dev.atsushieno.ktmidi/SeekFilterResult///PointingToDeclaration/
 $dokka.location:dev.atsushieno.ktmidi/SeekFilterResult/valueOf/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-seek-filter-result/value-of.html
 $dokka.location:dev.atsushieno.ktmidi/SeekFilterResult/values/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-seek-filter-result/values.html
 $dokka.location:dev.atsushieno.ktmidi/SeekProcessor///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-seek-processor/index.html
-$dokka.location:dev.atsushieno.ktmidi/SeekProcessor/filterMessage/#TypeParam(bounds=[kotlin.Any?])/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-seek-processor/filter-message.html
+$dokka.location:dev.atsushieno.ktmidi/SeekProcessor/filterEvent/#TypeParam(bounds=[kotlin.Any?])/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-seek-processor/filter-event.html
 $dokka.location:dev.atsushieno.ktmidi/SimpleAdjustingMidiPlayerTimer///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-simple-adjusting-midi-player-timer/index.html
 $dokka.location:dev.atsushieno.ktmidi/SimpleAdjustingMidiPlayerTimer/SimpleAdjustingMidiPlayerTimer/#kotlin.time.TimeSource/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-simple-adjusting-midi-player-timer/-simple-adjusting-midi-player-timer.html
 $dokka.location:dev.atsushieno.ktmidi/SimpleAdjustingMidiPlayerTimer/stop/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-simple-adjusting-midi-player-timer/stop.html
