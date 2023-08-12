@@ -8,10 +8,10 @@ class Midi1Music {
         override fun messageToDeltaTime(message: Midi1Event) = message.deltaTime
 
         override fun isTempoMessage(message: Midi1Event) =
-            message.event.eventType.toUnsigned() == Midi1Status.META && message.event.msb.toInt() == MidiMetaType.TEMPO
+            message.message.statusCode.toUnsigned() == Midi1Status.META && message.message.msb.toInt() == MidiMetaType.TEMPO
 
         override fun getTempoValue(message: Midi1Event): Int {
-            val e = message.event as Midi1CompoundMessage
+            val e = message.message as Midi1CompoundMessage
             return getSmfTempo(e.extraData!!, e.extraDataOffset)
         }
     }
@@ -53,7 +53,7 @@ class Midi1Music {
         private val calc = SmfDeltaTimeComputer()
 
         fun filterEvents(messages: Iterable<Midi1Event>, filter: (Midi1Event) -> Boolean) =
-            calc.filterEvents(messages, filter).map { p -> Midi1Event(p.duration.value, p.value.event) }
+            calc.filterEvents(messages, filter).map { p -> Midi1Event(p.duration.value, p.value.message) }
 
         fun getTotalPlayTimeMilliseconds(messages: Iterable<Midi1Event>, deltaTimeSpec: Int) = calc.getTotalPlayTimeMilliseconds(messages, deltaTimeSpec)
 
@@ -73,25 +73,25 @@ class Midi1Music {
     fun filterEvents(filter: (Midi1Event) -> Boolean): Iterable<Midi1Event> {
         if (format != 0.toByte())
             return mergeTracks().filterEvents(filter)
-        return filterEvents(tracks[0].messages, filter).asIterable()
+        return filterEvents(tracks[0].events, filter).asIterable()
     }
 
     fun getTotalTicks(): Int {
         if (format != 0.toByte())
             return mergeTracks().getTotalTicks()
-        return tracks[0].messages.sumOf { m: Midi1Event -> m.deltaTime }
+        return tracks[0].events.sumOf { m: Midi1Event -> m.deltaTime }
     }
 
     fun getTotalPlayTimeMilliseconds(): Int {
         if (format != 0.toByte())
             return mergeTracks().getTotalPlayTimeMilliseconds()
-        return getTotalPlayTimeMilliseconds(tracks[0].messages, deltaTimeSpec)
+        return getTotalPlayTimeMilliseconds(tracks[0].events, deltaTimeSpec)
     }
 
     fun getTimePositionInMillisecondsForTick(ticks: Int): Int {
         if (format != 0.toByte())
             return mergeTracks().getTimePositionInMillisecondsForTick(ticks)
-        return getPlayTimeMillisecondsAtTick(tracks[0].messages, ticks, deltaTimeSpec)
+        return getPlayTimeMillisecondsAtTick(tracks[0].events, ticks, deltaTimeSpec)
     }
 
     init {
@@ -99,9 +99,13 @@ class Midi1Music {
     }
 }
 
-class Midi1Track(val messages: MutableList<Midi1Event> = mutableListOf())
+class Midi1Track(val events: MutableList<Midi1Event> = mutableListOf()) {
+    @Deprecated("Use events property instead", ReplaceWith("events"))
+    val messages: MutableList<Midi1Event>
+        get() = events
+}
 
-class Midi1Event(val deltaTime: Int, evt: Midi1Message) {
+class Midi1Event(val deltaTime: Int, val message: Midi1Message) {
     companion object {
         fun encode7BitLength(length: Int): Sequence<Byte> =
             sequence {
@@ -114,9 +118,10 @@ class Midi1Event(val deltaTime: Int, evt: Midi1Message) {
             }
     }
 
-    val event: Midi1Message = evt
+    @Deprecated("Use message property instead (you might need casting to Midi1CompoundMessage)")
+    val event: Midi1Message by lazy { message }
 
-    override fun toString(): String = "[$deltaTime:$event]"
+    override fun toString(): String = "[$deltaTime:$message]"
 }
 
 interface Midi1Message {
@@ -160,10 +165,12 @@ interface Midi1Message {
 
     val value: Int
 
+    /// Contains status code, and channel for Midi1SimpleMessage.
     val statusByte: Byte
         get() = (value and 0xFF).toByte()
 
-    val eventType: Byte
+    /// Contains channel status (80-E0), Fn for System messages, or meta event in SMF.
+    val statusCode: Byte
         get() =
             when (statusByte.toUnsigned()) {
                 Midi1Status.META,
@@ -171,6 +178,9 @@ interface Midi1Message {
                 Midi1Status.SYSEX_END -> this.statusByte
                 else -> (value and 0xF0).toByte()
             }
+    @Deprecated("Use statusCode property instead", ReplaceWith("statusCode"))
+    val eventType: Byte
+        get() = statusCode
 
     val msb: Byte
         get() = ((value and 0xFF00) shr 8).toByte()
@@ -228,9 +238,9 @@ internal class Midi1TrackMerger(private var source: Midi1Music) {
 
         for (track in source.tracks) {
             var delta = 0
-            for (mev in track.messages) {
+            for (mev in track.events) {
                 delta += mev.deltaTime
-                l.add(Midi1Event(delta, mev.event))
+                l.add(Midi1Event(delta, mev.message))
             }
         }
 
@@ -282,26 +292,26 @@ internal class Midi1TrackMerger(private var source: Midi1Music) {
         var waitToNext = l[0].deltaTime
         i = 0
         while (i < l.size - 1) {
-            val e = l[i].event
-            if (e is Midi1SimpleMessage && e.value != 0) { // if non-dummy
+            val m = l[i].message
+            if (m is Midi1SimpleMessage && m.value != 0) { // if non-dummy
                 val tmp = l[i + 1].deltaTime - l[i].deltaTime
-                l[i] = Midi1Event(waitToNext, l[i].event)
+                l[i] = Midi1Event(waitToNext, l[i].message)
                 waitToNext = tmp
             }
             i++
         }
-        l[l.size - 1] = Midi1Event(waitToNext, l[l.size - 1].event)
+        l[l.size - 1] = Midi1Event(waitToNext, l[l.size - 1].message)
 
-        val m = Midi1Music()
-        m.deltaTimeSpec = source.deltaTimeSpec
-        m.format = 0
-        m.tracks.add(Midi1Track(l))
-        return m
+        val music = Midi1Music()
+        music.deltaTimeSpec = source.deltaTimeSpec
+        music.format = 0
+        music.tracks.add(Midi1Track(l))
+        return music
     }
 }
 
 fun Midi1Track.splitTracksByChannel(deltaTimeSpec: Byte) : Midi1Music =
-    Midi1TrackSplitter(messages, deltaTimeSpec).split()
+    Midi1TrackSplitter(events, deltaTimeSpec).split()
 
 open class Midi1TrackSplitter(private val source: MutableList<Midi1Event>, private val deltaTimeSpec: Byte) {
     companion object {
@@ -318,8 +328,8 @@ open class Midi1TrackSplitter(private val source: MutableList<Midi1Event>, priva
         val track: Midi1Track = Midi1Track()
 
         fun addMessage(deltaInsertAt: Int, e: Midi1Event) {
-            val e2 = Midi1Event(deltaInsertAt - totalDeltaTime, e.event)
-            track.messages.add(e2)
+            val e2 = Midi1Event(deltaInsertAt - totalDeltaTime, e.message)
+            track.events.add(e2)
             totalDeltaTime = deltaInsertAt
         }
 
@@ -341,9 +351,9 @@ open class Midi1TrackSplitter(private val source: MutableList<Midi1Event>, priva
     // useful to split note messages out from non-note ones,
     // to ease data reading.
     open fun getTrackId(e: Midi1Event): Int {
-        return when (e.event.eventType.toUnsigned()) {
+        return when (e.message.statusCode.toUnsigned()) {
             Midi1Status.META, Midi1Status.SYSEX, Midi1Status.SYSEX_END -> -1
-            else -> e.event.channel.toUnsigned()
+            else -> e.message.channel.toUnsigned()
         }
     }
 

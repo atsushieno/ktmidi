@@ -1,16 +1,19 @@
 package dev.atsushieno.ktmidi
 
 class Midi1Machine {
-    fun interface OnMidiMessageListener {
+    fun interface OnMidi1MessageListener {
         fun onMessage(e: Midi1Message)
     }
 
-    val eventListeners by lazy { mutableListOf<OnMidiMessageListener>() }
+    val messageListeners by lazy { mutableListOf<OnMidi1MessageListener>() }
+    @Deprecated("Use messageListeners property instead", ReplaceWith("messageListeners"))
+    val eventListeners : MutableList<OnMidi1MessageListener>
+        get() = messageListeners
 
     var channels = Array(16) { Midi1MachineChannel() }
 
     fun processMessage(evt: Midi1Message) {
-        when (evt.eventType.toUnsigned()) {
+        when (evt.statusCode.toUnsigned()) {
             MidiChannelStatus.NOTE_ON ->
                 channels[evt.channel.toUnsigned()].noteVelocity[evt.msb.toUnsigned()] = evt.lsb
 
@@ -47,7 +50,7 @@ class Midi1Machine {
                 channels[evt.channel.toUnsigned()].pitchbend = ((evt.msb.toUnsigned() shl 7) + evt.lsb).toShort()
         }
 
-        eventListeners.forEach { it.onMessage(evt) }
+        messageListeners.forEach { it.onMessage(evt) }
     }
 }
 

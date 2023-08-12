@@ -6,11 +6,11 @@ import kotlinx.coroutines.Runnable
 internal val Ump.metaEventType : Int
     get() = if (this.messageType != MidiMessageType.SYSEX8_MDS) 0 else (this.int3 shr 8) and 0x7F
 
-internal class Midi2EventLooper(var messages: List<Ump>, private val timer: MidiPlayerTimer, private val deltaTimeSpec: Int)
+internal class Midi2EventLooper(var events: List<Ump>, private val timer: MidiPlayerTimer, private val deltaTimeSpec: Int)
     : MidiEventLooper<Ump>(timer) {
-    override fun isEventIndexAtEnd() = eventIdx == messages.size
+    override fun isEventIndexAtEnd() = eventIdx == events.size
 
-    override fun getNextMessage() = messages[eventIdx]
+    override fun getNextEvent() = events[eventIdx]
 
     override fun getContextDeltaTimeInSeconds(m: Ump): Double {
         return if (deltaTimeSpec > 0) {
@@ -46,19 +46,19 @@ internal class Midi2EventLooper(var messages: List<Ump>, private val timer: Midi
         }
     }
 
-    private val messageHandlers = mutableListOf<OnMidi2EventListener>()
+    private val eventHandlers = mutableListOf<OnMidi2EventListener>()
 
     fun addOnMessageListener(listener: OnMidi2EventListener) {
-        messageHandlers.add(listener)
+        eventHandlers.add(listener)
     }
 
     fun removeOnMessageListener(listener: OnMidi2EventListener) {
-        messageHandlers.remove(listener)
+        eventHandlers.remove(listener)
     }
 
     override fun onEvent(m: Ump) {
         // Here we do not filter out JR Timetamp messages, as the receivers might want to know the expected time value.
-        for (er in messageHandlers)
+        for (er in eventHandlers)
             er.onEvent(m)
 
     }
@@ -237,16 +237,16 @@ internal class Midi2SimpleSeekProcessor(ticks: Int) : SeekProcessor<Ump> {
     private var seekTo: Int = ticks
     private var current: Int = 0
 
-    override fun filterMessage(message: Ump): SeekFilterResult {
+    override fun filterEvent(evt: Ump): SeekFilterResult {
         current +=
-            if(message.isDeltaClockstamp)
-                message.deltaClockstamp
-            else if(message.isJRTimestamp)
-                message.jrTimestamp
+            if(evt.isDeltaClockstamp)
+                evt.deltaClockstamp
+            else if(evt.isJRTimestamp)
+                evt.jrTimestamp
             else 0
         if (current >= seekTo)
             return SeekFilterResult.PASS_AND_TERMINATE
-        when (message.statusCode) {
+        when (evt.statusCode) {
             MidiChannelStatus.NOTE_ON, MidiChannelStatus.NOTE_OFF -> return SeekFilterResult.BLOCK
         }
         return SeekFilterResult.PASS

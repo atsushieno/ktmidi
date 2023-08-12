@@ -15,11 +15,11 @@ internal class Midi1EventLooper(var messages: List<Midi1Event>, private val time
 
     override fun isEventIndexAtEnd(): Boolean = eventIdx == messages.size
 
-    override fun getNextMessage(): Midi1Event = messages[eventIdx]
+    override fun getNextEvent(): Midi1Event = messages[eventIdx]
 
     override fun updateTempoAndTimeSignatureIfApplicable(m: Midi1Event) {
-        if (m.event.statusByte.toUnsigned() == 0xFF) {
-            val e = m.event as Midi1CompoundMessage
+        if (m.message.statusByte.toUnsigned() == 0xFF) {
+            val e = m.message as Midi1CompoundMessage
             if (e.msb.toInt() == MidiMetaType.TEMPO)
                 currentTempo = Midi1Music.getSmfTempo(e.extraData!!, e.extraDataOffset)
             else if (e.msb.toInt() == MidiMetaType.TIME_SIGNATURE && e.extraDataLength == 4) {
@@ -29,11 +29,11 @@ internal class Midi1EventLooper(var messages: List<Midi1Event>, private val time
         }
     }
 
-    val messageHandlers = mutableListOf<OnMidi1MessageListener>()
+    val messageHandlers = mutableListOf<OnMidi1EventListener>()
 
     override fun onEvent(m: Midi1Event) {
         for (er in messageHandlers)
-            er.onMessage(m)
+            er.onEvent(m)
 
     }
 
@@ -43,11 +43,11 @@ internal class Midi1EventLooper(var messages: List<Midi1Event>, private val time
     }
 }
 
-fun interface OnMidi1MessageListener {
-    fun onMessage(m: Midi1Event)
+fun interface OnMidi1EventListener {
+    fun onEvent(m: Midi1Event)
 }
 
-@Deprecated("Use OnMidi1MessageListener")
+@Deprecated("Use OnMidi1EventListener")
 fun interface OnMidiMessageListener {
     fun onMessage(m: MidiMessage)
 }
@@ -64,8 +64,8 @@ class Midi1Player : MidiPlayer {
         : super(output, shouldDisposeOutput) {
 
         this.music = music
-        messages = music.mergeTracks().tracks[0].messages
-        looper = Midi1EventLooper(messages, timer, music.deltaTimeSpec)
+        events = music.mergeTracks().tracks[0].events
+        looper = Midi1EventLooper(events, timer, music.deltaTimeSpec)
 
         looper.starting = Runnable {
             // all control reset on all channels.
@@ -77,22 +77,22 @@ class Midi1Player : MidiPlayer {
             }
         }
 
-        val listener = object : OnMidi1MessageListener {
-            override fun onMessage(m: Midi1Event) {
-                val e = m.event
-                when (e.eventType.toUnsigned()) {
+        val listener = object : OnMidi1EventListener {
+            override fun onEvent(e: Midi1Event) {
+                val m = e.message
+                when (m.statusCode.toUnsigned()) {
                     MidiChannelStatus.NOTE_OFF,
                     MidiChannelStatus.NOTE_ON -> {
-                        if (mutedChannels.contains(e.channel.toUnsigned()))
+                        if (mutedChannels.contains(m.channel.toUnsigned()))
                             return // ignore messages for the masked channel.
                     }
                     Midi1Status.SYSEX -> {
-                        val s = e as Midi1CompoundMessage
-                        if (buffer.size <= e.extraDataLength + 1) // +1 for possible F7 filling
+                        val s = m as Midi1CompoundMessage
+                        if (buffer.size <= m.extraDataLength + 1) // +1 for possible F7 filling
                             buffer = ByteArray(buffer.size * 2)
-                        buffer[0] = e.statusByte
-                        e.extraData!!.copyInto(buffer, 1, s.extraDataOffset, s.extraDataLength)
-                        if (e.extraData[s.extraDataOffset + s.extraDataLength - 1] != 0xF7.toByte())
+                        buffer[0] = m.statusByte
+                        m.extraData!!.copyInto(buffer, 1, s.extraDataOffset, s.extraDataLength)
+                        if (m.extraData[s.extraDataOffset + s.extraDataLength - 1] != 0xF7.toByte())
                             buffer[s.extraDataOffset + s.extraDataLength + 1] = 0xF7.toByte()
                         output.send(buffer, 0, s.extraDataLength + 2, 0)
                         return
@@ -106,26 +106,26 @@ class Midi1Player : MidiPlayer {
                         return
                     }
                 }
-                val size = Midi1Message.fixedDataSize(e.statusByte)
-                buffer[0] = e.statusByte
-                buffer[1] = e.msb
-                buffer[2] = e.lsb
+                val size = Midi1Message.fixedDataSize(m.statusByte)
+                buffer[0] = m.statusByte
+                buffer[1] = m.msb
+                buffer[2] = m.lsb
                 output.send(buffer, 0, size + 1, 0)
             }
         }
-        addOnMessageListener(listener)
+        addOnEventListener(listener)
     }
 
     private val music: Midi1Music
     private var buffer = ByteArray(0x100)
-    internal var messages: MutableList<Midi1Event>
+    internal var events: MutableList<Midi1Event>
     final override val looper: Midi1EventLooper
 
-    fun addOnMessageListener(listener: OnMidi1MessageListener) {
+    fun addOnEventListener(listener: OnMidi1EventListener) {
         looper.messageHandlers.add(listener)
     }
 
-    fun removeOnMessageListener(listener: OnMidi1MessageListener) {
+    fun removeOnEventListener(listener: OnMidi1EventListener) {
         looper.messageHandlers.remove(listener)
     }
 
@@ -133,7 +133,7 @@ class Midi1Player : MidiPlayer {
         get() = music.getTimePositionInMillisecondsForTick(playDeltaTime).toLong()
 
     override val totalPlayTimeMilliseconds: Int
-        get() = Midi1Music.getTotalPlayTimeMilliseconds(messages, music.deltaTimeSpec)
+        get() = Midi1Music.getTotalPlayTimeMilliseconds(events, music.deltaTimeSpec)
 
     override fun seek(ticks: Int) {
         looper.seek(SimpleMidi1SeekProcessor(ticks), ticks)
@@ -149,14 +149,14 @@ class Midi1Player : MidiPlayer {
 }
 
 internal class SimpleMidi1SeekProcessor(ticks: Int) : SeekProcessor<Midi1Event> {
-    private var seek_to: Int = ticks
+    private var seekTo: Int = ticks
     private var current: Int = 0
 
-    override fun filterMessage(message: Midi1Event): SeekFilterResult {
-        current += message.deltaTime
-        if (current >= seek_to)
+    override fun filterEvent(evt: Midi1Event): SeekFilterResult {
+        current += evt.deltaTime
+        if (current >= seekTo)
             return SeekFilterResult.PASS_AND_TERMINATE
-        when (message.event.eventType.toUnsigned()) {
+        when (evt.message.statusCode.toUnsigned()) {
             MidiChannelStatus.NOTE_ON, MidiChannelStatus.NOTE_OFF -> return SeekFilterResult.BLOCK
         }
         return SeekFilterResult.PASS

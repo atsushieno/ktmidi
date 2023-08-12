@@ -627,11 +627,13 @@ package dev.atsushieno.ktmidi {
   }
 
   public final class Midi1Event {
-    ctor public Midi1Event(int deltaTime, @NonNull dev.atsushieno.ktmidi.Midi1Message evt);
+    ctor public Midi1Event(int deltaTime, @NonNull dev.atsushieno.ktmidi.Midi1Message message);
     method public int getDeltaTime();
-    method @NonNull public dev.atsushieno.ktmidi.Midi1Message getEvent();
+    method @Deprecated @NonNull public dev.atsushieno.ktmidi.Midi1Message getEvent();
+    method @NonNull public dev.atsushieno.ktmidi.Midi1Message getMessage();
     property public final int deltaTime;
-    property @NonNull public final dev.atsushieno.ktmidi.Midi1Message event;
+    property @Deprecated @NonNull public final dev.atsushieno.ktmidi.Midi1Message event;
+    property @NonNull public final dev.atsushieno.ktmidi.Midi1Message message;
     field @NonNull public static final dev.atsushieno.ktmidi.Midi1Event.Companion Companion;
   }
 
@@ -642,14 +644,16 @@ package dev.atsushieno.ktmidi {
   public final class Midi1Machine {
     ctor public Midi1Machine();
     method @NonNull public dev.atsushieno.ktmidi.Midi1MachineChannel[] getChannels();
-    method public error.NonExistentClass getEventListeners();
+    method @Deprecated @NonNull public java.util.List<dev.atsushieno.ktmidi.Midi1Machine.OnMidi1MessageListener> getEventListeners();
+    method public error.NonExistentClass getMessageListeners();
     method public void processMessage(@NonNull dev.atsushieno.ktmidi.Midi1Message evt);
     method public void setChannels(@NonNull dev.atsushieno.ktmidi.Midi1MachineChannel[] channels);
     property @NonNull public final dev.atsushieno.ktmidi.Midi1MachineChannel[] channels;
-    property public final error.NonExistentClass eventListeners;
+    property @Deprecated @NonNull public final java.util.List<dev.atsushieno.ktmidi.Midi1Machine.OnMidi1MessageListener> eventListeners;
+    property public final error.NonExistentClass messageListeners;
   }
 
-  public static fun interface Midi1Machine.OnMidiMessageListener {
+  public static fun interface Midi1Machine.OnMidi1MessageListener {
     method public void onMessage(@NonNull dev.atsushieno.ktmidi.Midi1Message e);
   }
 
@@ -690,18 +694,20 @@ package dev.atsushieno.ktmidi {
 
   public interface Midi1Message {
     method public default byte getChannel();
-    method public default byte getEventType();
+    method @Deprecated public default byte getEventType();
     method public default byte getLsb();
     method public default byte getMetaType();
     method public default byte getMsb();
     method public default byte getStatusByte();
+    method public default byte getStatusCode();
     method public int getValue();
     property public default byte channel;
-    property public default byte eventType;
+    property @Deprecated public default byte eventType;
     property public default byte lsb;
     property public default byte metaType;
     property public default byte msb;
     property public default byte statusByte;
+    property public default byte statusCode;
     property public abstract int value;
     field @NonNull public static final dev.atsushieno.ktmidi.Midi1Message.Companion Companion;
   }
@@ -798,10 +804,10 @@ package dev.atsushieno.ktmidi {
 
   public final class Midi1Player extends dev.atsushieno.ktmidi.MidiPlayer {
     ctor public Midi1Player(@NonNull dev.atsushieno.ktmidi.Midi1Music music, @NonNull dev.atsushieno.ktmidi.MidiOutput output, optional @NonNull dev.atsushieno.ktmidi.MidiPlayerTimer timer, optional boolean shouldDisposeOutput);
-    method public void addOnMessageListener(@NonNull dev.atsushieno.ktmidi.OnMidi1MessageListener listener);
+    method public void addOnEventListener(@NonNull dev.atsushieno.ktmidi.OnMidi1EventListener listener);
     method public long getPositionInMilliseconds();
     method public int getTotalPlayTimeMilliseconds();
-    method public void removeOnMessageListener(@NonNull dev.atsushieno.ktmidi.OnMidi1MessageListener listener);
+    method public void removeOnEventListener(@NonNull dev.atsushieno.ktmidi.OnMidi1EventListener listener);
     method public void seek(int ticks);
     method public void setMutedChannels(@NonNull Iterable<java.lang.Integer> mutedChannels);
     property public long positionInMilliseconds;
@@ -883,9 +889,11 @@ package dev.atsushieno.ktmidi {
   }
 
   public final class Midi1Track {
-    ctor public Midi1Track(optional @NonNull java.util.List<dev.atsushieno.ktmidi.Midi1Event> messages);
-    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Midi1Event> getMessages();
-    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.Midi1Event> messages;
+    ctor public Midi1Track(optional @NonNull java.util.List<dev.atsushieno.ktmidi.Midi1Event> events);
+    method @NonNull public java.util.List<dev.atsushieno.ktmidi.Midi1Event> getEvents();
+    method @Deprecated @NonNull public java.util.List<dev.atsushieno.ktmidi.Midi1Event> getMessages();
+    property @NonNull public final java.util.List<dev.atsushieno.ktmidi.Midi1Event> events;
+    property @Deprecated @NonNull public final java.util.List<dev.atsushieno.ktmidi.Midi1Event> messages;
   }
 
   public class Midi1TrackSplitter {
@@ -1628,8 +1636,8 @@ package dev.atsushieno.ktmidi {
     field public static final int NOP = 0; // 0x0
   }
 
-  public fun interface OnMidi1MessageListener {
-    method public void onMessage(@NonNull dev.atsushieno.ktmidi.Midi1Event m);
+  public fun interface OnMidi1EventListener {
+    method public void onEvent(@NonNull dev.atsushieno.ktmidi.Midi1Event m);
   }
 
   public fun interface OnMidi2EventListener {
@@ -1691,8 +1699,8 @@ package dev.atsushieno.ktmidi {
     enum_constant public static final dev.atsushieno.ktmidi.SeekFilterResult PASS_AND_TERMINATE;
   }
 
-  public interface SeekProcessor<TMessage> {
-    method @NonNull public dev.atsushieno.ktmidi.SeekFilterResult filterMessage(@Nullable TMessage message);
+  public fun interface SeekProcessor<TEvent> {
+    method @NonNull public dev.atsushieno.ktmidi.SeekFilterResult filterEvent(@Nullable TEvent evt);
   }
 
   public final class SimpleAdjustingMidiPlayerTimer implements dev.atsushieno.ktmidi.MidiPlayerTimer {

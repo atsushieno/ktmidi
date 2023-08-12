@@ -82,7 +82,7 @@ internal abstract class MidiEventLooperBase {
                 }
                 if (isEventIndexAtEnd())
                     break
-                processNextMessage()
+                processNextEvent()
                 eventIdx++
             }
             doStop = false
@@ -105,22 +105,22 @@ internal abstract class MidiEventLooperBase {
             eventLoopSemaphore?.release()
     }
 
-    protected abstract suspend fun processNextMessage()
+    protected abstract suspend fun processNextEvent()
 }
 
-internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerTimer) : MidiEventLooperBase() {
-    abstract fun getNextMessage() : TMessage
-    abstract fun getContextDeltaTimeInSeconds(m: TMessage): Double
-    abstract fun getDurationOfEvent(m: TMessage) : Int
-    abstract fun updateTempoAndTimeSignatureIfApplicable(m: TMessage)
-    abstract fun onEvent(m: TMessage)
+internal abstract class MidiEventLooper<TEvent>(private val timer: MidiPlayerTimer) : MidiEventLooperBase() {
+    abstract fun getNextEvent() : TEvent
+    abstract fun getContextDeltaTimeInSeconds(m: TEvent): Double
+    abstract fun getDurationOfEvent(m: TEvent) : Int
+    abstract fun updateTempoAndTimeSignatureIfApplicable(m: TEvent)
+    abstract fun onEvent(m: TEvent)
 
-    override suspend fun processNextMessage() =
-        processMessage(getNextMessage())
+    override suspend fun processNextEvent() =
+        processEvent(getNextEvent())
 
-    private suspend fun processMessage(m: TMessage) {
+    private suspend fun processEvent(m: TEvent) {
         if (seek_processor != null) {
-            val result = seek_processor!!.filterMessage(m)
+            val result = seek_processor!!.filterEvent(m)
             if (result == SeekFilterResult.PASS_AND_TERMINATE || result == SeekFilterResult.BLOCK_AND_TERMINATE)
                 seek_processor = null
 
@@ -139,10 +139,10 @@ internal abstract class MidiEventLooper<TMessage>(private val timer: MidiPlayerT
         onEvent(m)
     }
 
-    private var seek_processor: SeekProcessor<TMessage>? = null
+    private var seek_processor: SeekProcessor<TEvent>? = null
 
     // not sure about the interface, so make it non-public yet.
-    internal fun seek(seekProcessor: SeekProcessor<TMessage>, ticks: Int) {
+    internal fun seek(seekProcessor: SeekProcessor<TEvent>, ticks: Int) {
         seek_processor = seekProcessor
         eventIdx = 0
         playDeltaTime = ticks
@@ -252,8 +252,8 @@ enum class PlayerState {
     PAUSED,
 }
 
-interface SeekProcessor<TMessage> {
-    fun filterMessage(message: TMessage): SeekFilterResult
+fun interface SeekProcessor<TEvent> {
+    fun filterEvent(evt: TEvent): SeekFilterResult
 }
 
 enum class SeekFilterResult {

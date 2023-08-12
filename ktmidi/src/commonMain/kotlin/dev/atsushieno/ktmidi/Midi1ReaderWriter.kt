@@ -60,17 +60,17 @@ internal class Midi1Writer(
         var runningStatus: Byte = 0
         var wroteEndOfTrack = false
 
-        for (e in track.messages) {
+        for (e in track.events) {
             write7bitEncodedInt(e.deltaTime)
-            when (e.event.eventType.toUnsigned()) {
+            when (e.message.statusCode.toUnsigned()) {
                 Midi1Status.META -> {
                     metaEventWriter(false, e, stream)
                     if (e.event.metaType == MidiMetaType.END_OF_TRACK.toByte())
                         wroteEndOfTrack = true
                 }
                 Midi1Status.SYSEX -> {
-                    val s = e.event as Midi1CompoundMessage
-                    stream.add(e.event.eventType)
+                    val s = e.message as Midi1CompoundMessage
+                    stream.add(e.message.statusCode)
                     val seBytes = s.extraData
                     if (seBytes != null) {
                         if (s.extraDataLength > 0)
@@ -81,17 +81,17 @@ internal class Midi1Writer(
                         stream.add(Midi1Status.SYSEX_END.toByte())
                 }
                 else -> {
-                    if (disableRunningStatus || e.event.statusByte != runningStatus)
-                        stream.add(e.event.statusByte)
-                    val len = Midi1Message.fixedDataSize(e.event.eventType)
-                    stream.add(e.event.msb)
+                    if (disableRunningStatus || e.message.statusByte != runningStatus)
+                        stream.add(e.message.statusByte)
+                    val len = Midi1Message.fixedDataSize(e.message.statusCode)
+                    stream.add(e.message.msb)
                     if (len > 1)
-                        stream.add(e.event.lsb)
+                        stream.add(e.message.lsb)
                     if (len > 2)
                         throw Exception("Unexpected data size: $len")
                 }
             }
-            runningStatus = e.event.statusByte
+            runningStatus = e.message.statusByte
         }
         if (!wroteEndOfTrack)
         // deltaTime, meta status = 0xFF, size-of-meta = 0, end-of-track = 0x2F
@@ -116,20 +116,20 @@ internal class Midi1Writer(
         var size = 0
         var runningStatus: Byte = 0
         var wroteEndOfTrack = false
-        for (e in track.messages) {
+        for (e in track.events) {
             // delta time
             size += get7BitEncodedLength(e.deltaTime)
 
             // arguments
-            when (e.event.eventType.toUnsigned()) {
+            when (e.message.statusCode.toUnsigned()) {
                 Midi1Status.META -> {
                     size += metaEventWriter(true, e, mutableListOf())
-                    if (e.event.metaType == MidiMetaType.END_OF_TRACK.toByte())
+                    if (e.message.metaType == MidiMetaType.END_OF_TRACK.toByte())
                         wroteEndOfTrack = true
                 }
                 Midi1Status.SYSEX -> {
                     size++
-                    val s = e.event as Midi1CompoundMessage
+                    val s = e.message as Midi1CompoundMessage
                     if (s.extraData != null) {
                         size += s.extraDataLength
                         if (s.extraData[s.extraDataOffset + s.extraDataLength - 1] != 0xF7.toByte())
@@ -145,7 +145,7 @@ internal class Midi1Writer(
                 }
             }
 
-            runningStatus = e.event.statusByte
+            runningStatus = e.message.statusByte
         }
         if (!wroteEndOfTrack)
             size += 4
@@ -172,31 +172,32 @@ object Midi1WriterExtension {
         { b, m, o -> defaultMetaWriterFunc(b, m, o) }
 
     private fun defaultMetaWriterFunc(onlyCountLength: Boolean, e: Midi1Event, stream: MutableList<Byte>): Int {
-        if (e.event !is Midi1CompoundMessage)
+        val msg = e.message
+        if (msg !is Midi1CompoundMessage)
             return 0
         if (onlyCountLength) {
             // [0x00] 0xFF metaType size ... (note that for more than one meta event it requires step count of 0).
-            val repeatCount: Int = e.event.extraDataLength / 0x7F
+            val repeatCount: Int = msg.extraDataLength / 0x7F
             if (repeatCount == 0)
-                return 3 + e.event.extraDataLength
-            val mod: Int = e.event.extraDataLength % 0x7F
+                return 3 + msg.extraDataLength
+            val mod: Int = msg.extraDataLength % 0x7F
             return repeatCount * (4 + 0x7F) - 1 + if (mod > 0) 4 + mod else 0
         }
 
         var written = 0
-        val total: Int = e.event.extraDataLength
+        val total: Int = msg.extraDataLength
         var passed = false // manually rewritten do-while loop...
         while (!passed || written < total) {
             passed = true
             if (written > 0)
                 stream.add(0.toByte()) // step
             stream.add(0xFF.toByte())
-            stream.add(e.event.metaType)
+            stream.add(msg.metaType)
             val size = min(0x7F, total - written)
             stream.add(size.toByte())
-            val offset = e.event.extraDataOffset + written
+            val offset = msg.extraDataOffset + written
             if (size > 0)
-                stream.addAll(e.event.extraData!!.slice(IntRange(offset, offset + size - 1)))
+                stream.addAll(msg.extraData!!.slice(IntRange(offset, offset + size - 1)))
             written += size
         }
         return 0
@@ -260,7 +261,7 @@ internal class Midi1Reader(val music: Midi1Music, stream: List<Byte>) {
         var total = 0
         while (currentTrackSize < trackSize) {
             val delta = readVariableLength()
-            tr.messages.add(readMessage(delta))
+            tr.events.add(readEvent(delta))
             total += delta
         }
         if (currentTrackSize != trackSize)
@@ -271,7 +272,7 @@ internal class Midi1Reader(val music: Midi1Music, stream: List<Byte>) {
     private var currentTrackSize: Int = 0
     private var runningStatus: Int = 0
 
-    private fun readMessage(deltaTime: Int): Midi1Event {
+    private fun readEvent(deltaTime: Int): Midi1Event {
         val b = peekByte().toUnsigned()
         runningStatus = if (b < 0x80) runningStatus else readByte().toUnsigned()
         val len: Int

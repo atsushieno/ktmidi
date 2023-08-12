@@ -74,7 +74,7 @@ class Midi1MusicUnitTest {
     @Test
     fun unsignedOperations() {
         val evt = Midi1CompoundMessage(0xFF, 3, 4, charArrayOf('t', 'e', 's', 't').map { c -> c.code.toByte() }.toByteArray(), 0)
-        assertEquals(0xFF.toByte(), evt.eventType, "eventType")
+        assertEquals(0xFF.toByte(), evt.statusCode, "eventType")
         assertEquals(3, evt.msb, "msb")
         assertEquals(4, evt.lsb, "lsb")
         assertEquals(4, evt.extraDataLength, "extraDataLength")
@@ -111,7 +111,7 @@ class Midi1MusicUnitTest {
         music.tracks.add(track)
         val sysexData = arrayOf(0x7D, 0x0B, 0x2D, 0x31, 0x34, 0x37, 0x32, 0x35, 0x34, 0x39, 0x39, 0x37, 0x38)
                 .map { v -> v.toByte() }.toByteArray()
-        track.messages.add(Midi1Event(0, Midi1CompoundMessage(0xF0, 0, 0, sysexData)))
+        track.events.add(Midi1Event(0, Midi1CompoundMessage(0xF0, 0, 0, sysexData)))
         val bytes = mutableListOf<Byte>()
         music.write(bytes)
         val trackHead = arrayOf('M'.code, 'T'.code, 'r'.code, 'k'.code, 0, 0, 0, 20, 0, 0xF0).map { v -> v.toByte() }.toByteArray()
@@ -124,7 +124,7 @@ class Midi1MusicUnitTest {
         music.tracks.clear()
         assertTrue(bytes.size > 0, "bytes size")
         music.read(bytes)
-        val evt = music.tracks.first().messages.first().event as Midi1CompoundMessage
+        val evt = music.tracks.first().events.first().message as Midi1CompoundMessage
         assertContentEquals(sysexData, evt.extraData!!.drop(evt.extraDataOffset).take(evt.extraDataLength).toByteArray(), "read")
         assertEquals(headerChunkSize + trackHead.size + sysexData.size + 1 + 4, bytes.size, "music bytes size")
     }
