@@ -65,7 +65,7 @@ internal class Midi1Writer(
             when (e.message.statusCode.toUnsigned()) {
                 Midi1Status.META -> {
                     metaEventWriter(false, e, stream)
-                    if (e.event.metaType == MidiMetaType.END_OF_TRACK.toByte())
+                    if (e.message.metaType == MidiMetaType.END_OF_TRACK.toByte())
                         wroteEndOfTrack = true
                 }
                 Midi1Status.SYSEX -> {
@@ -139,9 +139,9 @@ internal class Midi1Writer(
                 }
                 else -> {
                     // message type & channel
-                    if (disableRunningStatus || runningStatus != e.event.statusByte)
+                    if (disableRunningStatus || runningStatus != e.message.statusByte)
                         size++
-                    size += Midi1Message.fixedDataSize(e.event.eventType)
+                    size += Midi1Message.fixedDataSize(e.message.statusCode)
                 }
             }
 

@@ -1,8 +1,14 @@
 package dev.atsushieno.ktmidi
 
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
+
 class Midi2Track(val messages: MutableList<Ump> = mutableListOf())
 
+@OptIn(ExperimentalJsExport::class)
+@JsExport
 class Midi2Music {
+    @JsExport.Ignore
     internal class UmpDeltaTimeComputer: DeltaTimeComputer<Ump>() {
         // Note that this does not mention any "unit".
         // Therefore, in UMP Delta Clockstamps and JR Timestamps must be used *exclusively*.

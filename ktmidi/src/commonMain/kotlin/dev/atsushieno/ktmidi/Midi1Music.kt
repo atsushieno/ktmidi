@@ -2,8 +2,14 @@
 
 package dev.atsushieno.ktmidi
 
+import kotlin.js.ExperimentalJsExport
+import kotlin.js.JsExport
+
+@OptIn(ExperimentalJsExport::class)
+@JsExport
 class Midi1Music {
 
+    @JsExport.Ignore
     internal class SmfDeltaTimeComputer: DeltaTimeComputer<Midi1Event>() {
         override fun messageToDeltaTime(message: Midi1Event) = message.deltaTime
 
@@ -20,7 +26,7 @@ class Midi1Music {
         const val DEFAULT_TEMPO = 500000
 
         /**
-         * Calculates ticks per seconds for SMPTE for a SMF delta time division specification raw value.
+         * Calculates ticks per seconds for SMPTE for an SMF delta time division specification raw value.
          * `frameRate` should be one of 24,25,29, and 30. We dare to use UByte as the argument type to indicate that the argument is NOT the raw negative number in deltaTimeSpec.
          */
         fun getSmpteTicksPerSeconds(smfDeltaTimeSpec: Int) =
@@ -214,7 +220,7 @@ class Midi1CompoundMessage : Midi1Message {
         this.extraDataOffset = extraOffset
         this.extraDataLength = extraLength
     }
-    // A simple (non-F0h, non-FFh) message could be respresented in a 32-bit int
+    // A simple (non-F0h, non-FFh) message could be represented in a 32-bit int
     final override val value: Int
 
     // They are used by SysEx and meta events (if used for SMF)
@@ -256,7 +262,7 @@ internal class Midi1TrackMerger(private var source: Midi1Music) {
         // MIDI messages. For example, "ProgramChange at Xmsec. -> NoteOn at Xmsec." must not be sorted as
         // "NoteOn at Xmsec. -> ProgramChange at Xmsec.".
         //
-        // To resolve this ieeue, we have to sort "chunk"  of events, not all single events themselves, so
+        // To resolve this issue, we have to sort "chunk"  of events, not all single events themselves, so
         // that order of events in the same chunk is preserved.
         // i.e. [AB] at 48 and [CDE] at 0 should be sorted as [CDE] [AB].
 
