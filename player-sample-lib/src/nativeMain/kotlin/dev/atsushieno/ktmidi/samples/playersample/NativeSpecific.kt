@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package dev.atsushieno.ktmidi.samples.playersample
 
 import dev.atsushieno.ktmidi.EmptyMidiAccess
 import dev.atsushieno.ktmidi.RtMidiNativeAccess
 import kotlinx.cinterop.ByteVar
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.convert
@@ -41,7 +44,7 @@ actual fun readFileContents(file: String): List<Byte> {
             stat(file, statObj.ptr)
             val bufferSize = statObj.st_size.toInt()
             val buffer = allocArray<ByteVar>(bufferSize)
-            fread(buffer, 1, bufferSize.convert(), fp)
+            fread(buffer, 1u, bufferSize.convert(), fp)
             val bytes = buffer.readBytes(bufferSize)
             return bytes.toList()
         }

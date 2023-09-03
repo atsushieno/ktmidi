@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package dev.atsushieno.ktmidi
 
 import dev.atsushieno.rtmidicinterop.*
 import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.CPointer
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.IntVar
 import kotlinx.cinterop.StableRef
 import kotlinx.cinterop.UByteVar

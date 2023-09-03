@@ -15,30 +15,28 @@ plugins {
     id("org.jetbrains.dokka")
     id("maven-publish")
     id("signing")
-    id("me.tylerbwong.gradle.metalava") version "0.3.3"
+    id("me.tylerbwong.gradle.metalava") version "0.3.3" // FIXME: can't we remove this version?
 }
 
 kotlin {
+    jvmToolchain(11)
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
-        }
         testRuns["test"].executionTask.configure {
             useJUnit()
         }
     }
-    android {
+    androidTarget {
         publishLibraryVariantsGroupedByFlavor = true
         publishLibraryVariants("debug", "release")
     }
     js(IR) {
         browser {
-            testTask {
+            testTask(Action {
                 useKarma {
                     useChromeHeadless()
                     webpackConfig.cssSupport {}
                 }
-            }
+            })
         }
         nodejs {
         }
@@ -77,10 +75,9 @@ kotlin {
                 implementation(libs.core.ktx)
             }
         }
-        val androidTest by getting {
+        val androidInstrumentedTest by getting {
             dependencies {
                 implementation(kotlin("test-junit"))
-                implementation(libs.junit)
             }
         }
         val jvmTest by getting {
@@ -122,6 +119,7 @@ metalava {
 }
 
 android {
+    namespace = "dev.atsushieno.ktmidi"
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["test"].assets.srcDir("src/commonTest/resources") // kind of hack...
     defaultConfig {
@@ -131,6 +129,10 @@ android {
     buildTypes {
         val debug by getting
         val release by getting
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 
