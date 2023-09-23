@@ -298,12 +298,9 @@ internal class Midi1TrackMerger(private var source: Midi1Music) {
         var waitToNext = l[0].deltaTime
         i = 0
         while (i < l.size - 1) {
-            val m = l[i].message
-            if (m is Midi1SimpleMessage && m.value != 0) { // if non-dummy
-                val tmp = l[i + 1].deltaTime - l[i].deltaTime
-                l[i] = Midi1Event(waitToNext, l[i].message)
-                waitToNext = tmp
-            }
+            val tmp = l[i + 1].deltaTime - l[i].deltaTime
+            l[i] = Midi1Event(waitToNext, l[i].message)
+            waitToNext = tmp
             i++
         }
         l[l.size - 1] = Midi1Event(waitToNext, l[l.size - 1].message)
