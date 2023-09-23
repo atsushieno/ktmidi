@@ -68,17 +68,17 @@ internal class Midi1Writer(
                     if (e.message.metaType == MidiMetaType.END_OF_TRACK.toByte())
                         wroteEndOfTrack = true
                 }
-                Midi1Status.SYSEX -> {
+                Midi1Status.SYSEX, Midi1Status.SYSEX_END -> {
                     val s = e.message as Midi1CompoundMessage
                     stream.add(e.message.statusCode)
                     val seBytes = s.extraData
-                    if (seBytes != null) {
+                    if (seBytes == null)
+                        write7bitEncodedInt(0)
+                    else {
+                        write7bitEncodedInt(s.extraDataLength)
                         if (s.extraDataLength > 0)
                             stream.addAll(seBytes.drop(s.extraDataOffset).take(s.extraDataLength))
                     }
-                    // supply SYSEX_END only if missing.
-                    if (seBytes == null || seBytes[s.extraDataOffset + s.extraDataLength - 1] != Midi1Status.SYSEX_END.toByte())
-                        stream.add(Midi1Status.SYSEX_END.toByte())
                 }
                 else -> {
                     if (disableRunningStatus || e.message.statusByte != runningStatus)
@@ -127,15 +127,13 @@ internal class Midi1Writer(
                     if (e.message.metaType == MidiMetaType.END_OF_TRACK.toByte())
                         wroteEndOfTrack = true
                 }
-                Midi1Status.SYSEX -> {
+                Midi1Status.SYSEX, Midi1Status.SYSEX_END -> {
                     size++
                     val s = e.message as Midi1CompoundMessage
                     if (s.extraData != null) {
+                        size += get7BitEncodedLength(s.extraDataLength)
                         size += s.extraDataLength
-                        if (s.extraData[s.extraDataOffset + s.extraDataLength - 1] != 0xF7.toByte())
-                            size++ // supply SYSEX_END
-                    } else
-                        size++ // SYSEX_END
+                    }
                 }
                 else -> {
                     // message type & channel
@@ -277,16 +275,12 @@ internal class Midi1Reader(val music: Midi1Music, stream: List<Byte>) {
         runningStatus = if (b < 0x80) runningStatus else readByte().toUnsigned()
         val len: Int
         when (runningStatus) {
-            Midi1Status.SYSEX -> {
-                val args = mutableListOf<Byte>()
-                while (true) {
-                    val ch = readByte()
-                    if (ch == Midi1Status.SYSEX_END.toByte())
-                        break
-                    else
-                        args.add(ch)
-                }
-                return Midi1Event(deltaTime, Midi1CompoundMessage(runningStatus, 0, 0, args.toByteArray(), 0, args.size))
+            Midi1Status.SYSEX, Midi1Status.SYSEX_END -> {
+                len = readVariableLength()
+                val args = ByteArray(len)
+                if (len > 0)
+                    readBytes(args)
+                return Midi1Event(deltaTime, Midi1CompoundMessage(runningStatus, 0, 0, args, 0, len))
             }
             Midi1Status.META -> {
                 val metaType = readByte()

@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi
 
 import kotlinx.coroutines.Runnable
+import kotlin.math.max
 
 internal class Midi1EventLooper(var messages: List<Midi1Event>, private val timer: MidiPlayerTimer,
                                 private val deltaTimeSpec: Int) : MidiEventLooper<Midi1Event>(timer) {
@@ -88,17 +89,19 @@ class Midi1Player : MidiPlayer {
                     }
                     Midi1Status.SYSEX -> {
                         val s = m as Midi1CompoundMessage
-                        if (buffer.size <= m.extraDataLength + 1) // +1 for possible F7 filling
-                            buffer = ByteArray(buffer.size * 2)
+                        if (buffer.size <= m.extraDataLength)
+                            buffer = ByteArray(max(m.extraDataLength + 1, buffer.size * 2))
                         buffer[0] = m.statusByte
                         m.extraData!!.copyInto(buffer, 1, s.extraDataOffset, s.extraDataLength)
-                        if (m.extraData[s.extraDataOffset + s.extraDataLength - 1] != 0xF7.toByte())
-                            buffer[s.extraDataOffset + s.extraDataLength + 1] = 0xF7.toByte()
-                        output.send(buffer, 0, s.extraDataLength + 2, 0)
+                        output.send(buffer, 0, s.extraDataLength + 1, 0)
                         return
                     }
                     Midi1Status.SYSEX_END -> {
-                        // do nothing. It is automatically filled
+                        val s = m as Midi1CompoundMessage
+                        if (buffer.size < m.extraDataLength)
+                            buffer = ByteArray(max(m.extraDataLength, buffer.size * 2))
+                        m.extraData!!.copyInto(buffer, 0, s.extraDataOffset, s.extraDataLength)
+                        output.send(buffer, 0, s.extraDataLength, 0)
                         return
                     }
                     Midi1Status.META -> {
