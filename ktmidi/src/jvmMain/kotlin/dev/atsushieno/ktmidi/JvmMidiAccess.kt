@@ -75,7 +75,11 @@ private fun toJvmMidiMessage(data: ByteArray, start: Int, length: Int): JvmMidiM
     return when (arr[0]) {
         0xF0.toByte() -> SysexMessage(arr, length)
         0xFF.toByte() -> MetaMessage(arr[1].toInt(), arr.drop(2).toByteArray(), length - 2)
-        else -> ShortMessage(arr[0].toInt(), arr[1].toInt(), if (length > 2) arr[2].toInt() else 0)
+        else -> ShortMessage(
+            arr[0].toUByte().toInt(),
+            arr.getOrElse(1) { _ -> 0 }.toInt(),
+            arr.getOrElse(2) { _ -> 0 }.toInt()
+        )
     }
 }
 
