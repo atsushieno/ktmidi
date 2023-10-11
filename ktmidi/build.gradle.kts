@@ -15,7 +15,10 @@ plugins {
     id("org.jetbrains.dokka")
     id("maven-publish")
     id("signing")
-    id("me.tylerbwong.gradle.metalava") version "0.3.3"
+    // FIXME: metalava has been breaking build due to its own awkward requirement for kotlin 1.6
+    //  whereas everything we build is now based on Kotlin 1.8.
+    //  Downgrading Kotlin for metalava is unacceptable. We'd find better alternatives.
+    //id("me.tylerbwong.gradle.metalava") version "0.3.3"
 }
 
 kotlin {
@@ -115,11 +118,14 @@ kotlin {
     }
 }
 
+
+/* see comment on plugin above
 metalava {
     filename = "api/$name-api.txt"
     outputKotlinNulls = false
     includeSignatureVersion = false
 }
+*/
 
 android {
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
