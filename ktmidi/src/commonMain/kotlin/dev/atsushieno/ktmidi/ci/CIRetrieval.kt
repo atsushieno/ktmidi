@@ -13,8 +13,8 @@ object CIRetrieval {
      */
     fun midiCIGetDeviceDetails(sysex: List<Byte>) = DeviceDetails(
         sysex[13] + (sysex[14] shl 8) + (sysex[15] shl 16),
-        (sysex[16] + (sysex[17] shl 8)).toShort(),
-        (sysex[18] + (sysex[19] shl 8)).toShort(),
+        (sysex[16] + (sysex[17] shl 8)).toUShort(),
+        (sysex[18] + (sysex[19] shl 8)).toUShort(),
         sysex[20] + (sysex[21] shl 8) + (sysex[22] shl 16) + (sysex[23] shl 24))
 
     /** retrieves source MUID from a MIDI-CI sysex7 chunk.
@@ -61,11 +61,11 @@ object CIRetrieval {
      * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
      */
     fun midiCIGetProfileSet(sysex: List<Byte>): List<Pair<MidiCIProfileId, Boolean>> = mutableListOf<Pair<MidiCIProfileId, Boolean>>().apply {
-        val numEnabled = sysex[7] + (sysex[8] shl 7)
+        val numEnabled = sysex[13] + (sysex[14] shl 7)
         (0 until numEnabled).forEach { i ->
             this.add(Pair(midiCIGetProfileIdEntry(sysex, 9 + i * 5), true))
         }
-        val pos = 9 + numEnabled * 5
+        val pos = 15 + numEnabled * 5
         val numDisabled = sysex[pos] + (sysex[pos + 1] shl 7)
         (0 until numDisabled).forEach { i ->
             this.add(Pair(midiCIGetProfileIdEntry(sysex, pos + 2 + i * 5), false))
@@ -76,6 +76,8 @@ object CIRetrieval {
      * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
      */
     fun midiCIGetProfileId(sysex: List<Byte>) = midiCIGetProfileIdEntry(sysex, 13)
+
+    fun midiCIGetProfileEnabledChannels(sysex: List<Byte>) = sysex[18]  + (sysex[19] shl 7)
 
     private fun midiCIGetProfileIdEntry(sysex: List<Byte>, offset: Int) =
         MidiCIProfileId(sysex[offset], sysex[offset + 1], sysex[offset + 2], sysex[offset + 3], sysex[offset + 4])

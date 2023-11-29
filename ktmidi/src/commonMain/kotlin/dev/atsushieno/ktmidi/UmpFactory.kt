@@ -728,7 +728,7 @@ object UmpFactory {
     fun deviceIdentityNotification(device: DeviceDetails) =
         Ump(0xF002_0000L.toInt(),
             device.manufacturer,
-            ((device.family.toUnsigned() shl 16) + device.familyModelNumber.toUnsigned()),
+            ((device.family.toUInt() shl 16) + device.familyModelNumber).toInt(),
             device.softwareRevisionLevel)
 
     fun endpointNameNotification(name: String) = endpointNameNotification(name.toByteArray())

@@ -167,7 +167,7 @@ class UmpRetrieverTest {
     fun testDeviceIdentityNotification() {
         val dn1 = Ump(0xF002_0000L.toInt(), 0x0012_3456, 0x789A_7654, 0x3210_6543)
         val device = dn1.deviceIdentity
-        val reference = DeviceDetails(0x123456, 0x789A, 0x7654, 0x32106543)
+        val reference = DeviceDetails(0x123456, 0x789Au, 0x7654u, 0x32106543)
         assertEquals(reference.manufacturer, device.manufacturer, "manufacturer")
         assertEquals(reference.family, device.family, "family")
         assertEquals(reference.familyModelNumber, device.familyModelNumber, "familyModelNumber")

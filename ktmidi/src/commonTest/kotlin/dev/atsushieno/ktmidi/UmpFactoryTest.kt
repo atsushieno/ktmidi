@@ -474,7 +474,7 @@ class UmpFactoryTest {
 
     @Test
     fun testDeviceIdentityNotification() {
-        val dn1 = UmpFactory.deviceIdentityNotification(DeviceDetails(0x123456, 0x789A, 0x7654, 0x32106543))
+        val dn1 = UmpFactory.deviceIdentityNotification(DeviceDetails(0x123456, 0x789Au, 0x7654u, 0x32106543))
         assertEquals(0xF002_0000L, dn1.int1.toUnsigned(), "dn1.int1")
         assertEquals(0x0012_3456, dn1.int2, "dn1.int2")
         assertEquals(0x789A_7654, dn1.int3, "dn1.int3")

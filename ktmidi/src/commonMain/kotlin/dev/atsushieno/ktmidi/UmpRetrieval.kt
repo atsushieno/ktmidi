@@ -321,8 +321,8 @@ val Ump.endpointInfoSupportsTxJR
 
 val Ump.deviceIdentity
     get() = DeviceDetails(manufacturer = int2 and 0xFFFFFF,
-        family = ((int3 shr 16) and 0xFFFF).toShort(),
-        familyModelNumber = (int3 and 0xFFFF).toShort(),
+        family = ((int3 shr 16) and 0xFFFF).toUShort(),
+        familyModelNumber = (int3 and 0xFFFF).toUShort(),
         softwareRevisionLevel = int4)
 
 val Ump.streamConfigProtocol

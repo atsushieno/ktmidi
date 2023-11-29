@@ -13,12 +13,8 @@ class MidiCIInitiatorTest {
         val initiator = mediator.initiator
 
         assertEquals(MidiCIInitiatorState.Initial, initiator.state)
-        assertEquals(MidiCIConstants.Midi1ProtocolTypeInfo, initiator.currentMidiProtocol)
-        assertEquals(false, initiator.protocolTested)
         assertEquals(0, initiator.device.manufacturer)
-        assertEquals(0x60, initiator.authorityLevel)
         assertEquals(19474, initiator.muid)
-        assertContentEquals(MidiCIConstants.Midi2ThenMidi1Protocols, initiator.preferredProtocols)
     }
 
     @Test
@@ -26,10 +22,9 @@ class MidiCIInitiatorTest {
         val mediator = TestCIMediator()
         val initiator = mediator.initiator
         initiator.sendDiscovery()
-        assertTrue(initiator.protocolTested)
-        assertEquals(MidiCIConstants.Midi2ProtocolTypeInfo, initiator.currentMidiProtocol)
+        assertEquals(MidiCIInitiatorState.DISCOVERED, initiator.state)
         val responder = mediator.responder
-        assertEquals(MidiCIProtocolType.MIDI2, responder.currentMidiProtocol.type.toInt())
+        //assertEquals(MidiCIProtocolType.MIDI2, responder.currentMidiProtocol.type.toInt())
     }
 }
 

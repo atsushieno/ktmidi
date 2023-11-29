@@ -2,16 +2,13 @@ package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.MidiCIProtocolType
 import dev.atsushieno.ktmidi.MidiCIProtocolValue
-import dev.atsushieno.ktmidi.MidiInput
-import dev.atsushieno.ktmidi.MidiOutput
-import dev.atsushieno.ktmidi.OnMidiReceivedEventListener
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 
-data class DeviceDetails(val manufacturer: Int = 0, val family: Short = 0, val familyModelNumber: Short = 0, val softwareRevisionLevel: Int = 0) {
+data class DeviceDetails(val manufacturer: Int = 0, val family: UShort = 0u, val familyModelNumber: UShort = 0u, val softwareRevisionLevel: Int = 0) {
     companion object {
         val empty = DeviceDetails()
     }
@@ -34,13 +31,17 @@ enum class MidiCIDiscoveryResponseCode {
 
 object MidiCIDiscoveryCategoryFlags {
     const val None: Byte = 0
-    const val ProtocolNegotiation: Byte = 1
+    const val ProtocolNegotiation: Byte = 1 // Deprecated in MIDI-CI 1.2
     const val ProfileConfiguration: Byte = 2
     const val PropertyExchange: Byte = 4
-    const val ThreePs: Byte = 7 // I'd inclined to say "All", but that may change in the future...
+    const val ProcessInquiry: Byte = 8
+    // I'm inclined to say "All", but that may change in the future and it indeed did.
+    // Even worse, the definition of those Three Ps had changed...
+    const val ThreePs: Byte = (ProfileConfiguration + PropertyExchange + ProcessInquiry).toByte()
 }
 
 // It is used to determine default authority level
+// Note that they are deprecated in MIDI-CI 1.2.
 object MidiCIAuthorityLevelBasis {
     const val NodeServer: Byte = 0x60 // to 0x6F
     const val Gateway: Byte = 0x50 // to 0x5F
@@ -56,13 +57,13 @@ object MidiCISystem {
 }
 
 object MidiCIConstants {
-    const val CI_VERSION_AND_FORMAT: Byte = 0x1
+    const val CI_VERSION_AND_FORMAT: Byte = 0x2
 
-    const val RECEIVABLE_MAX_SYSEX_SIZE = 4096
-
-    const val RESPONDER_CI_CATEGORY_SUPPORTED: Byte = 0x7F
+    const val DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE = 4096
 
     const val DEVICE_ID_MIDI_PORT: Byte = 0x7F
+
+    const val NO_FUNCTION_BLOCK: Byte = 0x7F
 
     val Midi1ProtocolTypeInfo = MidiCIProtocolTypeInfo(MidiCIProtocolType
         .MIDI1.toByte(), MidiCIProtocolValue.MIDI1.toByte(), 0, 0, 0)
@@ -93,22 +94,20 @@ object MidiCIConstants {
 */
 
 class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
-                      val authorityLevel: Byte = MidiCIAuthorityLevelBasis.NodeServer,
+                      val outputPathId: Byte = 0,
                       val muid: Int = Random.nextInt()) {
 
     var device: DeviceDetails = DeviceDetails.empty
     var midiCIBufferSize = 1024
+    var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
+    var productInstanceId: Byte = 0
 
     var state: MidiCIInitiatorState = MidiCIInitiatorState.Initial
 
-    var currentMidiProtocol: MidiCIProtocolTypeInfo = MidiCIConstants.Midi1ProtocolTypeInfo
-    var protocolTested: Boolean = false
-
     private var latestDiscoveryResponseCode: MidiCIDiscoveryResponseCode? = null
     private var discoveredDevice: DeviceDetails? = null
-    private var protocolTestData: List<Byte>? = null
 
-    var preferredProtocols = MidiCIConstants.Midi2ThenMidi1Protocols
+    val profiles = mutableListOf<MidiCIProfileId>()
 
     // FIXME: make them public once we start supporting Prpoerty Exchange.
     //var establishedMaxSimulutaneousPropertyRequests: Byte? = null
@@ -124,11 +123,15 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
             // If successfully discovered, continue to protocol promotion to MIDI 2.0
             if (responseCode == MidiCIDiscoveryResponseCode.Reply) {
                 discoveredDevice = device
-                initiateProtocolNegotiation(sourceMUID, authorityLevel, preferredProtocols)
+                requestProfiles(0x7F, sourceMUID)
             }
         }
     }
     var processDiscoveryResponse = defaultProcessDiscoveryResponse
+
+    /*
+
+    Protocol Negotiation is deprecated. We do not send any of those anymore.
 
     private val defaultProcessReplyToInitiateProtocolNegotiation = { supportedProtocols: List<MidiCIProtocolTypeInfo>, sourceMUID: Int ->
         val protocol = preferredProtocols.firstOrNull { i -> supportedProtocols.any { i.type == it.type && i.version == it.version }}
@@ -152,8 +155,15 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
         }
     }
     var processTestProtocolReply = defaultProcessTestProtocolReply
+    */
 
     var processProfileInquiryResponse: (destinationChannel: Byte, sourceMUID: Int, profileSet: List<Pair<MidiCIProfileId, Boolean>>) -> Unit = { _, _, _ -> }
+
+    val defaultProcessProfileAddedReport: (profileId: MidiCIProfileId) -> Unit = { profileId -> profiles.add(profileId) }
+    var processProfileAddedReport = defaultProcessProfileAddedReport
+
+    val defaultProcessProfileRemovedReport: (profileId: MidiCIProfileId) -> Unit = { profileId -> profiles.remove(profileId) }
+    var processProfileRemovedReport = defaultProcessProfileRemovedReport
 
     // FIXME: make them public once we start supporting Prpoerty Exchange.
     /*
@@ -168,13 +178,22 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
     fun sendDiscovery(ciCategorySupported: Byte = MidiCIDiscoveryCategoryFlags.ThreePs) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIDiscovery(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, device.manufacturer, device.family, device.familyModelNumber,
-            device.softwareRevisionLevel, ciCategorySupported, MidiCIConstants.RECEIVABLE_MAX_SYSEX_SIZE)
+            device.softwareRevisionLevel, ciCategorySupported, receivableMaxSysExSize, outputPathId)
         // we set state before sending the MIDI data as it may process the rest of the events synchronously through the end...
         state = MidiCIInitiatorState.DISCOVERY_SENT
         sendOutput(buf)
     }
 
-    // Protocol Negotiation
+    fun sendEndpointMessage(targetMuid: Int, status: Byte) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        CIFactory.midiCIEndpointMessage(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, targetMuid, status)
+        // we set state before sending the MIDI data as it may process the rest of the events synchronously through the end...
+        state = MidiCIInitiatorState.DISCOVERY_SENT
+        sendOutput(buf)
+    }
+
+    /*
+    // Protocol Negotiation - we do not send them anymore.
 
     fun initiateProtocolNegotiation(destinationMUID: Int, authorityLevel: Byte, protocolTypes: List<MidiCIProtocolTypeInfo>) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
@@ -199,6 +218,7 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
         CIFactory.midiCIProtocolConfirmEstablished(buf, muid, destinationMUID, authorityLevel)
         sendOutput(buf)
     }
+    */
 
     // Profile Configuration
 
@@ -229,7 +249,9 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
             return // not MIDI-CI sysex
         when (data[3]) {
-            // Protocol Negotiation
+            /*
+            // Protocol Negotiation - we ignore them
+            FIXME: we should send back NAK
             CIFactory.SUB_ID_2_PROTOCOL_NEGOTIATION_REPLY -> {
                 // Reply to Initiate Protocol Negotiation
                 processReplyToInitiateProtocolNegotiation(
@@ -242,6 +264,7 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
                     CIRetrieval.midiCIGetSourceMUID(data),
                     CIRetrieval.midiCIGetTestData(data))
             }
+            */
             // Discovery
             CIFactory.SUB_ID_2_DISCOVERY_REPLY -> {
                 // Reply to Discovery
@@ -270,6 +293,14 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
                     CIRetrieval.midiCIGetSourceMUID(data),
                     CIRetrieval.midiCIGetProfileSet(data))
             }
+            CIFactory.SUB_ID_2_PROFILE_ADDED_REPORT -> {
+                processProfileAddedReport(CIRetrieval.midiCIGetProfileId(data))
+            }
+            CIFactory.SUB_ID_2_PROFILE_REMOVED_REPORT -> {
+                processProfileRemovedReport(CIRetrieval.midiCIGetProfileId(data))
+            }
+            // FIXME: support set profile on/off messages
+
             // Property Exchange
             // FIXME: make them public once we start supporting Prpoerty Exchange.
             /*
@@ -306,12 +337,14 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
  *
  */
 class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
-                      private val authorityLevel: Byte = MidiCIAuthorityLevelBasis.NodeServer,
                       private val muid: Int = Random.nextInt()) {
 
     var device: DeviceDetails = DeviceDetails.empty
+    var capabilityInquirySupported = MidiCIDiscoveryCategoryFlags.ThreePs
+    var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
     var supportedProtocols: List<MidiCIProtocolTypeInfo> = MidiCIConstants.Midi2ThenMidi1Protocols
     var profileSet: MutableList<Pair<MidiCIProfileId,Boolean>> = mutableListOf()
+    var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK
 
     var midiCIBufferSize = 128
 
@@ -325,7 +358,7 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
     @OptIn(ExperimentalTime::class)
     private var protocolTestTimeout: Duration? = null
 
-    private val defaultProcessDiscovery: (deviceDetails: DeviceDetails, initiatorMUID: Int) -> MidiCIDiscoveryResponseCode =
+    private val defaultProcessDiscovery: (deviceDetails: DeviceDetails?, initiatorMUID: Int) -> MidiCIDiscoveryResponseCode =
         { _, _ -> MidiCIDiscoveryResponseCode.Reply }
     var processDiscovery = defaultProcessDiscovery
 
@@ -391,12 +424,16 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
             CIFactory.SUB_ID_2_DISCOVERY_INQUIRY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 initiatorDevice = CIRetrieval.midiCIGetDeviceDetails(data)
+                // only available in MIDI-CI 1.2 or later.
+                val initiatorOutputPath = if (data.size > 29) data[29] else 0
+
                 val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-                when (processDiscovery(device, sourceMUID)) {
+                val ret = when (processDiscovery(initiatorDevice, sourceMUID)) {
                     MidiCIDiscoveryResponseCode.Reply -> CIFactory.midiCIDiscoveryReply(
                         dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID,
                         device.manufacturer, device.family, device.familyModelNumber, device.softwareRevisionLevel,
-                        MidiCIConstants.RESPONDER_CI_CATEGORY_SUPPORTED, MidiCIConstants.RECEIVABLE_MAX_SYSEX_SIZE
+                        capabilityInquirySupported, receivableMaxSysExSize,
+                        initiatorOutputPath, functionBlock
                     )
 
                     MidiCIDiscoveryResponseCode.InvalidateMUID -> CIFactory.midiCIDiscoveryInvalidateMuid(
@@ -411,10 +448,11 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                         sourceMUID
                     )
                 }
-                sendOutput(dst)
+                sendOutput(ret)
             }
 
-            // Protocol Negotiation
+            /*
+            // Protocol Negotiation - is disabled
             CIFactory.SUB_ID_2_PROTOCOL_NEGOTIATION_INQUIRY -> {
                 val requestedProtocols = CIRetrieval.midiCIGetSupportedProtocols(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
@@ -452,6 +490,7 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 processConfirmNewProtocol(sourceMUID)
             }
+            */
 
             // Profile Configuration
             CIFactory.SUB_ID_2_PROFILE_INQUIRY -> {
@@ -461,10 +500,9 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 val profileSet = processProfileInquiry(sourceMUID, destinationMUID)
 
                 val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-                CIFactory.midiCIProfileInquiryReply(dst, CIRetrieval.midiCIGetDestination(data), muid, sourceMUID,
+                sendOutput(CIFactory.midiCIProfileInquiryReply(dst, CIRetrieval.midiCIGetDestination(data), muid, sourceMUID,
                     profileSet.filter { it.second }.map { it.first },
-                    profileSet.filter { !it.second }.map { it.first })
-                sendOutput(dst)
+                    profileSet.filter { !it.second }.map { it.first }))
             }
 
             CIFactory.SUB_ID_2_SET_PROFILE_ON, CIFactory.SUB_ID_2_SET_PROFILE_OFF -> {

@@ -5,7 +5,7 @@ class TestCIMediator {
     val responderSender = { data: List<Byte> -> initiator.processInput(data) }
 
     val initiator: MidiCIInitiator =
-        MidiCIInitiator(initiatorSender, muid = 19474)
+        MidiCIInitiator(initiatorSender, 0, 19474)
     val responder: MidiCIResponder =
-        MidiCIResponder(responderSender, muid = 37564)
+        MidiCIResponder(responderSender, 37564)
 }

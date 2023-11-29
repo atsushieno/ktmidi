@@ -17,24 +17,27 @@ class CIFactoryTest {
             // LAMESPEC: Software Revision Level does not mention in which endianness this field is stored.
             0x7F, 0x5F, 0x3F, 0x1F,
             0b00001110,
-            0x00, 0x02, 0, 0
+            0x00, 0x02, 0, 0, 0
         )
-        val actual1 = MutableList<Byte>(29) { 0 }
+        val actual1 = MutableList<Byte>(30) { 0 }
         CIFactory.midiCIDiscovery(
             actual1, 1, 0x10101010,
-            0x123456, 0x1357, 0x2468, 0x1F3F5F7F,
+            0x123456, 0x1357u, 0x2468u, 0x1F3F5F7F,
             all_supported,
-            512
+            512,
+            0
         )
         assertEquals(expected1, actual1)
 
         // Service Discovery Reply
-        val actual2 = MutableList<Byte>(29) { 0 }
+        val actual2 = MutableList<Byte>(31) { 0 }
         CIFactory.midiCIDiscoveryReply(
             actual2, 1, 0x10101010, 0x20202020,
-            0x123456, 0x1357, 0x2468, 0x1F3F5F7F,
+            0x123456, 0x1357u, 0x2468u, 0x1F3F5F7F,
             all_supported,
-            512
+            512,
+            0,
+            0
         )
         assertEquals(0x71, actual2[3])
         for (i in 9..12)
@@ -269,7 +272,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual3, 5, CIFactory.SUB_ID_2_PROPERTY_HAS_DATA_INQUIRY,
             0x10101010, 0x20202020,
-            2, 4, header, 3, 1, 5, data
+            2, 4u, header, 3u, 1u, 5u, data
         )
         assertEquals(expected3, actual3)
 
@@ -278,7 +281,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual4, 5, CIFactory.SUB_ID_2_PROPERTY_HAS_DATA_REPLY,
             0x10101010, 0x20202020,
-            2, 4, header, 3, 1, 5, data
+            2, 4u, header, 3u, 1u, 5u, data
         )
         assertEquals(0x33, actual4[3])
 
@@ -287,7 +290,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual5, 5, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY,
             0x10101010, 0x20202020,
-            2, 4, header, 3, 1, 5, data
+            2, 4u, header, 3u, 1u, 5u, data
         )
         assertEquals(0x34, actual5[3])
 
@@ -296,7 +299,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual6, 5, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY,
             0x10101010, 0x20202020,
-            2, 4, header, 3, 1, 5, data
+            2, 4u, header, 3u, 1u, 5u, data
         )
         assertEquals(0x35, actual6[3])
 
@@ -305,7 +308,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual7, 5, CIFactory.SUB_ID_2_PROPERTY_SET_DATA_INQUIRY,
             0x10101010, 0x20202020,
-            2, 4, header, 3, 1, 5, data
+            2, 4u, header, 3u, 1u, 5u, data
         )
         assertEquals(0x36, actual7[3])
 
@@ -314,7 +317,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual8, 5, CIFactory.SUB_ID_2_PROPERTY_SET_DATA_REPLY,
             0x10101010, 0x20202020,
-            2, 4, header, 3, 1, 5, data
+            2, 4u, header, 3u, 1u, 5u, data
         )
         assertEquals(0x37, actual8[3])
 
@@ -323,7 +326,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual9, 5, CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE,
             0x10101010, 0x20202020,
-            2, 4, header, 3, 1, 5, data
+            2, 4u, header, 3u, 1u, 5u, data
         )
         assertEquals(0x38, actual9[3])
 
@@ -332,7 +335,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual10, 5, CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY,
             0x10101010, 0x20202020,
-            2, 4, header, 3, 1, 5, data
+            2, 4u, header, 3u, 1u, 5u, data
         )
         assertEquals(0x39, actual10[3])
 
@@ -341,7 +344,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual11, 5, CIFactory.SUB_ID_2_PROPERTY_NOTIFY,
             0x10101010, 0x20202020,
-            2, 4, header, 3, 1, 5, data
+            2, 4u, header, 3u, 1u, 5u, data
         )
         assertEquals(0x3F, actual11[3])
     }
