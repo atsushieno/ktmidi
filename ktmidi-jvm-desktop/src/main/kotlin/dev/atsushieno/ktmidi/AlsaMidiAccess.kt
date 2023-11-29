@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi
 
 import dev.atsushieno.alsakt.*
+import kotlinx.coroutines.delay
 
 internal fun Byte.toUnsigned() : Int = if (this < 0) this + 0x100 else this.toInt()
 
@@ -15,8 +16,8 @@ class AlsaMidiAccess : MidiAccess() {
         private const val output_requirements = AlsaPortCapabilities.Write or AlsaPortCapabilities.SubsWrite
         private const val output_connected_cap = AlsaPortCapabilities.Read or AlsaPortCapabilities.NoExport
         private const val input_connected_cap = AlsaPortCapabilities.Write or AlsaPortCapabilities.NoExport
-        private const val virtual_output_connected_cap = AlsaPortCapabilities.Write or AlsaPortCapabilities.SubsWrite
-        private const val virtual_input_connected_cap = AlsaPortCapabilities.Read or AlsaPortCapabilities.SubsRead
+        private const val virtual_output_receiver_connected_cap = AlsaPortCapabilities.Write or AlsaPortCapabilities.SubsWrite
+        private const val virtual_input_sender_connected_cap = AlsaPortCapabilities.Read or AlsaPortCapabilities.SubsRead
     }
 
     override val name: String
@@ -55,7 +56,7 @@ class AlsaMidiAccess : MidiAccess() {
         sub.sender.client = pinfo.client.toByte()
         sub.sender.port = pinfo.port.toByte()
         seq.subscribePort (sub)
-        return seq.getPort (sub.destination.client.toUnsigned(), sub.destination.port.toUnsigned())
+        return seq.getPortInfo (sub.destination.port.toUnsigned())
     }
 
     // app generates messages --> [RETURNED PORT] --> [output device port]
@@ -67,7 +68,7 @@ class AlsaMidiAccess : MidiAccess() {
         sub.destination.client = pinfo.client.toByte()
         sub.destination.port = pinfo.port.toByte()
         seq.subscribePort (sub)
-        return seq.getPort (sub.sender.client.toUnsigned(), sub.sender.port.toUnsigned())
+        return seq.getPortInfo (sub.sender.port.toUnsigned())
     }
 
     override val inputs : Iterable<MidiPortDetails>
@@ -92,31 +93,92 @@ class AlsaMidiAccess : MidiAccess() {
         return AlsaMidiOutput (seq, AlsaMidiPortDetails (appPort), destPort)
     }
 
+    private val seq: AlsaSequencer by lazy { AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking) }
+
     override suspend fun createVirtualInputSender ( context: PortCreatorContext) : MidiOutput {
-        val seq = AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking)
-        val portNumber = seq.createSimplePort (context.portName,
-            virtual_input_connected_cap,
-            midi_port_type)
+        val portCap = virtual_input_sender_connected_cap or
+                if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) AlsaPortCapabilities.UmpEndpoint else 0
+        val portType = midi_port_type or if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) AlsaPortType.Ump else 0
         seq.setClientName (context.applicationName)
-        val port = seq.getPort (seq.currentClientId, portNumber)
+        if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) {
+            val client = seq.clientInfo
+            client.midiVersion = context.midiProtocol
+            seq.clientInfo = client // snd_seq_set_client_info()
+        }
+        val portNumber = seq.createSimplePort(context.portName, portCap, portType)
+        if (portNumber < 0)
+            throw AlsaException(portNumber)
+        val port = seq.getPortInfo(portNumber)
+        if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) {
+            port.umpGroup = context.umpGroup
+            seq.setPortInfo(portNumber, port)
+        }
         val details =  AlsaMidiPortDetails (port)
-        val send : (ByteArray, Int, Int, Long) -> Unit = { buffer, start, length, timestamp ->
+        val send : (ByteArray, Int, Int, Long) -> Unit = { buffer, start, length, timestampInNanoSeconds ->
+            if (timestampInNanoSeconds > 0)
+                Thread.sleep(timestampInNanoSeconds / 1000000, (timestampInNanoSeconds % 1000000).toInt())
             seq.send(portNumber, buffer, start, length)
         }
         return SimpleVirtualMidiOutput (details) { seq.deleteSimplePort(portNumber) }.apply { onSend = send }
     }
 
     override suspend fun createVirtualOutputReceiver ( context:PortCreatorContext): MidiInput {
-        val seq = AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking)
-        val portNumber = seq.createSimplePort (context.portName,
-            virtual_output_connected_cap,
-            midi_port_type)
+        val portCap = virtual_output_receiver_connected_cap or
+                if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) AlsaPortCapabilities.UmpEndpoint else 0
+        val portType = midi_port_type or if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) AlsaPortType.Ump else 0
         seq.setClientName (context.applicationName)
-        val port = seq.getPort (seq.currentClientId, portNumber)
+        if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) {
+            val client = seq.clientInfo
+            client.midiVersion = context.midiProtocol
+            seq.clientInfo = client // snd_seq_set_client_info()
+        }
+        val portNumber = seq.createSimplePort (context.portName, portCap, portType)
+        if (portNumber < 0)
+            throw AlsaException(portNumber)
+        val port = seq.getPortInfo (portNumber)
+        if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) {
+            port.umpGroup = context.umpGroup
+            seq.setPortInfo(portNumber, port)
+        }
         val details = AlsaMidiPortDetails (port)
-        return SimpleVirtualMidiInput (details) { seq.deleteSimplePort(portNumber) }
+
+        return AlsaVirtualMidiInput(seq, details) { seq.deleteSimplePort(port.port) }
+    }
+}
+
+class AlsaVirtualMidiInput (private val seq: AlsaSequencer, private val portDetails: AlsaMidiPortDetails, private val onClose: ()->Unit) : MidiInput {
+    var messageReceived: OnMidiReceivedEventListener? = null
+    var state = MidiPortConnectionState.OPEN
+    val loop: AlsaSequencer.SequencerLoopContext
+
+    override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
+        this.messageReceived = listener
     }
 
+    override val details: MidiPortDetails
+        get() = portDetails
+    override val connectionState: MidiPortConnectionState
+        get() = state
+
+    override fun close() {
+        loop.stopListening()
+        onClose()
+    }
+
+    override var midiProtocol: Int
+        get() =
+            if (portDetails.portInfo.portType and AlsaPortType.Ump != 0) MidiCIProtocolType.MIDI2
+            else MidiCIProtocolValue.MIDI1
+        set(_) =
+            throw UnsupportedOperationException("AlsaMidiAccess does not support modifying MIDI protocols once it is created.")
+
+    init {
+        val buffer = ByteArray(0x200)
+        val received : (ByteArray, Int, Int) -> Unit = { buf, start, len ->
+            messageReceived?.onEventReceived (buf, start, len, 0)
+        }
+        loop = seq.startListening (portDetails.portInfo.port, buffer, onReceived = received, timeout = -1)
+    }
 }
 
 class AlsaMidiPortDetails(private val port: AlsaPortInfo) : MidiPortDetails {
@@ -138,6 +200,7 @@ class AlsaMidiPortDetails(private val port: AlsaPortInfo) : MidiPortDetails {
 }
 
 class AlsaMidiInput(private val seq: AlsaSequencer, private val appPort: AlsaMidiPortDetails, private val sourcePort: AlsaMidiPortDetails) : MidiInput {
+    val loop: AlsaSequencer.SequencerLoopContext
 
     override val details: MidiPortDetails
         get() = sourcePort
@@ -145,19 +208,20 @@ class AlsaMidiInput(private val seq: AlsaSequencer, private val appPort: AlsaMid
     override var connectionState: MidiPortConnectionState = MidiPortConnectionState.OPEN
 
     override var midiProtocol: Int
-        get() = MidiCIProtocolValue.MIDI1
-        set(value) {
-            if (value != MidiCIProtocolValue.MIDI1)
-                throw UnsupportedOperationException("ALSA does not support MIDI 2.0 yet")
-        }
+        get() =
+            if (sourcePort.portInfo.portType and AlsaPortType.Ump != 0) MidiCIProtocolType.MIDI2
+            else MidiCIProtocolValue.MIDI1
+        set(_) =
+            throw UnsupportedOperationException("AlsaMidiAccess does not support modifying MIDI protocols once it is created.")
 
     private var messageReceived: OnMidiReceivedEventListener? = null
 
-    override fun setMessageReceivedListener(messageReceived: OnMidiReceivedEventListener) {
-        this.messageReceived = messageReceived
+    override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
+        this.messageReceived = listener
     }
 
     override fun close () {
+        loop.stopListening()
         // unsubscribe the app port from the MIDI input, and then delete the port.
         val q = AlsaSubscriptionQuery().apply {
             type = AlsaSubscriptionQueryType.Write
@@ -175,7 +239,7 @@ class AlsaMidiInput(private val seq: AlsaSequencer, private val appPort: AlsaMid
         val received : (ByteArray, Int, Int) -> Unit = { buf, start, len ->
             messageReceived?.onEventReceived (buf, start, len, 0)
         }
-        seq.startListening (appPort.portInfo.port, buffer, onReceived = received, timeout = -1)
+        loop = seq.startListening (appPort.portInfo.port, buffer, onReceived = received, timeout = -1)
     }
 }
 
@@ -187,11 +251,11 @@ class AlsaMidiOutput(private val seq: AlsaSequencer, private val appPort: AlsaMi
     override var connectionState: MidiPortConnectionState = MidiPortConnectionState.OPEN
 
     override var midiProtocol: Int
-        get() = MidiCIProtocolValue.MIDI1
-        set(value) {
-            if (value != MidiCIProtocolValue.MIDI1)
-                throw UnsupportedOperationException("ALSA does not support MIDI 2.0 yet")
-        }
+        get() =
+            if (targetPort.portInfo.portType and AlsaPortType.Ump != 0) MidiCIProtocolType.MIDI2
+            else MidiCIProtocolValue.MIDI1
+        set(_) =
+            throw UnsupportedOperationException("AlsaMidiAccess does not support modifying MIDI protocols once it is created.")
 
     override fun close() {
         // unsubscribe the app port from the MIDI output, and then delete the port.

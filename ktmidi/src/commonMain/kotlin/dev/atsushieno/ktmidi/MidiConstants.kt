@@ -228,6 +228,12 @@ object Midi1Status {
     const val META = 0xFF
 }
 
+object MidiProtocolVersion { // MIDI 2.0
+    const val UNSPECIFIED = 0
+    const val MIDI1 = 1
+    const val MIDI2 = 2
+}
+
 object MidiCIProtocolBytes { // MIDI 2.0
     const val TYPE = 0
     const val VERSION = 1
@@ -235,7 +241,9 @@ object MidiCIProtocolBytes { // MIDI 2.0
 }
 
 object MidiCIProtocolType { // MIDI 2.0
+    @Deprecated("Use MidiProtocolVersion.MIDI1")
     const val MIDI1 = 1
+    @Deprecated("Use MidiProtocolVersion.MIDI2")
     const val MIDI2 = 2
 }
 

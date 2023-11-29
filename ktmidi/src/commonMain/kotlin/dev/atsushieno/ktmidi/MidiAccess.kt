@@ -75,8 +75,11 @@ abstract class SimpleVirtualMidiPort protected constructor(
     }
 
     override var midiProtocol: Int
-        get() = MidiCIProtocolValue.MIDI1
-        set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
+        get() = MidiCIProtocolType.MIDI1
+        set(value) {
+            if (value != MidiCIProtocolType.MIDI1)
+                throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
+        }
 }
 
 class SimpleVirtualMidiInput(details: MidiPortDetails, onDispose: () -> Unit) : SimpleVirtualMidiPort(
@@ -107,7 +110,10 @@ data class PortCreatorContext(
     var applicationName: String,
     var portName: String,
     var manufacturer: String,
-    var version: String
+    var version: String,
+    /** Use MidiCIProtocolType (MIDI1 or MIDI2) */
+    var midiProtocol: Int = MidiProtocolVersion.UNSPECIFIED,
+    var umpGroup: Int = 0
 )
 
 // MidiAccess implementation.
