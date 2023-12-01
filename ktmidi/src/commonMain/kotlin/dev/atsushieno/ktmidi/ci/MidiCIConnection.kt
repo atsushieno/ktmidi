@@ -79,8 +79,8 @@ object MidiCIConstants {
 
     - MidiCIInitiator.sendDiscovery()
     - MidiCIResponder.processDiscovery()
-    - MidiCIInitiator.initiateProtocolNegotiation()
-    - MidiCIResponder.processNegotiationInquiry()
+    - MidiCIInitiator.requestProfiles()
+    - MidiCIResponder.processProfileInquiry()
     - MidiCIInitiator.setNewProtocol() - no matching reply from responder
     - MidiCIInitiator.testNewProtocol()
     - MidiCIResponder.processTestNewProtocol()
@@ -104,7 +104,6 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
 
     var state: MidiCIInitiatorState = MidiCIInitiatorState.Initial
 
-    private var latestDiscoveryResponseCode: MidiCIDiscoveryResponseCode? = null
     private var discoveredDevice: DeviceDetails? = null
 
     val profiles = mutableListOf<MidiCIProfileId>()
@@ -116,7 +115,6 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
 
     private val defaultProcessDiscoveryResponse = { responseCode: MidiCIDiscoveryResponseCode, device: DeviceDetails, sourceMUID: Int, destinationMUID: Int ->
         if (destinationMUID == muid) {
-            latestDiscoveryResponseCode = responseCode
             state =
                 if (responseCode == MidiCIDiscoveryResponseCode.Reply) MidiCIInitiatorState.DISCOVERED else MidiCIInitiatorState.Initial
 
@@ -358,8 +356,15 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
     @OptIn(ExperimentalTime::class)
     private var protocolTestTimeout: Duration? = null
 
-    private val defaultProcessDiscovery: (deviceDetails: DeviceDetails?, initiatorMUID: Int) -> MidiCIDiscoveryResponseCode =
-        { _, _ -> MidiCIDiscoveryResponseCode.Reply }
+    private val defaultProcessDiscovery: (deviceDetails: DeviceDetails?, initiatorMUID: Int, initiatorOutputPath: Byte) -> Unit = { deviceDetails, initiatorMUID, initiatorOutputPath ->
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIDiscoveryReply(
+        dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, initiatorMUID,
+        device.manufacturer, device.family, device.familyModelNumber, device.softwareRevisionLevel,
+        capabilityInquirySupported, receivableMaxSysExSize,
+        initiatorOutputPath, functionBlock
+        ))
+    }
     var processDiscovery = defaultProcessDiscovery
 
     private val defaultProcessNegotiationInquiry: (supportedProtocols: List<MidiCIProtocolTypeInfo>, initiatorMUID: Int) -> List<MidiCIProtocolTypeInfo> =
@@ -380,7 +385,12 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
 
     var processConfirmNewProtocol: (initiatorMUID: Int) -> Unit = { _ -> }
 
-    private val defaultProcessProfileInquiry: (initiatorMUID: Int, destinationMUID: Int) -> List<Pair<MidiCIProfileId,Boolean>> = { _, _ -> profileSet }
+    private val defaultProcessProfileInquiry: (source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit = { source, sourceMUID, destinationMUID ->
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIProfileInquiryReply(dst, source, muid, sourceMUID,
+            profileSet.filter { it.second }.map { it.first },
+            profileSet.filter { !it.second }.map { it.first }))
+    }
     var processProfileInquiry = defaultProcessProfileInquiry
 
     var onProfileSet: (profile: MidiCIProfileId, enabled: Boolean) -> Unit = { _, _ -> }
@@ -411,7 +421,7 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
 
     var processProfileSpecificData: (sourceChannel: Byte, sourceMUID: Int, destinationMUID: Int, profileId: MidiCIProfileId, data: List<Byte>) -> Unit = { _, _, _, _, _ -> }
 
-    // FIXME: make them public once we start supporting Prpoerty Exchange.
+    // FIXME: make them public once we start supporting Property Exchange.
     // private val defaultProcessGetMaxSimultaneousPropertyRequests: (destinationChannelOr7F: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Byte = { _, _, _, max -> max }
     //var processGetMaxSimultaneousPropertyRequests = defaultProcessGetMaxSimultaneousPropertyRequests
 
@@ -426,29 +436,7 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 initiatorDevice = CIRetrieval.midiCIGetDeviceDetails(data)
                 // only available in MIDI-CI 1.2 or later.
                 val initiatorOutputPath = if (data.size > 29) data[29] else 0
-
-                val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-                val ret = when (processDiscovery(initiatorDevice, sourceMUID)) {
-                    MidiCIDiscoveryResponseCode.Reply -> CIFactory.midiCIDiscoveryReply(
-                        dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID,
-                        device.manufacturer, device.family, device.familyModelNumber, device.softwareRevisionLevel,
-                        capabilityInquirySupported, receivableMaxSysExSize,
-                        initiatorOutputPath, functionBlock
-                    )
-
-                    MidiCIDiscoveryResponseCode.InvalidateMUID -> CIFactory.midiCIDiscoveryInvalidateMuid(
-                        dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID
-                    )
-
-                    MidiCIDiscoveryResponseCode.NAK -> CIFactory.midiCIDiscoveryNak(
-                        dst,
-                        MidiCIConstants.DEVICE_ID_MIDI_PORT,
-                        MidiCIConstants.CI_VERSION_AND_FORMAT,
-                        muid,
-                        sourceMUID
-                    )
-                }
-                sendOutput(ret)
+                processDiscovery(initiatorDevice, sourceMUID, initiatorOutputPath)
             }
 
             /*
@@ -495,14 +483,10 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
             // Profile Configuration
             CIFactory.SUB_ID_2_PROFILE_INQUIRY -> {
                 // Reply to Property Exchange Capabilities
+                val source = data[1]
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
-                val profileSet = processProfileInquiry(sourceMUID, destinationMUID)
-
-                val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-                sendOutput(CIFactory.midiCIProfileInquiryReply(dst, CIRetrieval.midiCIGetDestination(data), muid, sourceMUID,
-                    profileSet.filter { it.second }.map { it.first },
-                    profileSet.filter { !it.second }.map { it.first }))
+                processProfileInquiry(source, sourceMUID, destinationMUID)
             }
 
             CIFactory.SUB_ID_2_SET_PROFILE_ON, CIFactory.SUB_ID_2_SET_PROFILE_OFF -> {

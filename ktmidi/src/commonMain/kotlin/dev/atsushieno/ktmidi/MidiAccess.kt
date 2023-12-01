@@ -111,7 +111,7 @@ data class PortCreatorContext(
     var portName: String,
     var manufacturer: String,
     var version: String,
-    /** Use MidiCIProtocolType (MIDI1 or MIDI2) */
+    /** Use MidiProtocolVersion (UNSPECIFIED, MIDI1 or MIDI2) */
     var midiProtocol: Int = MidiProtocolVersion.UNSPECIFIED,
     var umpGroup: Int = 0
 )
