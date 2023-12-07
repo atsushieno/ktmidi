@@ -22,3 +22,7 @@ include(":input-sample")
 include(":player-sample-lib")
 include(":player-sample")
 include(":player-sample-native")
+
+include(":rtmidi-javacpp")
+project(":rtmidi-javacpp").projectDir = new File("external/rtmidi-javacpp/rtmidi-javacpp")
+gradle.rootProject { ext.javacppVersion = '1.5.8' }

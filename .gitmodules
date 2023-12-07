@@ -1,3 +1,6 @@
 [submodule "external/rtmidi"]
 	path = external/rtmidi
 	url = https://github.com/thestk/rtmidi.git
+[submodule "external/rtmidi-javacpp"]
+	path = external/rtmidi-javacpp
+	url = https://github.com/atsushieno/rtmidi-javacpp.git

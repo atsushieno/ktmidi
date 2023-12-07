@@ -1,19 +1,18 @@
 package dev.atsushieno.ktmidi
 
+import dev.atsushieno.rtmidi_javacpp.RtMidiCCallback
+import org.bytedeco.javacpp.BytePointer
 import java.nio.ByteBuffer
 import java.nio.IntBuffer
-import com.ochafik.lang.jnaerator.runtime.NativeSize
-import com.sun.jna.Pointer
-import dev.atsushieno.rtmidijna.RtMidiWrapper
-import dev.atsushieno.rtmidijna.RtmidiLibrary
-import dev.atsushieno.rtmidijna.RtmidiLibrary.RtMidiCCallback
-import kotlinx.coroutines.yield
+import org.bytedeco.javacpp.IntPointer
+import org.bytedeco.javacpp.Pointer
+
+import dev.atsushieno.rtmidi_javacpp.global.RtMidi as library
 
 class RtMidiAccess() : MidiAccess() {
     companion object {
-        private val library = RtmidiLibrary.INSTANCE
 
-        internal fun getPortName(rtmidi: RtMidiWrapper, index: Int) : String {
+        internal fun getPortName(rtmidi: Pointer, index: Int) : String {
             val lenArr = intArrayOf(0)
             val len = IntBuffer.wrap(lenArr)
             if (library.rtmidi_get_port_name(rtmidi, index, null, len) < 0)
@@ -58,8 +57,8 @@ class RtMidiAccess() : MidiAccess() {
 
     override val canCreateVirtualPort: Boolean
         get() = when(library.rtmidi_out_get_current_api(library.rtmidi_out_create_default())) {
-            RtmidiLibrary.RtMidiApi.RTMIDI_API_LINUX_ALSA,
-            RtmidiLibrary.RtMidiApi.RTMIDI_API_MACOSX_CORE -> true
+            library.RTMIDI_API_LINUX_ALSA,
+            library.RTMIDI_API_MACOSX_CORE -> true
             else -> false
         }
 
@@ -81,21 +80,23 @@ class RtMidiAccess() : MidiAccess() {
         abstract override fun close()
     }
 
-    internal class RtMidiInputHandler(private val rtmidi: RtMidiWrapper) {
+    internal class RtMidiInputHandler(rtmidi: Pointer/*RtMidiInPtr*/) {
         private var listener: OnMidiReceivedEventListener? = null
 
         fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
             this.listener = listener
         }
 
-        private fun onRtMidiMessage(timestamp: Double, message: Pointer, messageSize: NativeSize) {
-            listener?.onEventReceived(message.getByteArray(0, messageSize.toInt()), 0, messageSize.toInt(), (timestamp * 1_000_000_000).toLong())
+        private fun onRtMidiMessage(timestamp: Double, message: Pointer, messageSize: Long) {
+            val array = ByteArray(messageSize.toInt())
+            message.asByteBuffer().get(array)
+            listener?.onEventReceived(array, 0, messageSize.toInt(), (timestamp * 1_000_000_000).toLong())
         }
 
-        class RtMidiAccessInputCallback(val owner: RtMidiInputHandler) : RtMidiCCallback {
+        class RtMidiAccessInputCallback(val owner: RtMidiInputHandler) : RtMidiCCallback() {
 
-            override fun apply(timeStamp: Double, message: Pointer?, messageSize: NativeSize?, userData: Pointer?) {
-                owner.onRtMidiMessage(timeStamp, message!!, messageSize!!)
+            override fun call(timeStamp: Double, message: BytePointer?, messageSize: Long, userData: Pointer?) {
+                owner.onRtMidiMessage(timeStamp, message!!, messageSize)
             }
         }
 
@@ -104,12 +105,12 @@ class RtMidiAccess() : MidiAccess() {
         init {
             library.rtmidi_in_set_callback(rtmidi,
                 callback,
-                Pointer.NULL)
+                IntPointer())
             library.rtmidi_in_ignore_types(
                 rtmidi,
-                0,
-                1,
-                1,
+                false,
+                true,
+                true,
             )
         }
     }
@@ -160,30 +161,19 @@ class RtMidiAccess() : MidiAccess() {
     // Virtual ports
 
     internal class RtMidiVirtualPortDetails(context: PortCreatorContext) : MidiPortDetails {
-        override val id: String
-        override val manufacturer: String
-        override val name: String
-        override val version: String
-
-        init {
-            id = context.portName
-            name = context.portName
-            manufacturer = context.manufacturer
-            version = context.version
-        }
+        override val id: String = context.portName
+        override val manufacturer: String = context.manufacturer
+        override val name: String = context.portName
+        override val version: String = context.version
     }
 
     internal abstract class RtMidiVirtualPort(context: PortCreatorContext) : MidiPort {
-        private val detailsImpl: MidiPortDetails
+        private val detailsImpl: MidiPortDetails = RtMidiVirtualPortDetails(context)
 
         override val details: MidiPortDetails
             get() = detailsImpl
 
         override var midiProtocol: Int = 0
-
-        init {
-            detailsImpl = RtMidiVirtualPortDetails(context)
-        }
     }
 
     internal class RtMidiVirtualInput(context: PortCreatorContext) : MidiInput, RtMidiVirtualPort(context) {

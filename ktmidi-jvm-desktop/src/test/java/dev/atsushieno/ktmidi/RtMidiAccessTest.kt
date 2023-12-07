@@ -13,7 +13,7 @@ class RtMidiAccessTest {
             println("Test rtMidiAccessInfo() is skipped on GitHub Actions as ALSA is unavailable.")
             return
         }
-        // it does not work on M1 mac and arm64 Linux either
+        // it does not work on M1 mac and arm64 Linux either (lack of deps)
         if (System.getProperty("os.arch") == "aarch64") {
             println("Test rtMidiAccessInfo() is skipped as rtmidi-jna aarch64 builds are not available.")
             return
