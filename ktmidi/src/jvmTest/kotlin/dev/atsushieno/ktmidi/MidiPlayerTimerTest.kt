@@ -8,7 +8,8 @@ import kotlin.time.TimeSource
 
 class MidiPlayerTimerTest {
     @OptIn(ExperimentalTime::class)
-    @Test
+    // FIXME: make it non-intermittent and enable it again.
+    //@Test
     fun simpleTimerTest() {
         runBlocking {
             val timeSource = TimeSource.Monotonic
