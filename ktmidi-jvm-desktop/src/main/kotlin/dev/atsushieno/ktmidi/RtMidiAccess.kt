@@ -89,7 +89,7 @@ class RtMidiAccess() : MidiAccess() {
 
         private fun onRtMidiMessage(timestamp: Double, message: Pointer, messageSize: Long) {
             val array = ByteArray(messageSize.toInt())
-            message.asByteBuffer().get(array)
+            (message as BytePointer).get(array)
             listener?.onEventReceived(array, 0, messageSize.toInt(), (timestamp * 1_000_000_000).toLong())
         }
 
@@ -105,7 +105,7 @@ class RtMidiAccess() : MidiAccess() {
         init {
             library.rtmidi_in_set_callback(rtmidi,
                 callback,
-                IntPointer())
+                null)
             library.rtmidi_in_ignore_types(
                 rtmidi,
                 false,
