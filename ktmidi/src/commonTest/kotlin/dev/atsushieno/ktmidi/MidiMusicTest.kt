@@ -109,15 +109,24 @@ class Midi1MusicUnitTest {
         val music = Midi1Music()
         val track = Midi1Track()
         music.tracks.add(track)
-        val sysexData = arrayOf(0x7D, 0x0B, 0x2D, 0x31, 0x34, 0x37, 0x32, 0x35, 0x34, 0x39, 0x39, 0x37, 0x38)
+        val sysexData = arrayOf(0x7D, 0x0B, 0x2D, 0x31, 0x34, 0x37, 0x32, 0x35, 0x34, 0x39, 0x39, 0x37, 0x38, 0xF7)
                 .map { v -> v.toByte() }.toByteArray()
+        val sysexDataPart1 = sysexData.slice(0..4).toByteArray()
+        val sysexDataPart2 = sysexData.slice(5..8).toByteArray()
+        val sysexDataPart3 = sysexData.slice(9..13).toByteArray()
         track.events.add(Midi1Event(0, Midi1CompoundMessage(0xF0, 0, 0, sysexData)))
+        track.events.add(Midi1Event(0, Midi1CompoundMessage(0xF0, 0, 0, sysexDataPart1)))
+        track.events.add(Midi1Event(100, Midi1CompoundMessage(0xF7, 0, 0, sysexDataPart2)))
+        track.events.add(Midi1Event(200, Midi1CompoundMessage(0xF7, 0, 0, sysexDataPart3)))
         val bytes = mutableListOf<Byte>()
         music.write(bytes)
-        val trackHead = arrayOf('M'.code, 'T'.code, 'r'.code, 'k'.code, 0, 0, 0, 20, 0, 0xF0).map { v -> v.toByte() }.toByteArray()
+        val trackHead = arrayOf('M'.code, 'T'.code, 'r'.code, 'k'.code, 0, 0, 0, 45, 0, 0xF0, 14).map { v -> v.toByte() }.toByteArray()
+        val multiPacketSysexData = byteArrayOf(0, 0xF0.toByte(), 5) + sysexDataPart1 +
+                byteArrayOf(0x64, 0xF7.toByte(), 4) + sysexDataPart2 +
+                byteArrayOf(0x81.toByte(), 0x48, 0xF7.toByte(), 5) + sysexDataPart3
         val headerChunkSize = 14 // MThd + sizeInfo(0 0 0 6) + actualSize(6 bytes)
         val actual = bytes.drop(headerChunkSize).toByteArray()
-        assertContentEquals(trackHead + sysexData + byteArrayOf(0xF7.toByte(), 0, 0xFF.toByte(), 0x2F, 0), actual, "SMF track")
+        assertContentEquals(trackHead + sysexData + multiPacketSysexData + byteArrayOf(0, 0xFF.toByte(), 0x2F, 0), actual, "SMF track")
 
         bytes.clear()
         music.write(bytes)
@@ -126,7 +135,7 @@ class Midi1MusicUnitTest {
         music.read(bytes)
         val evt = music.tracks.first().events.first().message as Midi1CompoundMessage
         assertContentEquals(sysexData, evt.extraData!!.drop(evt.extraDataOffset).take(evt.extraDataLength).toByteArray(), "read")
-        assertEquals(headerChunkSize + trackHead.size + sysexData.size + 1 + 4, bytes.size, "music bytes size")
+        assertEquals(headerChunkSize + trackHead.size + sysexData.size + multiPacketSysexData.size + 4, bytes.size, "music bytes size")
     }
 
     // U and L cannot share case-insensitively identical fields for JNI signature...
