@@ -9,7 +9,10 @@ plugins {
 
 allprojects {
     group = 'dev.atsushieno'
-    version = '0.6.2'
+    if (name == "rtmidi-javacpp")
+        version = libs.versions.rtmidi.javacpp.get()
+    else
+        version = '0.6.2'
 
     repositories {
         google()

@@ -2,15 +2,13 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'maven-publish'
     id 'signing'
-    id "org.bytedeco.gradle-javacpp-platform" version "1.5.9"
 }
 
 dependencies {
     implementation project(":ktmidi")
     implementation libs.alsakt
-    //implementation libs.rtmidi.javacpp
-    //implementation libs.rtmidi.javacpp.platform
-    implementation project(":rtmidi-javacpp")
+    implementation libs.rtmidi.javacpp
+    implementation libs.rtmidi.javacpp.platform
 
     implementation libs.kotlinx.coroutines.core
     implementation libs.kotlinx.datetime
