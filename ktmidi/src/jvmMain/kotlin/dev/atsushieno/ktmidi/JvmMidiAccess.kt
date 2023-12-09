@@ -73,7 +73,7 @@ private fun toJvmMidiMessage(data: ByteArray, start: Int, length: Int): JvmMidiM
     if (length <= 0) throw IllegalArgumentException("non-positive length")
     val arr = if (start == 0 && length == data.size) data else data.drop(start).take(length - start).toByteArray()
     return when (arr[0]) {
-        0xF0.toByte() -> SysexMessage(arr, length)
+        0xF0.toByte(), 0xF7.toByte() -> SysexMessage(arr, length)
         0xFF.toByte() -> MetaMessage(arr[1].toInt(), arr.drop(2).toByteArray(), length - 2)
         else -> ShortMessage(
             arr[0].toUByte().toInt(),
@@ -113,7 +113,14 @@ private class JvmMidiInput(val port: JvmMidiTransmitterPortDetails) : MidiInput 
             override fun send(msg: JvmMidiMessage?, timestampInMicroseconds: Long) {
                 if (msg == null)
                     return
-                listener?.onEventReceived(msg.message, 0, msg.length, timestampInMicroseconds * 1000)
+                var start = 0
+                var length = msg.length
+                // Message begins with 0xF7 is an additional sysex message
+                if (msg.message[0] == 0xF7.toByte()) {
+                    start = 1
+                    length--
+                }
+                listener?.onEventReceived(msg.message, start, length, timestampInMicroseconds * 1000)
             }
         }
     }
@@ -137,8 +144,25 @@ private class JvmMidiOutput(val port: JvmMidiReceiverPortDetails) : MidiOutput {
         port.receiver.close()
     }
 
+    private var multiPacketSysex = false
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
-        val msg = toJvmMidiMessage(mevent, offset, length)
+        val msg: JvmMidiMessage
+        if (multiPacketSysex) {
+            // If a multi-packet sysex message ends with 0xF7, it means that it is the last packet.
+            if (mevent[offset + length - 1] == 0xF7.toByte())
+                multiPacketSysex = false
+
+            // JVM requires that an additional sysex message must begin with 0xF7.
+            val buffer = ByteArray(length + 1)
+            buffer[0] = 0xF7.toByte()
+            mevent.copyInto(buffer, 1, offset, length)
+            msg = toJvmMidiMessage(buffer, 0, length + 1)
+        } else {
+            // If a sysex doesn't end with 0xF7, it is a multi-packet sysex message.
+            if (mevent[offset] == 0xF0.toByte() && mevent[offset + length - 1] != 0xF7.toByte())
+                multiPacketSysex = true
+            msg = toJvmMidiMessage(mevent, offset, length)
+        }
         port.receiver.send(msg, timestampInNanoseconds)
     }
 }
