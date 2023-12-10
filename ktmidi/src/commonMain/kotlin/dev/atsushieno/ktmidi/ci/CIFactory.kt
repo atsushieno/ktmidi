@@ -1,5 +1,4 @@
 package dev.atsushieno.ktmidi.ci
-import kotlin.experimental.and
 
 class MidiCIProtocolTypeInfo(
     val type: Byte,
@@ -62,27 +61,27 @@ object CIFactory {
     // Assumes the input value is already 7-bit encoded if required.
     fun midiCiDirectUint32At(dst: MutableList<Byte>, offset: Int, v: Int) {
         dst[offset] = (v and 0xFF).toByte()
-        dst[offset + 1] = (v shr 8 and 0xFF).toByte()
-        dst[offset + 2] = (v shr 16 and 0xFF).toByte()
-        dst[offset + 3] = (v shr 24 and 0xFF).toByte()
+        dst[offset + 1] = ((v shr 8) and 0xFF).toByte()
+        dst[offset + 2] = ((v shr 16) and 0xFF).toByte()
+        dst[offset + 3] = ((v shr 24) and 0xFF).toByte()
     }
 
-    fun midiCI7bitInt14At(dst: MutableList<Byte>, offset: Int, v: Short) {
-        dst[offset] = (v and 0x7F).toByte()
+    fun midiCI7bitInt14At(dst: MutableList<Byte>, offset: Int, v: UShort) {
+        dst[offset] = (v and 0x7Fu).toByte()
         dst[offset + 1] = (v.toInt() shr 7 and 0x7F).toByte()
     }
 
     fun midiCI7bitInt21At(dst: MutableList<Byte>, offset: Int, v: Int) {
         dst[offset] = (v and 0x7F).toByte()
-        dst[offset + 1] = (v shr 7 and 0x7F).toByte()
-        dst[offset + 2] = (v shr 14 and 0x7F).toByte()
+        dst[offset + 1] = ((v shr 7) and 0x7F).toByte()
+        dst[offset + 2] = ((v shr 14) and 0x7F).toByte()
     }
 
     fun midiCI7bitInt28At(dst: MutableList<Byte>, offset: Int, v: Int) {
         dst[offset] = (v and 0x7F).toByte()
-        dst[offset + 1] = (v shr 7 and 0x7F).toByte()
-        dst[offset + 2] = (v shr 14 and 0x7F).toByte()
-        dst[offset + 3] = (v shr 21 and 0x7F).toByte()
+        dst[offset + 1] = ((v shr 7) and 0x7F).toByte()
+        dst[offset + 2] = ((v shr 14) and 0x7F).toByte()
+        dst[offset + 3] = ((v shr 21) and 0x7F).toByte()
     }
 
     fun midiCIMessageCommon(
@@ -111,14 +110,14 @@ object CIFactory {
         midiCIMessageCommon(dst, 0x7F, sysexSubId2, versionAndFormat, sourceMUID, destinationMUID)
         midiCiDirectUint32At(
             dst, 13,
-            deviceManufacturer3Bytes.toInt()
+            deviceManufacturer3Bytes
         ) // the last byte is extraneous, but will be overwritten next.
         midiCiDirectUint16At(dst, 16, deviceFamily)
         midiCiDirectUint16At(dst, 18, deviceFamilyModelNumber)
         // LAMESPEC: Software Revision Level does not mention in which endianness this field is stored.
-        midiCiDirectUint32At(dst, 20, softwareRevisionLevel.toInt())
+        midiCiDirectUint32At(dst, 20, softwareRevisionLevel)
         dst[24] = ciCategorySupported
-        midiCiDirectUint32At(dst, 25, receivableMaxSysExSize.toInt())
+        midiCiDirectUint32At(dst, 25, receivableMaxSysExSize)
         dst[29] = initiatorOutputPathId
     }
 

@@ -95,7 +95,7 @@ object MidiCIConstants {
 
 class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
                       val outputPathId: Byte = 0,
-                      val muid: Int = Random.nextInt()) {
+                      val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
     var device: DeviceDetails = DeviceDetails.empty
     var midiCIBufferSize = 1024
@@ -335,7 +335,7 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
  *
  */
 class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
-                      private val muid: Int = Random.nextInt()) {
+                      private val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
     var device: DeviceDetails = DeviceDetails.empty
     var capabilityInquirySupported = MidiCIDiscoveryCategoryFlags.ThreePs
@@ -526,5 +526,10 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 sendOutput(dst)
             }*/
         }
+    }
+
+    init {
+        if (muid != muid and 0x7F7F7F7F)
+            throw IllegalArgumentException("muid must consist of 7-bit byte values i.e. each 8-bit number must not have the topmost bit as 0. (`muid` must be equivalent to `muid and 0x7F7F7F7F`")
     }
 }
