@@ -2,6 +2,8 @@ package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.MidiCIProtocolType
 import dev.atsushieno.ktmidi.MidiCIProtocolValue
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -57,13 +59,19 @@ object MidiCISystem {
 }
 
 object MidiCIConstants {
+    const val UNIVERSAL_SYSEX: Byte = 0x7E
+    const val UNIVERSAL_SYSEX_SUB_ID_MIDI_CI: Byte = 0x0D
+
     const val CI_VERSION_AND_FORMAT: Byte = 0x2
+
+    const val ENDPOINT_STATUS_PRODUCT_INSTANCE_ID: Byte = 0
 
     const val DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE = 4096
 
     const val DEVICE_ID_MIDI_PORT: Byte = 0x7F
 
     const val NO_FUNCTION_BLOCK: Byte = 0x7F
+    const val FROM_FUNCTION_BLOCK: Byte = 0x7F
 
     val Midi1ProtocolTypeInfo = MidiCIProtocolTypeInfo(MidiCIProtocolType
         .MIDI1.toByte(), MidiCIProtocolValue.MIDI1.toByte(), 0, 0, 0)
@@ -100,7 +108,7 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
     var device: DeviceDetails = DeviceDetails.empty
     var midiCIBufferSize = 1024
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
-    var productInstanceId: Byte = 0
+    var productInstanceId: String? = null
 
     var state: MidiCIInitiatorState = MidiCIInitiatorState.Initial
 
@@ -126,6 +134,36 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
         }
     }
     var processDiscoveryResponse = defaultProcessDiscoveryResponse
+
+    private val defaultProcessInvalidateMUID = { sourceMUID: Int, destinationMUID: Int, muidToInvalidate: Int ->
+        if (muidToInvalidate == muid) {
+            state = MidiCIInitiatorState.Initial
+        }
+    }
+    var processInvalidateMUID = defaultProcessInvalidateMUID
+
+    var onAck: (sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, nakStatusCode: Byte, nakStatusData: Byte, nakDetailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte>) -> Unit = { _,_,_,_,_,_,_,_ -> }
+    var onNak: (sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, nakStatusCode: Byte, nakStatusData: Byte, nakDetailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte>) -> Unit = { _,_,_,_,_,_,_,_ -> }
+    private fun defaultProcessAckNak(isNak: Boolean, sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, statusCode: Byte, statusData: Byte, detailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte>) {
+        if (isNak)
+            onNak(sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
+        else
+            onAck(sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
+    }
+    private val defaultProcessAck = { sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, statusCode: Byte, statusData: Byte, detailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte> ->
+        defaultProcessAckNak(false, sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
+    }
+    var processAck = defaultProcessAck
+    private val defaultProcessNak = { sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, statusCode: Byte, statusData: Byte, detailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte> ->
+        defaultProcessAckNak(true, sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
+    }
+    var processNak = defaultProcessNak
+
+    private val defaultProcessEndpointMessageResponse = { sourceMUID: Int, destinationMUID: Int, status: Byte, data: List<Byte> ->
+        if (status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
+            productInstanceId = data.toByteArray().decodeToString() // FIXME: verify that it is only ASCII chars?
+    }
+    var processEndpointMessageResponse = defaultProcessEndpointMessageResponse
 
     /*
 
@@ -185,8 +223,6 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
     fun sendEndpointMessage(targetMuid: Int, status: Byte) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIEndpointMessage(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, targetMuid, status)
-        // we set state before sending the MIDI data as it may process the rest of the events synchronously through the end...
-        state = MidiCIInitiatorState.DISCOVERY_SENT
         sendOutput(buf)
     }
 
@@ -271,19 +307,46 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
                     CIRetrieval.midiCIGetSourceMUID(data),
                     CIRetrieval.midiCIGetDestinationMUID(data))
             }
+            CIFactory.SUB_ID_2_ENDPOINT_MESSAGE_REPLY -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
+                val status = data[13]
+                val dataLength = data[14] + (data[15].toInt() shl 7)
+                val dataValue = data.drop(16).take(dataLength)
+                processEndpointMessageResponse(sourceMUID, destinationMUID, status, dataValue)
+            }
             CIFactory.SUB_ID_2_INVALIDATE_MUID -> {
                 // Invalid MUID
-                processDiscoveryResponse(MidiCIDiscoveryResponseCode.InvalidateMUID,
-                    CIRetrieval.midiCIGetDeviceDetails(data),
+                processInvalidateMUID(CIRetrieval.midiCIGetSourceMUID(data),
+                    0x7F7F7F7F,
+                    CIRetrieval.midiCIGetMUIDToInvalidate(data)
+                    )
+            }
+            CIFactory.SUB_ID_2_ACK -> {
+                // ACK MIDI-CI
+                processAck(
                     CIRetrieval.midiCIGetSourceMUID(data),
-                    0x7F7F7F7F)
+                    CIRetrieval.midiCIGetDestinationMUID(data),
+                    data[13],
+                    data[14],
+                    data[15],
+                    data.drop(16).take(5),
+                    (data[21] + (data[22].toInt() shl 7)).toUShort(),
+                    data.drop(23)
+                )
             }
             CIFactory.SUB_ID_2_NAK -> {
                 // NAK MIDI-CI
-                processDiscoveryResponse(MidiCIDiscoveryResponseCode.NAK,
-                    CIRetrieval.midiCIGetDeviceDetails(data),
+                processNak(
                     CIRetrieval.midiCIGetSourceMUID(data),
-                    CIRetrieval.midiCIGetDestinationMUID(data))
+                    CIRetrieval.midiCIGetDestinationMUID(data),
+                    data[13],
+                    data[14],
+                    data[15],
+                    data.drop(16).take(5),
+                    (data[21] + (data[22].toInt() shl 7)).toUShort(),
+                    data.drop(23)
+                )
             }
             // Profile Configuration
             CIFactory.SUB_ID_2_PROFILE_INQUIRY_REPLY -> {
@@ -343,6 +406,7 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
     var supportedProtocols: List<MidiCIProtocolTypeInfo> = MidiCIConstants.Midi2ThenMidi1Protocols
     var profileSet: MutableList<Pair<MidiCIProfileId,Boolean>> = mutableListOf()
     var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK
+    var productInstanceId: String? = null
 
     var midiCIBufferSize = 128
 
@@ -353,7 +417,6 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
     // FIXME: enable this when we start supporting Property Exchange.
     //var establishedMaxSimulutaneousPropertyRequests: Byte? = null
 
-    @OptIn(ExperimentalTime::class)
     private var protocolTestTimeout: Duration? = null
 
     private val defaultProcessDiscovery: (deviceDetails: DeviceDetails?, initiatorMUID: Int, initiatorOutputPath: Byte) -> Unit = { deviceDetails, initiatorMUID, initiatorOutputPath ->
@@ -366,6 +429,16 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
         ))
     }
     var processDiscovery = defaultProcessDiscovery
+
+    private val defaultProcessEndpointMessage: (initiatorMUID: Int, destinationMUID: Int, status: Byte) -> Unit = { initiatorMUID, destinationMUID, status ->
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        val prodId = productInstanceId
+        sendOutput(CIFactory.midiCIEndpointMessageReply(
+            dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, initiatorMUID, status,
+            if (status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId != null) prodId.toByteArray(Charsets.ISO_8859_1).toList() else listOf() // FIXME: verify that it is only ASCII chars?
+            ))
+    }
+    var processEndpointMessage = defaultProcessEndpointMessage
 
     private val defaultProcessNegotiationInquiry: (supportedProtocols: List<MidiCIProtocolTypeInfo>, initiatorMUID: Int) -> List<MidiCIProtocolTypeInfo> =
         // we don't listen to initiator :p
@@ -425,7 +498,6 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
     // private val defaultProcessGetMaxSimultaneousPropertyRequests: (destinationChannelOr7F: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Byte = { _, _, _, max -> max }
     //var processGetMaxSimultaneousPropertyRequests = defaultProcessGetMaxSimultaneousPropertyRequests
 
-    @OptIn(ExperimentalTime::class)
     fun processInput(data: List<Byte>) {
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
             return // not MIDI-CI sysex
@@ -437,6 +509,14 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 // only available in MIDI-CI 1.2 or later.
                 val initiatorOutputPath = if (data.size > 29) data[29] else 0
                 processDiscovery(initiatorDevice, sourceMUID, initiatorOutputPath)
+            }
+
+            CIFactory.SUB_ID_2_ENDPOINT_MESSAGE_INQUIRY -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
+                // only available in MIDI-CI 1.2 or later.
+                val status = data[13]
+                processEndpointMessage(sourceMUID, destinationMUID, status)
             }
 
             /*

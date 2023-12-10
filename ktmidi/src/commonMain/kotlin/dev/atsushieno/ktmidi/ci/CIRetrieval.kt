@@ -29,6 +29,12 @@ object CIRetrieval {
     fun midiCIGetDestinationMUID(sysex: List<Byte>) =
         sysex[9] + (sysex[10] shl 8) + (sysex[11] shl 16) + (sysex[12] shl 24)
 
+    /** retrieves source MUID from a MIDI-CI sysex7 chunk.
+     * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
+     */
+    fun midiCIGetMUIDToInvalidate(sysex: List<Byte>) =
+        sysex[13] + (sysex[14] shl 8) + (sysex[15] shl 16) + (sysex[16] shl 24)
+
     /** retrieves a protocol type info from a MIDI-CI sysex7 chunk partial (from offset 0). */
     private fun readSingleProtocol(sysex: List<Byte>) =
         MidiCIProtocolTypeInfo(sysex[0], sysex[1], sysex[2], 0, 0)

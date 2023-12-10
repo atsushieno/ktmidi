@@ -17,6 +17,9 @@ object CIFactory {
 
     const val SUB_ID_2_DISCOVERY_INQUIRY: Byte = 0x70
     const val SUB_ID_2_DISCOVERY_REPLY: Byte = 0x71
+    const val SUB_ID_2_ENDPOINT_MESSAGE_INQUIRY: Byte = 0x72
+    const val SUB_ID_2_ENDPOINT_MESSAGE_REPLY: Byte = 0x73
+    const val SUB_ID_2_ACK: Byte = 0x7D
     const val SUB_ID_2_INVALIDATE_MUID: Byte = 0x7E
     const val SUB_ID_2_NAK: Byte = 0x7F
     const val SUB_ID_2_PROTOCOL_NEGOTIATION_INQUIRY: Byte = 0x10
@@ -88,9 +91,9 @@ object CIFactory {
         dst: MutableList<Byte>,
         deviceId: Byte, sysexSubId2: Byte, versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int
     ) {
-        dst[0] = 0x7E
+        dst[0] = MidiCIConstants.UNIVERSAL_SYSEX
         dst[1] = deviceId
-        dst[2] = 0xD
+        dst[2] = MidiCIConstants.UNIVERSAL_SYSEX_SUB_ID_MIDI_CI
         dst[3] = sysexSubId2
         dst[4] = versionAndFormat
         midiCiDirectUint32At(dst, 5, sourceMUID)
@@ -158,14 +161,14 @@ object CIFactory {
 
     fun midiCIEndpointMessage(dst: MutableList<Byte>, versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int, status: Byte
     ) : List<Byte> {
-        midiCIMessageCommon(dst, 0x7F, 0x7E, versionAndFormat, sourceMUID, destinationMUID)
+        midiCIMessageCommon(dst, MidiCIConstants.FROM_FUNCTION_BLOCK, SUB_ID_2_ENDPOINT_MESSAGE_INQUIRY, versionAndFormat, sourceMUID, destinationMUID)
         dst[13] = status
         return dst.take(14)
     }
 
     fun midiCIEndpointMessageReply(dst: MutableList<Byte>, versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int, status: Byte, informationData: List<Byte>
     ) : List<Byte> {
-        midiCIMessageCommon(dst, 0x7F, 0x7E, versionAndFormat, sourceMUID, destinationMUID)
+        midiCIMessageCommon(dst, MidiCIConstants.FROM_FUNCTION_BLOCK, SUB_ID_2_ENDPOINT_MESSAGE_REPLY, versionAndFormat, sourceMUID, destinationMUID)
         dst[13] = status
         midiCiDirectUint16At(dst, 14, informationData.size.toUShort())
         return dst.take(14)
@@ -175,7 +178,7 @@ object CIFactory {
         dst: MutableList<Byte>,
         versionAndFormat: Byte, sourceMUID: Int, targetMUID: Int
     ) : List<Byte> {
-        midiCIMessageCommon(dst, 0x7F, 0x7E, versionAndFormat, sourceMUID, 0x7F7F7F7F)
+        midiCIMessageCommon(dst, MidiCIConstants.FROM_FUNCTION_BLOCK, SUB_ID_2_INVALIDATE_MUID, versionAndFormat, sourceMUID, 0x7F7F7F7F)
         midiCiDirectUint32At(dst, 13, targetMUID)
         return dst.take(17)
     }
@@ -298,7 +301,7 @@ object CIFactory {
         midiCIMessageCommon(
             dst, source,
             SUB_ID_2_PROFILE_INQUIRY_REPLY,
-            1, sourceMUID, destinationMUID
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
         dst[13] = (enabledProfiles.size and 0x7F).toByte()
         dst[14] = ((enabledProfiles.size shr 7) and 0x7F).toByte()
@@ -322,7 +325,7 @@ object CIFactory {
         midiCIMessageCommon(
             dst, destination,
             if (turnOn) SUB_ID_2_SET_PROFILE_ON else SUB_ID_2_SET_PROFILE_OFF,
-            1, sourceMUID, destinationMUID
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
         midiCIProfile(dst, 13, profile)
     }
