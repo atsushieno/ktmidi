@@ -149,7 +149,7 @@ class CIFactoryTest {
     fun testProfileConfigurationMessages() {
         // Profile Inquiry
         val expected1 = mutableListOf<Byte>(
-            0x7E, 5, 0x0D, 0x20, 1,
+            0x7E, 5, 0x0D, 0x20, 2,
             0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20
         )
         val actual1 = MutableList<Byte>(13) { 0 }
@@ -161,7 +161,7 @@ class CIFactoryTest {
         val profiles1 = mutableListOf<MidiCIProfileId>(MidiCIProfileId(b7E, 2, 3, 4, 5), MidiCIProfileId(b7E, 7, 8, 9, 10))
         val profiles2 = mutableListOf<MidiCIProfileId>(MidiCIProfileId(b7E, 12, 13, 14, 15), MidiCIProfileId(b7E, 17, 18, 19, 20))
         val expected2 = mutableListOf(
-            0x7E, 5, 0x0D, 0x21, 1,
+            0x7E, 5, 0x0D, 0x21, 2,
             0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
             2,
             0,
@@ -179,7 +179,7 @@ class CIFactoryTest {
 
         // Set Profile On
         val expected3 = mutableListOf<Byte>(
-            0x7E, 5, 0x0D, 0x22, 1,
+            0x7E, 5, 0x0D, 0x22, 2,
             0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
             0x7E, 2, 3, 4, 5
         )
@@ -200,7 +200,7 @@ class CIFactoryTest {
 
         // Profile Enabled Report
         val expected5 = mutableListOf<Byte>(
-            0x7E, 5, 0x0D, 0x24, 1,
+            0x7E, 5, 0x0D, 0x24, 2,
             0x10, 0x10, 0x10, 0x10, 0x7F, 0x7F, 0x7F, 0x7F,
             0x7E, 2, 3, 4, 5
         )
@@ -221,7 +221,7 @@ class CIFactoryTest {
 
         // Profile Specific Data
         val expected7 = mutableListOf<Byte>(
-            0x7E, 5, 0x0D, 0x2F, 1,
+            0x7E, 5, 0x0D, 0x2F, 2,
             0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
             0x7E, 2, 3, 4, 5,
             8, 0, 0, 0,
@@ -243,7 +243,7 @@ class CIFactoryTest {
 
         // Property Inquiry
         val expected1 = mutableListOf<Byte>(
-            0x7E, 5, 0x0D, 0x30, 1,
+            0x7E, 5, 0x0D, 0x30, 2,
             0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
             16
         )
@@ -258,7 +258,7 @@ class CIFactoryTest {
 
         // Has Property Data
         val expected3 = mutableListOf<Byte>(
-            0x7E, 5, 0x0D, 0x32, 1,
+            0x7E, 5, 0x0D, 0x32, 2,
             0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
             2,
             4, 0,

@@ -25,12 +25,6 @@ enum class MidiCIInitiatorState {
     ESTABLISHED
 }
 
-enum class MidiCIDiscoveryResponseCode {
-    Reply,
-    InvalidateMUID,
-    NAK
-}
-
 object MidiCIDiscoveryCategoryFlags {
     const val None: Byte = 0
     const val ProtocolNegotiation: Byte = 1 // Deprecated in MIDI-CI 1.2
@@ -82,6 +76,20 @@ object MidiCIConstants {
     val Midi1ThenMidi2Protocols = listOf(Midi1ProtocolTypeInfo, Midi2ProtocolTypeInfo)
 }
 
+object CINakStatus {
+    const val Nak: Byte = 0
+    const val MessageNotSupported: Byte = 1
+    const val CIVersionNotSupported: Byte = 2
+    const val TargetNotInUse: Byte = 3 // Target = Channel/Group/FunctionBlock
+    const val ProfileNotSupportedOnTarget: Byte = 4
+    const val TerminateInquiry: Byte = 0x20
+    const val PropertyExchangeChunksAreOutOfSequence: Byte = 0x21
+    const val ErrorRetrySuggested: Byte = 0x40
+    const val MalformedMessage: Byte = 0x41
+    const val Timeout: Byte = 0x42
+    const val TimeoutRetrySuggested = 0x43
+}
+
 /*
     Typical MIDI-CI processing flow
 
@@ -121,16 +129,13 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
 
     // Input handlers
 
-    private val defaultProcessDiscoveryResponse = { responseCode: MidiCIDiscoveryResponseCode, device: DeviceDetails, sourceMUID: Int, destinationMUID: Int ->
+    private val defaultProcessDiscoveryResponse = { device: DeviceDetails, sourceMUID: Int, destinationMUID: Int ->
         if (destinationMUID == muid) {
-            state =
-                if (responseCode == MidiCIDiscoveryResponseCode.Reply) MidiCIInitiatorState.DISCOVERED else MidiCIInitiatorState.Initial
+            state = MidiCIInitiatorState.DISCOVERED
 
             // If successfully discovered, continue to protocol promotion to MIDI 2.0
-            if (responseCode == MidiCIDiscoveryResponseCode.Reply) {
-                discoveredDevice = device
-                requestProfiles(0x7F, sourceMUID)
-            }
+            discoveredDevice = device
+            requestProfiles(0x7F, sourceMUID)
         }
     }
     var processDiscoveryResponse = defaultProcessDiscoveryResponse
@@ -193,15 +198,17 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
     var processTestProtocolReply = defaultProcessTestProtocolReply
     */
 
-    var processProfileInquiryResponse: (destinationChannel: Byte, sourceMUID: Int, profileSet: List<Pair<MidiCIProfileId, Boolean>>) -> Unit = { _, _, _ -> }
+    var processProfileInquiryResponse: (destinationChannel: Byte, sourceMUID: Int, profileSet: List<Pair<MidiCIProfileId, Boolean>>) -> Unit = { _, _, _ ->
+        // do nothing
+    }
 
-    val defaultProcessProfileAddedReport: (profileId: MidiCIProfileId) -> Unit = { profileId -> profiles.add(profileId) }
+    private val defaultProcessProfileAddedReport: (profileId: MidiCIProfileId) -> Unit = { profileId -> profiles.add(profileId) }
     var processProfileAddedReport = defaultProcessProfileAddedReport
 
-    val defaultProcessProfileRemovedReport: (profileId: MidiCIProfileId) -> Unit = { profileId -> profiles.remove(profileId) }
+    private val defaultProcessProfileRemovedReport: (profileId: MidiCIProfileId) -> Unit = { profileId -> profiles.remove(profileId) }
     var processProfileRemovedReport = defaultProcessProfileRemovedReport
 
-    // FIXME: make them public once we start supporting Prpoerty Exchange.
+    // FIXME: make them public once we start supporting Property Exchange.
     /*
     private val defaultProcessGetMaxSimultaneousPropertyReply: (destinationChannel: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Unit = { _, _, _, max ->
         establishedMaxSimulutaneousPropertyRequests = max
@@ -302,7 +309,7 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
             // Discovery
             CIFactory.SUB_ID_2_DISCOVERY_REPLY -> {
                 // Reply to Discovery
-                processDiscoveryResponse(MidiCIDiscoveryResponseCode.Reply,
+                processDiscoveryResponse(
                     CIRetrieval.midiCIGetDeviceDetails(data),
                     CIRetrieval.midiCIGetSourceMUID(data),
                     CIRetrieval.midiCIGetDestinationMUID(data))
@@ -494,6 +501,17 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
 
     var processProfileSpecificData: (sourceChannel: Byte, sourceMUID: Int, destinationMUID: Int, profileId: MidiCIProfileId, data: List<Byte>) -> Unit = { _, _, _, _, _ -> }
 
+    private val defaultProcessUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
+        val source = data[1]
+        val originalSubId = data[3]
+        val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+        val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
+        val nak = MidiCIAckNakData(source, sourceMUID, destinationMUID, originalSubId, CINakStatus.MessageNotSupported, 0, listOf(), listOf())
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        CIFactory.midiCIAckNak(dst, true, nak)
+    }
+    var processUnknownCIMessage = defaultProcessUnknownCIMessage
+
     // FIXME: make them public once we start supporting Property Exchange.
     // private val defaultProcessGetMaxSimultaneousPropertyRequests: (destinationChannelOr7F: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Byte = { _, _, _, max -> max }
     //var processGetMaxSimultaneousPropertyRequests = defaultProcessGetMaxSimultaneousPropertyRequests
@@ -520,7 +538,7 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
             }
 
             /*
-            // Protocol Negotiation - is disabled
+            // Protocol Negotiation - is disabled. They are treated as unknown message and NAK is returned.
             CIFactory.SUB_ID_2_PROTOCOL_NEGOTIATION_INQUIRY -> {
                 val requestedProtocols = CIRetrieval.midiCIGetSupportedProtocols(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
@@ -605,6 +623,10 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 CIFactory.midiCIPropertyGetCapabilities(dst, destination, true, muid, sourceMUID, establishedMaxSimulutaneousPropertyRequests!!)
                 sendOutput(dst)
             }*/
+
+            else -> {
+                processUnknownCIMessage(data)
+            }
         }
     }
 

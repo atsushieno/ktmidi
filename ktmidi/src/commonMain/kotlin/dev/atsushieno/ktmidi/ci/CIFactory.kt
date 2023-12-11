@@ -1,11 +1,22 @@
 package dev.atsushieno.ktmidi.ci
 
-class MidiCIProtocolTypeInfo(
+data class MidiCIProtocolTypeInfo(
     val type: Byte,
     val version: Byte,
     val extensions: Byte,
     val reserved1: Byte,
     val reserved2: Byte
+)
+
+data class MidiCIAckNakData(
+    val source: Byte,
+    val sourceMUID: Int,
+    val destinationMUID: Int,
+    val originalSubId: Byte,
+    val statusCode: Byte,
+    val statusData: Byte,
+    val nakDetails: List<Byte>,
+    val messageTextData: List<Byte>
 )
 
 // manufacture ID1,2,3 + manufacturer specific 1,2 ... or ... 0x7E, bank, number, version, level.
@@ -170,8 +181,9 @@ object CIFactory {
     ) : List<Byte> {
         midiCIMessageCommon(dst, MidiCIConstants.FROM_FUNCTION_BLOCK, SUB_ID_2_ENDPOINT_MESSAGE_REPLY, versionAndFormat, sourceMUID, destinationMUID)
         dst[13] = status
-        midiCiDirectUint16At(dst, 14, informationData.size.toUShort())
-        return dst.take(14)
+        midiCI7bitInt14At(dst, 14, informationData.size.toUShort())
+        memcpy(dst, 16, informationData, informationData.size)
+        return dst.take(16 + informationData.size)
     }
 
     fun midiCIDiscoveryInvalidateMuid(
@@ -288,7 +300,7 @@ object CIFactory {
         midiCIMessageCommon(
             dst, destinationChannelOr7F,
             SUB_ID_2_PROFILE_INQUIRY,
-            1, sourceMUID, destinationMUID
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
     }
 
@@ -337,7 +349,7 @@ object CIFactory {
         midiCIMessageCommon(
             dst, destination,
             if (isRemoved) SUB_ID_2_PROFILE_REMOVED_REPORT else SUB_ID_2_PROFILE_ADDED_REPORT,
-            1, sourceMUID, 0x7F7F7F7F
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, 0x7F7F7F7F
         )
         midiCIProfile(dst, 13, profile)
     }
@@ -349,7 +361,7 @@ object CIFactory {
         midiCIMessageCommon(
             dst, source,
             if (isEnabledReport) SUB_ID_2_PROFILE_ENABLED_REPORT else SUB_ID_2_PROFILE_DISABLED_REPORT,
-            1, sourceMUID, 0x7F7F7F7F
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, 0x7F7F7F7F
         )
         midiCIProfile(dst, 13, profile)
     }
@@ -361,7 +373,7 @@ object CIFactory {
         midiCIMessageCommon(
             dst, source,
             SUB_ID_2_PROFILE_SPECIFIC_DATA,
-            1, sourceMUID, destinationMUID
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
         midiCIProfile(dst, 13, profile)
         midiCiDirectUint32At(dst, 18, dataSize)
@@ -377,7 +389,7 @@ object CIFactory {
         midiCIMessageCommon(
             dst, destination,
             if (isReply) SUB_ID_2_PROPERTY_CAPABILITIES_REPLY else SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY,
-            1, sourceMUID, destinationMUID
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
         dst[13] = maxSimulutaneousRequests
     }
@@ -389,7 +401,8 @@ object CIFactory {
         requestId: Byte, headerSize: UShort, header: List<Byte>,
         numChunks: UShort, chunkIndex: UShort, dataSize: UShort, data: List<Byte>
     ) {
-        midiCIMessageCommon(dst, destination, messageTypeSubId2, 1, sourceMUID, destinationMUID)
+        midiCIMessageCommon(dst, destination, messageTypeSubId2,
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID)
         dst[13] = requestId
         midiCiDirectUint16At(dst, 14, headerSize)
         memcpy(dst, 16, header, headerSize.toInt())
@@ -402,6 +415,41 @@ object CIFactory {
     private fun memcpy(dst: MutableList<Byte>, dstOffset: Int, src: List<Byte>, size: Int) {
         for (i in 0 until size)
             dst[i + dstOffset] = src[i]
+    }
+
+    fun midiCIAckNak(dst: MutableList<Byte>, isNak: Boolean, data: MidiCIAckNakData) =
+        midiCIAckNak(
+            dst, isNak, data.source, MidiCIConstants.CI_VERSION_AND_FORMAT,
+            data.sourceMUID, data.destinationMUID,
+            data.originalSubId, data.statusCode, data.statusData,
+            data.nakDetails, data.messageTextData)
+
+    fun midiCIAckNak(
+        dst: MutableList<Byte>,
+        isNak: Boolean,
+        sourceDeviceId: Byte,
+        versionAndFormat: Byte,
+        sourceMUID: Int,
+        destinationMUID: Int,
+        originalSubId: Byte,
+        statusCode: Byte,
+        statusData: Byte,
+        nakDetails: List<Byte>,
+        messageTextData: List<Byte>
+    ): Int {
+        midiCIMessageCommon(
+            dst, sourceDeviceId, if (isNak) SUB_ID_2_NAK else SUB_ID_2_ACK,
+            versionAndFormat, sourceMUID, destinationMUID)
+        dst[13] = originalSubId
+        dst[14] = statusCode
+        dst[15] = statusData
+        if (nakDetails.size == 5)
+            memcpy(dst, 16, nakDetails, 5)
+        dst[16] = (messageTextData.size % 0x80).toByte()
+        dst[17] = (messageTextData.size / 0x80).toByte()
+        if (messageTextData.isNotEmpty())
+            memcpy(dst, 18, messageTextData, messageTextData.size)
+        return 18 + messageTextData.size
     }
 
 }
