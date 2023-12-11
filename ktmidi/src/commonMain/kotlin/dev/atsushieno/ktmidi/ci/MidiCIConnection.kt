@@ -6,7 +6,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.random.Random
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 
@@ -57,6 +56,8 @@ object MidiCIConstants {
     const val UNIVERSAL_SYSEX_SUB_ID_MIDI_CI: Byte = 0x0D
 
     const val CI_VERSION_AND_FORMAT: Byte = 0x2
+    const val PROPERTY_EXCHANGE_MAJOR_VERSION: Byte = 0
+    const val PROPERTY_EXCHANGE_MINOR_VERSION: Byte = 0
 
     const val ENDPOINT_STATUS_PRODUCT_INSTANCE_ID: Byte = 0
 
@@ -65,7 +66,7 @@ object MidiCIConstants {
     const val DEVICE_ID_MIDI_PORT: Byte = 0x7F
 
     const val NO_FUNCTION_BLOCK: Byte = 0x7F
-    const val FROM_FUNCTION_BLOCK: Byte = 0x7F
+    const val WHOLE_FUNCTION_BLOCK: Byte = 0x7F
 
     val Midi1ProtocolTypeInfo = MidiCIProtocolTypeInfo(MidiCIProtocolType
         .MIDI1.toByte(), MidiCIProtocolValue.MIDI1.toByte(), 0, 0, 0)
@@ -124,8 +125,7 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
 
     val profiles = mutableListOf<MidiCIProfileId>()
 
-    // FIXME: make them public once we start supporting Prpoerty Exchange.
-    //var establishedMaxSimulutaneousPropertyRequests: Byte? = null
+    var establishedMaxSimultaneousPropertyRequests: Byte? = null
 
     // Input handlers
 
@@ -208,13 +208,10 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
     private val defaultProcessProfileRemovedReport: (profileId: MidiCIProfileId) -> Unit = { profileId -> profiles.remove(profileId) }
     var processProfileRemovedReport = defaultProcessProfileRemovedReport
 
-    // FIXME: make them public once we start supporting Property Exchange.
-    /*
     private val defaultProcessGetMaxSimultaneousPropertyReply: (destinationChannel: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Unit = { _, _, _, max ->
-        establishedMaxSimulutaneousPropertyRequests = max
+        establishedMaxSimultaneousPropertyRequests = max
     }
     var processGetMaxSimultaneousPropertyReply = defaultProcessGetMaxSimultaneousPropertyReply
-    */
 
     // Discovery
 
@@ -269,20 +266,18 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
         sendOutput(buf)
     }
 
-    // Property Exchange ... TODO: implement
-    //  (it's going to take long time, read the entire Common Rules for PE, support split chunks in reader and writer, and JSON serializers)
+    // Property Exchange
+    // TODO: implement the rest (it's going to take long time, read the entire Common Rules for PE, support split chunks in reader and writer, and JSON serializers)
 
-    /*
-    fun requestPropertyExchangeCapabilities(destinationChannelOr7F: Byte, destinationMUID: Int, maxSimulutaneousPropertyRequests: Byte) {
+    fun requestPropertyExchangeCapabilities(destinationChannelOr7F: Byte, destinationMUID: Int, maxSimultaneousPropertyRequests: Byte) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIPropertyGetCapabilities(buf, destinationChannelOr7F, false, muid, destinationMUID, maxSimulutaneousPropertyRequests)
+        CIFactory.midiCIPropertyGetCapabilities(buf, destinationChannelOr7F, false, muid, destinationMUID, maxSimultaneousPropertyRequests)
         sendOutput(buf)
     }
 
     fun requestHasPropertyData(destinationChannelOr7F: Byte, destinationMUID: Int, header: List<Byte>, body: List<Byte>) {
-
+        TODO("FIXME: implement")
     }
-    */
 
     // Reply handler
 
@@ -370,8 +365,6 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
             // FIXME: support set profile on/off messages
 
             // Property Exchange
-            // FIXME: make them public once we start supporting Prpoerty Exchange.
-            /*
             CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_REPLY -> {
                 processGetMaxSimultaneousPropertyReply(
                     CIRetrieval.midiCIGetDestination(data),
@@ -381,17 +374,20 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
             }
             CIFactory.SUB_ID_2_PROPERTY_HAS_DATA_REPLY -> {
                 // Reply to Property Exchange Capabilities
+                TODO("Implement")
             }
             CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY -> {
                 // Reply to Property Exchange Capabilities
+                TODO("Implement")
             }
             CIFactory.SUB_ID_2_PROPERTY_SET_DATA_REPLY -> {
                 // Reply to Property Exchange Capabilities
+                TODO("Implement")
             }
             CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY -> {
                 // Reply to Property Exchange Capabilities
+                TODO("Implement")
             }
-            */
         }
     }
 }
@@ -414,11 +410,11 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
     var profileSet: MutableList<Pair<MidiCIProfileId,Boolean>> = mutableListOf()
     var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK
     var productInstanceId: String? = null
+    val maxSimultaneousPropertyRequests: Byte = 1
 
     var midiCIBufferSize = 128
 
     var initiatorDevice: DeviceDetails? = null
-    var currentMidiProtocol: MidiCIProtocolTypeInfo = MidiCIConstants.Midi1ProtocolTypeInfo
 
     // smaller value of initiator's maxSimulutaneousPropertyRequests vs. this.maxSimulutaneousPropertyRequests upon PEx inquiry request
     // FIXME: enable this when we start supporting Property Exchange.
@@ -447,6 +443,16 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
     }
     var processEndpointMessage = defaultProcessEndpointMessage
 
+    private val defaultProcessInvalidateMUID: (sourceMUID: Int, targetMUID: Int) -> Unit = { sourceMUID, targetMUID ->
+        // FIXME: we need to implement some sort of state management for each initiator
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIAckNak(dst, false, MidiCIConstants.DEVICE_ID_MIDI_PORT,
+            MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID, CIFactory.SUB_ID_2_INVALIDATE_MUID, 0, 0, listOf(), listOf()))
+    }
+    var processInvalidateMUID = defaultProcessInvalidateMUID
+
+    // Protocol Negotiation (deprecated)
+
     private val defaultProcessNegotiationInquiry: (supportedProtocols: List<MidiCIProtocolTypeInfo>, initiatorMUID: Int) -> List<MidiCIProtocolTypeInfo> =
         // we don't listen to initiator :p
         { _, _ -> supportedProtocols }
@@ -464,6 +470,8 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
     var processTestNewProtocol = defaultProcessTestNewProtocol
 
     var processConfirmNewProtocol: (initiatorMUID: Int) -> Unit = { _ -> }
+
+    // Profile Configuration
 
     private val defaultProcessProfileInquiry: (source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit = { source, sourceMUID, destinationMUID ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
@@ -501,6 +509,10 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
 
     var processProfileSpecificData: (sourceChannel: Byte, sourceMUID: Int, destinationMUID: Int, profileId: MidiCIProfileId, data: List<Byte>) -> Unit = { _, _, _, _, _ -> }
 
+    // Property Exchange
+
+    // Handling invalid messages
+
     private val defaultProcessUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
         val source = data[1]
         val originalSubId = data[3]
@@ -508,13 +520,43 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
         val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
         val nak = MidiCIAckNakData(source, sourceMUID, destinationMUID, originalSubId, CINakStatus.MessageNotSupported, 0, listOf(), listOf())
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIAckNak(dst, true, nak)
+        sendOutput(CIFactory.midiCIAckNak(dst, true, nak))
     }
     var processUnknownCIMessage = defaultProcessUnknownCIMessage
 
-    // FIXME: make them public once we start supporting Property Exchange.
-    // private val defaultProcessGetMaxSimultaneousPropertyRequests: (destinationChannelOr7F: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Byte = { _, _, _, max -> max }
-    //var processGetMaxSimultaneousPropertyRequests = defaultProcessGetMaxSimultaneousPropertyRequests
+    // Property Exchange
+
+    private val defaultProcessPropertyCapabilitiesInquiry: (destination: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Unit = { destination, sourceMUID, destinationMUID, max ->
+        val establishedMaxSimultaneousPropertyRequests = if (max > maxSimultaneousPropertyRequests) maxSimultaneousPropertyRequests else max
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, destination, true, muid, sourceMUID, establishedMaxSimultaneousPropertyRequests!!))
+
+    }
+    var processPropertyCapabilitiesInquiry = defaultProcessPropertyCapabilitiesInquiry
+
+    var getProperty: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>) -> List<Byte> = {_,_,_,_ -> listOf() }
+    var setProperty: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>, data: List<Byte>) -> List<Byte> = {_,_,_,_,_ -> listOf() }
+
+    private val defaultProcessGetPropertyData: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>) -> Unit = { sourceMUID, destinationMUID, requestId, header ->
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        val data = getProperty(sourceMUID, destinationMUID, requestId, header)
+        CIFactory.midiCIPropertyChunks(dst, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY, sourceMUID, destinationMUID, requestId, header, data).forEach {
+            sendOutput(it)
+        }
+    }
+    var processGetPropertyData = defaultProcessGetPropertyData
+
+    private val defaultProcessSetPropertyData: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>, numChunks: Int, chunkIndex: Int, data: List<Byte>) -> Unit = { sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex, data ->
+        // FIXME: implement split chunk manager
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        if (numChunks == 1 && chunkIndex == 1) {
+            setProperty(sourceMUID, destinationMUID, requestId, header, data)
+            CIFactory.midiCIPropertyChunks(dst, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY,
+                sourceMUID, destinationMUID, requestId, header, data)
+                .forEach { sendOutput(it) }
+        } // FIXME: else -> return NAK saying that we cannot handle it
+    }
+    var processSetPropertyData = defaultProcessSetPropertyData
 
     fun processInput(data: List<Byte>) {
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
@@ -535,6 +577,12 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 // only available in MIDI-CI 1.2 or later.
                 val status = data[13]
                 processEndpointMessage(sourceMUID, destinationMUID, status)
+            }
+
+            CIFactory.SUB_ID_2_INVALIDATE_MUID -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val targetMUID = CIRetrieval.midiCIGetMUIDToInvalidate(data)
+                processInvalidateMUID(sourceMUID, targetMUID)
             }
 
             /*
@@ -609,20 +657,45 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
                 processProfileSpecificData(sourceChannel, sourceMUID, destinationMUID, profileId, data.drop(21).take(dataLength))
             }
 
-            // Property Exchange - TODO: implement (future; see initiator comment)
-            /*
+            // Property Exchange - TODO: implement the rest (future; see initiator comment)
+
             CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY -> {
                 val destination = CIRetrieval.midiCIGetDestination(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                val destinationMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
                 val max = CIRetrieval.midiCIGetMaxPropertyRequests(data)
+                
+                processPropertyCapabilitiesInquiry(destination, sourceMUID, destinationMUID, max)
+            }
 
-                establishedMaxSimulutaneousPropertyRequests = processGetMaxSimultaneousPropertyRequests(destination, sourceMUID, destinationMUID, max)
+            CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
+                val requestId = data[13]
+                val headerSize = data[14] + (data[15].toInt() shl 7)
+                val header = data.drop(16).take(headerSize)
+                val pos = 16 + headerSize
+                val numChunks = data[pos] + (data[pos + 1].toInt() shl 7)
+                val chunkIndex = data[pos + 2] + (data[pos + 3].toInt() shl 7)
+                val dataSize = data[pos + 4] + (data[pos + 5].toInt() shl 7)
+                if (numChunks == 1 && chunkIndex == 1 && dataSize == 0) {
+                    processGetPropertyData(sourceMUID, destinationMUID, requestId, header)
+                } // FIXME: else -> error handling
+            }
 
-                val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-                CIFactory.midiCIPropertyGetCapabilities(dst, destination, true, muid, sourceMUID, establishedMaxSimulutaneousPropertyRequests!!)
-                sendOutput(dst)
-            }*/
+            CIFactory.SUB_ID_2_PROPERTY_SET_DATA_INQUIRY -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
+                val requestId = data[13]
+                val headerSize = data[14] + (data[15].toInt() shl 7)
+                val header = data.drop(16).take(headerSize)
+                val pos = 16 + headerSize
+                val numChunks = data[pos] + (data[pos + 1].toInt() shl 7)
+                val chunkIndex = data[pos + 2] + (data[pos + 3].toInt() shl 7)
+                val dataSize = data[pos + 4] + (data[pos + 5].toInt() shl 7)
+                val propData = data.drop (pos + 6).take(dataSize)
+                processSetPropertyData(sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex, propData)
+            }
 
             else -> {
                 processUnknownCIMessage(data)

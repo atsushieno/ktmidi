@@ -172,14 +172,14 @@ object CIFactory {
 
     fun midiCIEndpointMessage(dst: MutableList<Byte>, versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int, status: Byte
     ) : List<Byte> {
-        midiCIMessageCommon(dst, MidiCIConstants.FROM_FUNCTION_BLOCK, SUB_ID_2_ENDPOINT_MESSAGE_INQUIRY, versionAndFormat, sourceMUID, destinationMUID)
+        midiCIMessageCommon(dst, MidiCIConstants.WHOLE_FUNCTION_BLOCK, SUB_ID_2_ENDPOINT_MESSAGE_INQUIRY, versionAndFormat, sourceMUID, destinationMUID)
         dst[13] = status
         return dst.take(14)
     }
 
     fun midiCIEndpointMessageReply(dst: MutableList<Byte>, versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int, status: Byte, informationData: List<Byte>
     ) : List<Byte> {
-        midiCIMessageCommon(dst, MidiCIConstants.FROM_FUNCTION_BLOCK, SUB_ID_2_ENDPOINT_MESSAGE_REPLY, versionAndFormat, sourceMUID, destinationMUID)
+        midiCIMessageCommon(dst, MidiCIConstants.WHOLE_FUNCTION_BLOCK, SUB_ID_2_ENDPOINT_MESSAGE_REPLY, versionAndFormat, sourceMUID, destinationMUID)
         dst[13] = status
         midiCI7bitInt14At(dst, 14, informationData.size.toUShort())
         memcpy(dst, 16, informationData, informationData.size)
@@ -190,7 +190,7 @@ object CIFactory {
         dst: MutableList<Byte>,
         versionAndFormat: Byte, sourceMUID: Int, targetMUID: Int
     ) : List<Byte> {
-        midiCIMessageCommon(dst, MidiCIConstants.FROM_FUNCTION_BLOCK, SUB_ID_2_INVALIDATE_MUID, versionAndFormat, sourceMUID, 0x7F7F7F7F)
+        midiCIMessageCommon(dst, MidiCIConstants.WHOLE_FUNCTION_BLOCK, SUB_ID_2_INVALIDATE_MUID, versionAndFormat, sourceMUID, 0x7F7F7F7F)
         midiCiDirectUint32At(dst, 13, targetMUID)
         return dst.take(17)
     }
@@ -385,37 +385,65 @@ object CIFactory {
     fun midiCIPropertyGetCapabilities(
         dst: MutableList<Byte>, destination: Byte, isReply: Boolean,
         sourceMUID: Int, destinationMUID: Int, maxSimulutaneousRequests: Byte
-    ) {
+    ) : List<Byte> {
         midiCIMessageCommon(
             dst, destination,
             if (isReply) SUB_ID_2_PROPERTY_CAPABILITIES_REPLY else SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
         dst[13] = maxSimulutaneousRequests
+        // since MIDI-CI 1.2
+        dst[14] = MidiCIConstants.PROPERTY_EXCHANGE_MAJOR_VERSION
+        dst[15] = MidiCIConstants.PROPERTY_EXCHANGE_MINOR_VERSION
+        return dst.take(16)
     }
 
     // common to all of: has data & reply, get data & reply, set data & reply, subscribe & reply, notify
     fun midiCIPropertyCommon(
         dst: MutableList<Byte>, destination: Byte, messageTypeSubId2: Byte,
         sourceMUID: Int, destinationMUID: Int,
-        requestId: Byte, headerSize: UShort, header: List<Byte>,
-        numChunks: UShort, chunkIndex: UShort, dataSize: UShort, data: List<Byte>
+        requestId: Byte, header: List<Byte>,
+        numChunks: UShort, chunkIndex: UShort, data: List<Byte>
     ) {
         midiCIMessageCommon(dst, destination, messageTypeSubId2,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID)
         dst[13] = requestId
-        midiCiDirectUint16At(dst, 14, headerSize)
-        memcpy(dst, 16, header, headerSize.toInt())
-        midiCiDirectUint16At(dst, 16 + headerSize.toInt(), numChunks)
-        midiCiDirectUint16At(dst, 18 + headerSize.toInt(), chunkIndex)
-        midiCiDirectUint16At(dst, 20 + headerSize.toInt(), dataSize)
-        memcpy(dst, 22 + headerSize.toInt(), data, dataSize.toInt())
+        midiCiDirectUint16At(dst, 14, header.size.toUShort())
+        memcpy(dst, 16, header, header.size)
+        midiCiDirectUint16At(dst, 16 + header.size, numChunks)
+        midiCiDirectUint16At(dst, 18 + header.size, chunkIndex)
+        midiCiDirectUint16At(dst, 20 + header.size, data.size.toUShort())
+        memcpy(dst, 22 + header.size, data, data.size)
     }
 
     private fun memcpy(dst: MutableList<Byte>, dstOffset: Int, src: List<Byte>, size: Int) {
         for (i in 0 until size)
             dst[i + dstOffset] = src[i]
     }
+
+    fun midiCIPropertyPacketCommon(dst: MutableList<Byte>, subId: Byte, sourceMUID: Int, destinationMUID: Int,
+                                    requestId: Byte, header: List<Byte>,
+                                    numChunks: UShort, chunkIndex1Based: UShort,
+                                    data: List<Byte>) : List<Byte> {
+        midiCIPropertyCommon(dst, MidiCIConstants.WHOLE_FUNCTION_BLOCK, subId,
+            sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex1Based, data)
+        return dst.take(16 + header.size + 6 + data.size)
+    }
+
+    fun midiCIPropertyChunks(dst: MutableList<Byte>, subId: Byte, sourceMUID: Int, destinationMUID: Int,
+        requestId: Byte, header: List<Byte>, data: List<Byte>, maxDataLengthInPacket: Int = data.size) : List<List<Byte>> {
+        if (data.isEmpty())
+            return listOf(midiCIPropertyPacketCommon(dst, subId, sourceMUID, destinationMUID, requestId, header,
+                1u, 1u, data))
+
+        val chunks = data.chunked(maxDataLengthInPacket)
+        return chunks.mapIndexed { index, packetData ->
+            midiCIPropertyPacketCommon(dst, subId, sourceMUID, destinationMUID, requestId, header,
+                chunks.size.toUShort(), (index + 1).toUShort(), packetData)
+        }
+    }
+
+    // ACK/NAK
 
     fun midiCIAckNak(dst: MutableList<Byte>, isNak: Boolean, data: MidiCIAckNakData) =
         midiCIAckNak(
@@ -436,7 +464,7 @@ object CIFactory {
         statusData: Byte,
         nakDetails: List<Byte>,
         messageTextData: List<Byte>
-    ): Int {
+    ): List<Byte> {
         midiCIMessageCommon(
             dst, sourceDeviceId, if (isNak) SUB_ID_2_NAK else SUB_ID_2_ACK,
             versionAndFormat, sourceMUID, destinationMUID)
@@ -445,11 +473,11 @@ object CIFactory {
         dst[15] = statusData
         if (nakDetails.size == 5)
             memcpy(dst, 16, nakDetails, 5)
-        dst[16] = (messageTextData.size % 0x80).toByte()
-        dst[17] = (messageTextData.size / 0x80).toByte()
+        dst[20] = (messageTextData.size % 0x80).toByte()
+        dst[21] = (messageTextData.size / 0x80).toByte()
         if (messageTextData.isNotEmpty())
-            memcpy(dst, 18, messageTextData, messageTextData.size)
-        return 18 + messageTextData.size
+            memcpy(dst, 22, messageTextData, messageTextData.size)
+        return dst.take(22 + messageTextData.size)
     }
 
 }
