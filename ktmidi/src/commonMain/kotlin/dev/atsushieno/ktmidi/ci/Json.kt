@@ -8,7 +8,22 @@ object Json {
     val emptySequence = sequenceOf<JsonValue>()
     val emptyMap = mapOf<JsonValue,JsonValue>()
     data class JsonToken(val type: TokenType, val offset: Int, val length: Int, val number: Double = 0.0, val seq: Sequence<JsonValue> = emptySequence, val map: Map<JsonValue,JsonValue> = emptyMap)
-    data class JsonValue(val source: String, val token: JsonToken)
+    class JsonValue(val source: String, val token: JsonToken) {
+        constructor(value: String) : this('"' + getEscapedString(value) + '"', "")
+        private constructor(s: String, source: String)
+                : this(s, JsonToken(TokenType.String, 0, s.length))
+        constructor(value: Double): this(value.toString(), value)
+        private constructor(s: String, value: Double)
+                : this(s, JsonToken(TokenType.Number, 0, s.length, number = value))
+        constructor(array: List<JsonValue>)
+                : this("", JsonToken(TokenType.Array, 0, 0, seq = array.asSequence()))
+        constructor(map: Map<JsonValue, JsonValue>)
+                : this("", JsonToken(TokenType.Object, 0, 0, map = map))
+    }
+
+    val NullValue = JsonValue("null", JsonToken(TokenType.Null, 0, 4))
+    val TrueValue = JsonValue("true", JsonToken(TokenType.True, 0, 4))
+    val FalseValue = JsonValue("false", JsonToken(TokenType.False, 0, 5))
 
     fun parse(source: String) = parse(source, 0, source.length)
 
@@ -176,6 +191,8 @@ object Json {
             }
         }.joinToString("")
 
+    fun getEscapedString(source: String) = PropertyCommonConverter.encodeStringToASCII(source).replace("\\", "\\\\")
+
     private fun skipWhitespace(source: String, offset: Int) : Int {
         var ret = offset
         while(ret < source.length) {
@@ -185,5 +202,17 @@ object Json {
             }
         }
         return source.length
+    }
+
+    fun serialize(json: JsonValue): String {
+        return when(json.token.type) {
+            TokenType.Null -> "null"
+            TokenType.True -> "true"
+            TokenType.False -> "false"
+            TokenType.String -> json.source.substring(json.token.offset, json.token.offset + json.token.length)
+            TokenType.Number -> json.token.number.toString()
+            TokenType.Array -> "[" + json.token.seq.map { serialize(it) }.joinToString(", ") + "]"
+            TokenType.Object -> "{" + json.token.map.map { serialize(it.key) + ": " + serialize(it.value) }.joinToString(", ") + "}"
+        }
     }
 }

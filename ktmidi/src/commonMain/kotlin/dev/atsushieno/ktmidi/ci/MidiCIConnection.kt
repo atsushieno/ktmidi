@@ -534,13 +534,27 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
     }
     var processPropertyCapabilitiesInquiry = defaultProcessPropertyCapabilitiesInquiry
 
-    var getProperty: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>) -> List<Byte> = {_,_,_,_ -> listOf() }
-    var setProperty: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>, data: List<Byte>) -> List<Byte> = {_,_,_,_,_ -> listOf() }
+    val propertyService = CommonPropertyService(device)
+
+    var getPropertyJson: (header: Json.JsonValue) -> Pair<Json.JsonValue,Json.JsonValue> = { propertyService.getPropertyData(it) }
+    var setPropertyJson: (header: Json.JsonValue, body: Json.JsonValue) -> Json.JsonValue = { header, body -> propertyService.setPropertyData(header, body) }
+
+    var getProperty: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>) -> Pair<Json.JsonValue,Json.JsonValue> = {_,_,_,header ->
+        val jsonInquiry = Json.parse(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
+        getPropertyJson(jsonInquiry)
+    }
+    var setProperty: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>, data: List<Byte>) -> Json.JsonValue = {_,_,_,header,body ->
+        val jsonHeader = Json.parse(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
+        val jsonBody = Json.parse(PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
+        setPropertyJson(jsonHeader, jsonBody)
+    }
 
     private val defaultProcessGetPropertyData: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>) -> Unit = { sourceMUID, destinationMUID, requestId, header ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        val data = getProperty(sourceMUID, destinationMUID, requestId, header)
-        CIFactory.midiCIPropertyChunks(dst, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY, sourceMUID, destinationMUID, requestId, header, data).forEach {
+        val result = getProperty(sourceMUID, destinationMUID, requestId, header)
+        val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
+        val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
+        CIFactory.midiCIPropertyChunks(dst, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY, sourceMUID, destinationMUID, requestId, replyHeader, replyBody).forEach {
             sendOutput(it)
         }
     }
