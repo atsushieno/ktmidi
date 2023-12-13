@@ -5,7 +5,8 @@ plugins {
     id "org.jetbrains.dokka" version "1.8.20" apply false
     id 'org.bytedeco.gradle-javacpp-build' version "1.5.9" apply false
     id 'org.bytedeco.gradle-javacpp-platform' version '1.5.9' apply false
-    id 'me.tylerbwong.gradle.metalava' version '0.3.5' apply false
+    // FIXME: re-enable metalava when we could migrate to Gradle 8.x
+    //id 'me.tylerbwong.gradle.metalava' version '0.3.5' apply false
 }
 
 allprojects {
