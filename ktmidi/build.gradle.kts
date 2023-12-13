@@ -50,8 +50,7 @@ kotlin {
 
     macosArm64()
     macosX64()
-    // kotlinx-datetime is not built enough to make it possible...
-    //linuxArm64()
+    linuxArm64()
     linuxX64()
     mingwX64()
 
@@ -102,8 +101,7 @@ kotlin {
         val nativeTest by creating
         val macosArm64Main by getting
         val macosX64Main by getting
-        // kotlinx-datetime is not built enough to make it possible...
-        //val linuxArm64Main by getting
+        val linuxArm64Main by getting
         val linuxX64Main by getting
         val mingwX64Main by getting
         val iosArm64Main by getting
