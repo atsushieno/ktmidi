@@ -22,7 +22,7 @@ class CIFactoryTest {
         val actual1 = MutableList<Byte>(30) { 0 }
         CIFactory.midiCIDiscovery(
             actual1, 1, 0x10101010,
-            0x123456, 0x1357u, 0x2468u, 0x1F3F5F7F,
+            0x123456, 0x1357, 0x2468, 0x1F3F5F7F,
             all_supported,
             512,
             0
@@ -33,7 +33,7 @@ class CIFactoryTest {
         val actual2 = MutableList<Byte>(31) { 0 }
         CIFactory.midiCIDiscoveryReply(
             actual2, 1, 0x10101010, 0x20202020,
-            0x123456, 0x1357u, 0x2468u, 0x1F3F5F7F,
+            0x123456, 0x1357, 0x2468, 0x1F3F5F7F,
             all_supported,
             512,
             0,

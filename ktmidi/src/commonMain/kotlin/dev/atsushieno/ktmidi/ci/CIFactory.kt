@@ -73,6 +73,12 @@ object CIFactory {
     }
 
     // Assumes the input value is already 7-bit encoded if required.
+    fun midiCiDirectInt16At(dst: MutableList<Byte>, offset: Int, v: Short) {
+        dst[offset] = (v.toInt() and 0x7F).toByte()
+        dst[offset + 1] = (v.toInt() shr 8 and 0x7F).toByte()
+    }
+
+    // Assumes the input value is already 7-bit encoded if required.
     fun midiCiDirectUint32At(dst: MutableList<Byte>, offset: Int, v: Int) {
         dst[offset] = (v and 0xFF).toByte()
         dst[offset + 1] = ((v shr 8) and 0xFF).toByte()
@@ -117,7 +123,7 @@ object CIFactory {
     fun midiCIDiscoveryCommon(
         dst: MutableList<Byte>, sysexSubId2: Byte,
         versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int,
-        deviceManufacturer3Bytes: Int, deviceFamily: UShort, deviceFamilyModelNumber: UShort,
+        deviceManufacturer3Bytes: Int, deviceFamily: Short, deviceFamilyModelNumber: Short,
         softwareRevisionLevel: Int, ciCategorySupported: Byte, receivableMaxSysExSize: Int,
         initiatorOutputPathId: Byte
     ) {
@@ -126,8 +132,8 @@ object CIFactory {
             dst, 13,
             deviceManufacturer3Bytes
         ) // the last byte is extraneous, but will be overwritten next.
-        midiCiDirectUint16At(dst, 16, deviceFamily)
-        midiCiDirectUint16At(dst, 18, deviceFamilyModelNumber)
+        midiCiDirectInt16At(dst, 16, deviceFamily)
+        midiCiDirectInt16At(dst, 18, deviceFamilyModelNumber)
         // LAMESPEC: Software Revision Level does not mention in which endianness this field is stored.
         midiCiDirectUint32At(dst, 20, softwareRevisionLevel)
         dst[24] = ciCategorySupported
@@ -138,7 +144,7 @@ object CIFactory {
     fun midiCIDiscovery(
         dst: MutableList<Byte>,
         versionAndFormat: Byte, sourceMUID: Int,
-        deviceManufacturer: Int, deviceFamily: UShort, deviceFamilyModelNumber: UShort,
+        deviceManufacturer: Int, deviceFamily: Short, deviceFamilyModelNumber: Short,
         softwareRevisionLevel: Int, ciCategorySupported: Byte, receivableMaxSysExSize: Int,
         initiatorOutputPathId: Byte
     ) : List<Byte> {
@@ -155,7 +161,7 @@ object CIFactory {
     fun midiCIDiscoveryReply(
         dst: MutableList<Byte>,
         versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int,
-        deviceManufacturer: Int, deviceFamily: UShort, deviceFamilyModelNumber: UShort,
+        deviceManufacturer: Int, deviceFamily: Short, deviceFamilyModelNumber: Short,
         softwareRevisionLevel: Int, ciCategorySupported: Byte, receivableMaxSysExSize: Int,
         initiatorOutputPathId: Byte, functionBlock: Byte
     ) : List<Byte> {

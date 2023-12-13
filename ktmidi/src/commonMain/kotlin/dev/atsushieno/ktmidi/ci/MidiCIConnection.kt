@@ -9,7 +9,7 @@ import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 
-data class DeviceDetails(val manufacturer: Int = 0, val family: UShort = 0u, val familyModelNumber: UShort = 0u, val softwareRevisionLevel: Int = 0) {
+data class DeviceDetails(val manufacturer: Int = 0, val family: Short = 0, val modelNumber: Short = 0, val softwareRevisionLevel: Int = 0) {
     companion object {
         val empty = DeviceDetails()
     }
@@ -217,7 +217,7 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
 
     fun sendDiscovery(ciCategorySupported: Byte = MidiCIDiscoveryCategoryFlags.ThreePs) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIDiscovery(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, device.manufacturer, device.family, device.familyModelNumber,
+        CIFactory.midiCIDiscovery(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, device.manufacturer, device.family, device.modelNumber,
             device.softwareRevisionLevel, ciCategorySupported, receivableMaxSysExSize, outputPathId)
         // we set state before sending the MIDI data as it may process the rest of the events synchronously through the end...
         state = MidiCIInitiatorState.DISCOVERY_SENT
@@ -400,19 +400,19 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
  * Same goes for `processInput()` function.
  *
  */
-class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
+class MidiCIResponder(val device: MidiCIDeviceInfo,
+                      private val sendOutput: (data: List<Byte>) -> Unit,
                       private val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
-    var device: DeviceDetails = DeviceDetails.empty
     var capabilityInquirySupported = MidiCIDiscoveryCategoryFlags.ThreePs
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
     var supportedProtocols: List<MidiCIProtocolTypeInfo> = MidiCIConstants.Midi2ThenMidi1Protocols
     var profileSet: MutableList<Pair<MidiCIProfileId,Boolean>> = mutableListOf()
     var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK
     var productInstanceId: String? = null
-    val maxSimultaneousPropertyRequests: Byte = 1
+    var maxSimultaneousPropertyRequests: Byte = 1
 
-    var midiCIBufferSize = 128
+    var midiCIBufferSize = 4096
 
     var initiatorDevice: DeviceDetails? = null
 
@@ -426,7 +426,7 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIDiscoveryReply(
         dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, initiatorMUID,
-        device.manufacturer, device.family, device.familyModelNumber, device.softwareRevisionLevel,
+        device.manufacturerId, device.familyId, device.modelId, device.versionId,
         capabilityInquirySupported, receivableMaxSysExSize,
         initiatorOutputPath, functionBlock
         ))
@@ -554,7 +554,8 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
         val result = getProperty(sourceMUID, destinationMUID, requestId, header)
         val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
         val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
-        CIFactory.midiCIPropertyChunks(dst, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY, sourceMUID, destinationMUID, requestId, replyHeader, replyBody).forEach {
+        CIFactory.midiCIPropertyChunks(dst, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY,
+            muid, sourceMUID, requestId, replyHeader, replyBody).forEach {
             sendOutput(it)
         }
     }
@@ -566,7 +567,7 @@ class MidiCIResponder(private val sendOutput: (data: List<Byte>) -> Unit,
         if (numChunks == 1 && chunkIndex == 1) {
             setProperty(sourceMUID, destinationMUID, requestId, header, data)
             CIFactory.midiCIPropertyChunks(dst, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY,
-                sourceMUID, destinationMUID, requestId, header, data)
+                muid, sourceMUID, requestId, header, data)
                 .forEach { sendOutput(it) }
         } // FIXME: else -> return NAK saying that we cannot handle it
     }

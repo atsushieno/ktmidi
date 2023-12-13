@@ -2,6 +2,32 @@ package dev.atsushieno.ktmidi.ci
 
 class PropertyExchangeException(message: String = "Property Exchange exception", innerException: Exception? = null) : Exception(message, innerException)
 
+data class MidiCIDeviceInfo(
+    val manufacturerId: Int,
+    val familyId: Short,
+    val modelId: Short,
+    val versionId: Int,
+    val manufacturer: String,
+    val family: String,
+    val model: String,
+    val version: String,
+    val serialNumber: String? = null
+) {
+    private fun toBytes(v: Int) = listOf(
+        (v and 0x7F).toByte(),
+        ((v shr 8) and 0x7F).toByte(),
+        ((v shr 16) and 0x7F).toByte()
+    )
+    private fun toBytes(v: Short) = listOf(
+        (v.toInt() and 0x7F).toByte(),
+        ((v.toInt() shr 8) and 0x7F).toByte()
+    )
+    fun manufacturerIdBytes() = toBytes(manufacturerId)
+    fun familyIdBytes() = toBytes(familyId)
+    fun modelIdBytes() = toBytes(modelId)
+    fun versionIdBytes() = toBytes(versionId)
+}
+
 object PropertyCommonHeaderKeys {
     const val RESOURCE = "resource"
     const val RES_ID = "resId"
@@ -58,6 +84,18 @@ object PropertyResourceNames {
     const val EXTERNAL_SYNC = "ExternalSync"
 }
 
+object DeviceInfoPropertyNames {
+    const val MANUFACTURER_ID = "manufacturerId"
+    const val FAMILY_ID = "familyId"
+    const val MODEL_ID = "modelId"
+    const val VERSION_ID = "versionId"
+    const val MANUFACTURER = "manufacturer"
+    const val FAMILY = "family"
+    const val MODEL = "model"
+    const val VERSION = "version"
+    const val SERIAL_NUMBER = "serialNumber"
+}
+
 data class PropertyCommonRequestHeader(
     val resource: String,
     val resId: String? = null,
@@ -65,7 +103,7 @@ data class PropertyCommonRequestHeader(
 )
 
 data class PropertyCommonReplyHeader(
-    val status: PropertyExchangeStatus,
+    val status: Int,
     val message: String? = null,
     val mutualEncoding: String? = PropertyDataEncoding.ASCII,
     val cacheTime: String? = null
@@ -162,7 +200,14 @@ data class PropertyResourceColumn(
     )
 }
 
-class CommonPropertyService(private val deviceInfo: DeviceDetails, private val propertyList: MutableList<PropertyResource> = mutableListOf()) {
+private val defaultPropertyList = listOf(
+    PropertyResource(PropertyResourceNames.DEVICE_INFO),
+    PropertyResource(PropertyResourceNames.CHANNEL_LIST),
+    PropertyResource(PropertyResourceNames.JSON_SCHEMA)
+)
+
+class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
+                            private val propertyList: MutableList<PropertyResource> = mutableListOf<PropertyResource>().apply { addAll(defaultPropertyList) }) {
 
     private fun getPropertyString(json: Json.JsonValue, key: String): String? {
         val ret = json.token.map.firstNotNullOfOrNull {
@@ -171,23 +216,47 @@ class CommonPropertyService(private val deviceInfo: DeviceDetails, private val p
         return if (ret != null) Json.getUnescapedString(ret) else null
     }
 
+    private fun bytesToJsonArray(list: List<Byte>) = list.map { Json.JsonValue(it.toDouble()) }
+    private fun getDeviceInfoJson() = Json.JsonValue(mapOf(
+        Pair(Json.JsonValue(DeviceInfoPropertyNames.MANUFACTURER_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.manufacturerIdBytes()))),
+        Pair(Json.JsonValue(DeviceInfoPropertyNames.FAMILY_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.familyIdBytes()))),
+        Pair(Json.JsonValue(DeviceInfoPropertyNames.MODEL_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.modelIdBytes()))),
+        Pair(Json.JsonValue(DeviceInfoPropertyNames.VERSION_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.versionIdBytes()))),
+        Pair(Json.JsonValue(DeviceInfoPropertyNames.MANUFACTURER), Json.JsonValue(deviceInfo.manufacturer)),
+        Pair(Json.JsonValue(DeviceInfoPropertyNames.FAMILY), Json.JsonValue(deviceInfo.family)),
+        Pair(Json.JsonValue(DeviceInfoPropertyNames.MODEL), Json.JsonValue(deviceInfo.model)),
+        Pair(Json.JsonValue(DeviceInfoPropertyNames.VERSION), Json.JsonValue(deviceInfo.version)),
+    ) + if (deviceInfo.serialNumber != null) mapOf(
+        Pair(Json.JsonValue(DeviceInfoPropertyNames.SERIAL_NUMBER), Json.JsonValue(deviceInfo.serialNumber)),
+    ) else mapOf())
+
     private fun getPropertyHeader(json: Json.JsonValue) =
         PropertyCommonRequestHeader(
             getPropertyString(json, PropertyCommonHeaderKeys.RESOURCE) ?: "",
             getPropertyString(json, PropertyCommonHeaderKeys.RES_ID),
             getPropertyString(json, PropertyCommonHeaderKeys.MUTUAL_ENCODING),
             )
+    private fun getReplyHeaderJson(src: PropertyCommonReplyHeader) = Json.JsonValue(mutableMapOf(
+        Pair(Json.JsonValue(PropertyCommonHeaderKeys.STATUS), Json.JsonValue(src.status.toDouble()))
+    ).apply {
+        if (src.message != null)
+            this[Json.JsonValue(PropertyCommonHeaderKeys.MESSAGE)] = Json.JsonValue(src.message)
+        if (src.mutualEncoding != null)
+            this[Json.JsonValue(PropertyCommonHeaderKeys.MUTUAL_ENCODING)] = Json.JsonValue(src.mutualEncoding)
+        if (src.cacheTime != null)
+            this[Json.JsonValue(PropertyCommonHeaderKeys.CACHE_TIME)] = Json.JsonValue(src.cacheTime)
+    })
 
     fun getPropertyData(headerJson: Json.JsonValue): Pair<Json.JsonValue,Json.JsonValue> {
         val header = getPropertyHeader(headerJson)
         val body = when(header.resource) {
             PropertyResourceNames.RESOURCE_LIST -> Json.JsonValue(propertyList.map { it.toJsonValue() })
-            PropertyResourceNames.DEVICE_INFO -> TODO("FIXME: Implement")
-            PropertyResourceNames.CHANNEL_LIST -> TODO("FIXME: Implement")
-            PropertyResourceNames.JSON_SCHEMA -> TODO("FIXME: Implement")
+            PropertyResourceNames.DEVICE_INFO -> getDeviceInfoJson()
+            PropertyResourceNames.CHANNEL_LIST -> Json.JsonValue(mapOf()) // FIXME: implement
+            PropertyResourceNames.JSON_SCHEMA -> Json.JsonValue(mapOf()) // FIXME: implement
             else -> throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")
         }
-        return Pair(headerJson, body)
+        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)), body)
     }
 
     fun setPropertyData(headerJson: Json.JsonValue, bodyJson: Json.JsonValue): Json.JsonValue {
@@ -195,7 +264,7 @@ class CommonPropertyService(private val deviceInfo: DeviceDetails, private val p
         when (header.resource) {
             PropertyResourceNames.RESOURCE_LIST -> throw PropertyExchangeException("Property is readonly: ${PropertyResourceNames.RESOURCE_LIST}")
             PropertyResourceNames.JSON_SCHEMA -> throw PropertyExchangeException("Property is readonly: ${PropertyResourceNames.JSON_SCHEMA}")
-            PropertyResourceNames.CHANNEL_LIST -> TODO("FIXME: implement")
+            PropertyResourceNames.CHANNEL_LIST -> throw PropertyExchangeException("Property is readonly: ${PropertyResourceNames.CHANNEL_LIST}")
             else -> throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")
         }
     }

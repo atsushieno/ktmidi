@@ -13,8 +13,8 @@ object CIRetrieval {
      */
     fun midiCIGetDeviceDetails(sysex: List<Byte>) = DeviceDetails(
         sysex[13] + (sysex[14] shl 8) + (sysex[15] shl 16),
-        (sysex[16] + (sysex[17] shl 8)).toUShort(),
-        (sysex[18] + (sysex[19] shl 8)).toUShort(),
+        (sysex[16] + (sysex[17] shl 8)).toShort(),
+        (sysex[18] + (sysex[19] shl 8)).toShort(),
         sysex[20] + (sysex[21] shl 8) + (sysex[22] shl 16) + (sysex[23] shl 24))
 
     /** retrieves source MUID from a MIDI-CI sysex7 chunk.
