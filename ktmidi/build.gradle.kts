@@ -113,14 +113,7 @@ kotlin {
     }
 }
 
-
-/* see comment on plugin above
-metalava {
-    filename = "api/$name-api.txt"
-    outputKotlinNulls = false
-    includeSignatureVersion = false
-}
-*/
+metalava {}
 
 android {
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
