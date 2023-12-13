@@ -8,7 +8,7 @@ dependencies {
     implementation project(":ktmidi")
     implementation libs.alsakt
     implementation libs.rtmidi.javacpp
-    implementation libs.rtmidi.javacpp.platform
+    runtimeOnly libs.rtmidi.javacpp.platform
 
     implementation libs.kotlinx.coroutines.core
     implementation libs.kotlinx.datetime
