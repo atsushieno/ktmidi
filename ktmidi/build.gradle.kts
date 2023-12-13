@@ -113,7 +113,8 @@ kotlin {
     }
 }
 
-metalava {}
+// FIXME: re-enable metalava when we could migrate to Gradle 8.x
+//metalava {}
 
 android {
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
