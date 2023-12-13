@@ -93,7 +93,7 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation(npm("jzz", "1.4.7"))
+                implementation(npm("jzz", "1.7.6"))
             }
         }
         val jsTest by getting {

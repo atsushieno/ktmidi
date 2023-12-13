@@ -195,10 +195,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/webmidi@^2.0.6":
-  version "2.0.7"
-  resolved "https://registry.yarnpkg.com/@types/webmidi/-/webmidi-2.0.7.tgz#db6bc2e5fbf2ece44265b0a4fafde6573acd5210"
-  integrity sha512-BMVefNAum/swSmQJdTbRWBuDPeWT7fHAZEzmtY6eBl1ObvkWVzh39VvAFC8v9n7Y5XoOpWmeYzyUUVfmpq3ggQ==
+"@types/webmidi@^2.0.10":
+  version "2.0.10"
+  resolved "https://registry.yarnpkg.com/@types/webmidi/-/webmidi-2.0.10.tgz#1e0caf9997cb06cdf38a03c2a958d8c5129bbcf0"
+  integrity sha512-4RmTFMB6mN2h8XbJa1x3cOs9IOkXvFyHGcPUpUvWfmATuKg/J+dsFiMVgCE2EkpS+/8a8AP2tE3rQT1mLG7vEg==
 
 "@ungap/promise-all-settled@1.1.2":
   version "1.1.2"
@@ -1235,7 +1235,7 @@ isobject@^3.0.1:
   resolved "https://registry.yarnpkg.com/isobject/-/isobject-3.0.1.tgz#4e431e92b11a9731636aa1f9c8d1ccbcfdab78df"
   integrity sha512-WhB9zCku7EGTj/HQQRz5aUQEUeoQZH2bWcltRErOpymJ4boYE6wL9Tbr23krRPSZ+C5zqNSrSw+Cc7sZZ4b7vg==
 
-jazz-midi@^1.7.5:
+jazz-midi@^1.7.9:
   version "1.7.9"
   resolved "https://registry.yarnpkg.com/jazz-midi/-/jazz-midi-1.7.9.tgz#ad564e85acf12414aec7ef7d879ad61a5d7f6896"
   integrity sha512-c8c4BBgwxdsIr1iVm53nadCrtH7BUlnX3V95ciK/gbvXN/ndE5+POskBalXgqlc/r9p2XUbdLTrgrC6fou5p9w==
@@ -1287,13 +1287,13 @@ jsonfile@^4.0.0:
   optionalDependencies:
     graceful-fs "^4.1.6"
 
-jzz@1.4.7:
-  version "1.4.7"
-  resolved "https://registry.yarnpkg.com/jzz/-/jzz-1.4.7.tgz#0f2b148144bb40176841032bbc4af760291c388c"
-  integrity sha512-oZYqrTBlzGCGPRaAsTuhfzQINqXpVHuWdvqFCUR/NP0LcrKpda2oIq6mEclGOH6HGBB7Plf0egXEvh9Hh10XGQ==
+jzz@1.7.6:
+  version "1.7.6"
+  resolved "https://registry.yarnpkg.com/jzz/-/jzz-1.7.6.tgz#aaacb73aeced4078c3ec69f54f350248da2dc1c0"
+  integrity sha512-a2Z+ZMV4yIW82sbE/d+z8fnhc/83C5lpgVAz+NHhUAUlgdT0IUBxQOb6JyCrZ4WIMZnugeKMDFL314FoFrd51Q==
   dependencies:
-    "@types/webmidi" "^2.0.6"
-    jazz-midi "^1.7.5"
+    "@types/webmidi" "^2.0.10"
+    jazz-midi "^1.7.9"
 
 karma-chrome-launcher@3.1.1:
   version "3.1.1"
