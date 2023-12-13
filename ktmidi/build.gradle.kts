@@ -15,7 +15,8 @@ plugins {
     id("org.jetbrains.dokka")
     id("maven-publish")
     id("signing")
-    id("me.tylerbwong.gradle.metalava")
+    // FIXME: re-enable metalava when we could migrate to Gradle 8.x
+    //id("me.tylerbwong.gradle.metalava")
 }
 
 kotlin {
