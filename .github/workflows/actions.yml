@@ -52,7 +52,7 @@ jobs:
       # only for releases
       - name: publish with Gradle
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
-        run: ./gradlew --warning-mode all publish
+        run: ./gradlew --warning-mode all dokkaHtml publish
         env:
           OSSRH_USERNAME: atsushieno
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
