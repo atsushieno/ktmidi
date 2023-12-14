@@ -7,46 +7,84 @@ on:
 jobs:
   linux-build:
     name: build on linux
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-    - name: checkout
-      uses: actions/checkout@v1
-      with:
-        submodules: recursive
-    - name: apt update
-      run: |
-        sudo apt-get update
-    - name: set up JDK 11
-      uses: actions/setup-java@v1
-      with:
-        java-version: 11
-    - name: apt install
-      run: |
-        echo y | sudo apt-get install doxygen cmake ninja-build libasound2-dev libjack-jackd2-0
-    - name: stupid NDK setup workaround for GitHub Actions
-      run: sudo mkdir -p /usr/local/lib/android/sdk/ndk && sudo chmod 777 /usr/local/lib/android/sdk/ndk
-    - name: build
-      run: |
-        ./build-rtmidi.sh
-        ./gradlew --warning-mode all build publishToMavenLocal
-    - name: upload build failure logs
-      if: failure()
-      uses: actions/upload-artifact@v2
-      with:
-        name: test-failure-logs
-        path: |
-          ktmidi/build/reports/
-          ktmidi-jvm-desktop/build/reports/
-          ktmidi/*.log
-          ktmidi-native-ext/*.log
-          ktmidi-jvm-desktop/*.log
-    - name: upload artifact
-      if: success()
-      uses: actions/upload-artifact@v2
-      with:
-        name: ktmidi-artifacts
-        path: |
-          ktmidi/build/libs/*.jar
-          ktmidi/build/outputs/aar/*.aar
-          ktmidi-native-ext/build/bin
-          ktmidi-jvm-desktop/build/libs/*.jar
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: apt update
+        run: |
+          sudo apt-get update
+      - name: set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: temurin
+      - name: apt install
+        run: |
+          echo y | sudo apt-get install doxygen cmake ninja-build libasound2-dev libjack-jackd2-0
+
+        # Only for release tags
+      - name: setup gpg necessities
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          mkdir -p '${{ github.workspace }}'
+          echo '${{ secrets.GPG_KEY_CONTENTS }}' | base64 -d > '${{ github.workspace }}/${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}'
+      - name: rewrite build.gradle to require signing on awkward OS
+        if: startsWith(github.ref, 'refs/tags/') && startsWith(matrix.os, 'macos')
+        run: |
+          sed -i "" "s/signing {}/signing { sign(publishing.publications) }/" */build.gradle*
+      - name: rewrite build.gradle to require signing on standard OS
+        shell: bash
+        if: startsWith(github.ref, 'refs/tags/') && !startsWith(matrix.os, 'macos')
+        run: |
+          sed -i "s/signing {}/signing { sign(publishing.publications) }/" */build.gradle*
+
+      - name: build RtMidi for Kotlin/Native
+        run: ./build-rtmidi.sh
+      # only for NON-releases
+      - name: build with Gradle ()
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        run: ./gradlew --warning-mode all build
+      # only for releases
+      - name: publish with Gradle
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: ./gradlew --warning-mode all publish
+        env:
+          OSSRH_USERNAME: atsushieno
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          SIGNING_SECRET_KEY_RING_FILE: ${{ format('{0}/{1}', github.workspace, secrets.SIGNING_SECRET_KEY_RING_FILE) }}
+
+      - name: upload build failure logs
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-failure-logs
+          path: |
+            ktmidi/build/reports/
+            ktmidi-jvm-desktop/build/reports/
+            ktmidi/*.log
+            ktmidi-native-ext/*.log
+            ktmidi-jvm-desktop/*.log
+      - name: upload artifact
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ktmidi-artifacts
+          path: |
+            ktmidi/build/libs/*.jar
+            ktmidi/build/outputs/aar/*.aar
+            ktmidi-native-ext/build/bin
+            ktmidi-jvm-desktop/build/libs/*.jar
+      # only for releases
+      - name: deploy to GitHub Pages
+        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        uses: JamesIves/github-pages-deploy-action@4.1.2
+        with:
+          branch: gh-pages
+          folder: ktmidi/build/dokka/html
