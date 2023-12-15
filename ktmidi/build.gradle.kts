@@ -162,16 +162,6 @@ afterEvaluate {
         }
 
         repositories {
-            /*
-                maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/atsushieno/ktmidi")
-                    credentials {
-                        username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                        password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-                    }
-                }
-                */
             maven {
                 name = "OSSRH"
                 url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
