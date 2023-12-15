@@ -14,7 +14,7 @@ allprojects {
     if (name == "rtmidi-javacpp")
         version = libs.versions.rtmidi.javacpp.get()
     else
-        version = '0.6.2'
+        version = '0.6.3'
 
     repositories {
         google()
