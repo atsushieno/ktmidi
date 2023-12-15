@@ -11,7 +11,6 @@ class MidiCIResponderTest {
         val mediator = TestCIMediator()
         val responder = mediator.responder
 
-        assertNull(responder.initiatorDevice)
         assertEquals(MidiCIConstants.Midi2ThenMidi1Protocols, responder.supportedProtocols)
     }
 }

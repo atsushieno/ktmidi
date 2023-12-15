@@ -208,6 +208,11 @@ private val defaultPropertyList = listOf(
 
 class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
                             private val propertyList: MutableList<PropertyResource> = mutableListOf<PropertyResource>().apply { addAll(defaultPropertyList) }) {
+    data class SubscriptionEntry(val resource: String, val muid: Int)
+
+    val linkedResources = mutableMapOf<String, Json.JsonValue>()
+    private val values = mutableMapOf<String, Json.JsonValue>()
+    private val subscriptions = mutableListOf<SubscriptionEntry>()
 
     private fun getPropertyString(json: Json.JsonValue, key: String): String? {
         val ret = json.token.map.firstNotNullOfOrNull {
@@ -254,7 +259,10 @@ class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
             PropertyResourceNames.DEVICE_INFO -> getDeviceInfoJson()
             PropertyResourceNames.CHANNEL_LIST -> Json.JsonValue(mapOf()) // FIXME: implement
             PropertyResourceNames.JSON_SCHEMA -> Json.JsonValue(mapOf()) // FIXME: implement
-            else -> throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")
+            else -> {
+                linkedResources[header.resId] ?: values[header.resource]
+                    ?: throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")
+            }
         }
         return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)), body)
     }
@@ -265,7 +273,14 @@ class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
             PropertyResourceNames.RESOURCE_LIST -> throw PropertyExchangeException("Property is readonly: ${PropertyResourceNames.RESOURCE_LIST}")
             PropertyResourceNames.JSON_SCHEMA -> throw PropertyExchangeException("Property is readonly: ${PropertyResourceNames.JSON_SCHEMA}")
             PropertyResourceNames.CHANNEL_LIST -> throw PropertyExchangeException("Property is readonly: ${PropertyResourceNames.CHANNEL_LIST}")
-            else -> throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")
         }
+        values[header.resource] = bodyJson
+        return getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK))
+    }
+
+    fun subscribe(subscriberMUID: Int, headerJson: Json.JsonValue) : Json.JsonValue {
+        val header = getPropertyHeader(headerJson)
+        subscriptions.add(SubscriptionEntry(header.resource, subscriberMUID))
+        return getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK))
     }
 }
