@@ -21,6 +21,7 @@ import kotlinx.cinterop.toCValues
 import kotlinx.cinterop.usePinned
 import platform.posix.size_t
 
+@OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
 class RtMidiNativeAccess() : MidiAccess() {
     companion object {
         internal fun getPortName(rtmidi: RtMidiPtr?, index: UInt) : String {
@@ -95,6 +96,7 @@ class RtMidiNativeAccess() : MidiAccess() {
         abstract override fun close()
     }
 
+    @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
     internal class RtMidiInputHandler(rtmidi: RtMidiInPtr?) {
         private val stableRefToThis = StableRef.create(this)
         private var listener: OnMidiReceivedEventListener? = null
@@ -121,6 +123,7 @@ class RtMidiNativeAccess() : MidiAccess() {
         }
     }
 
+    @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
     internal class RtMidiInput(private val portIndex: UInt) : MidiInput, RtMidiPort() {
         private val rtmidi = rtmidi_in_create_default()
         override var connectionState = MidiPortConnectionState.OPEN // at created state
@@ -143,6 +146,7 @@ class RtMidiNativeAccess() : MidiAccess() {
         }
     }
 
+    @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
     internal class RtMidiOutput(private val portIndex: UInt) : MidiOutput, RtMidiPort() {
         private val rtmidi = rtmidi_out_create_default()
         override var connectionState = MidiPortConnectionState.OPEN // at created state
@@ -195,6 +199,7 @@ class RtMidiNativeAccess() : MidiAccess() {
         }
     }
 
+    @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
     internal class RtMidiVirtualInput(context: PortCreatorContext) : MidiInput, RtMidiVirtualPort(context) {
         private val rtmidi = rtmidi_in_create_default()
         override var connectionState = MidiPortConnectionState.OPEN // at created state
@@ -214,6 +219,7 @@ class RtMidiNativeAccess() : MidiAccess() {
         }
     }
 
+    @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)
     internal class RtMidiVirtualOutput(context: PortCreatorContext) : MidiOutput, RtMidiVirtualPort(context) {
         private val rtmidi = rtmidi_out_create_default()
         override var connectionState = MidiPortConnectionState.OPEN // at created state

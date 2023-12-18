@@ -10,11 +10,15 @@ dependencies {
     implementation project(":player-sample-lib")
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 mainClassName = "dev.atsushieno.ktmidi.samples.playersample.DriverKt"
 
 jar {
     manifest {
-        attributes["Main-Class"] = application.mainClassName
+        attributes["Main-Class"] = application.mainClass
     }
 }
 
@@ -23,6 +27,6 @@ run {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }

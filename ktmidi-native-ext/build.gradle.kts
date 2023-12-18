@@ -4,6 +4,7 @@ plugins {
     kotlin("multiplatform")
     id("maven-publish")
     id("signing")
+    id("org.jetbrains.dokka")
 }
 
 kotlin {
@@ -50,15 +51,34 @@ kotlin {
     }
 }
 
-afterEvaluate {
 
-    val javadocJar by tasks.registering(Jar::class) {
-        archiveClassifier.set("javadoc")
+// https://github.com/gradle/gradle/issues/26091#issuecomment-1722947958
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    val signingTasks = tasks.withType<Sign>()
+    mustRunAfter(signingTasks)
+}
+
+tasks {
+    val dokkaOutputDir = "${layout.buildDirectory}/dokka"
+
+    dokkaHtml {
+        outputDirectory.set(file(dokkaOutputDir))
     }
 
+    val deleteDokkaOutputDir by registering(Delete::class) {
+        delete(dokkaOutputDir)
+    }
+
+    register<Jar>("javadocJar") {
+        dependsOn(deleteDokkaOutputDir, dokkaHtml)
+        archiveClassifier.set("javadoc")
+        from(dokkaOutputDir)
+    }
+}
+
+afterEvaluate {
     publishing {
         publications.withType<MavenPublication> {
-            artifact(javadocJar)
             pom {
                 name.set("ktmidi")
                 description.set("Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - Native specific")
@@ -83,16 +103,6 @@ afterEvaluate {
         }
 
         repositories {
-            /*
-                maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/atsushieno/ktmidi")
-                    credentials {
-                        username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-                        password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
-                    }
-                }
-                */
             maven {
                 name = "OSSRH"
                 url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")

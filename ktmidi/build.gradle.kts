@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 buildscript {
     repositories {
@@ -20,6 +21,19 @@ plugins {
 }
 
 kotlin {
+    /* we need more deps to support wasm target (in coroutines, ktor-io, datetime, etc.)
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        moduleName = "midi-ci-tool"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "midi-ci-tool.js"
+            }
+        }
+        binaries.executable()
+    }
+    */
+
     jvm {
         compilations.all {
             kotlinOptions.jvmTarget = "1.8"
@@ -28,7 +42,7 @@ kotlin {
             useJUnit()
         }
     }
-    android {
+    androidTarget {
         publishLibraryVariantsGroupedByFlavor = true
         publishLibraryVariants("debug", "release")
     }
@@ -74,10 +88,10 @@ kotlin {
         val jvmMain by getting
         val androidMain by getting {
             dependencies {
-                implementation(libs.core.ktx)
+                implementation(libs.androidx.core.ktx)
             }
         }
-        val androidTest by getting {
+        val androidUnitTest by getting {
             dependencies {
                 implementation(kotlin("test-junit"))
                 implementation(libs.junit)
@@ -118,10 +132,17 @@ kotlin {
 //metalava {}
 
 android {
+    namespace = "dev.atsushieno.ktmidi"
+
+    kotlin {
+        jvmToolchain(17)
+    }
+
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["test"].assets.srcDir("src/commonTest/resources") // kind of hack...
+
     defaultConfig {
-        compileSdk = 33
+        compileSdk = 34
         minSdk = 23
     }
     buildTypes {
@@ -131,13 +152,22 @@ android {
 }
 
 afterEvaluate {
-    val javadocJar by tasks.registering(Jar::class) {
-        archiveClassifier.set("javadoc")
-    }
-
     publishing {
         publications.withType<MavenPublication> {
-            artifact(javadocJar)
+            // https://github.com/gradle/gradle/issues/26091#issuecomment-1681343496
+            val dokkaJar = project.tasks.register("${name}DokkaJar", Jar::class) {
+                group = JavaBasePlugin.DOCUMENTATION_GROUP
+                description = "Assembles Kotlin docs with Dokka into a Javadoc jar"
+                archiveClassifier.set("javadoc")
+                from(tasks.named("dokkaHtml"))
+
+                // Each archive name should be distinct, to avoid implicit dependency issues.
+                // We use the same format as the sources Jar tasks.
+                // https://youtrack.jetbrains.com/issue/KT-46466
+                archiveBaseName.set("${archiveBaseName.get()}-${name}")
+            }
+            artifact(dokkaJar)
+
             pom {
                 name.set("ktmidi")
                 description.set("Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0")

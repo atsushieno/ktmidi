@@ -1,20 +1,23 @@
 pluginManagement {
     repositories {
+        maven { url("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
         google()
         mavenCentral()
         gradlePluginPortal()
     }
+}
 
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.namespace == 'com.android' || requested.id.name == 'kotlin-android-extensions') {
-                useModule('com.android.tools.build:gradle:7.4.2')
-            }
-        }
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
     }
 }
 
 rootProject.name = 'ktmidi-project'
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 include(":ktmidi")
 include(":ktmidi-jvm-desktop")
 include(":ktmidi-native-ext")
@@ -22,5 +25,6 @@ include(":input-sample")
 include(":player-sample-lib")
 include(":player-sample")
 include(":player-sample-native")
+include(":midi-ci-tool")
 
-gradle.rootProject { ext.javacppVersion = '1.5.8' }
+gradle.rootProject { ext.javacppVersion = '1.5.9' }
