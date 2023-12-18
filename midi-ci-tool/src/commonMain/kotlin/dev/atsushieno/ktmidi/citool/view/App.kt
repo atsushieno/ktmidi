@@ -54,7 +54,7 @@ fun InitiatorScreen() {
 
 @Composable
 fun ResponderScreen() {
-    Text("TODO")
+    Text("It receives MIDI-CI requests on the Virtual In port and sends replies back from the Virtual Out port")
 
     val logText = remember { ViewModel.logText }
 

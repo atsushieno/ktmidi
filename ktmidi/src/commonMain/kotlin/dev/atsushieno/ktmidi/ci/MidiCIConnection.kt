@@ -429,7 +429,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     }
     var processDiscovery = sendDiscoveryReplyForInquiry
 
-    private val defaultProcessEndpointMessage: (initiatorMUID: Int, destinationMUID: Int, status: Byte) -> Unit = { initiatorMUID, destinationMUID, status ->
+    val sendEndpointReplyForInquiry: (initiatorMUID: Int, destinationMUID: Int, status: Byte) -> Unit = { initiatorMUID, destinationMUID, status ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         val prodId = productInstanceId
         sendOutput(CIFactory.midiCIEndpointMessageReply(
@@ -437,25 +437,25 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
             if (status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId != null) prodId.toByteArray(Charsets.ISO_8859_1).toList() else listOf() // FIXME: verify that it is only ASCII chars?
             ))
     }
-    var processEndpointMessage = defaultProcessEndpointMessage
+    var processEndpointMessage = sendEndpointReplyForInquiry
 
-    private val defaultProcessInvalidateMUID: (sourceMUID: Int, targetMUID: Int) -> Unit = { sourceMUID, targetMUID ->
+    val sendAck: (sourceMUID: Int) -> Unit = { sourceMUID ->
         // FIXME: we need to implement some sort of state management for each initiator
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIAckNak(dst, false, MidiCIConstants.DEVICE_ID_MIDI_PORT,
             MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID, CIFactory.SUB_ID_2_INVALIDATE_MUID, 0, 0, listOf(), listOf()))
     }
-    var processInvalidateMUID = defaultProcessInvalidateMUID
+    var processInvalidateMUID = { sourceMUID: Int, targetMUID: Int -> sendAck(sourceMUID) }
 
     // Profile Configuration
 
-    private val defaultProcessProfileInquiry: (source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit = { source, sourceMUID, destinationMUID ->
+    val sendProfileReplyForInquiry: (source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit = { source, sourceMUID, destinationMUID ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIProfileInquiryReply(dst, source, muid, sourceMUID,
             profileSet.filter { it.second }.map { it.first },
             profileSet.filter { !it.second }.map { it.first }))
     }
-    var processProfileInquiry = defaultProcessProfileInquiry
+    var processProfileInquiry = sendProfileReplyForInquiry
 
     var onProfileSet: (profile: MidiCIProfileId, enabled: Boolean) -> Unit = { _, _ -> }
 
@@ -489,7 +489,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     // Handling invalid messages
 
-    private val defaultProcessUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
+    val sendNakForUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
         val source = data[1]
         val originalSubId = data[3]
         val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
@@ -498,17 +498,17 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIAckNak(dst, true, nak))
     }
-    var processUnknownCIMessage = defaultProcessUnknownCIMessage
+    var processUnknownCIMessage = sendNakForUnknownCIMessage
 
     // Property Exchange
 
-    private val defaultProcessPropertyCapabilitiesInquiry: (destination: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Unit = { destination, sourceMUID, destinationMUID, max ->
+    val sendPropertyCapabilitiesReply: (destination: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Unit = { destination, sourceMUID, destinationMUID, max ->
         val establishedMaxSimultaneousPropertyRequests = if (max > maxSimultaneousPropertyRequests) maxSimultaneousPropertyRequests else max
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, destination, true, muid, sourceMUID, establishedMaxSimultaneousPropertyRequests!!))
 
     }
-    var processPropertyCapabilitiesInquiry = defaultProcessPropertyCapabilitiesInquiry
+    var processPropertyCapabilitiesInquiry = sendPropertyCapabilitiesReply
 
     val propertyService = CommonPropertyService(device)
 
@@ -530,7 +530,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
         subscribeJson(sourceMUID, jsonInquiry)
     }
 
-    private val defaultProcessGetPropertyData: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>) -> Unit = { sourceMUID, destinationMUID, requestId, header ->
+    val sendReplyToGetPropertyData: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>) -> Unit = { sourceMUID, destinationMUID, requestId, header ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         val result = getProperty(sourceMUID, destinationMUID, requestId, header)
         val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
@@ -540,7 +540,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
             sendOutput(it)
         }
     }
-    var processGetPropertyData = defaultProcessGetPropertyData
+    var processGetPropertyData = sendReplyToGetPropertyData
 
     private val defaultProcessSetPropertyData: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>, numChunks: Int, chunkIndex: Int, data: List<Byte>) -> Unit = { sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex, data ->
         // FIXME: implement split chunk manager
