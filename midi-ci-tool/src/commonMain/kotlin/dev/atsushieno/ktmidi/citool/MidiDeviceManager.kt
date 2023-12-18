@@ -1,23 +1,23 @@
 package dev.atsushieno.ktmidi.citool
 
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import dev.atsushieno.ktmidi.EmptyMidiAccess
-import dev.atsushieno.ktmidi.MidiAccess
-import dev.atsushieno.ktmidi.MidiInput
-import dev.atsushieno.ktmidi.MidiOutput
-import dev.atsushieno.ktmidi.MidiPortDetails
-import dev.atsushieno.ktmidi.PortCreatorContext
+import dev.atsushieno.ktmidi.*
+import dev.atsushieno.ktmidi.ci.MidiCIConstants
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class MidiDeviceManager {
+
     private val emptyMidiAccess = EmptyMidiAccess()
     private val emptyMidiInput: MidiInput
     private val emptyMidiOutput: MidiOutput
     private var midiAccessValue: MidiAccess = emptyMidiAccess
+
+    private val ciHandler = CIResponderModel { data ->
+        val midi1Bytes = listOf(Midi1Status.SYSEX.toByte()) + data + listOf(Midi1Status.SYSEX_END.toByte())
+        sendToAll(midi1Bytes.toByteArray(), 0)
+    }
 
     var midiAccess: MidiAccess
         get() = midiAccessValue
@@ -27,13 +27,36 @@ class MidiDeviceManager {
             midiOutput = emptyMidiOutput
             GlobalScope.launch {
                 try {
-                    val pc = PortCreatorContext(
+                    val pcOut = PortCreatorContext(
                         manufacturer = "KtMidi project",
                         applicationName = "KtMidi-CI-Tool",
-                        portName = "KtMidi-CI-Tool Virtual Port",
+                        portName = "KtMidi-CI-Tool Virtual Out Port",
                         version = "1.0"
+                        //midiProtocol = MidiCIProtocolType.MIDI2, // if applicable
+                        //umpGroup = 2
                     )
-                    virtualMidiOutput = midiAccessValue.createVirtualInputSender(pc)
+                    val pcIn = PortCreatorContext(
+                        manufacturer = "KtMidi project",
+                        applicationName = "KtMidi-CI-Tool",
+                        portName = "KtMidi-CI-Tool Virtual In Port",
+                        version = "1.0"
+                        //midiProtocol = MidiCIProtocolType.MIDI2, // if applicable
+                        //umpGroup = 2
+                    )
+
+                    virtualMidiInput = midiAccessValue.createVirtualOutputReceiver(pcOut)
+                    virtualMidiInput!!.setMessageReceivedListener { data, start, length, timestampInNanoseconds ->
+                        if (data.size > 3 &&
+                            data[start] == Midi1Status.SYSEX.toByte() &&
+                            data[start + 1] == MidiCIConstants.UNIVERSAL_SYSEX &&
+                            data[start + 3] == MidiCIConstants.UNIVERSAL_SYSEX_SUB_ID_MIDI_CI) {
+                            // it is a MIDI-CI message
+                            ciHandler.processCIMessage(data.drop(start + 1).take(length - 2))
+                            return@setMessageReceivedListener
+                        }
+                    }
+
+                    virtualMidiOutput = midiAccessValue.createVirtualInputSender(pcIn)
                 } catch (_: Exception) {
                 }
             }
@@ -71,10 +94,11 @@ class MidiDeviceManager {
 
     var midiInput: MidiInput
     var midiOutput: MidiOutput
-    var virtualMidiOutput: MidiOutput? = null
+    private var virtualMidiInput: MidiInput? = null
+    private var virtualMidiOutput: MidiOutput? = null
 
-    var midiOutputError = mutableStateOf<Exception?>(null)
-    var virtualMidiOutputError = mutableStateOf<Exception?>(null)
+    private var midiOutputError = mutableStateOf<Exception?>(null)
+    private var virtualMidiOutputError = mutableStateOf<Exception?>(null)
 
     fun sendToAll(bytes: ByteArray, timestamp: Long) {
         try {

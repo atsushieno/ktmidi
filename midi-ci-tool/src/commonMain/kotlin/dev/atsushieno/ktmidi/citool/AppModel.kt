@@ -6,6 +6,7 @@ import dev.atsushieno.ktmidi.*
 
 object AppModel {
     var midiProtocol = mutableStateOf(MidiCIProtocolType.MIDI1)
+    var midiInputPorts = mutableStateListOf<MidiPortDetails>()
     var midiOutputPorts = mutableStateListOf<MidiPortDetails>()
 
     val midiDeviceManager = MidiDeviceManager()
@@ -19,6 +20,8 @@ object AppModel {
     }
 
     fun updateMidiDeviceList() {
+        midiInputPorts.clear()
+        midiInputPorts.addAll(midiDeviceManager.midiInputPorts)
         midiOutputPorts.clear()
         midiOutputPorts.addAll(midiDeviceManager.midiOutputPorts)
     }

@@ -418,9 +418,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     // FIXME: enable this when we start supporting Property Exchange.
     //var establishedMaxSimulutaneousPropertyRequests: Byte? = null
 
-    private var protocolTestTimeout: Duration? = null
-
-    private val defaultProcessDiscovery: (initiatorMUID: Int, initiatorOutputPath: Byte) -> Unit = { initiatorMUID, initiatorOutputPath ->
+    val sendDiscoveryReplyForInquiry: (initiatorMUID: Int, initiatorOutputPath: Byte) -> Unit = { initiatorMUID, initiatorOutputPath ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIDiscoveryReply(
         dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, initiatorMUID,
@@ -429,7 +427,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
         initiatorOutputPath, functionBlock
         ))
     }
-    var processDiscovery = defaultProcessDiscovery
+    var processDiscovery = sendDiscoveryReplyForInquiry
 
     private val defaultProcessEndpointMessage: (initiatorMUID: Int, destinationMUID: Int, status: Byte) -> Unit = { initiatorMUID, destinationMUID, status ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }

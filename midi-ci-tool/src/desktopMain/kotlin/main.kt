@@ -2,9 +2,20 @@ import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import dev.atsushieno.ktmidi.citool.App
+import dev.atsushieno.ktmidi.AlsaMidiAccess
+import dev.atsushieno.ktmidi.JvmMidiAccess
+import dev.atsushieno.ktmidi.RtMidiAccess
+import dev.atsushieno.ktmidi.citool.view.App
+import dev.atsushieno.ktmidi.citool.AppModel
+import java.io.File
 
-fun main() = application {
+fun main(args: Array<String>) = application {
+    AppModel.midiDeviceManager.midiAccess =
+        if (File("/dev/snd/seq").exists()) AlsaMidiAccess()
+        else if (args.contains("jvm")) JvmMidiAccess()
+        //else if (System.getProperty("os.name").contains("Mac OS", true) &&
+        //    System.getProperty("os.arch").contains("aarch64")) JvmMidiAccess()
+        else RtMidiAccess()
     Window(onCloseRequest = ::exitApplication, title = "midi-ci-tool") {
         App()
     }
