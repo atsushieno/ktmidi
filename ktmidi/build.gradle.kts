@@ -26,11 +26,9 @@ kotlin {
     wasmJs {
         moduleName = "midi-ci-tool"
         browser {
-            commonWebpackConfig {
-                outputFileName = "midi-ci-tool.js"
-            }
         }
-        binaries.executable()
+        nodejs {
+        }
     }
     */
 
