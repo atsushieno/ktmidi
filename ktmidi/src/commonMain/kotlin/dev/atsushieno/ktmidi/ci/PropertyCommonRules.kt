@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
+import io.ktor.utils.io.core.*
+
 class PropertyExchangeException(message: String = "Property Exchange exception", innerException: Exception? = null) : Exception(message, innerException)
 
 data class MidiCIDeviceInfo(
@@ -206,8 +208,49 @@ private val defaultPropertyList = listOf(
     PropertyResource(PropertyResourceNames.JSON_SCHEMA)
 )
 
+interface MidiCIPropertyService {
+    fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply
+    fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply
+    fun subscribeProperty(msg: Message.SubscribeProperty) : Message.SubscribePropertyReply
+}
+
 class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
-                            private val propertyList: MutableList<PropertyResource> = mutableListOf<PropertyResource>().apply { addAll(defaultPropertyList) }) {
+                            private val propertyList: MutableList<PropertyResource> = mutableListOf<PropertyResource>().apply { addAll(defaultPropertyList) })
+    : MidiCIPropertyService {
+
+    // MidiCIPropertyService implementation
+    override fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply {
+        val jsonInquiry = Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+
+        val result = getPropertyData(jsonInquiry)
+
+        val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
+        val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
+        return Message.GetPropertyDataReply(replyHeader, replyBody)
+    }
+    override fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply {
+        val jsonInquiryHeader = Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+        val jsonInquiryBody = Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.body.toByteArray().decodeToString()))
+
+        val result = setPropertyData(jsonInquiryHeader, jsonInquiryBody)
+
+        val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result)).toByteArray().toList()
+        return Message.SetPropertyDataReply(replyHeader)
+    }
+
+    override fun subscribeProperty(msg: Message.SubscribeProperty): Message.SubscribePropertyReply {
+        val jsonHeader = Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+        // body is ignored in PropertyCommonRules.
+
+        val result = subscribe(msg.sourceMUID, jsonHeader)
+
+        val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
+        val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
+        return Message.SubscribePropertyReply(replyHeader, replyBody)
+    }
+
+    // impl
+
     data class SubscriptionEntry(val resource: String, val muid: Int)
 
     val linkedResources = mutableMapOf<String, Json.JsonValue>()
@@ -278,9 +321,10 @@ class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
         return getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK))
     }
 
-    fun subscribe(subscriberMUID: Int, headerJson: Json.JsonValue) : Json.JsonValue {
+    fun subscribe(subscriberMUID: Int, headerJson: Json.JsonValue) : Pair<Json.JsonValue, Json.JsonValue> {
         val header = getPropertyHeader(headerJson)
         subscriptions.add(SubscriptionEntry(header.resource, subscriberMUID))
-        return getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK))
+        // body is empty
+        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)), Json.JsonValue(mapOf()))
     }
 }

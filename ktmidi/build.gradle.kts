@@ -131,6 +131,7 @@ kotlin {
 
 android {
     namespace = "dev.atsushieno.ktmidi"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     kotlin {
         jvmToolchain(17)
@@ -140,8 +141,8 @@ android {
     sourceSets["test"].assets.srcDir("src/commonTest/resources") // kind of hack...
 
     defaultConfig {
-        compileSdk = 34
-        minSdk = 23
+        // FIXME: replace this constant with valid value once Gradle/AGP fixed the relevant crasher bug.
+        minSdk = 23//libs.versions.android.minSdk.toString().toInt()
     }
     buildTypes {
         val debug by getting

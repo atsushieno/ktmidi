@@ -502,60 +502,48 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     // Property Exchange
 
-    val sendPropertyCapabilitiesReply: (destination: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Unit = { destination, sourceMUID, destinationMUID, max ->
-        val establishedMaxSimultaneousPropertyRequests = if (max > maxSimultaneousPropertyRequests) maxSimultaneousPropertyRequests else max
+    val propertyService = CommonPropertyService(device)
+
+    // Should this also delegate to property service...?
+    val sendPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
+        val establishedMaxSimultaneousPropertyRequests = if (msg.max > maxSimultaneousPropertyRequests) maxSimultaneousPropertyRequests else msg.max
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, destination, true, muid, sourceMUID, establishedMaxSimultaneousPropertyRequests))
+        sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, msg.destination, true, muid, msg.sourceMUID, establishedMaxSimultaneousPropertyRequests))
     }
     var processPropertyCapabilitiesInquiry = sendPropertyCapabilitiesReply
 
-    val propertyService = CommonPropertyService(device)
-
-    var getPropertyJson: (header: Json.JsonValue) -> Pair<Json.JsonValue,Json.JsonValue> = { propertyService.getPropertyData(it) }
-    var setPropertyJson: (header: Json.JsonValue, body: Json.JsonValue) -> Json.JsonValue = { header, body -> propertyService.setPropertyData(header, body) }
-    var subscribeJson: (sourceMUID: Int, header: Json.JsonValue) -> Json.JsonValue = { sourceMUID, header -> propertyService.subscribe(sourceMUID, header) }
-
-    var getProperty: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>) -> Pair<Json.JsonValue,Json.JsonValue> = {_,_,_,header ->
-        val jsonInquiry = Json.parse(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
-        getPropertyJson(jsonInquiry)
-    }
-    var setProperty: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>, data: List<Byte>) -> Json.JsonValue = {_,_,_,header,body ->
-        val jsonHeader = Json.parse(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
-        val jsonBody = Json.parse(PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
-        setPropertyJson(jsonHeader, jsonBody)
-    }
-    var subscribeProperty: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>) -> Json.JsonValue = {sourceMUID, _, _, header ->
-        val jsonInquiry = Json.parse(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
-        subscribeJson(sourceMUID, jsonInquiry)
-    }
-
-    val sendReplyToGetPropertyData: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>) -> Unit = { sourceMUID, destinationMUID, requestId, header ->
+    fun sendPropertyGetDataReply(inquiry: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        val result = getProperty(sourceMUID, destinationMUID, requestId, header)
-        val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
-        val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
         CIFactory.midiCIPropertyChunks(dst, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY,
-            muid, sourceMUID, requestId, replyHeader, replyBody).forEach {
+            muid, inquiry.sourceMUID, inquiry.requestId, reply.header, reply.body).forEach {
             sendOutput(it)
         }
     }
+    var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
+        sendPropertyGetDataReply(msg, propertyService.getPropertyData(msg))
+    }
 
-    private val defaultProcessSetPropertyData: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>, numChunks: Int, chunkIndex: Int, data: List<Byte>) -> Unit = { sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex, data ->
-        // FIXME: implement split chunk manager
+    fun sendPropertySetDataReply(inquiry: Message.SetPropertyData, reply: Message.SetPropertyDataReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        if (numChunks == 1 && chunkIndex == 1) {
-            setProperty(sourceMUID, destinationMUID, requestId, header, data)
-            CIFactory.midiCIPropertyChunks(dst, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY,
-                muid, sourceMUID, requestId, header, data)
-                .forEach { sendOutput(it) }
-        } // FIXME: else -> return NAK saying that we cannot handle it
+        CIFactory.midiCIPropertyChunks(dst, CIFactory.SUB_ID_2_PROPERTY_SET_DATA_REPLY,
+            muid, inquiry.sourceMUID, inquiry.requestId, reply.header, listOf()).forEach {
+            sendOutput(it)
+        }
     }
-    var processSetPropertyData = defaultProcessSetPropertyData
+    var processSetPropertyData: (msg: Message.SetPropertyData) -> Unit = { msg ->
+        sendPropertySetDataReply(msg, propertyService.setPropertyData(msg))
+    }
 
-    private val defaultProcessSubscribe: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>) -> Unit = { sourceMUID, destinationMUID, requestId, header ->
-        subscribeProperty(sourceMUID, destinationMUID, requestId, header)
+    fun sendPropertySubscribeReply(inquiry: Message.SubscribeProperty, reply: Message.SubscribePropertyReply) {
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        CIFactory.midiCIPropertyChunks(dst, CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY,
+            muid, inquiry.sourceMUID, inquiry.requestId, reply.header, reply.body).forEach {
+            sendOutput(it)
+        }
     }
-    var processSubscribe = defaultProcessSubscribe
+    var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
+        sendPropertySubscribeReply(msg, propertyService.subscribeProperty(msg))
+    }
 
     fun processInput(data: List<Byte>) {
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
@@ -622,7 +610,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
                 val max = CIRetrieval.midiCIGetMaxPropertyRequests(data)
                 
-                processPropertyCapabilitiesInquiry(destination, sourceMUID, destinationMUID, max)
+                processPropertyCapabilitiesInquiry(Message.PropertyGetCapabilities(destination, sourceMUID, destinationMUID, max))
             }
 
             CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY -> {
@@ -636,8 +624,8 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 val chunkIndex = data[pos + 2] + (data[pos + 3].toInt() shl 7)
                 val dataSize = data[pos + 4] + (data[pos + 5].toInt() shl 7)
                 if (numChunks == 1 && chunkIndex == 1 && dataSize == 0) {
-                    sendReplyToGetPropertyData(sourceMUID, destinationMUID, requestId, header)
-                } // FIXME: else -> error handling
+                    processGetPropertyData(Message.GetPropertyData(sourceMUID, destinationMUID, requestId, header))
+                } // FIXME: else -> error handling (data chunk must be always empty)
             }
 
             CIFactory.SUB_ID_2_PROPERTY_SET_DATA_INQUIRY -> {
@@ -651,7 +639,9 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 val chunkIndex = data[pos + 2] + (data[pos + 3].toInt() shl 7)
                 val dataSize = data[pos + 4] + (data[pos + 5].toInt() shl 7)
                 val propData = data.drop (pos + 6).take(dataSize)
-                processSetPropertyData(sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex, propData)
+                // FIXME: implement chunk manager
+                if (numChunks == 1 && chunkIndex == 1 && dataSize == 0)
+                    processSetPropertyData(Message.SetPropertyData(sourceMUID, destinationMUID, requestId, header, propData))
             }
 
             CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE -> {
@@ -660,7 +650,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
-                processSubscribe(sourceMUID, destinationMUID, requestId, header)
+                processSubscribeProperty(Message.SubscribeProperty(sourceMUID, destinationMUID, requestId, header))
             }
 
             else -> {
