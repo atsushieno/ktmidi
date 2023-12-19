@@ -505,8 +505,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     val sendPropertyCapabilitiesReply: (destination: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Unit = { destination, sourceMUID, destinationMUID, max ->
         val establishedMaxSimultaneousPropertyRequests = if (max > maxSimultaneousPropertyRequests) maxSimultaneousPropertyRequests else max
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, destination, true, muid, sourceMUID, establishedMaxSimultaneousPropertyRequests!!))
-
+        sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, destination, true, muid, sourceMUID, establishedMaxSimultaneousPropertyRequests))
     }
     var processPropertyCapabilitiesInquiry = sendPropertyCapabilitiesReply
 
@@ -540,7 +539,6 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
             sendOutput(it)
         }
     }
-    var processGetPropertyData = sendReplyToGetPropertyData
 
     private val defaultProcessSetPropertyData: (sourceMUID: Int, destinationMUID: Int, requestId: Byte, header: List<Byte>, numChunks: Int, chunkIndex: Int, data: List<Byte>) -> Unit = { sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex, data ->
         // FIXME: implement split chunk manager
@@ -638,7 +636,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 val chunkIndex = data[pos + 2] + (data[pos + 3].toInt() shl 7)
                 val dataSize = data[pos + 4] + (data[pos + 5].toInt() shl 7)
                 if (numChunks == 1 && chunkIndex == 1 && dataSize == 0) {
-                    processGetPropertyData(sourceMUID, destinationMUID, requestId, header)
+                    sendReplyToGetPropertyData(sourceMUID, destinationMUID, requestId, header)
                 } // FIXME: else -> error handling
             }
 
