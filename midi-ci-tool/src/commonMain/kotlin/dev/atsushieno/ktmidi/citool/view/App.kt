@@ -58,7 +58,7 @@ fun ResponderScreen() {
 
     val logText = remember { ViewModel.logText }
 
-    TextField(logText.value, onValueChange = { _: String -> }, readOnly = false)
+    TextField(logText.value, onValueChange = { _: String -> }, readOnly = true)
 }
 
 @Composable
