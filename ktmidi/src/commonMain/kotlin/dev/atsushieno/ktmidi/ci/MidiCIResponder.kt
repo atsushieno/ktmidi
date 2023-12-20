@@ -106,7 +106,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     // Handling invalid messages
 
-    val sendNakForUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
+    fun sendNakForUnknownCIMessage(data: List<Byte>) {
         val source = data[1]
         val originalSubId = data[3]
         val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
@@ -116,22 +116,29 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIAckNak(dst, true, nak))
     }
-    var processUnknownCIMessage = sendNakForUnknownCIMessage
+    var processUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
+        sendNakForUnknownCIMessage(data)
+    }
 
     // Property Exchange
 
     val propertyService = CommonPropertyService(device)
 
     // Should this also delegate to property service...?
-    val sendPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
+    fun sendPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, msg.destination, true,
+            muid, msg.sourceMUID, msg.max))
+    }
+    val getPropertyCapabilitiesReplyFor: (msg: Message.PropertyGetCapabilities) -> Message.PropertyGetCapabilitiesReply = { msg ->
         val establishedMaxSimultaneousPropertyRequests =
             if (msg.max > maxSimultaneousPropertyRequests) maxSimultaneousPropertyRequests
             else msg.max
-        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, msg.destination, true,
-            muid, msg.sourceMUID, establishedMaxSimultaneousPropertyRequests))
+        Message.PropertyGetCapabilitiesReply(msg.destination, muid, msg.sourceMUID, establishedMaxSimultaneousPropertyRequests)
     }
-    var processPropertyCapabilitiesInquiry = sendPropertyCapabilitiesReply
+    var processPropertyCapabilitiesInquiry: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
+        sendPropertyCapabilitiesReply(getPropertyCapabilitiesReplyFor(msg))
+    }
 
     fun sendPropertyGetDataReply(inquiry: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
@@ -175,6 +182,11 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     fun processInput(data: List<Byte>) {
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
             return // not MIDI-CI sysex
+
+        val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
+        if (destinationMUID != muid && destinationMUID != MidiCIConstants.BROADCAST_MUID_32)
+            return // we are not the target
+
         when (data[3]) {
             // Discovery
             CIFactory.SUB_ID_2_DISCOVERY_INQUIRY -> {
@@ -186,7 +198,6 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
             CIFactory.SUB_ID_2_ENDPOINT_MESSAGE_INQUIRY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
                 // only available in MIDI-CI 1.2 or later.
                 val status = data[13]
                 processEndpointMessage(sourceMUID, destinationMUID, status)
@@ -203,7 +214,6 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
             CIFactory.SUB_ID_2_PROFILE_INQUIRY -> {
                 val source = data[1]
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
                 processProfileInquiry(source, sourceMUID, destinationMUID)
             }
 
@@ -211,7 +221,6 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 var enabled = data[3] == CIFactory.SUB_ID_2_SET_PROFILE_ON
                 val destination = CIRetrieval.midiCIGetDestination(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
                 enabled = processSetProfile(destination, sourceMUID, destinationMUID, profileId, enabled)
 
@@ -223,7 +232,6 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
             CIFactory.SUB_ID_2_PROFILE_SPECIFIC_DATA -> {
                 val sourceChannel = CIRetrieval.midiCIGetDestination(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
                 val dataLength = CIRetrieval.midiCIGetProfileSpecificDataSize(data)
                 processProfileSpecificData(sourceChannel, sourceMUID, destinationMUID, profileId, data.drop(21).take(dataLength))
@@ -234,22 +242,14 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
             CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY -> {
                 val destination = CIRetrieval.midiCIGetDestination(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
                 val max = CIRetrieval.midiCIGetMaxPropertyRequests(data)
 
                 processPropertyCapabilitiesInquiry(
-                    Message.PropertyGetCapabilities(
-                        destination,
-                        sourceMUID,
-                        destinationMUID,
-                        max
-                    )
-                )
+                    Message.PropertyGetCapabilities(destination, sourceMUID, destinationMUID, max))
             }
 
             CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
@@ -264,7 +264,6 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
             CIFactory.SUB_ID_2_PROPERTY_SET_DATA_INQUIRY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
@@ -280,7 +279,6 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
             CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)

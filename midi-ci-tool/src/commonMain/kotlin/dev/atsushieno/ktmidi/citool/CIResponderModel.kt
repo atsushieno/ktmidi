@@ -18,7 +18,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     class Events {
         val discoveryReceived = mutableListOf<(initiatorMUID: Int, initiatorOutputPath: Byte) -> Unit>()
         val endpointInquiryReceived = mutableListOf<(initiatorMUID: Int, destinationMUID: Int, status: Byte) -> Unit>()
-        val processInquiryReceived = mutableListOf<(source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit>()
+        val profileInquiryReceived = mutableListOf<(source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit>()
         val profileStateChanged = mutableListOf<(profile: MidiCIProfileId, enabled: Boolean) -> Unit>()
         val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
         val propertyCapabilityInquiryReceived = mutableListOf<(Message.PropertyGetCapabilities) -> Unit>()
@@ -29,14 +29,14 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
 
     private val events = Events()
 
-    private val device = MidiCIDeviceInfo(1,2,3,4,
-        "atsushieno", "KtMidi", "KtMidi-CI-Tool", "0.1")
+    private val device = MidiCIDeviceInfo(1,2,2,1,
+        "atsushieno", "KtMidi", "KtMidi-CI-Tool Responder", "0.1")
 
     private val responder = MidiCIResponder(device, { data ->
-        ViewModel.logText.value += "REPLY SYSEX: " + data.joinToString { it.toString(16) } + "\n"
+        ViewModel.logText.value += "[R] REPLY SYSEX: " + data.joinToString { it.toString(16) } + "\n"
         outputSender(data)
     }).apply {
-        productInstanceId = "KtMidi-CI-Tool"
+        productInstanceId = "KtMidi-CI-Tool Responder"
 
         // Unknown
         processUnknownCIMessage = { data ->
@@ -58,7 +58,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         // Profile
         processProfileInquiry = { source, sourceMUID, destinationMUID ->
             logger.profileInquiry(source, sourceMUID, destinationMUID)
-            events.processInquiryReceived.forEach { it(source, sourceMUID, destinationMUID) }
+            events.profileInquiryReceived.forEach { it(source, sourceMUID, destinationMUID) }
             sendProfileReplyForInquiry(source, sourceMUID, destinationMUID)
         }
         onProfileSet = { profile, enabled ->
@@ -69,7 +69,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         processPropertyCapabilitiesInquiry = { msg ->
             logger.propertyGetCapabilitiesInquiry(msg)
             events.propertyCapabilityInquiryReceived.forEach { it(msg) }
-            sendPropertyCapabilitiesReply(msg)
+            sendPropertyCapabilitiesReply(getPropertyCapabilitiesReplyFor(msg))
         }
         processGetPropertyData = { msg ->
             logger.getPropertyData(msg)

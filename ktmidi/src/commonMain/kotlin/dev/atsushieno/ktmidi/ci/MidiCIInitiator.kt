@@ -16,12 +16,11 @@ import kotlin.random.Random
  Same goes for `processInput()` function.
 
 */
-class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
+class MidiCIInitiator(val device: MidiCIDeviceInfo,
+                      private val sendOutput: (data: List<Byte>) -> Unit,
                       val outputPathId: Byte = 0,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
-
-    var device: DeviceDetails = DeviceDetails.empty
-    var midiCIBufferSize = 1024
+    var midiCIBufferSize = 4096
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
     var productInstanceId: String? = null
 
@@ -39,8 +38,10 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
         if (destinationMUID == muid) {
             state = MidiCIInitiatorState.DISCOVERED
 
-            // If successfully discovered, continue to protocol promotion to MIDI 2.0
+            // If successfully discovered, continue to endpoint inquiry
             discoveredDevice = device
+            sendEndpointMessage(sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
+
             requestProfiles(0x7F, sourceMUID)
         }
     }
@@ -121,21 +122,23 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
 
     // Discovery
 
-    fun sendDiscovery(ciCategorySupported: Byte = MidiCIDiscoveryCategoryFlags.ThreePs) {
+    fun sendDiscovery(ciCategorySupported: Byte = MidiCIDiscoveryCategoryFlags.ThreePs) =
+        sendDiscovery(Message.DiscoveryInquiry(muid,
+            device.manufacturerId, device.familyId, device.modelId, device.versionId,
+            ciCategorySupported, receivableMaxSysExSize, outputPathId))
+    fun sendDiscovery(msg: Message.DiscoveryInquiry) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIDiscovery(
-            buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, device.manufacturer, device.family, device.modelNumber,
-            device.softwareRevisionLevel, ciCategorySupported, receivableMaxSysExSize, outputPathId
-        )
+        sendOutput(CIFactory.midiCIDiscovery(
+            buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.muid, msg.manufacturerId, msg.familyId, msg.modelId,
+            msg.versionId, msg.ciCategorySupported, msg.receivableMaxSysExSize, msg.outputPathId
+        ))
         // we set state before sending the MIDI data as it may process the rest of the events synchronously through the end...
         state = MidiCIInitiatorState.DISCOVERY_SENT
-        sendOutput(buf)
     }
 
     fun sendEndpointMessage(targetMuid: Int, status: Byte) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIEndpointMessage(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, targetMuid, status)
-        sendOutput(buf)
+        sendOutput(CIFactory.midiCIEndpointMessage(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, targetMuid, status))
     }
 
     /*
@@ -170,8 +173,7 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
 
     fun requestProfiles(destinationChannelOr7F: Byte, destinationMUID: Int) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIProfileInquiry(buf, destinationChannelOr7F, muid, destinationMUID)
-        sendOutput(buf)
+        sendOutput(CIFactory.midiCIProfileInquiry(buf, destinationChannelOr7F, muid, destinationMUID))
     }
 
     // Property Exchange
@@ -179,22 +181,31 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
 
     fun requestPropertyExchangeCapabilities(destinationChannelOr7F: Byte, destinationMUID: Int, maxSimultaneousPropertyRequests: Byte) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIPropertyGetCapabilities(
+        sendOutput(CIFactory.midiCIPropertyGetCapabilities(
             buf,
             destinationChannelOr7F,
             false,
             muid,
             destinationMUID,
             maxSimultaneousPropertyRequests
-        )
-        sendOutput(buf)
-    }
-
-    fun requestHasPropertyData(destinationChannelOr7F: Byte, destinationMUID: Int, header: List<Byte>, body: List<Byte>) {
-        TODO("FIXME: implement")
+        ))
     }
 
     // Reply handler
+
+    fun sendNakForUnknownCIMessage(data: List<Byte>) {
+        val source = data[1]
+        val originalSubId = data[3]
+        val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+        val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
+        val nak = MidiCIAckNakData(source, sourceMUID, destinationMUID, originalSubId,
+            CINakStatus.MessageNotSupported, 0, listOf(), listOf())
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIAckNak(dst, true, nak))
+    }
+    var processUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
+        sendNakForUnknownCIMessage(data)
+    }
 
     fun processInput(data: List<Byte>) {
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
@@ -307,6 +318,10 @@ class MidiCIInitiator(private val sendOutput: (data: List<Byte>) -> Unit,
             CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY -> {
                 // Reply to Property Exchange Capabilities
                 TODO("Implement")
+            }
+
+            else -> {
+                processUnknownCIMessage(data)
             }
         }
     }

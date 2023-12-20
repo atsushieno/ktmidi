@@ -208,12 +208,6 @@ private val defaultPropertyList = listOf(
     PropertyResource(PropertyResourceNames.JSON_SCHEMA)
 )
 
-interface MidiCIPropertyService {
-    fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply
-    fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply
-    fun subscribeProperty(msg: Message.SubscribeProperty) : Message.SubscribePropertyReply
-}
-
 class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
                             private val propertyList: MutableList<PropertyResource> = mutableListOf<PropertyResource>().apply { addAll(defaultPropertyList) })
     : MidiCIPropertyService {

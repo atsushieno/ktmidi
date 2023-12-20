@@ -8,13 +8,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 class MidiDeviceManager {
+    var isResponder = false
 
     private val emptyMidiAccess = EmptyMidiAccess()
     private val emptyMidiInput: MidiInput
     private val emptyMidiOutput: MidiOutput
     private var midiAccessValue: MidiAccess = emptyMidiAccess
 
-    private val ciHandler = CIResponderModel { data ->
+    val initiator = CIInitiatorModel { data ->
+        val midi1Bytes = listOf(Midi1Status.SYSEX.toByte()) + data + listOf(Midi1Status.SYSEX_END.toByte())
+        sendToAll(midi1Bytes.toByteArray(), 0)
+    }
+    private val responder = CIResponderModel { data ->
         val midi1Bytes = listOf(Midi1Status.SYSEX.toByte()) + data + listOf(Midi1Status.SYSEX_END.toByte())
         sendToAll(midi1Bytes.toByteArray(), 0)
     }
@@ -45,13 +50,17 @@ class MidiDeviceManager {
                     )
 
                     virtualMidiInput = midiAccessValue.createVirtualOutputReceiver(pcOut)
-                    virtualMidiInput!!.setMessageReceivedListener { data, start, length, timestampInNanoseconds ->
+                    virtualMidiInput!!.setMessageReceivedListener { data, start, length, _ ->
                         if (data.size > 3 &&
                             data[start] == Midi1Status.SYSEX.toByte() &&
                             data[start + 1] == MidiCIConstants.UNIVERSAL_SYSEX &&
                             data[start + 3] == MidiCIConstants.UNIVERSAL_SYSEX_SUB_ID_MIDI_CI) {
                             // it is a MIDI-CI message
-                            ciHandler.processCIMessage(data.drop(start + 1).take(length - 2))
+                            // FIXME: maybe make it exclusive?
+                            if (isResponder)
+                                responder.processCIMessage(data.drop(start + 1).take(length - 2))
+                            else
+                                initiator.processCIMessage(data.drop(start + 1).take(length - 2))
                             return@setMessageReceivedListener
                         }
                     }
@@ -94,6 +103,11 @@ class MidiDeviceManager {
 
     var midiInput: MidiInput
     var midiOutput: MidiOutput
+
+    // Ideally, there should be distinct pair of virtual ports for Initiator
+    // and Responder, but on some MidiAccess backends (namely RtMidi) creating
+    // multiple virtual ins or outs results in native crashes (hard to investigate).
+    // Therefore, we simply use the same virtual in and out for both purposes.
     private var virtualMidiInput: MidiInput? = null
     private var virtualMidiOutput: MidiOutput? = null
 

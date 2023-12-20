@@ -13,7 +13,7 @@ class MidiCIInitiatorTest {
         val initiator = mediator.initiator
 
         assertEquals(MidiCIInitiatorState.Initial, initiator.state)
-        assertEquals(0, initiator.device.manufacturer)
+        assertEquals(0, initiator.device.manufacturerId)
         assertEquals(19474, initiator.muid)
     }
 

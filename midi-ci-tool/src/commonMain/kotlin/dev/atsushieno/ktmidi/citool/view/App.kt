@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
 fun App() {
@@ -46,8 +47,11 @@ fun App() {
 @Composable
 fun InitiatorScreen() {
     Column {
-        Text("TODO")
+        Button(onClick = { AppModel.midiDeviceManager.initiator.sendDiscovery()}) {
+            Text("Send Discovery")
+        }
 
+        AppModel.midiDeviceManager.isResponder = false
         MidiDeviceSelector()
     }
 }
@@ -56,6 +60,7 @@ fun InitiatorScreen() {
 fun ResponderScreen() {
     Text("It receives MIDI-CI requests on the Virtual In port and sends replies back from the Virtual Out port")
 
+    AppModel.midiDeviceManager.isResponder = true
     val logText = remember { ViewModel.logText }
 
     TextField(logText.value, onValueChange = { _: String -> }, readOnly = true)

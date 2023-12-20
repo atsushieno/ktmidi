@@ -11,10 +11,6 @@ object AppModel {
 
     val midiDeviceManager = MidiDeviceManager()
 
-    private fun sendToAll(bytes: ByteArray, timestamp: Long) {
-        midiDeviceManager.sendToAll(bytes, timestamp)
-    }
-
     fun setOutputDevice(id: String) {
         midiDeviceManager.midiOutputDeviceId = id
     }

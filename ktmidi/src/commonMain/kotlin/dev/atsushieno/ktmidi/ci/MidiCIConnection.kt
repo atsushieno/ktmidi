@@ -46,6 +46,9 @@ object MidiCIConstants {
     const val NO_FUNCTION_BLOCK: Byte = 0x7F
     const val WHOLE_FUNCTION_BLOCK: Byte = 0x7F
 
+    const val BROADCAST_MUID_28 = 0xFFFFFFF
+    const val BROADCAST_MUID_32 = 0x7F7F7F7F
+
     val Midi1ProtocolTypeInfo = MidiCIProtocolTypeInfo(MidiCIProtocolType
         .MIDI1.toByte(), MidiCIProtocolValue.MIDI1.toByte(), 0, 0, 0)
     val Midi2ProtocolTypeInfo = MidiCIProtocolTypeInfo(MidiCIProtocolType

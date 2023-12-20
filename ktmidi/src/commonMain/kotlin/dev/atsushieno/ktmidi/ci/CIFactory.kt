@@ -305,12 +305,13 @@ object CIFactory {
     fun midiCIProfileInquiry(
         dst: MutableList<Byte>, destinationChannelOr7F: Byte,
         sourceMUID: Int, destinationMUID: Int
-    ) {
+    ) : List<Byte> {
         midiCIMessageCommon(
             dst, destinationChannelOr7F,
             SUB_ID_2_PROFILE_INQUIRY,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
+        return dst.take(12)
     }
 
     fun midiCIProfileInquiryReply(
@@ -342,43 +343,46 @@ object CIFactory {
     fun midiCIProfileSet(
         dst: MutableList<Byte>, destination: Byte, turnOn: Boolean,
         sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId
-    ) {
+    ) : List<Byte> {
         midiCIMessageCommon(
             dst, destination,
             if (turnOn) SUB_ID_2_SET_PROFILE_ON else SUB_ID_2_SET_PROFILE_OFF,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
         midiCIProfile(dst, 13, profile)
+        return dst.take(18)
     }
 
     fun midiCIProfileAddedRemoved(
         dst: MutableList<Byte>, destination: Byte, isRemoved: Boolean,
         sourceMUID: Int, profile: MidiCIProfileId
-    ) {
+    ) : List<Byte> {
         midiCIMessageCommon(
             dst, destination,
             if (isRemoved) SUB_ID_2_PROFILE_REMOVED_REPORT else SUB_ID_2_PROFILE_ADDED_REPORT,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, 0x7F7F7F7F
         )
         midiCIProfile(dst, 13, profile)
+        return dst.take(18)
     }
 
     fun midiCIProfileReport(
         dst: MutableList<Byte>, source: Byte, isEnabledReport: Boolean,
         sourceMUID: Int, profile: MidiCIProfileId
-    ) {
+    ) : List<Byte> {
         midiCIMessageCommon(
             dst, source,
             if (isEnabledReport) SUB_ID_2_PROFILE_ENABLED_REPORT else SUB_ID_2_PROFILE_DISABLED_REPORT,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, 0x7F7F7F7F
         )
         midiCIProfile(dst, 13, profile)
+        return dst.take(18)
     }
 
     fun midiCIProfileSpecificData(
         dst: MutableList<Byte>, source: Byte,
         sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, dataSize: Int, data: MutableList<Byte>
-    ) {
+    ) : List<Byte> {
         midiCIMessageCommon(
             dst, source,
             SUB_ID_2_PROFILE_SPECIFIC_DATA,
@@ -387,6 +391,7 @@ object CIFactory {
         midiCIProfile(dst, 13, profile)
         midiCiDirectUint32At(dst, 18, dataSize)
         memcpy(dst, 22, data, dataSize)
+        return dst.take(22 + dataSize)
     }
 
 
