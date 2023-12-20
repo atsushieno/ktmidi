@@ -21,8 +21,8 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     private val logger = Logger()
 
     class Events {
-        val discoveryReplyReceived = mutableListOf<(initiatorMUID: Int, initiatorOutputPath: Byte) -> Unit>()
-        val endpointReplyReceived = mutableListOf<(initiatorMUID: Int, destinationMUID: Int, status: Byte) -> Unit>()
+        val discoveryReplyReceived = mutableListOf<(Message.DiscoveryReply) -> Unit>()
+        val endpointReplyReceived = mutableListOf<(Message.EndpointReply) -> Unit>()
         val profileInquiryReplyReceived = mutableListOf<(source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit>()
         val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
         val propertyCapabilityReplyReceived = mutableListOf<(Message.PropertyGetCapabilitiesReply) -> Unit>()
@@ -49,6 +49,35 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
             sendNakForUnknownCIMessage(data)
         }
 
+        processDiscoveryReply = { msg ->
+            logger.discoveryReply(msg)
+            events.discoveryReplyReceived.forEach { it(msg) }
+            handleNewEndpoint(msg)
+        }
+
+        processEndpointReply = { msg ->
+            logger.endpointReply(msg)
+            events.endpointReplyReceived.forEach { it(msg) }
+            defaultProcessEndpointReply(msg)
+        }
+
+        processPropertyCapabilitiesReply = { msg ->
+            logger.propertyGetCapabilitiesReply(msg)
+            events.propertyCapabilityReplyReceived.forEach { it(msg) }
+            defaultProcessPropertyCapabilitiesReply(msg)
+        }
+
+        processGetDataReply = { msg ->
+            logger.getPropertyDataReply(msg)
+            events.getPropertyDataReplyReceived.forEach { it(msg) }
+            defaultProcessGetDataReply(msg)
+        }
+
+        processSetDataReply = { msg ->
+            logger.setPropertyDataReply(msg)
+            events.setPropertyDataReplyReceived.forEach { it(msg) }
+            // nothing to delegate further
+        }
     }
 
     fun sendDiscovery() {

@@ -16,7 +16,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     private val logger = Logger()
 
     class Events {
-        val discoveryReceived = mutableListOf<(initiatorMUID: Int, initiatorOutputPath: Byte) -> Unit>()
+        val discoveryReceived = mutableListOf<(msg: Message.DiscoveryInquiry) -> Unit>()
         val endpointInquiryReceived = mutableListOf<(initiatorMUID: Int, destinationMUID: Int, status: Byte) -> Unit>()
         val profileInquiryReceived = mutableListOf<(source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit>()
         val profileStateChanged = mutableListOf<(profile: MidiCIProfileId, enabled: Boolean) -> Unit>()
@@ -45,10 +45,10 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
             sendNakForUnknownCIMessage(data)
         }
         // Endpoint
-        processDiscovery = { initiatorMUID, initiatorOutputPath ->
-            logger.discovery(initiatorMUID, initiatorOutputPath)
-            events.discoveryReceived.forEach { it(initiatorMUID, initiatorOutputPath) }
-            sendDiscoveryReplyForInquiry(initiatorMUID, initiatorOutputPath)
+        processDiscovery = { msg ->
+            logger.discovery(msg)
+            events.discoveryReceived.forEach { it(msg) }
+            sendDiscoveryReplyForInquiry(msg)
         }
         processEndpointMessage = { initiatorMUID, destinationMUID, status ->
             logger.endpointMessage(initiatorMUID, destinationMUID, status)

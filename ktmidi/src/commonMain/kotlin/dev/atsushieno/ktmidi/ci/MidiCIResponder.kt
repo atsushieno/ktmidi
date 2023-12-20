@@ -30,14 +30,14 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     // FIXME: enable this when we start supporting Property Exchange.
     //var establishedMaxSimulutaneousPropertyRequests: Byte? = null
 
-    val sendDiscoveryReplyForInquiry: (initiatorMUID: Int, initiatorOutputPath: Byte) -> Unit = { initiatorMUID, initiatorOutputPath ->
+    val sendDiscoveryReplyForInquiry: (msg: Message.DiscoveryInquiry) -> Unit = { msg ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(
             CIFactory.midiCIDiscoveryReply(
-                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, initiatorMUID,
+                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, msg.muid,
                 device.manufacturerId, device.familyId, device.modelId, device.versionId,
                 capabilityInquirySupported, receivableMaxSysExSize,
-                initiatorOutputPath, functionBlock
+                msg.outputPathId, functionBlock
             )
         )
     }
@@ -191,9 +191,12 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
             // Discovery
             CIFactory.SUB_ID_2_DISCOVERY_INQUIRY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val device = CIRetrieval.midiCIGetDeviceDetails(data)
+                val ciSupported = data[24]
+                val max = CIRetrieval.midiCIMaxSysExSize(data)
                 // only available in MIDI-CI 1.2 or later.
                 val initiatorOutputPath = if (data.size > 29) data[29] else 0
-                processDiscovery(sourceMUID, initiatorOutputPath)
+                processDiscovery(Message.DiscoveryInquiry(sourceMUID, device, ciSupported, max, initiatorOutputPath))
             }
 
             CIFactory.SUB_ID_2_ENDPOINT_MESSAGE_INQUIRY -> {

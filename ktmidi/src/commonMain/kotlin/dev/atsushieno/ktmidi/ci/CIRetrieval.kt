@@ -35,6 +35,9 @@ object CIRetrieval {
     fun midiCIGetMUIDToInvalidate(sysex: List<Byte>) =
         sysex[13] + (sysex[14] shl 8) + (sysex[15] shl 16) + (sysex[16] shl 24)
 
+    fun midiCIMaxSysExSize(sysex: List<Byte>) =
+        sysex[25] + (sysex[26] shl 8) + (sysex[27] shl 16) + (sysex[28] shl 24)
+
     /** retrieves a protocol type info from a MIDI-CI sysex7 chunk partial (from offset 0). */
     private fun readSingleProtocol(sysex: List<Byte>) =
         MidiCIProtocolTypeInfo(sysex[0], sysex[1], sysex[2], 0, 0)
@@ -92,4 +95,14 @@ object CIRetrieval {
         sysex[17] + (sysex[18] shl 8) + (sysex[19] shl 16) + (sysex[20] shl 24)
 
     fun midiCIGetMaxPropertyRequests(sysex: List<Byte>) = sysex[13]
+    fun midiCIGetPropertyHeader(sysex: List<Byte>): List<Byte> {
+        val size = sysex[14] + (sysex[15] shl 7)
+        return sysex.drop(16).take(size)
+    }
+    fun midiCIGetPropertyBody(sysex: List<Byte>): List<Byte> {
+        val headerSize = sysex[14] + (sysex[15] shl 7)
+        val index = 16 + headerSize
+        val bodySize = sysex[index] + (sysex[index + 1] shl 7)
+        return sysex.drop(18 + headerSize).take(bodySize)
+    }
 }

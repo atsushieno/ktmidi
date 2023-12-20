@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
+import kotlin.experimental.and
 import kotlin.random.Random
 
 /*
@@ -20,32 +21,105 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                       private val sendOutput: (data: List<Byte>) -> Unit,
                       val outputPathId: Byte = 0,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
+
+    class Connection(
+        val device: DeviceDetails,
+        var maxSimultaneousPropertyRequests: Byte = 0,
+        var productInstanceId: String = "") {
+
+        val properties = mutableMapOf<List<Byte>, List<Byte>>()
+        fun updateProperty(header: List<Byte>, body: List<Byte>) {
+            properties[header] = body
+        }
+    }
+
     var midiCIBufferSize = 4096
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
     var productInstanceId: String? = null
 
     var state: MidiCIInitiatorState = MidiCIInitiatorState.Initial
 
-    private var discoveredDevice: DeviceDetails? = null
-
     val profiles = mutableListOf<MidiCIProfileId>()
 
-    var establishedMaxSimultaneousPropertyRequests: Byte? = null
+    val connections = mutableMapOf<Int, Connection>()
 
-    // Input handlers
+    // Initiator implementation
 
-    private val defaultProcessDiscoveryResponse = { device: DeviceDetails, sourceMUID: Int, destinationMUID: Int ->
-        if (destinationMUID == muid) {
-            state = MidiCIInitiatorState.DISCOVERED
+    // Discovery
 
-            // If successfully discovered, continue to endpoint inquiry
-            discoveredDevice = device
-            sendEndpointMessage(sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
-
-            requestProfiles(0x7F, sourceMUID)
-        }
+    fun sendDiscovery(ciCategorySupported: Byte = MidiCIDiscoveryCategoryFlags.ThreePs) =
+        sendDiscovery(Message.DiscoveryInquiry(muid,
+            DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId),
+            ciCategorySupported, receivableMaxSysExSize, outputPathId))
+    fun sendDiscovery(msg: Message.DiscoveryInquiry) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIDiscovery(
+            buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.muid, msg.device.manufacturer, msg.device.family, msg.device.modelNumber,
+            msg.device.softwareRevisionLevel, msg.ciCategorySupported, msg.receivableMaxSysExSize, msg.outputPathId
+        ))
+        // we set state before sending the MIDI data as it may process the rest of the events synchronously through the end...
+        state = MidiCIInitiatorState.DISCOVERY_SENT
     }
-    var processDiscoveryResponse = defaultProcessDiscoveryResponse
+
+    fun sendEndpointMessage(targetMuid: Int, status: Byte) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIEndpointMessage(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, targetMuid, status))
+    }
+
+    // Profile Configuration
+
+    fun requestProfiles(destinationChannelOr7F: Byte, destinationMUID: Int) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIProfileInquiry(buf, destinationChannelOr7F, muid, destinationMUID))
+    }
+
+    // Property Exchange
+    // TODO: implement the rest (it's going to take long time, read the entire Common Rules for PE, support split chunks in reader and writer, and JSON serializers)
+
+    fun requestPropertyExchangeCapabilities(destinationChannelOr7F: Byte, destinationMUID: Int, maxSimultaneousPropertyRequests: Byte) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIPropertyGetCapabilities(
+            buf,
+            destinationChannelOr7F,
+            false,
+            muid,
+            destinationMUID,
+            maxSimultaneousPropertyRequests
+        ))
+    }
+
+    var requestIdSerial: Byte = 0
+
+    // FIXME: it is specific to CommonPropertyService and should be decoupled from this generic CI implementation.
+    fun sendPropertyGetResourceList(destinationMUID: Int) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        // FIXME: better if it is not hand coded like this...
+        val headerJson = Json.JsonValue(mapOf(Pair(Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE), Json.JsonValue(PropertyResourceNames.RESOURCE_LIST))))
+        val headerBytes = headerJson.toString().encodeToByteArray().toList()
+        sendOutput(CIFactory.midiCIPropertyPacketCommon(buf, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY,
+            muid, destinationMUID, requestIdSerial++, headerBytes, 1u, 1u, listOf()))
+    }
+
+    // Reply handler
+
+    val handleNewEndpoint = { msg: Message.DiscoveryReply ->
+        state = MidiCIInitiatorState.DISCOVERED
+
+        // If successfully discovered, continue to endpoint inquiry
+        val connection = Connection(msg.device)
+        // FIXME: shoult this involve "releasing" existing connection if any?
+        connections[msg.sourceMUID] = connection
+
+        sendEndpointMessage(msg.sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
+
+        if ((msg.ciCategorySupported.toInt() and MidiCIDiscoveryCategoryFlags.ProfileConfiguration.toInt()) != 0)
+            requestProfiles(0x7F, msg.sourceMUID)
+        if ((msg.ciCategorySupported.toInt() and MidiCIDiscoveryCategoryFlags.PropertyExchange.toInt()) != 0)
+            requestPropertyExchangeCapabilities(0x7F, msg.sourceMUID, 1)
+    }
+    var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
+        handleNewEndpoint(msg)
+    }
 
     private val defaultProcessInvalidateMUID = { sourceMUID: Int, destinationMUID: Int, muidToInvalidate: Int ->
         if (muidToInvalidate == muid) {
@@ -71,39 +145,16 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     }
     var processNak = defaultProcessNak
 
-    private val defaultProcessEndpointMessageResponse = { sourceMUID: Int, destinationMUID: Int, status: Byte, data: List<Byte> ->
-        if (status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
-            productInstanceId = data.toByteArray().decodeToString() // FIXME: verify that it is only ASCII chars?
-    }
-    var processEndpointMessageResponse = defaultProcessEndpointMessageResponse
-
-    /*
-
-    Protocol Negotiation is deprecated. We do not send any of those anymore.
-
-    private val defaultProcessReplyToInitiateProtocolNegotiation = { supportedProtocols: List<MidiCIProtocolTypeInfo>, sourceMUID: Int ->
-        val protocol = preferredProtocols.firstOrNull { i -> supportedProtocols.any { i.type == it.type && i.version == it.version }}
-        if (protocol != null) {
-            // we set state before sending the MIDI data as it may process the rest of the events synchronously through the end...
-            state = MidiCIInitiatorState.NEW_PROTOCOL_SENT
-            setNewProtocol(sourceMUID, authorityLevel, protocol)
-            currentMidiProtocol = protocol
-            protocolTestData = (0 until 48).map { it.toByte()}
-            state = MidiCIInitiatorState.TEST_SENT
-            testNewProtocol(sourceMUID, authorityLevel, protocolTestData!!)
+    val defaultProcessEndpointReply = { msg: Message.EndpointReply ->
+        val conn = connections[msg.sourceMUID]
+        if (conn != null) {
+            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
+                conn.productInstanceId = msg.data.toByteArray().decodeToString() // FIXME: verify that it is only ASCII chars?
         }
     }
-    var processReplyToInitiateProtocolNegotiation = defaultProcessReplyToInitiateProtocolNegotiation
+    var processEndpointReply = defaultProcessEndpointReply
 
-    private val defaultProcessTestProtocolReply = { sourceMUID: Int, testData: List<Byte> ->
-        if (testData.toByteArray() contentEquals protocolTestData?.toByteArray()) {
-            protocolTested = true
-            state = MidiCIInitiatorState.ESTABLISHED
-            confirmProtocol(sourceMUID, authorityLevel)
-        }
-    }
-    var processTestProtocolReply = defaultProcessTestProtocolReply
-    */
+    // Protocol Negotiation is deprecated. We do not send any of them anymore.
 
     var processProfileInquiryResponse: (destinationChannel: Byte, sourceMUID: Int, profileSet: List<Pair<MidiCIProfileId, Boolean>>) -> Unit = { _, _, _ ->
         // do nothing
@@ -115,83 +166,26 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     private val defaultProcessProfileRemovedReport: (profileId: MidiCIProfileId) -> Unit = { profileId -> profiles.remove(profileId) }
     var processProfileRemovedReport = defaultProcessProfileRemovedReport
 
-    private val defaultProcessGetMaxSimultaneousPropertyReply: (destinationChannel: Byte, sourceMUID: Int, destinationMUID: Int, max: Byte) -> Unit = { _, _, _, max ->
-        establishedMaxSimultaneousPropertyRequests = max
+    val defaultProcessPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
+        val conn = connections[msg.sourceMUID]
+        if (conn != null) {
+            conn.maxSimultaneousPropertyRequests = msg.max
+
+            // proceed to query resource list
+            sendPropertyGetResourceList(msg.sourceMUID)
+        }
+        // FIXME: else -> error reporting
     }
-    var processGetMaxSimultaneousPropertyReply = defaultProcessGetMaxSimultaneousPropertyReply
+    var processPropertyCapabilitiesReply = defaultProcessPropertyCapabilitiesReply
 
-    // Discovery
-
-    fun sendDiscovery(ciCategorySupported: Byte = MidiCIDiscoveryCategoryFlags.ThreePs) =
-        sendDiscovery(Message.DiscoveryInquiry(muid,
-            device.manufacturerId, device.familyId, device.modelId, device.versionId,
-            ciCategorySupported, receivableMaxSysExSize, outputPathId))
-    fun sendDiscovery(msg: Message.DiscoveryInquiry) {
-        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIDiscovery(
-            buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.muid, msg.manufacturerId, msg.familyId, msg.modelId,
-            msg.versionId, msg.ciCategorySupported, msg.receivableMaxSysExSize, msg.outputPathId
-        ))
-        // we set state before sending the MIDI data as it may process the rest of the events synchronously through the end...
-        state = MidiCIInitiatorState.DISCOVERY_SENT
+    val defaultProcessGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->
+        val conn = connections[msg.sourceMUID]
+        conn?.updateProperty(msg.header, msg.body)
     }
 
-    fun sendEndpointMessage(targetMuid: Int, status: Byte) {
-        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIEndpointMessage(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, targetMuid, status))
-    }
+    var processGetDataReply = defaultProcessGetDataReply
 
-    /*
-    // Protocol Negotiation - we do not send them anymore.
-
-    fun initiateProtocolNegotiation(destinationMUID: Int, authorityLevel: Byte, protocolTypes: List<MidiCIProtocolTypeInfo>) {
-        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIProtocolNegotiation(buf, false, muid, destinationMUID, authorityLevel, protocolTypes)
-        sendOutput(buf)
-    }
-
-    fun setNewProtocol(destinationMUID: Int, authorityLevel: Byte, newProtocolType: MidiCIProtocolTypeInfo) {
-        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIProtocolSet(buf, muid, destinationMUID, authorityLevel, newProtocolType)
-        sendOutput(buf)
-    }
-
-    fun testNewProtocol(destinationMUID: Int, authorityLevel: Byte, testData48Bytes: List<Byte>) {
-        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIProtocolTest(buf, true, muid, destinationMUID, authorityLevel, testData48Bytes)
-        sendOutput(buf)
-    }
-
-    fun confirmProtocol(destinationMUID: Int, authorityLevel: Byte) {
-        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIProtocolConfirmEstablished(buf, muid, destinationMUID, authorityLevel)
-        sendOutput(buf)
-    }
-    */
-
-    // Profile Configuration
-
-    fun requestProfiles(destinationChannelOr7F: Byte, destinationMUID: Int) {
-        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIProfileInquiry(buf, destinationChannelOr7F, muid, destinationMUID))
-    }
-
-    // Property Exchange
-    // TODO: implement the rest (it's going to take long time, read the entire Common Rules for PE, support split chunks in reader and writer, and JSON serializers)
-
-    fun requestPropertyExchangeCapabilities(destinationChannelOr7F: Byte, destinationMUID: Int, maxSimultaneousPropertyRequests: Byte) {
-        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIPropertyGetCapabilities(
-            buf,
-            destinationChannelOr7F,
-            false,
-            muid,
-            destinationMUID,
-            maxSimultaneousPropertyRequests
-        ))
-    }
-
-    // Reply handler
+    var processSetDataReply: (msg: Message.SetPropertyDataReply) -> Unit = {} // do nothing
 
     fun sendNakForUnknownCIMessage(data: List<Byte>) {
         val source = data[1]
@@ -210,6 +204,11 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     fun processInput(data: List<Byte>) {
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
             return // not MIDI-CI sysex
+
+        val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
+        if (destinationMUID != muid && destinationMUID != MidiCIConstants.BROADCAST_MUID_32)
+            return // we are not the target
+
         when (data[3]) {
             /*
             // Protocol Negotiation - we ignore them
@@ -229,20 +228,22 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             */
             // Discovery
             CIFactory.SUB_ID_2_DISCOVERY_REPLY -> {
+                val ciSupported = data[24]
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val device = CIRetrieval.midiCIGetDeviceDetails(data)
+                val max = CIRetrieval.midiCIMaxSysExSize(data)
+                // only available in MIDI-CI 1.2 or later.
+                val initiatorOutputPath = if (data.size > 29) data[29] else 0
                 // Reply to Discovery
-                processDiscoveryResponse(
-                    CIRetrieval.midiCIGetDeviceDetails(data),
-                    CIRetrieval.midiCIGetSourceMUID(data),
-                    CIRetrieval.midiCIGetDestinationMUID(data)
-                )
+                processDiscoveryReply(Message.DiscoveryReply(
+                    sourceMUID, destinationMUID, device, ciSupported, max, initiatorOutputPath))
             }
             CIFactory.SUB_ID_2_ENDPOINT_MESSAGE_REPLY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
                 val status = data[13]
                 val dataLength = data[14] + (data[15].toInt() shl 7)
                 val dataValue = data.drop(16).take(dataLength)
-                processEndpointMessageResponse(sourceMUID, destinationMUID, status, dataValue)
+                processEndpointReply(Message.EndpointReply(sourceMUID, destinationMUID, status, dataValue))
             }
             CIFactory.SUB_ID_2_INVALIDATE_MUID -> {
                 // Invalid MUID
@@ -296,24 +297,27 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
             // Property Exchange
             CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_REPLY -> {
-                processGetMaxSimultaneousPropertyReply(
+                processPropertyCapabilitiesReply(Message.PropertyGetCapabilitiesReply(
                     CIRetrieval.midiCIGetDestination(data),
                     CIRetrieval.midiCIGetSourceMUID(data),
-                    CIRetrieval.midiCIGetSourceMUID(data),
-                    CIRetrieval.midiCIGetMaxPropertyRequests(data)
+                    destinationMUID,
+                    CIRetrieval.midiCIGetMaxPropertyRequests(data))
                 )
             }
-            CIFactory.SUB_ID_2_PROPERTY_HAS_DATA_REPLY -> {
-                // Reply to Property Exchange Capabilities
-                TODO("Implement")
-            }
             CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY -> {
-                // Reply to Property Exchange Capabilities
-                TODO("Implement")
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val header = CIRetrieval.midiCIGetPropertyHeader(data)
+                val body = CIRetrieval.midiCIGetPropertyBody(data)
+                val requestId = data[21]
+                processGetDataReply(Message.GetPropertyDataReply(
+                    sourceMUID, destinationMUID, requestId, header, body))
             }
             CIFactory.SUB_ID_2_PROPERTY_SET_DATA_REPLY -> {
-                // Reply to Property Exchange Capabilities
-                TODO("Implement")
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val header = CIRetrieval.midiCIGetPropertyHeader(data)
+                val requestId = data[21]
+                processSetDataReply(Message.SetPropertyDataReply(
+                    sourceMUID, destinationMUID, requestId, header))
             }
             CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY -> {
                 // Reply to Property Exchange Capabilities

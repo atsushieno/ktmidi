@@ -213,6 +213,23 @@ class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
     : MidiCIPropertyService {
 
     // MidiCIPropertyService implementation
+    override fun getPropertyIdentifier(header: List<Byte>): String {
+        val json = Json.parse(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
+        val resId =
+            json.token.map.firstNotNullOfOrNull {
+                if (it.key.token.toString() == PropertyCommonHeaderKeys.RES_ID)
+                    it.value.token.toString()
+                else null
+            }
+        val resource =
+            json.token.map.firstNotNullOfOrNull {
+                if (it.key.token.toString() == PropertyCommonHeaderKeys.RESOURCE)
+                    it.value.token.toString()
+                else null
+            }
+        return resId ?: resource ?: ""
+    }
+
     override fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply {
         val jsonInquiry = Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
 
@@ -220,7 +237,7 @@ class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
 
         val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
         val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
-        return Message.GetPropertyDataReply(replyHeader, replyBody)
+        return Message.GetPropertyDataReply(msg.destinationMUID, msg.sourceMUID, msg.requestId, replyHeader, replyBody)
     }
     override fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply {
         val jsonInquiryHeader = Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
@@ -229,7 +246,7 @@ class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
         val result = setPropertyData(jsonInquiryHeader, jsonInquiryBody)
 
         val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result)).toByteArray().toList()
-        return Message.SetPropertyDataReply(replyHeader)
+        return Message.SetPropertyDataReply(msg.destinationMUID, msg.sourceMUID, msg.requestId, replyHeader)
     }
 
     override fun subscribeProperty(msg: Message.SubscribeProperty): Message.SubscribePropertyReply {

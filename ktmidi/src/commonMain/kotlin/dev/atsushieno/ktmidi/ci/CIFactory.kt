@@ -55,8 +55,8 @@ object CIFactory {
     const val SUB_ID_2_PROFILE_SPECIFIC_DATA: Byte = 0x2F
     const val SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY: Byte = 0x30
     const val SUB_ID_2_PROPERTY_CAPABILITIES_REPLY: Byte = 0x31
-    const val SUB_ID_2_PROPERTY_HAS_DATA_INQUIRY: Byte = 0x32
-    const val SUB_ID_2_PROPERTY_HAS_DATA_REPLY: Byte = 0x33
+    //const val SUB_ID_2_PROPERTY_HAS_DATA_INQUIRY: Byte = 0x32
+    //const val SUB_ID_2_PROPERTY_HAS_DATA_REPLY: Byte = 0x33
     const val SUB_ID_2_PROPERTY_GET_DATA_INQUIRY: Byte = 0x34
     const val SUB_ID_2_PROPERTY_GET_DATA_REPLY: Byte = 0x35
     const val SUB_ID_2_PROPERTY_SET_DATA_INQUIRY: Byte = 0x36
