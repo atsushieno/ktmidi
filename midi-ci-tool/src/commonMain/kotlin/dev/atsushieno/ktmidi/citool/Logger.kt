@@ -17,8 +17,8 @@ class Logger {
         ViewModel.logText.value += "- DiscoveryReply(device = ${msg.device}, sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)})\n"
     }
 
-    fun endpointMessage(initiatorMUID: Int, destinationMUID: Int, status: Byte) {
-        ViewModel.logText.value += "- Endpoint(initiatorMUID = ${initiatorMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, $status)\n"
+    fun endpointMessage(msg: Message.EndpointInquiry) {
+        ViewModel.logText.value += "- Endpoint(sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)}, ${msg.status})\n"
     }
 
     fun endpointReply(msg: Message.EndpointReply) {

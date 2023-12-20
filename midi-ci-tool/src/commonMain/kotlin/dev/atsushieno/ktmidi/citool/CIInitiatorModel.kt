@@ -8,6 +8,7 @@ import dev.atsushieno.ktmidi.citool.view.ViewModel
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.random.Random
 
 class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     fun processCIMessage(data: List<Byte>) {
@@ -40,7 +41,7 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         ViewModel.logText.value += "[I] REQUEST SYSEX: " + data.joinToString { it.toString(16) } + "\n"
         outputSender(data)
     }).apply {
-        productInstanceId = "KtMidi-CI-Tool Responder"
+        productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
 
         // Unknown
         processUnknownCIMessage = { data ->

@@ -50,20 +50,7 @@ class MidiDeviceManager {
                     )
 
                     virtualMidiInput = midiAccessValue.createVirtualOutputReceiver(pcOut)
-                    virtualMidiInput!!.setMessageReceivedListener { data, start, length, _ ->
-                        if (data.size > 3 &&
-                            data[start] == Midi1Status.SYSEX.toByte() &&
-                            data[start + 1] == MidiCIConstants.UNIVERSAL_SYSEX &&
-                            data[start + 3] == MidiCIConstants.UNIVERSAL_SYSEX_SUB_ID_MIDI_CI) {
-                            // it is a MIDI-CI message
-                            // FIXME: maybe make it exclusive?
-                            if (isResponder)
-                                responder.processCIMessage(data.drop(start + 1).take(length - 2))
-                            else
-                                initiator.processCIMessage(data.drop(start + 1).take(length - 2))
-                            return@setMessageReceivedListener
-                        }
-                    }
+                    setupInputEventListener(virtualMidiInput!!)
 
                     virtualMidiOutput = midiAccessValue.createVirtualInputSender(pcIn)
                 } catch (_: Exception) {
@@ -71,35 +58,54 @@ class MidiDeviceManager {
             }
         }
 
+    private fun setupInputEventListener(input: MidiInput) {
+        input.setMessageReceivedListener { data, start, length, _ ->
+            if (data.size > 3 &&
+                data[start] == Midi1Status.SYSEX.toByte() &&
+                data[start + 1] == MidiCIConstants.UNIVERSAL_SYSEX &&
+                data[start + 3] == MidiCIConstants.UNIVERSAL_SYSEX_SUB_ID_MIDI_CI) {
+                // it is a MIDI-CI message
+                // FIXME: maybe make it exclusive?
+                if (isResponder)
+                    responder.processCIMessage(data.drop(start + 1).take(length - 2))
+                else
+                    initiator.processCIMessage(data.drop(start + 1).take(length - 2))
+                return@setMessageReceivedListener
+            }
+        }
+    }
+
     val midiInputPorts : Iterable<MidiPortDetails>
         get() = midiAccess.inputs
     val midiOutputPorts : Iterable<MidiPortDetails>
         get() = midiAccess.outputs
 
     var midiInputDeviceId: String?
-        get() = midiInput?.details?.id
+        get() = midiInput.details.id
         set(id) {
             runBlocking {
-                midiInput?.close()
+                midiInput.close()
                 midiInput = if (id != null) midiAccessValue.openInput(id) else emptyMidiInput
-                midiInputOpened()
+                midiInputOpened(midiInput)
             }
         }
 
     var midiOutputDeviceId: String?
-        get() = midiOutput?.details?.id
+        get() = midiOutput.details.id
         set(id) {
             runBlocking {
-                midiOutput?.close()
+                midiOutput.close()
                 midiOutput = if (id != null) midiAccessValue.openOutput(id) else emptyMidiOutput
                 midiOutputError.value = null
                 virtualMidiOutputError.value = null
-                midiOutputOpened()
+                midiOutputOpened(midiOutput)
             }
         }
 
-    var midiInputOpened : () -> Unit = {}
-    var midiOutputOpened : () -> Unit = {}
+    var midiInputOpened : (input: MidiInput) -> Unit = {
+        setupInputEventListener(midiInput)
+    }
+    var midiOutputOpened : (output: MidiOutput) -> Unit = {}
 
     var midiInput: MidiInput
     var midiOutput: MidiOutput

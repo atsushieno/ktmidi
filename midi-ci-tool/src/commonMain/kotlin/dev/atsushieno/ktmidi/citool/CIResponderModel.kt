@@ -5,6 +5,7 @@ import dev.atsushieno.ktmidi.citool.view.ViewModel
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.random.Random
 
 class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     fun processCIMessage(data: List<Byte>) {
@@ -17,7 +18,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
 
     class Events {
         val discoveryReceived = mutableListOf<(msg: Message.DiscoveryInquiry) -> Unit>()
-        val endpointInquiryReceived = mutableListOf<(initiatorMUID: Int, destinationMUID: Int, status: Byte) -> Unit>()
+        val endpointInquiryReceived = mutableListOf<(msg: Message.EndpointInquiry) -> Unit>()
         val profileInquiryReceived = mutableListOf<(source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit>()
         val profileStateChanged = mutableListOf<(profile: MidiCIProfileId, enabled: Boolean) -> Unit>()
         val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
@@ -36,7 +37,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         ViewModel.logText.value += "[R] REPLY SYSEX: " + data.joinToString { it.toString(16) } + "\n"
         outputSender(data)
     }).apply {
-        productInstanceId = "KtMidi-CI-Tool Responder"
+        productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
 
         // Unknown
         processUnknownCIMessage = { data ->
@@ -44,16 +45,18 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
             events.unknownMessageReceived.forEach { it(data) }
             sendNakForUnknownCIMessage(data)
         }
-        // Endpoint
+        // Discovery
         processDiscovery = { msg ->
             logger.discovery(msg)
             events.discoveryReceived.forEach { it(msg) }
             sendDiscoveryReplyForInquiry(msg)
         }
-        processEndpointMessage = { initiatorMUID, destinationMUID, status ->
-            logger.endpointMessage(initiatorMUID, destinationMUID, status)
-            events.endpointInquiryReceived.forEach { it(initiatorMUID, destinationMUID, status) }
-            sendEndpointReplyForInquiry(initiatorMUID, destinationMUID, status)
+        processEndpointMessage = { msg ->
+            logger.endpointMessage(msg)
+            events.endpointInquiryReceived.forEach { it(msg) }
+            val reply = getEndpointReplyForInquiry(msg)
+            logger.endpointReply(reply)
+            sendEndpointReply(reply)
         }
         // Profile
         processProfileInquiry = { source, sourceMUID, destinationMUID ->

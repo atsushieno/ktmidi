@@ -8,6 +8,7 @@ class Message {
     data class DiscoveryInquiry(val muid: Int, val device: DeviceDetails, val ciCategorySupported: Byte, val receivableMaxSysExSize: Int, val outputPathId: Byte)
     data class DiscoveryReply(val sourceMUID: Int, val destinationMUID: Int, val device: DeviceDetails, val ciCategorySupported: Byte,  val receivableMaxSysExSize: Int, val outputPathId: Byte)
 
+    data class EndpointInquiry(val sourceMUID: Int, val destinationMUID: Int, val status: Byte)
     data class EndpointReply(val sourceMUID: Int, val destinationMUID: Int, val status: Byte, val data: List<Byte>)
 
     // Property Exchange

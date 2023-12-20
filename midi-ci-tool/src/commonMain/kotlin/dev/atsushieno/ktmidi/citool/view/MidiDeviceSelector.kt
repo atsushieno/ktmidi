@@ -14,21 +14,24 @@ import dev.atsushieno.ktmidi.citool.AppModel
 @Composable
 fun MidiDeviceSelector() {
     Row {
-        MidiDeviceSelector(AppModel.midiDeviceManager.midiInput.details, AppModel.midiInputPorts)
-        MidiDeviceSelector(AppModel.midiDeviceManager.midiOutput.details, AppModel.midiOutputPorts)
+        MidiDeviceSelector(true, AppModel.midiDeviceManager.midiInput.details, AppModel.midiInputPorts)
+        MidiDeviceSelector(false, AppModel.midiDeviceManager.midiOutput.details, AppModel.midiOutputPorts)
     }
 }
 
 @Composable
-private fun MidiDeviceSelector(currentPort: MidiPortDetails?, ports: List<MidiPortDetails>) {
-    var midiOutputDialogState by remember { mutableStateOf(false) }
+private fun MidiDeviceSelector(isInput: Boolean, currentPort: MidiPortDetails?, ports: List<MidiPortDetails>) {
+    var dialogState by remember { mutableStateOf(false) }
 
-    DropdownMenu(expanded = midiOutputDialogState, onDismissRequest = { midiOutputDialogState = false}) {
+    DropdownMenu(expanded = dialogState, onDismissRequest = { dialogState = false}) {
         val onClick: (String) -> Unit = { id ->
             if (id.isNotEmpty()) {
-                AppModel.setOutputDevice(id)
+                if (isInput)
+                    AppModel.setInputDevice(id)
+                else
+                    AppModel.setOutputDevice(id)
             }
-            midiOutputDialogState = false
+            dialogState = false
         }
         if (ports.any())
             for (d in ports)
@@ -42,10 +45,10 @@ private fun MidiDeviceSelector(currentPort: MidiPortDetails?, ports: List<MidiPo
     Card(
         modifier = Modifier.clickable(onClick = {
             AppModel.updateMidiDeviceList()
-            midiOutputDialogState = true
+            dialogState = true
         }).padding(12.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
     ) {
-        Text(currentPort?.name ?: "-- Select MIDI output --")
+        Text(currentPort?.name ?: "-- Select MIDI ${if (isInput) "Input" else "Output"} --")
     }
 }

@@ -11,6 +11,10 @@ object AppModel {
 
     val midiDeviceManager = MidiDeviceManager()
 
+    fun setInputDevice(id: String) {
+        midiDeviceManager.midiInputDeviceId = id
+    }
+
     fun setOutputDevice(id: String) {
         midiDeviceManager.midiOutputDeviceId = id
     }

@@ -23,6 +23,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
     class Connection(
+        val parent: MidiCIInitiator,
         val device: DeviceDetails,
         var maxSimultaneousPropertyRequests: Byte = 0,
         var productInstanceId: String = "") {
@@ -106,8 +107,8 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         state = MidiCIInitiatorState.DISCOVERED
 
         // If successfully discovered, continue to endpoint inquiry
-        val connection = Connection(msg.device)
-        // FIXME: shoult this involve "releasing" existing connection if any?
+        val connection = Connection(this, msg.device)
+        // FIXME: should this involve "releasing" existing connection if any?
         connections[msg.sourceMUID] = connection
 
         sendEndpointMessage(msg.sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)

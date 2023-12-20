@@ -21,7 +21,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     var supportedProtocols: List<MidiCIProtocolTypeInfo> = MidiCIConstants.Midi2ThenMidi1Protocols
     val profileSet: MutableList<Pair<MidiCIProfileId,Boolean>> = mutableListOf()
     var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK
-    var productInstanceId: String? = null
+    var productInstanceId: String = ""
     var maxSimultaneousPropertyRequests: Byte = 1
 
     var midiCIBufferSize = 4096
@@ -43,19 +43,26 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     }
     var processDiscovery = sendDiscoveryReplyForInquiry
 
-    val sendEndpointReplyForInquiry: (initiatorMUID: Int, destinationMUID: Int, status: Byte) -> Unit = { initiatorMUID, destinationMUID, status ->
+    val sendEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        val prodId = productInstanceId
         sendOutput(
             CIFactory.midiCIEndpointMessageReply(
-                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, initiatorMUID, status,
-                if (status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId != null) prodId.toByteArray(
-                    Charsets.ISO_8859_1
-                ).toList() else listOf() // FIXME: verify that it is only ASCII chars?
-            )
+                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID, msg.status, msg.data)
         )
     }
-    var processEndpointMessage = sendEndpointReplyForInquiry
+    val getEndpointReplyForInquiry: (msg: Message.EndpointInquiry) -> Message.EndpointReply = { msg ->
+        val prodId = productInstanceId
+        if (prodId.length > 16)
+            throw IllegalStateException("productInstanceId shall not be any longer than 16 bytes in size")
+        Message.EndpointReply(muid, msg.sourceMUID, msg.status,
+            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId != null) prodId.toByteArray(
+                Charsets.ISO_8859_1
+            ).toList() else listOf() // FIXME: verify that it is only ASCII chars?
+        )
+    }
+    var processEndpointMessage: (msg: Message.EndpointInquiry) -> Unit = { msg ->
+        sendEndpointReply(getEndpointReplyForInquiry(msg))
+    }
 
     val sendAck: (sourceMUID: Int) -> Unit = { sourceMUID ->
         // FIXME: we need to implement some sort of state management for each initiator
@@ -203,7 +210,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 // only available in MIDI-CI 1.2 or later.
                 val status = data[13]
-                processEndpointMessage(sourceMUID, destinationMUID, status)
+                processEndpointMessage(Message.EndpointInquiry(sourceMUID, destinationMUID, status))
             }
 
             CIFactory.SUB_ID_2_INVALIDATE_MUID -> {
