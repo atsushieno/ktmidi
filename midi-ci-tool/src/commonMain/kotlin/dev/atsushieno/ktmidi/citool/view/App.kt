@@ -1,7 +1,11 @@
 package dev.atsushieno.ktmidi.citool.view
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -9,6 +13,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
@@ -46,13 +51,58 @@ fun App() {
 
 @Composable
 fun InitiatorScreen() {
+    AppModel.midiDeviceManager.isResponder = false
     Column {
-        Button(onClick = { AppModel.midiDeviceManager.initiator.sendDiscovery()}) {
-            Text("Send Discovery")
+        Row {
+            Button(onClick = { AppModel.midiDeviceManager.initiator.sendDiscovery()}) {
+                Text("Send Discovery")
+            }
+            MidiDeviceSelector()
         }
+        var destinationMUID by remember { mutableStateOf(0) }
+        InitiatorDestinationSelector(destinationMUID,
+            onChange = { destinationMUID = it })
 
-        AppModel.midiDeviceManager.isResponder = false
-        MidiDeviceSelector()
+        val conn = AppModel.midiDeviceManager.initiator.initiator.connections[destinationMUID]
+        if (conn != null) {
+            Text("Manufacturer: ${conn.device.manufacturer.toString(16)}")
+            Text("Family: ${conn.device.family.toString(16)}")
+            Text("ModelNumber: ${conn.device.modelNumber.toString(16)}")
+            Text("RevisionLevel: ${conn.device.softwareRevisionLevel.toString(16)}")
+            Text("ProductInstanceId: ${conn.productInstanceId}")
+            Text("maxSimultaneousPropertyRequests: ${conn.maxSimultaneousPropertyRequests}")
+        }
+    }
+}
+
+@Composable
+private fun InitiatorDestinationSelector(destinationMUID: Int,
+                                         onChange: (Int) -> Unit) {
+    var dialogState by remember { mutableStateOf(false) }
+
+    DropdownMenu(expanded = dialogState, onDismissRequest = { dialogState = false}) {
+        val onClick: (Int) -> Unit = { muid ->
+            if (muid != 0)
+                onChange(muid)
+            dialogState = false
+        }
+        if (AppModel.midiDeviceManager.initiator.initiator.connections.any())
+            AppModel.midiDeviceManager.initiator.initiator.connections.toList().forEachIndexed { index, conn ->
+                DropdownMenuItem(onClick = { onClick(conn.first) }, text = {
+                    Text(conn.first.toString())
+                })
+            }
+        else
+            DropdownMenuItem(onClick = { onClick(0) }, text = { Text("(no CI Device)") })
+        DropdownMenuItem(onClick = { onClick(0) }, text = { Text("(Cancel)") })
+    }
+    Card(
+        modifier = Modifier.clickable(onClick = {
+            dialogState = true
+        }).padding(12.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+    ) {
+        Text(if (destinationMUID != 0) destinationMUID.toString() else "-- Select CI Device --")
     }
 }
 

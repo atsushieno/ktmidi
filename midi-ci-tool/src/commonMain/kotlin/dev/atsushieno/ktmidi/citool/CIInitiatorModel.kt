@@ -37,7 +37,7 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     private val device = MidiCIDeviceInfo(1,2,1,1,
         "atsushieno", "KtMidi", "KtMidi-CI-Tool Initiator", "0.1")
 
-    private val initiator = MidiCIInitiator(device, { data ->
+    val initiator = MidiCIInitiator(device, { data ->
         ViewModel.logText.value += "[I] REQUEST SYSEX: " + data.joinToString { it.toString(16) } + "\n"
         outputSender(data)
     }).apply {
