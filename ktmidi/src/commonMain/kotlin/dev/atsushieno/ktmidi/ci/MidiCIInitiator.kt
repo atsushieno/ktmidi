@@ -22,6 +22,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
     class Connection(
         val parent: MidiCIInitiator,
+        val muid: Int,
         val device: DeviceDetails,
         var maxSimultaneousPropertyRequests: Byte = 0,
         var productInstanceId: String = "") {
@@ -39,15 +40,22 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     var productInstanceId: String? = null
 
     val connections = mutableMapOf<Int, Connection>()
+    enum class ConnectionChange {
+        Added,
+        Removed
+    }
+    val connectionsChanged = mutableListOf<(change: ConnectionChange, connection: Connection) -> Unit>()
 
     // Initiator implementation
 
     // Discovery
 
     fun sendDiscovery(ciCategorySupported: Byte = MidiCIDiscoveryCategoryFlags.ThreePs) =
-        sendDiscovery(Message.DiscoveryInquiry(muid,
+        sendDiscovery(createDiscoveryInquiry(ciCategorySupported))
+    fun createDiscoveryInquiry(ciCategorySupported: Byte = MidiCIDiscoveryCategoryFlags.ThreePs) =
+        Message.DiscoveryInquiry(muid,
             DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId),
-            ciCategorySupported, receivableMaxSysExSize, outputPathId))
+            ciCategorySupported, receivableMaxSysExSize, outputPathId)
     fun sendDiscovery(msg: Message.DiscoveryInquiry) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIDiscovery(
@@ -56,9 +64,14 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         ))
     }
 
-    fun sendEndpointMessage(targetMuid: Int, status: Byte) {
+    fun sendEndpointMessage(targetMuid: Int, status: Byte = MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID) =
+        sendEndpointMessage(createEndpointMessage(targetMuid, status))
+    fun createEndpointMessage(targetMuid: Int, status: Byte = MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID) =
+        Message.EndpointInquiry(muid, targetMuid, status)
+    fun sendEndpointMessage(msg: Message.EndpointInquiry) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIEndpointMessage(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, targetMuid, status))
+        sendOutput(CIFactory.midiCIEndpointMessage(buf, MidiCIConstants.CI_VERSION_AND_FORMAT,
+            msg.sourceMUID, msg.destinationMUID, msg.status))
     }
 
     // Profile Configuration
@@ -90,7 +103,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         // FIXME: better if it is not hand coded like this...
         val headerJson = Json.JsonValue(mapOf(Pair(Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE), Json.JsonValue(PropertyResourceNames.RESOURCE_LIST))))
-        val headerBytes = headerJson.toString().encodeToByteArray().toList()
+        val headerBytes = Json.serialize(headerJson).encodeToByteArray().toList()
         sendOutput(CIFactory.midiCIPropertyPacketCommon(buf, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY,
             muid, destinationMUID, requestIdSerial++, headerBytes, 1u, 1u, listOf()))
     }
@@ -99,9 +112,15 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
     val handleNewEndpoint = { msg: Message.DiscoveryReply ->
         // If successfully discovered, continue to endpoint inquiry
-        val connection = Connection(this, msg.device)
-        // FIXME: should this involve "releasing" existing connection if any?
-        connections[msg.sourceMUID] = connection
+        val connection = Connection(this, msg.sourceMUID, msg.device)
+        val existing = connections[msg.sourceMUID]
+        if (existing != null) {
+            // FIXME: should this involve "releasing" existing connection if any?
+            connectionsChanged.forEach { it(ConnectionChange.Removed, existing) }
+            connections.remove(msg.sourceMUID)
+        }
+        connections[msg.sourceMUID]= connection
+        connectionsChanged.forEach { it(ConnectionChange.Added, connection) }
 
         sendEndpointMessage(msg.sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
 
@@ -171,7 +190,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     val defaultProcessPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
         if (conn != null) {
-            conn.maxSimultaneousPropertyRequests = msg.max
+            conn.maxSimultaneousPropertyRequests = msg.maxSimultaneousRequests
 
             // proceed to query resource list
             sendPropertyGetResourceList(msg.sourceMUID)
@@ -307,15 +326,18 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val header = CIRetrieval.midiCIGetPropertyHeader(data)
-                val body = CIRetrieval.midiCIGetPropertyBody(data)
-                val requestId = data[21]
+                // FIXME: handle chunked body content
+                val requestId = data[13]
+                val numChunks = CIRetrieval.midiCIGetPropertyTotalChunks(data)
+                val chunkIndex = CIRetrieval.midiCIGetPropertyChunkIndex(data)
+                val body = CIRetrieval.midiCIGetPropertyBodyInThisChunk(data)
                 processGetDataReply(Message.GetPropertyDataReply(
-                    sourceMUID, destinationMUID, requestId, header, body))
+                    sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex, body))
             }
             CIFactory.SUB_ID_2_PROPERTY_SET_DATA_REPLY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val header = CIRetrieval.midiCIGetPropertyHeader(data)
-                val requestId = data[21]
+                val requestId = data[13]
                 processSetDataReply(Message.SetPropertyDataReply(
                     sourceMUID, destinationMUID, requestId, header))
             }

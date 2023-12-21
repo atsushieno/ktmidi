@@ -146,12 +146,12 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     fun sendPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, msg.destination, true,
-            muid, msg.sourceMUID, msg.max))
+            muid, msg.sourceMUID, msg.maxSimultaneousRequests))
     }
     val getPropertyCapabilitiesReplyFor: (msg: Message.PropertyGetCapabilities) -> Message.PropertyGetCapabilitiesReply = { msg ->
         val establishedMaxSimultaneousPropertyRequests =
-            if (msg.max > maxSimultaneousPropertyRequests) maxSimultaneousPropertyRequests
-            else msg.max
+            if (msg.maxSimultaneousRequests > maxSimultaneousPropertyRequests) maxSimultaneousPropertyRequests
+            else msg.maxSimultaneousRequests
         Message.PropertyGetCapabilitiesReply(msg.destination, muid, msg.sourceMUID, establishedMaxSimultaneousPropertyRequests)
     }
     var processPropertyCapabilitiesInquiry: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
@@ -275,12 +275,10 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
                 val pos = 16 + headerSize
-                val numChunks = data[pos] + (data[pos + 1].toInt() shl 7)
-                val chunkIndex = data[pos + 2] + (data[pos + 3].toInt() shl 7)
+                val numChunks = CIRetrieval.midiCIGetPropertyTotalChunks(data)
+                val chunkIndex = CIRetrieval.midiCIGetPropertyChunkIndex(data)
                 val dataSize = data[pos + 4] + (data[pos + 5].toInt() shl 7)
-                if (numChunks == 1 && chunkIndex == 1 && dataSize == 0) {
-                    processGetPropertyData(Message.GetPropertyData(sourceMUID, destinationMUID, requestId, header))
-                } // FIXME: else -> error handling (data chunk must be always empty)
+                processGetPropertyData(Message.GetPropertyData(sourceMUID, destinationMUID, requestId, header))
             }
 
             CIFactory.SUB_ID_2_PROPERTY_SET_DATA_INQUIRY -> {
@@ -289,13 +287,11 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
                 val pos = 16 + headerSize
-                val numChunks = data[pos] + (data[pos + 1].toInt() shl 7)
-                val chunkIndex = data[pos + 2] + (data[pos + 3].toInt() shl 7)
+                val numChunks = CIRetrieval.midiCIGetPropertyTotalChunks(data)
+                val chunkIndex = CIRetrieval.midiCIGetPropertyChunkIndex(data)
                 val dataSize = data[pos + 4] + (data[pos + 5].toInt() shl 7)
                 val propData = data.drop (pos + 6).take(dataSize)
-                // FIXME: implement chunk manager
-                if (numChunks == 1 && chunkIndex == 1 && dataSize == 0)
-                    processSetPropertyData(Message.SetPropertyData(sourceMUID, destinationMUID, requestId, header, propData))
+                processSetPropertyData(Message.SetPropertyData(sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex, propData))
             }
 
             CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE -> {

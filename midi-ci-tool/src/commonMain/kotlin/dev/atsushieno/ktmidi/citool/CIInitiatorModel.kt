@@ -34,7 +34,7 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         val subscribePropertyReceived = mutableListOf<(msg: Message.SubscribePropertyReply) -> Unit>()
     }
 
-    private val events = Events()
+    val events = Events()
 
     private val device = MidiCIDeviceInfo(1,2,1,1,
         "atsushieno", "KtMidi", "KtMidi-CI-Tool Initiator", "0.1")
@@ -102,7 +102,16 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     }
 
     fun sendDiscovery() {
-        initiator.sendDiscovery()
+        val msg = initiator.createDiscoveryInquiry()
+        logger.discovery(msg)
+        initiator.sendDiscovery(msg)
+    }
+
+    // FIXME: we need to make MidiCIInitiator EndpointInquiry hook-able.
+    fun sendEndpointMessage(targetMUID: Int) {
+        val msg = initiator.createEndpointMessage(targetMUID)
+        logger.endpointInquiry(msg)
+        initiator.sendEndpointMessage(msg)
     }
 }
 

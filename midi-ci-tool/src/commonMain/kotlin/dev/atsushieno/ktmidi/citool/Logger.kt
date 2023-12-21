@@ -33,35 +33,19 @@ class Logger {
         ViewModel.logText.value += "- Profile${if (enabled) "Enabled" else "Disabled"}($profile})\n"
     }
 
-    fun propertyGetCapabilitiesInquiry(msg: Message.PropertyGetCapabilities) {
-        ViewModel.logText.value += "- PropertyGetCapabilities(destination = ${msg.destination}, sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)}, max = ${msg.max})\n"
-    }
+    fun propertyGetCapabilitiesInquiry(msg: Message.PropertyGetCapabilities) = logMessage(msg)
 
-    fun propertyGetCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
-        ViewModel.logText.value += "- PropertyGetCapabilitiesReply(destination = ${msg.destination}, sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)}, max = ${msg.max})\n"
-    }
+    fun propertyGetCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) = logMessage(msg)
 
-    fun getPropertyData(msg: Message.GetPropertyData) {
-        ViewModel.logText.value += "- GetPropertyData(sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)}, requestId = ${msg.requestId}, header = ${msg.header.toByteArray().decodeToString()})\n"
-    }
+    fun getPropertyData(msg: Message.GetPropertyData) = logMessage(msg)
 
-    fun getPropertyDataReply(msg: Message.GetPropertyDataReply) {
-        ViewModel.logText.value += "- GetPropertyDataReply(sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)}, requestId = ${msg.requestId}, header = ${msg.header.toByteArray().decodeToString()}, body = ${msg.body.toByteArray().decodeToString()})\n"
-    }
+    fun getPropertyDataReply(msg: Message.GetPropertyDataReply) = logMessage(msg)
 
-    fun setPropertyData(msg: Message.SetPropertyData) {
-        ViewModel.logText.value += "- SetPropertyData(sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)}, requestId =  ${msg.requestId}, header = ${msg.header.toByteArray().decodeToString()}, body = ${msg.body.toByteArray().decodeToString()})\n"
-    }
+    fun setPropertyData(msg: Message.SetPropertyData) = logMessage(msg)
 
-    fun setPropertyDataReply(msg: Message.SetPropertyDataReply) {
-        ViewModel.logText.value += "- SetPropertyDataReply(sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)}, requestId =  ${msg.requestId}, header = ${msg.header.toByteArray().decodeToString()})\n"
-    }
+    fun setPropertyDataReply(msg: Message.SetPropertyDataReply) = logMessage(msg)
 
-    fun subscribeProperty(msg: Message.SubscribeProperty) {
-        ViewModel.logText.value += "- SubscribeProperty(sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)}, requestId =  ${msg.requestId}, header = ${msg.header.toByteArray().decodeToString()})\n"
-    }
+    fun subscribeProperty(msg: Message.SubscribeProperty) = logMessage(msg)
 
-    fun subscribePropertyReply(msg: Message.SubscribePropertyReply) {
-        ViewModel.logText.value += "- $msg\n"
-    }
+    fun subscribePropertyReply(msg: Message.SubscribePropertyReply) = logMessage(msg)
 }

@@ -38,6 +38,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         outputSender(data)
     }).apply {
         productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
+        maxSimultaneousPropertyRequests = 127
 
         // Unknown
         processUnknownCIMessage = { data ->

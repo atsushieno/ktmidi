@@ -34,16 +34,20 @@ class Message {
     }
 
     // Property Exchange
-    data class PropertyGetCapabilities(val destination: Byte, val sourceMUID: Int, val destinationMUID: Int, val max: Byte)
-    data class PropertyGetCapabilitiesReply(val destination: Byte, val sourceMUID: Int, val destinationMUID: Int, val max: Byte)
+    data class PropertyGetCapabilities(val destination: Byte, val sourceMUID: Int, val destinationMUID: Int, val maxSimultaneousRequests: Byte) {
+        override fun toString() = "PropertyGetCapabilities(destination = ${destination}, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, maxSimultaneousRequests = ${maxSimultaneousRequests})\n"
+    }
+    data class PropertyGetCapabilitiesReply(val destination: Byte, val sourceMUID: Int, val destinationMUID: Int, val maxSimultaneousRequests: Byte) {
+        override fun toString() = "PropertyGetCapabilitiesReply(destination = ${destination}, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, maxSimultaneousRequests = ${maxSimultaneousRequests})"
+    }
     data class GetPropertyData(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>) {
         override fun toString() = "GetPropertyData(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()})"
     }
-    data class GetPropertyDataReply(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>) {
-        override fun toString() = "GetPropertyDataReply(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()}, body = ${body.toByteArray().decodeToString()})"
+    data class GetPropertyDataReply(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val numTotalChunks: Short, val chunkIndex: Short, val body: List<Byte>) {
+        override fun toString() = "GetPropertyDataReply(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()}, numTotalChunks = $numTotalChunks, chunkIndex =$chunkIndex, body = ${body.toByteArray().decodeToString()})"
     }
-    data class SetPropertyData(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>) {
-        override fun toString() = "SetPropertyData(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()}, body = ${body.toByteArray().decodeToString()})"
+    data class SetPropertyData(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val numTotalChunks: Short, val chunkIndex: Short, val body: List<Byte>) {
+        override fun toString() = "SetPropertyData(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()}, numTotalChunks = $numTotalChunks, chunkIndex =$chunkIndex, body = ${body.toByteArray().decodeToString()})"
     }
     data class SetPropertyDataReply(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>) {
         override fun toString() = "SetPropertyDataReply(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()})"

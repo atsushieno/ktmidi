@@ -64,9 +64,9 @@ fun InitiatorScreen() {
             }
             MidiDeviceSelector()
         }
-        var destinationMUID by remember { mutableStateOf(0) }
+        val destinationMUID by remember { ViewModel.selectedRemoteDevice }
         InitiatorDestinationSelector(destinationMUID,
-            onChange = { destinationMUID = it })
+            onChange = { ViewModel.selectedRemoteDevice.value = it })
 
         val conn = AppModel.ciDeviceManager.initiator.initiator.connections[destinationMUID]
         if (conn != null) {
