@@ -13,7 +13,11 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import dev.atsushieno.ktmidi.ci.MidiCIInitiator
 import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
@@ -64,18 +68,38 @@ fun InitiatorScreen() {
             }
             MidiDeviceSelector()
         }
-        val destinationMUID by remember { ViewModel.selectedRemoteDevice }
+        val destinationMUID by remember { ViewModel.selectedRemoteDeviceMUID }
         InitiatorDestinationSelector(destinationMUID,
-            onChange = { ViewModel.selectedRemoteDevice.value = it })
+            onChange = { ViewModel.selectedRemoteDeviceMUID.value = it })
 
-        val conn = AppModel.ciDeviceManager.initiator.initiator.connections[destinationMUID]
+        val conn = ViewModel.selectedRemoteDevice.value
         if (conn != null) {
-            Text("Manufacturer: ${conn.device.manufacturer.toString(16)}")
-            Text("Family: ${conn.device.family.toString(16)}")
-            Text("ModelNumber: ${conn.device.modelNumber.toString(16)}")
-            Text("RevisionLevel: ${conn.device.softwareRevisionLevel.toString(16)}")
-            Text("ProductInstanceId: ${conn.productInstanceId}")
-            Text("maxSimultaneousPropertyRequests: ${conn.maxSimultaneousPropertyRequests}")
+            ClientConnection(conn)
+        }
+    }
+}
+
+@Composable
+fun ClientConnection(vm: ConnectionViewModel) {
+    val conn = vm.conn
+    Column {
+        Text("Device", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
+        Text("Manufacturer: ${conn.device.manufacturer.toString(16)}")
+        Text("Family: ${conn.device.family.toString(16)}")
+        Text("ModelNumber: ${conn.device.modelNumber.toString(16)}")
+        Text("RevisionLevel: ${conn.device.softwareRevisionLevel.toString(16)}")
+        Text("ProductInstanceId: ${conn.productInstanceId}")
+        Text("maxSimultaneousPropertyRequests: ${conn.maxSimultaneousPropertyRequests}")
+
+        Text("Profiles", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
+
+        Text("enabled:", fontWeight = FontWeight.Bold)
+        vm.enabledProfiles.forEach {
+            Text(it.toString())
+        }
+        Text("disabled:", fontWeight = FontWeight.Bold)
+        vm.disabledProfiles.forEach {
+            Text(it.toString())
         }
     }
 }

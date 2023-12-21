@@ -22,7 +22,7 @@ data class MidiCIAckNakData(
 // manufacture ID1,2,3 + manufacturer specific 1,2 ... or ... 0x7E, bank, number, version, level.
 data class MidiCIProfileId(val mid1_7e: Byte = 0x7E, val mid2_bank: Byte, val mid3_number: Byte, val msi1_version: Byte, val msi2_level: Byte) {
     override fun toString() =
-        "${mid1_7e.toString(16)}:${mid2_bank.toString(16)}:${mid3_number.toString(16)}::${msi1_version.toString(16)}::${msi2_level.toString(16)}"
+        "${mid1_7e.toString(16)}:${mid2_bank.toString(16)}:${mid3_number.toString(16)}:${msi1_version.toString(16)}:${msi2_level.toString(16)}"
 }
 
 object CIFactory {
@@ -311,7 +311,7 @@ object CIFactory {
             SUB_ID_2_PROFILE_INQUIRY,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
-        return dst.take(12)
+        return dst.take(13)
     }
 
     fun midiCIProfileInquiryReply(

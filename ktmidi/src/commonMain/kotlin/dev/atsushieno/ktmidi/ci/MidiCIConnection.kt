@@ -21,9 +21,9 @@ enum class MidiCIInitiatorState {
 object MidiCIDiscoveryCategoryFlags {
     const val None: Byte = 0
     const val ProtocolNegotiation: Byte = 1 // Deprecated in MIDI-CI 1.2
-    const val ProfileConfiguration: Byte = 2
-    const val PropertyExchange: Byte = 4
-    const val ProcessInquiry: Byte = 8
+    const val ProfileConfiguration: Byte = 4
+    const val PropertyExchange: Byte = 8
+    const val ProcessInquiry: Byte = 16
     // I'm inclined to say "All", but that may change in the future and it indeed did.
     // Even worse, the definition of those Three Ps had changed...
     const val ThreePs: Byte = (ProfileConfiguration + PropertyExchange + ProcessInquiry).toByte()

@@ -20,6 +20,31 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                       val outputPathId: Byte = 0,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
+    class ProfileList {
+        enum class ProfilesChange { Added, Removed }
+        private val profiles = mutableListOf<Pair<MidiCIProfileId,Boolean>>()
+        val enabledProfiles: List<MidiCIProfileId>
+            get() = profiles.filter { it.second }.map {it.first }
+        val disabledProfiles: List<MidiCIProfileId>
+            get() = profiles.filter { !it.second }.map {it.first }
+
+        fun add(profile: MidiCIProfileId, enabled: Boolean) {
+            profiles.removeAll { it.first.toString() == profile.toString() }
+            profiles.add(Pair(profile, enabled))
+            profilesChanged.forEach { it(ProfilesChange.Added, profile, enabled) }
+        }
+        fun remove(profile: MidiCIProfileId) {
+            // FIXME: there may be better equality comparison...
+            val items = profiles.filter { it.first.toString() == profile.toString() }
+            profiles.removeAll(items)
+            items.forEach { p ->
+                profilesChanged.forEach { it(ProfilesChange.Removed, p.first, p.second) }
+            }
+        }
+
+        val profilesChanged = mutableListOf<(change: ProfilesChange, profile: MidiCIProfileId, enabled: Boolean) -> Unit>()
+    }
+
     class Connection(
         val parent: MidiCIInitiator,
         val muid: Int,
@@ -27,7 +52,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         var maxSimultaneousPropertyRequests: Byte = 0,
         var productInstanceId: String = "") {
 
-        val profiles = mutableListOf<Pair<MidiCIProfileId,Boolean>>()
+        val profiles = ProfileList()
 
         val properties = mutableMapOf<List<Byte>, List<Byte>>()
         fun updateProperty(header: List<Byte>, body: List<Byte>) {
@@ -169,20 +194,19 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     // Profile Configuration
     val defaultProcessProfileReply = { msg: Message.ProfileReply ->
         val conn = connections[msg.sourceMUID]
-        conn?.profiles?.addAll(msg.profiles)
+        msg.profiles.forEach { conn?.profiles?.add(it.first, it.second) }
     }
     var processProfileReply = defaultProcessProfileReply
 
     val defaultProcessProfileAddedReport: (msg: Message.ProfileAdded) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
-        conn?.profiles?.add(Pair(msg.profile, false))
+        conn?.profiles?.add(msg.profile, false)
     }
     var processProfileAddedReport = defaultProcessProfileAddedReport
 
     val defaultProcessProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
-        // FIXME: there may be better equality comparison...
-        conn?.profiles?.removeAll { it.first.toString() == msg.profile.toString() }
+        conn?.profiles?.remove(msg.profile)
     }
     var processProfileRemovedReport = defaultProcessProfileRemovedReport
 
