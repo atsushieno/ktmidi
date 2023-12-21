@@ -14,7 +14,7 @@ import kotlin.random.Random
  */
 class MidiCIResponder(val device: MidiCIDeviceInfo,
                       private val sendOutput: (data: List<Byte>) -> Unit,
-                      private val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
+                      val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
     var capabilityInquirySupported = MidiCIDiscoveryCategoryFlags.ThreePs
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE

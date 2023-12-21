@@ -10,6 +10,7 @@ object AppModel {
     var midiOutputPorts = mutableStateListOf<MidiPortDetails>()
 
     val midiDeviceManager = MidiDeviceManager()
+    val ciDeviceManager = CIDeviceManager(midiDeviceManager)
 
     fun setInputDevice(id: String) {
         midiDeviceManager.midiInputDeviceId = id

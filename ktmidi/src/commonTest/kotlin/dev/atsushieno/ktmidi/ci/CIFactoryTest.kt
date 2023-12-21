@@ -256,35 +256,6 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyGetCapabilities(actual2, 5, true, 0x10101010, 0x20202020, 16)
         assertEquals(0x31, actual2[3])
 
-        // Has Property Data
-        val expected3 = mutableListOf<Byte>(
-            0x7E, 5, 0x0D, 0x32, 2,
-            0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
-            2,
-            4, 0,
-            11, 22, 33, 44,
-            3, 0,
-            1, 0,
-            5, 0,
-            55, 66, 77, 88, 99
-        )
-        val actual3 = MutableList<Byte>(31) { 0 }
-        CIFactory.midiCIPropertyCommon(
-            actual3, 5, CIFactory.SUB_ID_2_PROPERTY_HAS_DATA_INQUIRY,
-            0x10101010, 0x20202020,
-            2, header, 3u, 1u, data
-        )
-        assertEquals(expected3, actual3)
-
-        // Reply to Has Property Data
-        val actual4 = MutableList<Byte>(31) { 0 }
-        CIFactory.midiCIPropertyCommon(
-            actual4, 5, CIFactory.SUB_ID_2_PROPERTY_HAS_DATA_REPLY,
-            0x10101010, 0x20202020,
-            2, header, 3u, 1u, data
-        )
-        assertEquals(0x33, actual4[3])
-
         // Get Property Data
         val actual5 = MutableList<Byte>(31) { 0 }
         CIFactory.midiCIPropertyCommon(

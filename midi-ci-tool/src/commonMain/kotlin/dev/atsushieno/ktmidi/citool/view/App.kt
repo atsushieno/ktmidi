@@ -29,7 +29,13 @@ fun App() {
                 tabs.forEachIndexed { index, title ->
                     Tab(text = { Text(title) },
                         selected = tabIndex == index,
-                        onClick = { tabIndex = index },
+                        onClick = {
+                            when (index) {
+                                0 -> AppModel.ciDeviceManager.isResponder = false
+                                1 -> AppModel.ciDeviceManager.isResponder = true
+                                else -> {}
+                            }
+                            tabIndex = index },
                         icon = {
                             when (index) {
                                 0 -> Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null)
@@ -51,10 +57,9 @@ fun App() {
 
 @Composable
 fun InitiatorScreen() {
-    AppModel.midiDeviceManager.isResponder = false
     Column {
         Row {
-            Button(onClick = { AppModel.midiDeviceManager.initiator.sendDiscovery()}) {
+            Button(onClick = { AppModel.ciDeviceManager.initiator.sendDiscovery()}) {
                 Text("Send Discovery")
             }
             MidiDeviceSelector()
@@ -63,7 +68,7 @@ fun InitiatorScreen() {
         InitiatorDestinationSelector(destinationMUID,
             onChange = { destinationMUID = it })
 
-        val conn = AppModel.midiDeviceManager.initiator.initiator.connections[destinationMUID]
+        val conn = AppModel.ciDeviceManager.initiator.initiator.connections[destinationMUID]
         if (conn != null) {
             Text("Manufacturer: ${conn.device.manufacturer.toString(16)}")
             Text("Family: ${conn.device.family.toString(16)}")
@@ -86,8 +91,8 @@ private fun InitiatorDestinationSelector(destinationMUID: Int,
                 onChange(muid)
             dialogState = false
         }
-        if (AppModel.midiDeviceManager.initiator.initiator.connections.any())
-            AppModel.midiDeviceManager.initiator.initiator.connections.toList().forEachIndexed { index, conn ->
+        if (AppModel.ciDeviceManager.initiator.initiator.connections.any())
+            AppModel.ciDeviceManager.initiator.initiator.connections.toList().forEachIndexed { index, conn ->
                 DropdownMenuItem(onClick = { onClick(conn.first) }, text = {
                     Text(conn.first.toString())
                 })
@@ -110,7 +115,7 @@ private fun InitiatorDestinationSelector(destinationMUID: Int,
 fun ResponderScreen() {
     Text("It receives MIDI-CI requests on the Virtual In port and sends replies back from the Virtual Out port")
 
-    AppModel.midiDeviceManager.isResponder = true
+    AppModel.ciDeviceManager.isResponder = true
     val logText = remember { ViewModel.logText }
 
     TextField(logText.value, onValueChange = { _: String -> }, readOnly = true)

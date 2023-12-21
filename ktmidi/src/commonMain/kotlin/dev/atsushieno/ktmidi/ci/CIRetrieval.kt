@@ -6,7 +6,7 @@ object CIRetrieval {
     /** retrieves destination channel or "whole MIDI Port" from a MIDI-CI sysex7 chunk.
      * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
      */
-    fun midiCIGetDestination(sysex: List<Byte>) = sysex[1]
+    fun midiCIGetDestination(sysex: List<Byte>) = if (sysex.size > 1) sysex[1] else 0
 
     /** retrieves device details (manufacturer, version, etc.) from a MIDI-CI sysex7 chunk.
      * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
@@ -21,13 +21,13 @@ object CIRetrieval {
      * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
      */
     fun midiCIGetSourceMUID(sysex: List<Byte>) =
-        sysex[5] + (sysex[6] shl 8) + (sysex[7] shl 16) + (sysex[8] shl 24)
+        if (sysex.size > 8) sysex[5] + (sysex[6] shl 8) + (sysex[7] shl 16) + (sysex[8] shl 24) else 0
 
     /** retrieves destination MUID from a MIDI-CI sysex7 chunk.
      * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
      */
     fun midiCIGetDestinationMUID(sysex: List<Byte>) =
-        sysex[9] + (sysex[10] shl 8) + (sysex[11] shl 16) + (sysex[12] shl 24)
+        if (sysex.size > 12) sysex[9] + (sysex[10] shl 8) + (sysex[11] shl 16) + (sysex[12] shl 24) else 0
 
     /** retrieves source MUID from a MIDI-CI sysex7 chunk.
      * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)

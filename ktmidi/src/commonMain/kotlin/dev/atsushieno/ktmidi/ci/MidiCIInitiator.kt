@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi.ci
 
-import kotlin.experimental.and
 import kotlin.random.Random
 
 /*
@@ -11,7 +10,6 @@ import kotlin.random.Random
     - MidiCIInitiator.requestProfiles()
     - MidiCIResponder.processProfileInquiry()
 
- These classes are responsible only for one input/output connection pair.
  The argument `sendOutput` takes a sysex bytestream which is NOT specific to MIDI 1.0 bytestream (i.e. it should
  support sysex7 UMPs) and thus does NOT contain F0 and F7.
  Same goes for `processInput()` function.
@@ -38,8 +36,6 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
     var productInstanceId: String? = null
 
-    var state: MidiCIInitiatorState = MidiCIInitiatorState.Initial
-
     val profiles = mutableListOf<MidiCIProfileId>()
 
     val connections = mutableMapOf<Int, Connection>()
@@ -58,8 +54,6 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.muid, msg.device.manufacturer, msg.device.family, msg.device.modelNumber,
             msg.device.softwareRevisionLevel, msg.ciCategorySupported, msg.receivableMaxSysExSize, msg.outputPathId
         ))
-        // we set state before sending the MIDI data as it may process the rest of the events synchronously through the end...
-        state = MidiCIInitiatorState.DISCOVERY_SENT
     }
 
     fun sendEndpointMessage(targetMuid: Int, status: Byte) {
@@ -104,8 +98,6 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     // Reply handler
 
     val handleNewEndpoint = { msg: Message.DiscoveryReply ->
-        state = MidiCIInitiatorState.DISCOVERED
-
         // If successfully discovered, continue to endpoint inquiry
         val connection = Connection(this, msg.device)
         // FIXME: should this involve "releasing" existing connection if any?
@@ -123,9 +115,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     }
 
     private val defaultProcessInvalidateMUID = { sourceMUID: Int, destinationMUID: Int, muidToInvalidate: Int ->
-        if (muidToInvalidate == muid) {
-            state = MidiCIInitiatorState.Initial
-        }
+        // no particular operation
     }
     var processInvalidateMUID = defaultProcessInvalidateMUID
 

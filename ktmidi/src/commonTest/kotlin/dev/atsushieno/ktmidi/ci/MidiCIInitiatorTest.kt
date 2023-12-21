@@ -1,10 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.MidiCIProtocolType
-import kotlin.test.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class MidiCIInitiatorTest {
     @Test
@@ -12,7 +9,6 @@ class MidiCIInitiatorTest {
         val mediator = TestCIMediator()
         val initiator = mediator.initiator
 
-        assertEquals(MidiCIInitiatorState.Initial, initiator.state)
         assertEquals(0, initiator.device.manufacturerId)
         assertEquals(19474, initiator.muid)
     }
@@ -22,9 +18,11 @@ class MidiCIInitiatorTest {
         val mediator = TestCIMediator()
         val initiator = mediator.initiator
         initiator.sendDiscovery()
-        assertEquals(MidiCIInitiatorState.DISCOVERED, initiator.state)
+        assertEquals(1, initiator.connections.size, "connections.size")
         val responder = mediator.responder
-        //assertEquals(MidiCIProtocolType.MIDI2, responder.currentMidiProtocol.type.toInt())
+        val conn = initiator.connections[responder.muid]
+        assertNotNull(conn, "conn")
+        assertEquals(responder.device.manufacturerId, conn.device.manufacturer, "conn.device.manufacturer")
     }
 }
 
