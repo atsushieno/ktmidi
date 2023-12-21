@@ -24,7 +24,9 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     class Events {
         val discoveryReplyReceived = mutableListOf<(Message.DiscoveryReply) -> Unit>()
         val endpointReplyReceived = mutableListOf<(Message.EndpointReply) -> Unit>()
-        val profileInquiryReplyReceived = mutableListOf<(source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit>()
+        val profileInquiryReplyReceived = mutableListOf<(Message.ProfileReply) -> Unit>()
+        val profileAddedReceived = mutableListOf<(Message.ProfileAdded) -> Unit>()
+        val profileRemovedReceived = mutableListOf<(Message.ProfileRemoved) -> Unit>()
         val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
         val propertyCapabilityReplyReceived = mutableListOf<(Message.PropertyGetCapabilitiesReply) -> Unit>()
         val getPropertyDataReplyReceived = mutableListOf<(msg: Message.GetPropertyDataReply) -> Unit>()
@@ -60,6 +62,24 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
             logger.endpointReply(msg)
             events.endpointReplyReceived.forEach { it(msg) }
             defaultProcessEndpointReply(msg)
+        }
+
+        processProfileReply = { msg ->
+            logger.profileReply(msg)
+            events.profileInquiryReplyReceived.forEach { it(msg) }
+            defaultProcessProfileReply(msg)
+        }
+
+        processProfileAddedReport = { msg ->
+            logger.profileAdded(msg)
+            events.profileAddedReceived.forEach { it(msg) }
+            defaultProcessProfileAddedReport(msg)
+        }
+
+        processProfileRemovedReport = { msg ->
+            logger.profileRemoved(msg)
+            events.profileRemovedReceived.forEach { it(msg) }
+            defaultProcessProfileRemovedReport(msg)
         }
 
         processPropertyCapabilitiesReply = { msg ->

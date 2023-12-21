@@ -30,18 +30,24 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     // FIXME: enable this when we start supporting Property Exchange.
     //var establishedMaxSimulutaneousPropertyRequests: Byte? = null
 
-    val sendDiscoveryReplyForInquiry: (msg: Message.DiscoveryInquiry) -> Unit = { msg ->
+    val sendDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(
             CIFactory.midiCIDiscoveryReply(
-                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, muid, msg.muid,
-                device.manufacturerId, device.familyId, device.modelId, device.versionId,
+                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID,
+                msg.device.manufacturer, msg.device.family, msg.device.modelNumber, msg.device.softwareRevisionLevel,
                 capabilityInquirySupported, receivableMaxSysExSize,
-                msg.outputPathId, functionBlock
+                msg.outputPathId, msg.functionBlock
             )
         )
     }
-    var processDiscovery = sendDiscoveryReplyForInquiry
+    val getDiscoveryReplyForInquiry: (msg: Message.DiscoveryInquiry) -> Message.DiscoveryReply = { msg ->
+        val deviceDetails = DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId)
+        Message.DiscoveryReply(muid, msg.muid, deviceDetails, capabilityInquirySupported, receivableMaxSysExSize, msg.outputPathId, functionBlock)
+    }
+    var processDiscovery: (msg: Message.DiscoveryInquiry) -> Unit = { msg ->
+        sendDiscoveryReply(getDiscoveryReplyForInquiry(msg))
+    }
 
     val sendEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
@@ -74,14 +80,19 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     // Profile Configuration
 
-    val sendProfileReplyForInquiry: (source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit = { source, sourceMUID, destinationMUID ->
+    val sendProfileReply: (msg: Message.ProfileReply) -> Unit = { msg ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIProfileInquiryReply(dst, source, muid, sourceMUID,
-            profileSet.filter { it.second }.map { it.first },
-            profileSet.filter { !it.second }.map { it.first })
+        sendOutput(CIFactory.midiCIProfileInquiryReply(dst, msg.source, msg.sourceMUID, msg.destinationMUID,
+            msg.profiles.filter { it.second}.map { it.first },
+            msg.profiles.filter { !it.second}.map { it.first })
         )
     }
-    var processProfileInquiry = sendProfileReplyForInquiry
+    val getProfileReplyForInquiry: (msg: Message.ProfileInquiry) -> Message.ProfileReply = { msg ->
+        Message.ProfileReply(msg.source, muid, msg.sourceMUID, profileSet)
+    }
+    var processProfileInquiry: (msg: Message.ProfileInquiry) -> Unit = { msg ->
+        sendProfileReply(getProfileReplyForInquiry(msg))
+    }
 
     var onProfileSet: (profile: MidiCIProfileId, enabled: Boolean) -> Unit = { _, _ -> }
 
@@ -129,7 +140,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     // Property Exchange
 
-    val propertyService = CommonPropertyService(device)
+    val propertyService = CommonPropertyService(muid, device)
 
     // Should this also delegate to property service...?
     fun sendPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
@@ -147,43 +158,43 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
         sendPropertyCapabilitiesReply(getPropertyCapabilitiesReplyFor(msg))
     }
 
-    fun sendPropertyGetDataReply(inquiry: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
+    fun sendPropertyGetDataReply(msg: Message.GetPropertyDataReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(
             dst, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY,
-            muid, inquiry.sourceMUID, inquiry.requestId, reply.header, reply.body
+            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
             sendOutput(it)
         }
     }
     var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
-        sendPropertyGetDataReply(msg, propertyService.getPropertyData(msg))
+        sendPropertyGetDataReply(propertyService.getPropertyData(msg))
     }
 
-    fun sendPropertySetDataReply(inquiry: Message.SetPropertyData, reply: Message.SetPropertyDataReply) {
+    fun sendPropertySetDataReply(msg: Message.SetPropertyDataReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(
             dst, CIFactory.SUB_ID_2_PROPERTY_SET_DATA_REPLY,
-            muid, inquiry.sourceMUID, inquiry.requestId, reply.header, listOf()
+            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, listOf()
         ).forEach {
             sendOutput(it)
         }
     }
     var processSetPropertyData: (msg: Message.SetPropertyData) -> Unit = { msg ->
-        sendPropertySetDataReply(msg, propertyService.setPropertyData(msg))
+        sendPropertySetDataReply(propertyService.setPropertyData(msg))
     }
 
-    fun sendPropertySubscribeReply(inquiry: Message.SubscribeProperty, reply: Message.SubscribePropertyReply) {
+    fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(
             dst, CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY,
-            muid, inquiry.sourceMUID, inquiry.requestId, reply.header, reply.body
+            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
             sendOutput(it)
         }
     }
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
-        sendPropertySubscribeReply(msg, propertyService.subscribeProperty(msg))
+        sendPropertySubscribeReply(propertyService.subscribeProperty(msg))
     }
 
     fun processInput(data: List<Byte>) {
@@ -224,7 +235,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
             CIFactory.SUB_ID_2_PROFILE_INQUIRY -> {
                 val source = data[1]
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                processProfileInquiry(source, sourceMUID, destinationMUID)
+                processProfileInquiry(Message.ProfileInquiry(source, sourceMUID, destinationMUID))
             }
 
             CIFactory.SUB_ID_2_SET_PROFILE_ON, CIFactory.SUB_ID_2_SET_PROFILE_OFF -> {

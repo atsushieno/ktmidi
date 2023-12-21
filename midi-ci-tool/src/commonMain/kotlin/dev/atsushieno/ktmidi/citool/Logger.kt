@@ -9,25 +9,25 @@ class Logger {
         ViewModel.logText.value += "- NAK(${data.joinToString { it.toString(16) }}\n"
     }
 
-    fun discovery(msg: Message.DiscoveryInquiry) {
-        ViewModel.logText.value += "- Discovery(device = ${msg.device}, muid = ${msg.muid.toString(16)}, category = ${msg.ciCategorySupported}, maxSysEx = ${msg.receivableMaxSysExSize}, outputPathId = ${msg.outputPathId})\n"
+    private fun logMessage(msg: Any) {
+        ViewModel.logText.value += "- $msg\n"
     }
 
-    fun discoveryReply(msg: Message.DiscoveryReply) {
-        ViewModel.logText.value += "- DiscoveryReply(device = ${msg.device}, sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)})\n"
-    }
+    fun discovery(msg: Message.DiscoveryInquiry) = logMessage(msg)
 
-    fun endpointMessage(msg: Message.EndpointInquiry) {
-        ViewModel.logText.value += "- Endpoint(sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)}, ${msg.status})\n"
-    }
+    fun discoveryReply(msg: Message.DiscoveryReply) = logMessage(msg)
 
-    fun endpointReply(msg: Message.EndpointReply) {
-        ViewModel.logText.value += "- EndpointReply(status = ${msg.status}, sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)}, data = (string: ${msg.data.toByteArray().decodeToString()}, bytes: ${msg.data.joinToString { it.toString(16) }}))\n"
-    }
+    fun endpointInquiry(msg: Message.EndpointInquiry) = logMessage(msg)
 
-    fun profileInquiry(source: Byte, sourceMUID: Int, destinationMUID: Int) {
-        ViewModel.logText.value += "- ProfileInquiry(source = $source, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)})\n"
-    }
+    fun endpointReply(msg: Message.EndpointReply) = logMessage(msg)
+
+    fun profileInquiry(msg: Message.ProfileInquiry) = logMessage(msg)
+
+    fun profileReply(msg: Message.ProfileReply) = logMessage(msg)
+
+    fun profileAdded(msg: Message.ProfileAdded) = logMessage(msg)
+
+    fun profileRemoved(msg: Message.ProfileRemoved) = logMessage(msg)
 
     fun profileSet(profile: MidiCIProfileId, enabled: Boolean) {
         ViewModel.logText.value += "- Profile${if (enabled) "Enabled" else "Disabled"}($profile})\n"
@@ -59,5 +59,9 @@ class Logger {
 
     fun subscribeProperty(msg: Message.SubscribeProperty) {
         ViewModel.logText.value += "- SubscribeProperty(sourceMUID = ${msg.sourceMUID.toString(16)}, destinationMUID = ${msg.destinationMUID.toString(16)}, requestId =  ${msg.requestId}, header = ${msg.header.toByteArray().decodeToString()})\n"
+    }
+
+    fun subscribePropertyReply(msg: Message.SubscribePropertyReply) {
+        ViewModel.logText.value += "- $msg\n"
     }
 }

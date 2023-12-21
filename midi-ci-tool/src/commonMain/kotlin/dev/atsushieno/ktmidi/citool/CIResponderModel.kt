@@ -19,7 +19,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     class Events {
         val discoveryReceived = mutableListOf<(msg: Message.DiscoveryInquiry) -> Unit>()
         val endpointInquiryReceived = mutableListOf<(msg: Message.EndpointInquiry) -> Unit>()
-        val profileInquiryReceived = mutableListOf<(source: Byte, initiatorMUID: Int, destinationMUID: Int) -> Unit>()
+        val profileInquiryReceived = mutableListOf<(msg: Message.ProfileInquiry) -> Unit>()
         val profileStateChanged = mutableListOf<(profile: MidiCIProfileId, enabled: Boolean) -> Unit>()
         val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
         val propertyCapabilityInquiryReceived = mutableListOf<(Message.PropertyGetCapabilities) -> Unit>()
@@ -49,20 +49,24 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         processDiscovery = { msg ->
             logger.discovery(msg)
             events.discoveryReceived.forEach { it(msg) }
-            sendDiscoveryReplyForInquiry(msg)
+            val reply = getDiscoveryReplyForInquiry(msg)
+            logger.discoveryReply(reply)
+            sendDiscoveryReply(reply)
         }
         processEndpointMessage = { msg ->
-            logger.endpointMessage(msg)
+            logger.endpointInquiry(msg)
             events.endpointInquiryReceived.forEach { it(msg) }
             val reply = getEndpointReplyForInquiry(msg)
             logger.endpointReply(reply)
             sendEndpointReply(reply)
         }
         // Profile
-        processProfileInquiry = { source, sourceMUID, destinationMUID ->
-            logger.profileInquiry(source, sourceMUID, destinationMUID)
-            events.profileInquiryReceived.forEach { it(source, sourceMUID, destinationMUID) }
-            sendProfileReplyForInquiry(source, sourceMUID, destinationMUID)
+        processProfileInquiry = { msg ->
+            logger.profileInquiry(msg)
+            events.profileInquiryReceived.forEach { it(msg) }
+            val reply = getProfileReplyForInquiry(msg)
+            logger.profileReply(reply)
+            sendProfileReply(reply)
         }
         onProfileSet = { profile, enabled ->
             logger.profileSet(profile, enabled)
@@ -72,22 +76,29 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         processPropertyCapabilitiesInquiry = { msg ->
             logger.propertyGetCapabilitiesInquiry(msg)
             events.propertyCapabilityInquiryReceived.forEach { it(msg) }
-            sendPropertyCapabilitiesReply(getPropertyCapabilitiesReplyFor(msg))
+            val reply = getPropertyCapabilitiesReplyFor(msg)
+            logger.propertyGetCapabilitiesReply(reply)
+            sendPropertyCapabilitiesReply(reply)
         }
         processGetPropertyData = { msg ->
             logger.getPropertyData(msg)
             events.getPropertyDataReceived.forEach { it(msg) }
-            sendPropertyGetDataReply(msg, propertyService.getPropertyData(msg))
+            val reply = propertyService.getPropertyData(msg)
+            logger.getPropertyDataReply(reply)
+            sendPropertyGetDataReply(reply)
         }
         processSetPropertyData = { msg ->
             logger.setPropertyData(msg)
             events.setPropertyDataReceived.forEach { it(msg) }
-            sendPropertySetDataReply(msg, propertyService.setPropertyData(msg))
+            val reply = propertyService.setPropertyData(msg)
+            sendPropertySetDataReply(reply)
         }
         processSubscribeProperty = { msg ->
             logger.subscribeProperty(msg)
             events.subscribePropertyReceived.forEach { it(msg) }
-            sendPropertySubscribeReply(msg, propertyService.subscribeProperty(msg))
+            val reply = propertyService.subscribeProperty(msg)
+            logger.subscribePropertyReply(reply)
+            sendPropertySubscribeReply(reply)
         }
 
         profileSet.add(Pair(MidiCIProfileId(0x7E, 1, 2, 3, 4), true))

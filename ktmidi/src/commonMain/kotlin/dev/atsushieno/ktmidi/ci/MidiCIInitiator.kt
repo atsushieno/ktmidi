@@ -26,6 +26,8 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         var maxSimultaneousPropertyRequests: Byte = 0,
         var productInstanceId: String = "") {
 
+        val profiles = mutableListOf<Pair<MidiCIProfileId,Boolean>>()
+
         val properties = mutableMapOf<List<Byte>, List<Byte>>()
         fun updateProperty(header: List<Byte>, body: List<Byte>) {
             properties[header] = body
@@ -35,8 +37,6 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     var midiCIBufferSize = 4096
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
     var productInstanceId: String? = null
-
-    val profiles = mutableListOf<MidiCIProfileId>()
 
     val connections = mutableMapOf<Int, Connection>()
 
@@ -147,16 +147,27 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
     // Protocol Negotiation is deprecated. We do not send any of them anymore.
 
-    var processProfileInquiryResponse: (destinationChannel: Byte, sourceMUID: Int, profileSet: List<Pair<MidiCIProfileId, Boolean>>) -> Unit = { _, _, _ ->
-        // do nothing
+    // Profile Configuration
+    val defaultProcessProfileReply = { msg: Message.ProfileReply ->
+        val conn = connections[msg.sourceMUID]
+        conn?.profiles?.addAll(msg.profiles)
     }
+    var processProfileReply = defaultProcessProfileReply
 
-    private val defaultProcessProfileAddedReport: (profileId: MidiCIProfileId) -> Unit = { profileId -> profiles.add(profileId) }
+    val defaultProcessProfileAddedReport: (msg: Message.ProfileAdded) -> Unit = { msg ->
+        val conn = connections[msg.sourceMUID]
+        conn?.profiles?.add(Pair(msg.profile, false))
+    }
     var processProfileAddedReport = defaultProcessProfileAddedReport
 
-    private val defaultProcessProfileRemovedReport: (profileId: MidiCIProfileId) -> Unit = { profileId -> profiles.remove(profileId) }
+    val defaultProcessProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
+        val conn = connections[msg.sourceMUID]
+        // FIXME: there may be better equality comparison...
+        conn?.profiles?.removeAll { it.first.toString() == msg.profile.toString() }
+    }
     var processProfileRemovedReport = defaultProcessProfileRemovedReport
 
+    // Property Exchange
     val defaultProcessPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
         if (conn != null) {
@@ -201,22 +212,8 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             return // we are not the target
 
         when (data[3]) {
-            /*
-            // Protocol Negotiation - we ignore them
-            FIXME: we should send back NAK
-            CIFactory.SUB_ID_2_PROTOCOL_NEGOTIATION_REPLY -> {
-                // Reply to Initiate Protocol Negotiation
-                processReplyToInitiateProtocolNegotiation(
-                    CIRetrieval.midiCIGetSupportedProtocols(data),
-                    CIRetrieval.midiCIGetSourceMUID(data))
-            }
-            CIFactory.SUB_ID_2_TEST_NEW_PROTOCOL_R2I -> {
-                // Test New Protocol Responder to Initiator
-                processTestProtocolReply(
-                    CIRetrieval.midiCIGetSourceMUID(data),
-                    CIRetrieval.midiCIGetTestData(data))
-            }
-            */
+            // Protocol Negotiation - we ignore them. Falls back to NAK
+
             // Discovery
             CIFactory.SUB_ID_2_DISCOVERY_REPLY -> {
                 val ciSupported = data[24]
@@ -225,9 +222,10 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                 val max = CIRetrieval.midiCIMaxSysExSize(data)
                 // only available in MIDI-CI 1.2 or later.
                 val initiatorOutputPath = if (data.size > 29) data[29] else 0
+                val functionBlock = if (data.size > 30) data[30] else 0
                 // Reply to Discovery
                 processDiscoveryReply(Message.DiscoveryReply(
-                    sourceMUID, destinationMUID, device, ciSupported, max, initiatorOutputPath))
+                    sourceMUID, destinationMUID, device, ciSupported, max, initiatorOutputPath, functionBlock))
             }
             CIFactory.SUB_ID_2_ENDPOINT_MESSAGE_REPLY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
@@ -270,21 +268,32 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                     data.drop(23)
                 )
             }
+
             // Profile Configuration
             CIFactory.SUB_ID_2_PROFILE_INQUIRY_REPLY -> {
-                processProfileInquiryResponse(
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val profiles = CIRetrieval.midiCIGetProfileSet(data)
+                processProfileReply(Message.ProfileReply(
                     CIRetrieval.midiCIGetDestination(data),
-                    CIRetrieval.midiCIGetSourceMUID(data),
-                    CIRetrieval.midiCIGetProfileSet(data)
+                    sourceMUID,
+                    destinationMUID,
+                    profiles)
                 )
             }
             CIFactory.SUB_ID_2_PROFILE_ADDED_REPORT -> {
-                processProfileAddedReport(CIRetrieval.midiCIGetProfileId(data))
+                val deviceId = CIRetrieval.midiCIGetDestination(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val profile = CIRetrieval.midiCIGetProfileId(data)
+                processProfileAddedReport(Message.ProfileAdded(deviceId, sourceMUID, profile))
             }
             CIFactory.SUB_ID_2_PROFILE_REMOVED_REPORT -> {
-                processProfileRemovedReport(CIRetrieval.midiCIGetProfileId(data))
+                val deviceId = CIRetrieval.midiCIGetDestination(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val profile = CIRetrieval.midiCIGetProfileId(data)
+                processProfileRemovedReport(Message.ProfileRemoved(deviceId, sourceMUID, profile))
             }
-            // FIXME: support set profile on/off messages
+            // FIXME: support set profile details reply
+            // FIXME: support set profile enabled/disabled reports
 
             // Property Exchange
             CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_REPLY -> {

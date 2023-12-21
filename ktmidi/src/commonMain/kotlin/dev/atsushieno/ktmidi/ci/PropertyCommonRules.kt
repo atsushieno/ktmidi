@@ -208,7 +208,7 @@ private val defaultPropertyList = listOf(
     PropertyResource(PropertyResourceNames.JSON_SCHEMA)
 )
 
-class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
+class CommonPropertyService(private val muid: Int, private val deviceInfo: MidiCIDeviceInfo,
                             private val propertyList: MutableList<PropertyResource> = mutableListOf<PropertyResource>().apply { addAll(defaultPropertyList) })
     : MidiCIPropertyService {
 
@@ -237,7 +237,7 @@ class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
 
         val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
         val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
-        return Message.GetPropertyDataReply(msg.destinationMUID, msg.sourceMUID, msg.requestId, replyHeader, replyBody)
+        return Message.GetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody)
     }
     override fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply {
         val jsonInquiryHeader = Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
@@ -246,7 +246,7 @@ class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
         val result = setPropertyData(jsonInquiryHeader, jsonInquiryBody)
 
         val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result)).toByteArray().toList()
-        return Message.SetPropertyDataReply(msg.destinationMUID, msg.sourceMUID, msg.requestId, replyHeader)
+        return Message.SetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader)
     }
 
     override fun subscribeProperty(msg: Message.SubscribeProperty): Message.SubscribePropertyReply {
@@ -257,7 +257,7 @@ class CommonPropertyService(private val deviceInfo: MidiCIDeviceInfo,
 
         val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
         val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
-        return Message.SubscribePropertyReply(replyHeader, replyBody)
+        return Message.SubscribePropertyReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody)
     }
 
     // impl
