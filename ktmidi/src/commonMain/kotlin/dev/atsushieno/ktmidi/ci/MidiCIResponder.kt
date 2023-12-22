@@ -26,7 +26,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     var midiCIBufferSize = 4096
 
-    val propertyService = CommonPropertyService(muid, device)
+    val propertyService = CommonRulesPropertyService(muid, device)
 
     // smaller value of initiator's maxSimulutaneousPropertyRequests vs. this.maxSimulutaneousPropertyRequests upon PEx inquiry request
     // FIXME: enable this when we start supporting Property Exchange.

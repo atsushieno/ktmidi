@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 /*
@@ -29,7 +31,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
         val profiles = ObservableProfileList()
 
-        val properties = ObservablePropertyList(parent.propertyService)
+        val properties = ObservablePropertyList(parent.propertyClient)
         fun updateProperty(header: List<Byte>, body: List<Byte>) {
             properties.set(header, body)
         }
@@ -46,7 +48,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     }
     val connectionsChanged = mutableListOf<(change: ConnectionChange, connection: Connection) -> Unit>()
 
-    val propertyService = CommonPropertyService(muid, device)
+    val propertyClient = CommonRulesPropertyClient(muid) { msg -> sendGetPropertyData(msg) }
 
     // Initiator implementation
 
@@ -84,7 +86,6 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     }
 
     // Property Exchange
-    // TODO: implement the rest (it's going to take long time, read the entire Common Rules for PE, support split chunks in reader and writer, and JSON serializers)
 
     fun requestPropertyExchangeCapabilities(destinationChannelOr7F: Byte, destinationMUID: Int, maxSimultaneousPropertyRequests: Byte) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
@@ -98,14 +99,23 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         ))
     }
 
-    var requestIdSerial: Byte = 0
+    fun sendGetPropertyData(msg: Message.GetPropertyData) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        CIFactory.midiCIPropertyChunks(buf, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY,
+            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, listOf()).forEach {
+            sendOutput(it)
+        }
+    }
+
+    private var requestIdSerial: Byte = 0
+
+    suspend fun requestPropertyList(destinationMUID: Int) =
+        propertyClient.requestPropertyIds(destinationMUID, requestIdSerial++)
 
     // FIXME: it is specific to CommonPropertyService and should be decoupled from this generic CI implementation.
     fun sendPropertyGetResourceList(destinationMUID: Int) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        // FIXME: better if it is not hand coded like this...
-        val headerJson = Json.JsonValue(mapOf(Pair(Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE), Json.JsonValue(PropertyResourceNames.RESOURCE_LIST))))
-        val headerBytes = Json.serialize(headerJson).encodeToByteArray().toList()
+        val headerBytes = CommonRulesPropertyHelper.getResourceListRequestBytes()
         sendOutput(CIFactory.midiCIPropertyPacketCommon(buf, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY,
             muid, destinationMUID, requestIdSerial++, headerBytes, 1u, 1u, listOf()))
     }
@@ -194,7 +204,9 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             conn.maxSimultaneousPropertyRequests = msg.maxSimultaneousRequests
 
             // proceed to query resource list
-            sendPropertyGetResourceList(msg.sourceMUID)
+            GlobalScope.launch {
+                requestPropertyList(msg.sourceMUID)
+            }
         }
         // FIXME: else -> error reporting
     }
@@ -202,7 +214,10 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
     val defaultProcessGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
-        conn?.updateProperty(msg.header, msg.body)
+        if (conn != null) {
+            propertyClient.onGetPropertyDataReply(msg)
+            conn.updateProperty(msg.header, msg.body)
+        }
     }
 
     var processGetDataReply = defaultProcessGetDataReply

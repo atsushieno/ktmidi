@@ -3,7 +3,7 @@ package dev.atsushieno.ktmidi.ci
 /**
  * Observable list of MIDI-CI Properties
  */
-class ObservablePropertyList(private val propertyService: MidiCIPropertyService) {
+class ObservablePropertyList(private val propertyClient: MidiCIPropertyClient) {
     data class Entry(val id: String, val header: List<Byte>, val body: List<Byte>)
 
     private val properties = mutableListOf<Entry>()
@@ -11,7 +11,7 @@ class ObservablePropertyList(private val propertyService: MidiCIPropertyService)
     val entries: List<Entry>
         get() = properties
 
-    fun getPropertyIdFor(header: List<Byte>) = propertyService.getPropertyIdentifier(header)
+    fun getPropertyIdFor(header: List<Byte>) = propertyClient.getPropertyIdForHeader(header)
 
     fun getPropertyIds(): List<String> = properties.map { it.id }
     fun getProperty(header: List<Byte>): List<Byte>? = getProperty(getPropertyIdFor(header))

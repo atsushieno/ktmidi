@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.sync.Mutex
 
 class PropertyExchangeException(message: String = "Property Exchange exception", innerException: Exception? = null) : Exception(message, innerException)
 
@@ -208,12 +209,8 @@ private val defaultPropertyList = listOf(
     PropertyResource(PropertyResourceNames.JSON_SCHEMA)
 )
 
-class CommonPropertyService(private val muid: Int, private val deviceInfo: MidiCIDeviceInfo,
-                            private val propertyList: MutableList<PropertyResource> = mutableListOf<PropertyResource>().apply { addAll(defaultPropertyList) })
-    : MidiCIPropertyService {
-
-    // MidiCIPropertyService implementation
-    override fun getPropertyIdentifier(header: List<Byte>): String {
+object CommonRulesPropertyHelper {
+    fun getPropertyIdentifier(header: List<Byte>): String {
         val json = Json.parse(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
         val resId =
             json.token.map.firstNotNullOfOrNull {
@@ -229,6 +226,62 @@ class CommonPropertyService(private val muid: Int, private val deviceInfo: MidiC
             }
         return resId ?: resource ?: ""
     }
+
+    fun getResourceListRequestJson(): Json.JsonValue {
+        val headerContent = Pair(
+            Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
+            Json.JsonValue(PropertyResourceNames.RESOURCE_LIST))
+        return Json.JsonValue(mapOf(headerContent))
+    }
+    fun getResourceListRequestBytes(): List<Byte> {
+        val json = getResourceListRequestJson()
+        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
+        return requestASCIIBytes
+    }
+}
+
+class CommonRulesPropertyClient(private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) : MidiCIPropertyClient {
+    override fun getPropertyIdForHeader(header: List<Byte>) = CommonRulesPropertyHelper.getPropertyIdentifier(header)
+
+    override fun getPropertyIds(): List<String>? = resourceList
+
+    override suspend fun requestPropertyIds(destinationMUID: Int, requestId: Byte) =
+        requestResourceList(destinationMUID, requestId)
+
+    override fun onGetPropertyDataReply(msg: Message.GetPropertyDataReply) {
+        val list = getPropertyListForMessage(msg) ?: return
+        resourceList.clear()
+        resourceList.addAll(list)
+    }
+
+    private val resourceList = mutableListOf<String>()
+
+    private fun requestResourceList(destinationMUID: Int, requestId: Byte) {
+        val requestASCIIBytes = CommonRulesPropertyHelper.getResourceListRequestBytes()
+        val msg = Message.GetPropertyData(muid, destinationMUID, requestId, requestASCIIBytes)
+        sendGetPropertyData(msg)
+    }
+
+    private fun getPropertyListForMessage(msg: Message.GetPropertyDataReply): List<String>? {
+        val id = getPropertyIdForHeader(msg.header)
+        return if (id == PropertyResourceNames.RESOURCE_LIST) getResourceListForBody(msg.body) else null
+    }
+
+    private fun getResourceListForBody(body: List<Byte>): List<String> {
+        val json = Json.parse(Json.getUnescapedString(body.toByteArray().decodeToString()))
+        return getResourceListForBody(json)
+    }
+
+    private fun getResourceListForBody(body: Json.JsonValue): List<String> =
+        body.token.seq.map { Json.getUnescapedString(it) }.toList()
+}
+
+class CommonRulesPropertyService(private val muid: Int, private val deviceInfo: MidiCIDeviceInfo,
+                                 private val propertyList: MutableList<PropertyResource> = mutableListOf<PropertyResource>().apply { addAll(defaultPropertyList) })
+    : MidiCIPropertyService {
+
+    // MidiCIPropertyService implementation
+    override fun getPropertyIdForHeader(header: List<Byte>) = CommonRulesPropertyHelper.getPropertyIdentifier(header)
 
     override fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply {
         val jsonInquiry = Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))

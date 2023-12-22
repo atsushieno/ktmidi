@@ -14,7 +14,7 @@ package dev.atsushieno.ktmidi.ci
  * Therefore, it is technically important to extract this interface out from CommonPropertyService.
  */
 interface MidiCIPropertyService {
-    fun getPropertyIdentifier(header: List<Byte>): String
+    fun getPropertyIdForHeader(header: List<Byte>): String
     fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply
     fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply
     fun subscribeProperty(msg: Message.SubscribeProperty) : Message.SubscribePropertyReply
