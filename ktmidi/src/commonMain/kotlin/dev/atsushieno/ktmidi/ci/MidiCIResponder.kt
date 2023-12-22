@@ -26,6 +26,8 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     var midiCIBufferSize = 4096
 
+    val propertyService = CommonPropertyService(muid, device)
+
     // smaller value of initiator's maxSimulutaneousPropertyRequests vs. this.maxSimulutaneousPropertyRequests upon PEx inquiry request
     // FIXME: enable this when we start supporting Property Exchange.
     //var establishedMaxSimulutaneousPropertyRequests: Byte? = null
@@ -139,8 +141,6 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     }
 
     // Property Exchange
-
-    val propertyService = CommonPropertyService(muid, device)
 
     // Should this also delegate to property service...?
     fun sendPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {

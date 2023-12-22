@@ -101,6 +101,14 @@ fun ClientConnection(vm: ConnectionViewModel) {
         vm.disabledProfiles.forEach {
             Text(it.toString())
         }
+
+        Text("Properties", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
+
+        vm.properties.forEach {
+            Row {
+                Text(it.id)
+            }
+        }
     }
 }
 

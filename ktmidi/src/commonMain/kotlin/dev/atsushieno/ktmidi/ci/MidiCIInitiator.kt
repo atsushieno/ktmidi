@@ -20,31 +20,6 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                       val outputPathId: Byte = 0,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
-    class ProfileList {
-        enum class ProfilesChange { Added, Removed }
-        private val profiles = mutableListOf<Pair<MidiCIProfileId,Boolean>>()
-        val enabledProfiles: List<MidiCIProfileId>
-            get() = profiles.filter { it.second }.map {it.first }
-        val disabledProfiles: List<MidiCIProfileId>
-            get() = profiles.filter { !it.second }.map {it.first }
-
-        fun add(profile: MidiCIProfileId, enabled: Boolean) {
-            profiles.removeAll { it.first.toString() == profile.toString() }
-            profiles.add(Pair(profile, enabled))
-            profilesChanged.forEach { it(ProfilesChange.Added, profile, enabled) }
-        }
-        fun remove(profile: MidiCIProfileId) {
-            // FIXME: there may be better equality comparison...
-            val items = profiles.filter { it.first.toString() == profile.toString() }
-            profiles.removeAll(items)
-            items.forEach { p ->
-                profilesChanged.forEach { it(ProfilesChange.Removed, p.first, p.second) }
-            }
-        }
-
-        val profilesChanged = mutableListOf<(change: ProfilesChange, profile: MidiCIProfileId, enabled: Boolean) -> Unit>()
-    }
-
     class Connection(
         val parent: MidiCIInitiator,
         val muid: Int,
@@ -52,11 +27,11 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         var maxSimultaneousPropertyRequests: Byte = 0,
         var productInstanceId: String = "") {
 
-        val profiles = ProfileList()
+        val profiles = ObservableProfileList()
 
-        val properties = mutableMapOf<List<Byte>, List<Byte>>()
+        val properties = ObservablePropertyList(parent.propertyService)
         fun updateProperty(header: List<Byte>, body: List<Byte>) {
-            properties[header] = body
+            properties.set(header, body)
         }
     }
 
@@ -70,6 +45,8 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         Removed
     }
     val connectionsChanged = mutableListOf<(change: ConnectionChange, connection: Connection) -> Unit>()
+
+    val propertyService = CommonPropertyService(muid, device)
 
     // Initiator implementation
 

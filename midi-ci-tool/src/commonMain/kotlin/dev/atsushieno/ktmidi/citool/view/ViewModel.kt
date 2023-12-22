@@ -3,9 +3,10 @@ package dev.atsushieno.ktmidi.citool.view
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import dev.atsushieno.ktmidi.ci.MidiCIInitiator
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
+import dev.atsushieno.ktmidi.ci.ObservableProfileList
+import dev.atsushieno.ktmidi.ci.ObservablePropertyList
 import dev.atsushieno.ktmidi.citool.AppModel
 
 object ViewModel {
@@ -33,13 +34,21 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     val enabledProfiles = mutableStateListOf<MidiCIProfileId>().apply { addAll(conn.profiles.enabledProfiles) }
     val disabledProfiles = mutableStateListOf<MidiCIProfileId>().apply { addAll(conn.profiles.disabledProfiles) }
 
+    val properties = mutableStateListOf<ObservablePropertyList.Entry>().apply { addAll(conn.properties.entries)}
+
     init {
         conn.profiles.profilesChanged.add { change, profile, enabled ->
             val target = if (enabled) enabledProfiles else disabledProfiles
             when (change) {
-                MidiCIInitiator.ProfileList.ProfilesChange.Added -> target.add(profile)
-                MidiCIInitiator.ProfileList.ProfilesChange.Removed -> target.remove(profile)
+                ObservableProfileList.ProfilesChange.Added -> target.add(profile)
+                ObservableProfileList.ProfilesChange.Removed -> target.remove(profile)
             }
+        }
+        conn.properties.propertiesChanged.add { entry ->
+            val existing = properties.firstOrNull { it.id == entry.id }
+            if (existing != null)
+                properties.remove(existing)
+            properties.add(entry)
         }
     }
 }
