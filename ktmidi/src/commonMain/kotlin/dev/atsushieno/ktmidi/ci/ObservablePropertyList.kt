@@ -14,7 +14,7 @@ class ObservablePropertyList(private val propertyClient: MidiCIPropertyClient) {
     fun getPropertyIdFor(header: List<Byte>) = propertyClient.getPropertyIdForHeader(header)
     fun getReplyStatusFor(header: List<Byte>) = propertyClient.getReplyStatusFor(header)
 
-    fun getPropertyIds(): List<String> = properties.map { it.id }
+    fun getPropertyIds(): List<String> = propertyClient.getPropertyIds() ?: listOf()
     fun getProperty(header: List<Byte>): List<Byte>? = getProperty(getPropertyIdFor(header))
     fun getProperty(propertyId: String): List<Byte>? = getPropertyEntry(propertyId)?.body
     fun getPropertyEntry(header: List<Byte>): Entry? = getPropertyEntry(getPropertyIdFor(header))
@@ -30,11 +30,13 @@ class ObservablePropertyList(private val propertyClient: MidiCIPropertyClient) {
     }
 
     val propertyChanged = mutableListOf<(entry: Entry) -> Unit>()
+    val propertiesCatalogUpdated = mutableListOf<() -> Unit>()
 
     init {
         propertyClient.propertyCatalogUpdated.add {
             val newEntries = mutableListOf<Entry>()
-            getPropertyIds().forEach {  id ->
+            val ids = getPropertyIds()
+            ids.forEach {  id ->
                 val existing = properties.firstOrNull { it.id == id }
                 if (existing != null)
                     newEntries.add(existing)
@@ -43,6 +45,8 @@ class ObservablePropertyList(private val propertyClient: MidiCIPropertyClient) {
             }
             properties.clear()
             properties.addAll(newEntries)
+
+            propertiesCatalogUpdated.forEach { it() }
         }
     }
 }
