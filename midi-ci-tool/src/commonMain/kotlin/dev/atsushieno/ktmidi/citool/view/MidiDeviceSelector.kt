@@ -49,6 +49,6 @@ private fun MidiDeviceSelector(isInput: Boolean, currentPort: MidiPortDetails?, 
         }).padding(12.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
     ) {
-        Text(currentPort?.name ?: "-- Select MIDI ${if (isInput) "Input" else "Output"} --")
+        Text(modifier = Modifier.padding(12.dp, 0.dp), text = currentPort?.name ?: "-- Select MIDI ${if (isInput) "Input" else "Output"} --")
     }
 }

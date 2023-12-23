@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import dev.atsushieno.ktmidi.ci.MidiCIInitiator
 import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
@@ -26,7 +26,7 @@ fun App() {
 
         var tabIndex by remember { mutableStateOf(0) }
 
-        val tabs = listOf("Initiator", "Responder", "Settings")
+        val tabs = listOf("Initiator", "Responder", "Logs", "Settings")
 
         Column(modifier = Modifier.fillMaxWidth()) {
             TabRow(selectedTabIndex = tabIndex) {
@@ -44,7 +44,8 @@ fun App() {
                             when (index) {
                                 0 -> Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null)
                                 1 -> Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
-                                2 -> Icon(imageVector = Icons.Default.Settings, contentDescription = null)
+                                2 -> Icon(imageVector = Icons.Default.List, contentDescription = null)
+                                3 -> Icon(imageVector = Icons.Default.Settings, contentDescription = null)
                             }
                         }
                     )
@@ -53,101 +54,20 @@ fun App() {
             when (tabIndex) {
                 0 -> InitiatorScreen()
                 1 -> ResponderScreen()
-                2 -> SettingsScreen()
+                2 -> LogScreen()
+                3 -> SettingsScreen()
             }
         }
-    }
-}
-
-@Composable
-fun InitiatorScreen() {
-    Column {
-        Row {
-            Button(onClick = { AppModel.ciDeviceManager.initiator.sendDiscovery()}) {
-                Text("Send Discovery")
-            }
-            MidiDeviceSelector()
-        }
-        val destinationMUID by remember { ViewModel.selectedRemoteDeviceMUID }
-        InitiatorDestinationSelector(destinationMUID,
-            onChange = { ViewModel.selectedRemoteDeviceMUID.value = it })
-
-        val conn = ViewModel.selectedRemoteDevice.value
-        if (conn != null) {
-            ClientConnection(conn)
-        }
-    }
-}
-
-@Composable
-fun ClientConnection(vm: ConnectionViewModel) {
-    val conn = vm.conn
-    Column {
-        Text("Device", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
-        Text("Manufacturer: ${conn.device.manufacturer.toString(16)}")
-        Text("Family: ${conn.device.family.toString(16)}")
-        Text("ModelNumber: ${conn.device.modelNumber.toString(16)}")
-        Text("RevisionLevel: ${conn.device.softwareRevisionLevel.toString(16)}")
-        Text("ProductInstanceId: ${conn.productInstanceId}")
-        Text("maxSimultaneousPropertyRequests: ${conn.maxSimultaneousPropertyRequests}")
-
-        Text("Profiles", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
-
-        Text("enabled:", fontWeight = FontWeight.Bold)
-        vm.enabledProfiles.forEach {
-            Text(it.toString())
-        }
-        Text("disabled:", fontWeight = FontWeight.Bold)
-        vm.disabledProfiles.forEach {
-            Text(it.toString())
-        }
-
-        Text("Properties", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
-
-        vm.properties.forEach {
-            Row {
-                Text(it.id)
-            }
-        }
-    }
-}
-
-@Composable
-private fun InitiatorDestinationSelector(destinationMUID: Int,
-                                         onChange: (Int) -> Unit) {
-    var dialogState by remember { mutableStateOf(false) }
-
-    DropdownMenu(expanded = dialogState, onDismissRequest = { dialogState = false}) {
-        val onClick: (Int) -> Unit = { muid ->
-            if (muid != 0)
-                onChange(muid)
-            dialogState = false
-        }
-        if (AppModel.ciDeviceManager.initiator.initiator.connections.any())
-            AppModel.ciDeviceManager.initiator.initiator.connections.toList().forEachIndexed { index, conn ->
-                DropdownMenuItem(onClick = { onClick(conn.first) }, text = {
-                    Text(conn.first.toString())
-                })
-            }
-        else
-            DropdownMenuItem(onClick = { onClick(0) }, text = { Text("(no CI Device)") })
-        DropdownMenuItem(onClick = { onClick(0) }, text = { Text("(Cancel)") })
-    }
-    Card(
-        modifier = Modifier.clickable(onClick = {
-            dialogState = true
-        }).padding(12.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
-    ) {
-        Text(if (destinationMUID != 0) destinationMUID.toString() else "-- Select CI Device --")
     }
 }
 
 @Composable
 fun ResponderScreen() {
     Text("It receives MIDI-CI requests on the Virtual In port and sends replies back from the Virtual Out port")
+}
 
-    AppModel.ciDeviceManager.isResponder = true
+@Composable
+fun LogScreen() {
     val logText = remember { ViewModel.logText }
 
     TextField(logText.value, onValueChange = { _: String -> }, readOnly = true)

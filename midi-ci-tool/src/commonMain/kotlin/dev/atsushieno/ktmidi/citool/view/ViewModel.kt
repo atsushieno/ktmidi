@@ -28,20 +28,25 @@ object ViewModel {
 }
 
 class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
+    fun selectProfile(profile: MidiCIProfileId) {
+        selectedProfile.value = profiles.firstOrNull { it.profileId.toString() == profile.toString() }
+    }
 
-    var serial = mutableStateOf(0)
+    var selectedProfile = mutableStateOf<MidiClientProfileViewModel?>(null)
 
-    val enabledProfiles = mutableStateListOf<MidiCIProfileId>().apply { addAll(conn.profiles.enabledProfiles) }
-    val disabledProfiles = mutableStateListOf<MidiCIProfileId>().apply { addAll(conn.profiles.disabledProfiles) }
+    val profiles = mutableStateListOf<MidiClientProfileViewModel>().apply {
+        addAll(conn.profiles.profiles.map {
+            MidiClientProfileViewModel(this@ConnectionViewModel, it.first, it.second)
+        })
+    }
 
     val properties = mutableStateListOf<ObservablePropertyList.Entry>().apply { addAll(conn.properties.entries)}
 
     init {
         conn.profiles.profilesChanged.add { change, profile, enabled ->
-            val target = if (enabled) enabledProfiles else disabledProfiles
             when (change) {
-                ObservableProfileList.ProfilesChange.Added -> target.add(profile)
-                ObservableProfileList.ProfilesChange.Removed -> target.remove(profile)
+                ObservableProfileList.ProfilesChange.Added -> profiles.add(MidiClientProfileViewModel(this, profile, enabled))
+                ObservableProfileList.ProfilesChange.Removed -> profiles.removeAll { it.profileId.toString() == profile.toString() }
             }
         }
         conn.properties.propertiesCatalogUpdated.add {
@@ -49,4 +54,8 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
             properties.addAll(conn.properties.entries)
         }
     }
+}
+
+class MidiClientProfileViewModel(private val parent: ConnectionViewModel, val profileId: MidiCIProfileId, enabled: Boolean) {
+    val enabled = mutableStateOf(enabled)
 }
