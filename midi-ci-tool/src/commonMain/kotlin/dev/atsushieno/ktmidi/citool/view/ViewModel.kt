@@ -44,7 +44,7 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
                 ObservableProfileList.ProfilesChange.Removed -> target.remove(profile)
             }
         }
-        conn.properties.propertiesChanged.add { entry ->
+        conn.properties.propertyChanged.add { entry ->
             val existing = properties.firstOrNull { it.id == entry.id }
             if (existing != null)
                 properties.remove(existing)

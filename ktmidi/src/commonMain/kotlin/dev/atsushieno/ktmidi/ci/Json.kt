@@ -28,10 +28,11 @@ object Json {
     fun parse(source: String) = parse(source, 0, source.length)
 
     private val splitChecked = charArrayOf(',', '{', '[', '}', ']', '"', ':')
+    private val splitChecked2 = charArrayOf(',', ':')
     private fun <T>splitEntries(source: String, offset: Int, length: Int, isMap: Boolean): Sequence<T> = sequence {
         val range = IntRange(offset, offset + length - 1)
         val sliced = source.slice(range)
-        val pos = sliced.indexOf(',') + offset
+        val pos = sliced.indexOfAny(splitChecked2) + offset
         if (pos < offset) {
             if (isMap && skipWhitespace(sliced, offset) == sliced.length)
                 return@sequence
@@ -212,7 +213,7 @@ object Json {
             TokenType.String -> json.source.substring(json.token.offset, json.token.offset + json.token.length)
             TokenType.Number -> json.token.number.toString()
             TokenType.Array -> "[" + json.token.seq.map { serialize(it) }.joinToString(", ") + "]"
-            TokenType.Object -> "{" + json.token.map.map { serialize(it.key) + ": " + serialize(it.value) }.joinToString(", ") + "}"
+            TokenType.Object -> "{" + json.token.map.map { serialize(it.key) + ":" + serialize(it.value) }.joinToString(",") + "}"
         }
     }
 }

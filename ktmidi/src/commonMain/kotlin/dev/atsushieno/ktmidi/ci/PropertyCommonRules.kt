@@ -214,14 +214,14 @@ object CommonRulesPropertyHelper {
         val json = Json.parse(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
         val resId =
             json.token.map.firstNotNullOfOrNull {
-                if (it.key.token.toString() == PropertyCommonHeaderKeys.RES_ID)
-                    it.value.token.toString()
+                if (Json.getUnescapedString(it.key) == PropertyCommonHeaderKeys.RES_ID)
+                    Json.getUnescapedString(it.value)
                 else null
             }
         val resource =
             json.token.map.firstNotNullOfOrNull {
-                if (it.key.token.toString() == PropertyCommonHeaderKeys.RESOURCE)
-                    it.value.token.toString()
+                if (Json.getUnescapedString(it.key) == PropertyCommonHeaderKeys.RESOURCE)
+                    Json.getUnescapedString(it.value)
                 else null
             }
         return resId ?: resource ?: ""
@@ -248,11 +248,24 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
     override suspend fun requestPropertyIds(destinationMUID: Int, requestId: Byte) =
         requestResourceList(destinationMUID, requestId)
 
-    override fun onGetPropertyDataReply(msg: Message.GetPropertyDataReply) {
-        val list = getPropertyListForMessage(msg) ?: return
+    override fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
+        // If the reply message is about ResourceList, then store the list internally.
+        val list = getPropertyListForMessage(request, reply) ?: return
         resourceList.clear()
         resourceList.addAll(list)
+        propertyCatalogUpdated.forEach { it() }
     }
+
+    override fun getReplyStatusFor(header: List<Byte>): Int? {
+        val replyString = Json.getUnescapedString(header.toByteArray().decodeToString())
+        val replyJson = Json.parse(replyString)
+        val statusPair = replyJson.token.map.toList().firstOrNull { Json.getUnescapedString(it.first) == PropertyCommonHeaderKeys.STATUS } ?: return null
+        return if (statusPair.second.token.type == Json.TokenType.Number) statusPair.second.token.number.toInt() else null
+    }
+
+    override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
+
+    // implementation
 
     private val resourceList = mutableListOf<String>()
 
@@ -262,9 +275,9 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
         sendGetPropertyData(msg)
     }
 
-    private fun getPropertyListForMessage(msg: Message.GetPropertyDataReply): List<String>? {
-        val id = getPropertyIdForHeader(msg.header)
-        return if (id == PropertyResourceNames.RESOURCE_LIST) getResourceListForBody(msg.body) else null
+    private fun getPropertyListForMessage(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply): List<String>? {
+        val id = getPropertyIdForHeader(request.header)
+        return if (id == PropertyResourceNames.RESOURCE_LIST) getResourceListForBody(reply.body) else null
     }
 
     private fun getResourceListForBody(body: List<Byte>): List<String> {
@@ -272,8 +285,16 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
         return getResourceListForBody(json)
     }
 
-    private fun getResourceListForBody(body: Json.JsonValue): List<String> =
-        body.token.seq.map { Json.getUnescapedString(it) }.toList()
+    private fun getResourceListForBody(body: Json.JsonValue): List<String> {
+        // list of entries (name: value)
+        val list = body.token.seq.toList()
+        return list.map { entry ->
+            val pairs = entry.token.map.toList()
+            pairs.map {
+                Json.getUnescapedString(it.second)
+            }.firstOrNull() ?: ""
+        }.toList()
+    }
 }
 
 class CommonRulesPropertyService(private val muid: Int, private val deviceInfo: MidiCIDeviceInfo,

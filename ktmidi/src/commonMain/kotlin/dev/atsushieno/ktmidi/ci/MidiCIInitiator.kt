@@ -23,23 +23,39 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
     class Connection(
-        val parent: MidiCIInitiator,
+        private val parent: MidiCIInitiator,
         val muid: Int,
         val device: DeviceDetails,
         var maxSimultaneousPropertyRequests: Byte = 0,
-        var productInstanceId: String = "") {
-
+        var productInstanceId: String = "",
+        val propertyClient: MidiCIPropertyClient = CommonRulesPropertyClient(parent.muid) { msg -> parent.sendGetPropertyData(msg) }
+    ) {
         val profiles = ObservableProfileList()
 
-        val properties = ObservablePropertyList(parent.propertyClient)
-        fun updateProperty(header: List<Byte>, body: List<Byte>) {
-            properties.set(header, body)
+        val properties = ObservablePropertyList(propertyClient)
+
+        private val openRequests = mutableListOf<Message.GetPropertyData>()
+
+        fun updateProperty(msg: Message.GetPropertyDataReply) {
+            val req = openRequests.firstOrNull { it.requestId == msg.requestId } ?: return
+            openRequests.remove(req)
+            val status = properties.getReplyStatusFor(msg.header) ?: return
+
+            if (status == PropertyExchangeStatus.OK) {
+                propertyClient.onGetPropertyDataReply(req, msg)
+                properties.set(req, msg)
+            }
+        }
+
+        fun addPendingRequest(msg: Message.GetPropertyData) {
+            openRequests.add(msg)
         }
     }
 
     var midiCIBufferSize = 4096
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
     var productInstanceId: String? = null
+    var maxSimultaneousPropertyRequests: Byte = 1
 
     val connections = mutableMapOf<Int, Connection>()
     enum class ConnectionChange {
@@ -47,8 +63,6 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         Removed
     }
     val connectionsChanged = mutableListOf<(change: ConnectionChange, connection: Connection) -> Unit>()
-
-    val propertyClient = CommonRulesPropertyClient(muid) { msg -> sendGetPropertyData(msg) }
 
     // Initiator implementation
 
@@ -100,6 +114,8 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     }
 
     fun sendGetPropertyData(msg: Message.GetPropertyData) {
+        val conn = connections[msg.destinationMUID]
+        conn?.addPendingRequest(msg)
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(buf, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, listOf()).forEach {
@@ -107,18 +123,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         }
     }
 
-    private var requestIdSerial: Byte = 0
-
-    suspend fun requestPropertyList(destinationMUID: Int) =
-        propertyClient.requestPropertyIds(destinationMUID, requestIdSerial++)
-
-    // FIXME: it is specific to CommonPropertyService and should be decoupled from this generic CI implementation.
-    fun sendPropertyGetResourceList(destinationMUID: Int) {
-        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        val headerBytes = CommonRulesPropertyHelper.getResourceListRequestBytes()
-        sendOutput(CIFactory.midiCIPropertyPacketCommon(buf, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY,
-            muid, destinationMUID, requestIdSerial++, headerBytes, 1u, 1u, listOf()))
-    }
+    private var requestIdSerial: Byte = 1
 
     // Reply handler
 
@@ -139,14 +144,16 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         if ((msg.ciCategorySupported.toInt() and MidiCIDiscoveryCategoryFlags.ProfileConfiguration.toInt()) != 0)
             requestProfiles(0x7F, msg.sourceMUID)
         if ((msg.ciCategorySupported.toInt() and MidiCIDiscoveryCategoryFlags.PropertyExchange.toInt()) != 0)
-            requestPropertyExchangeCapabilities(0x7F, msg.sourceMUID, 1)
+            requestPropertyExchangeCapabilities(0x7F, msg.sourceMUID, maxSimultaneousPropertyRequests)
     }
     var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
         handleNewEndpoint(msg)
     }
 
     private val defaultProcessInvalidateMUID = { sourceMUID: Int, destinationMUID: Int, muidToInvalidate: Int ->
-        // no particular operation
+        val conn = connections[muidToInvalidate]
+        if (conn != null)
+            connections.remove(muidToInvalidate)
     }
     var processInvalidateMUID = defaultProcessInvalidateMUID
 
@@ -205,7 +212,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
             // proceed to query resource list
             GlobalScope.launch {
-                requestPropertyList(msg.sourceMUID)
+                conn.propertyClient.requestPropertyIds(msg.sourceMUID, requestIdSerial++)
             }
         }
         // FIXME: else -> error reporting
@@ -215,8 +222,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     val defaultProcessGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
         if (conn != null) {
-            propertyClient.onGetPropertyDataReply(msg)
-            conn.updateProperty(msg.header, msg.body)
+            conn.updateProperty(msg)
         }
     }
 
@@ -250,6 +256,9 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             // Protocol Negotiation - we ignore them. Falls back to NAK
 
             // Discovery
+            CIFactory.SUB_ID_2_DISCOVERY_INQUIRY -> {
+                // If we send back NAK, then it may result in infinite loop like InvalidateMUID -> new Discovery
+            }
             CIFactory.SUB_ID_2_DISCOVERY_REPLY -> {
                 val ciSupported = data[24]
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
