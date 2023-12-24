@@ -34,16 +34,13 @@ object ViewModel {
 
 class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     fun selectProfile(profile: MidiCIProfileId) {
-        val nextProfile = profiles.firstOrNull { it.profile.profile.toString() == profile.toString() }
-        Snapshot.withMutableSnapshot { selectedProfile.value = nextProfile }
+        Snapshot.withMutableSnapshot { selectedProfile.value = profile }
     }
 
-    var selectedProfile = mutableStateOf<MidiClientProfileViewModel?>(null)
+    var selectedProfile = mutableStateOf<MidiCIProfileId?>(null)
 
-    val profiles = mutableStateListOf<MidiClientProfileViewModel>().apply {
-        addAll(conn.profiles.profiles.map {
-            MidiClientProfileViewModel(this@ConnectionViewModel, it)
-        })
+    val profiles = mutableStateListOf<MidiCIProfile>().apply {
+        addAll(conn.profiles.profiles)
     }
 
     val properties = mutableStateListOf<ObservablePropertyList.Entry>().apply { addAll(conn.properties.entries)}
@@ -51,8 +48,8 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     init {
         conn.profiles.profilesChanged.add { change, profile ->
             when (change) {
-                ObservableProfileList.ProfilesChange.Added -> profiles.add(MidiClientProfileViewModel(this, profile))
-                ObservableProfileList.ProfilesChange.Removed -> profiles.removeAll { it.profile.toString() == profile.profile.toString() }
+                ObservableProfileList.ProfilesChange.Added -> profiles.add(profile)
+                ObservableProfileList.ProfilesChange.Removed -> profiles.remove(profile)
             }
         }
         conn.properties.propertiesCatalogUpdated.add {
@@ -60,8 +57,4 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
             properties.addAll(conn.properties.entries)
         }
     }
-}
-
-class MidiClientProfileViewModel(private val parent: ConnectionViewModel, val profile: MidiCIProfile) {
-    val enabled = mutableStateOf(profile.enabled)
 }

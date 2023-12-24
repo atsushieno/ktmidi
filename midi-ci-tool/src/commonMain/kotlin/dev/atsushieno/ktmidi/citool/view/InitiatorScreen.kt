@@ -58,7 +58,7 @@ fun ClientConnection(vm: ConnectionViewModel) {
             val selectedProfile by remember { vm.selectedProfile }
             val sp = selectedProfile
             if (sp != null)
-                ClientProfileDetails(sp)
+                ClientProfileDetails(vm, sp)
         }
 
         Text("Properties", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
@@ -106,28 +106,35 @@ private fun InitiatorDestinationSelector(destinationMUID: Int,
 @Composable
 fun ClientProfileList(vm: ConnectionViewModel) {
     Column {
-        vm.profiles.forEach {
-            ClientProfileListEntry(it, vm.selectedProfile.value == it) { profile -> vm.selectProfile(profile.profile) }
+        vm.profiles.map { it.profile }.distinct().forEach {
+            ClientProfileListEntry(it, vm.selectedProfile.value == it) { profileId -> vm.selectProfile(profileId) }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ClientProfileListEntry(vm: MidiClientProfileViewModel, isSelected: Boolean, selectedProfileChanged: (profile: MidiCIProfile) -> Unit) {
+fun ClientProfileListEntry(profileId: MidiCIProfileId, isSelected: Boolean, selectedProfileChanged: (profile: MidiCIProfileId) -> Unit) {
     val border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null
     Card(border = border, onClick = {
-        selectedProfileChanged(vm.profile)
+        selectedProfileChanged(profileId)
     }) {
-        Text(modifier = Modifier.padding(12.dp, 0.dp), text = vm.profile.profile.toString())
+        Text(modifier = Modifier.padding(12.dp, 0.dp), text = profileId.toString())
     }
 }
 
 @Composable
-fun ClientProfileDetails(vm: MidiClientProfileViewModel) {
-    val enabled by remember { vm.enabled }
-    Switch(checked = enabled, onCheckedChange = {
-        TODO("FIXME: implement")
-    })
-    Text(vm.profile.profile.toString())
+fun ClientProfileDetails(vm: ConnectionViewModel, profileId: MidiCIProfileId) {
+    Column {
+        Text("by addressing:")
+        val entries = vm.profiles.filter { it.profile.toString() == profileId.toString() }
+        entries.forEach {
+            Row {
+                Switch(checked = it.enabled, onCheckedChange = {
+                    TODO("FIXME: implement")
+                })
+                Text("${it.address.toString(16)}: ${it.profile}")
+            }
+        }
+    }
 }
