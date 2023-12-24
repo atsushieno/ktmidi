@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import dev.atsushieno.ktmidi.ci.MidiCIProfile
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 import dev.atsushieno.ktmidi.citool.AppModel
 
@@ -106,19 +107,19 @@ private fun InitiatorDestinationSelector(destinationMUID: Int,
 fun ClientProfileList(vm: ConnectionViewModel) {
     Column {
         vm.profiles.forEach {
-            ClientProfileListEntry(it, vm.selectedProfile.value == it) { profile -> vm.selectProfile(profile) }
+            ClientProfileListEntry(it, vm.selectedProfile.value == it) { profile -> vm.selectProfile(profile.profile) }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ClientProfileListEntry(vm: MidiClientProfileViewModel, isSelected: Boolean, selectedProfileChanged: (profile: MidiCIProfileId) -> Unit) {
+fun ClientProfileListEntry(vm: MidiClientProfileViewModel, isSelected: Boolean, selectedProfileChanged: (profile: MidiCIProfile) -> Unit) {
     val border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null
     Card(border = border, onClick = {
-        selectedProfileChanged(vm.profileId)
+        selectedProfileChanged(vm.profile)
     }) {
-        Text(modifier = Modifier.padding(12.dp, 0.dp), text = vm.profileId.toString())
+        Text(modifier = Modifier.padding(12.dp, 0.dp), text = vm.profile.profile.toString())
     }
 }
 
@@ -128,5 +129,5 @@ fun ClientProfileDetails(vm: MidiClientProfileViewModel) {
     Switch(checked = enabled, onCheckedChange = {
         TODO("FIXME: implement")
     })
-    Text(vm.profileId.toString())
+    Text(vm.profile.profile.toString())
 }

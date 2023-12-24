@@ -20,7 +20,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         val discoveryReceived = mutableListOf<(msg: Message.DiscoveryInquiry) -> Unit>()
         val endpointInquiryReceived = mutableListOf<(msg: Message.EndpointInquiry) -> Unit>()
         val profileInquiryReceived = mutableListOf<(msg: Message.ProfileInquiry) -> Unit>()
-        val profileStateChanged = mutableListOf<(profile: MidiCIProfileId, enabled: Boolean) -> Unit>()
+        val profileStateChanged = mutableListOf<(profile: MidiCIProfile) -> Unit>()
         val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
         val propertyCapabilityInquiryReceived = mutableListOf<(Message.PropertyGetCapabilities) -> Unit>()
         val getPropertyDataReceived = mutableListOf<(msg: Message.GetPropertyData) -> Unit>()
@@ -65,13 +65,14 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         processProfileInquiry = { msg ->
             logger.profileInquiry(msg)
             events.profileInquiryReceived.forEach { it(msg) }
-            val reply = getProfileReplyForInquiry(msg)
-            logger.profileReply(reply)
-            sendProfileReply(reply)
+            getProfileRepliesForInquiry(msg).forEach { reply ->
+                logger.profileReply(reply)
+                sendProfileReply(reply)
+            }
         }
-        onProfileSet = { profile, enabled ->
-            logger.profileSet(profile, enabled)
-            events.profileStateChanged.forEach { it(profile, enabled) }
+        onProfileSet = { profile ->
+            logger.profileSet(profile)
+            events.profileStateChanged.forEach { it(profile) }
         }
         // PE
         processPropertyCapabilitiesInquiry = { msg ->
@@ -102,7 +103,8 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
             sendPropertySubscribeReply(reply)
         }
 
-        profileSet.add(Pair(MidiCIProfileId(0x7E, 1, 2, 3, 4), true))
-        profileSet.add(Pair(MidiCIProfileId(0x7E, 5, 6, 7, 8), true))
+        // FIXME: they are dummy items that should be removed.
+        profileSet.add(MidiCIProfile(MidiCIProfileId(0x7E, 1, 2, 3, 4), 0x7e, true))
+        profileSet.add(MidiCIProfile(MidiCIProfileId(0x7E, 5, 6, 7, 8), 0x7e, true))
     }
 }

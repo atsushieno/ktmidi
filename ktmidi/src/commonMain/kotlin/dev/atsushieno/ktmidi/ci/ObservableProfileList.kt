@@ -5,23 +5,22 @@ package dev.atsushieno.ktmidi.ci
  */
 class ObservableProfileList {
     enum class ProfilesChange { Added, Removed }
-    private val pl = mutableListOf<Pair<MidiCIProfileId,Boolean>>()
-    val profiles: List<Pair<MidiCIProfileId,Boolean>>
+    private val pl = mutableListOf<MidiCIProfile>()
+    val profiles: List<MidiCIProfile>
         get() = pl
 
-    fun add(profile: MidiCIProfileId, enabled: Boolean) {
-        pl.removeAll { it.first.toString() == profile.toString() }
-        pl.add(Pair(profile, enabled))
-        profilesChanged.forEach { it(ProfilesChange.Added, profile, enabled) }
+    fun add(profile: MidiCIProfile) {
+        pl.removeAll { it.toString() == profile.toString() }
+        pl.add(profile)
+        profilesChanged.forEach { it(ProfilesChange.Added, profile) }
     }
     fun remove(profile: MidiCIProfileId) {
-        // FIXME: there may be better equality comparison...
-        val items = profiles.filter { it.first.toString() == profile.toString() }
+        val items = profiles.filter { it.toString() == profile.toString() }
         pl.removeAll(items)
         items.forEach { p ->
-            profilesChanged.forEach { it(ProfilesChange.Removed, p.first, p.second) }
+            profilesChanged.forEach { it(ProfilesChange.Removed, p) }
         }
     }
 
-    val profilesChanged = mutableListOf<(change: ProfilesChange, profile: MidiCIProfileId, enabled: Boolean) -> Unit>()
+    val profilesChanged = mutableListOf<(change: ProfilesChange, profile: MidiCIProfile) -> Unit>()
 }

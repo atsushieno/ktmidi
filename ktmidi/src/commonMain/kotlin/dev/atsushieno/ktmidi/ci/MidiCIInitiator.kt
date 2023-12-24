@@ -188,13 +188,14 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     // Profile Configuration
     val defaultProcessProfileReply = { msg: Message.ProfileReply ->
         val conn = connections[msg.sourceMUID]
-        msg.profiles.forEach { conn?.profiles?.add(it.first, it.second) }
+        msg.enabledProfiles.forEach { conn?.profiles?.add(MidiCIProfile(it, msg.address, true)) }
+        msg.disabledProfiles.forEach { conn?.profiles?.add(MidiCIProfile(it, msg.address, false)) }
     }
     var processProfileReply = defaultProcessProfileReply
 
     val defaultProcessProfileAddedReport: (msg: Message.ProfileAdded) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
-        conn?.profiles?.add(msg.profile, false)
+        conn?.profiles?.add(MidiCIProfile(msg.profile, msg.address, false))
     }
     var processProfileAddedReport = defaultProcessProfileAddedReport
 
@@ -315,26 +316,28 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
             // Profile Configuration
             CIFactory.SUB_ID_2_PROFILE_INQUIRY_REPLY -> {
+                val address = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profiles = CIRetrieval.midiCIGetProfileSet(data)
                 processProfileReply(Message.ProfileReply(
-                    CIRetrieval.midiCIGetDestination(data),
+                    address,
                     sourceMUID,
                     destinationMUID,
-                    profiles)
+                    profiles.filter { it.second }.map { it.first },
+                    profiles.filter { !it.second }.map { it.first })
                 )
             }
             CIFactory.SUB_ID_2_PROFILE_ADDED_REPORT -> {
-                val deviceId = CIRetrieval.midiCIGetDestination(data)
+                val address = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profile = CIRetrieval.midiCIGetProfileId(data)
-                processProfileAddedReport(Message.ProfileAdded(deviceId, sourceMUID, profile))
+                processProfileAddedReport(Message.ProfileAdded(address, sourceMUID, profile))
             }
             CIFactory.SUB_ID_2_PROFILE_REMOVED_REPORT -> {
-                val deviceId = CIRetrieval.midiCIGetDestination(data)
+                val address = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profile = CIRetrieval.midiCIGetProfileId(data)
-                processProfileRemovedReport(Message.ProfileRemoved(deviceId, sourceMUID, profile))
+                processProfileRemovedReport(Message.ProfileRemoved(address, sourceMUID, profile))
             }
             // FIXME: support set profile details reply
             // FIXME: support set profile enabled/disabled reports
@@ -342,7 +345,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             // Property Exchange
             CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_REPLY -> {
                 processPropertyCapabilitiesReply(Message.PropertyGetCapabilitiesReply(
-                    CIRetrieval.midiCIGetDestination(data),
+                    CIRetrieval.midiCIGetAddressing(data),
                     CIRetrieval.midiCIGetSourceMUID(data),
                     destinationMUID,
                     CIRetrieval.midiCIGetMaxPropertyRequests(data))

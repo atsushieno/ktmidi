@@ -19,7 +19,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     var capabilityInquirySupported = MidiCIDiscoveryCategoryFlags.ThreePs
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
     var supportedProtocols: List<MidiCIProtocolTypeInfo> = MidiCIConstants.Midi2ThenMidi1Protocols
-    val profileSet: MutableList<Pair<MidiCIProfileId,Boolean>> = mutableListOf()
+    val profileSet: MutableList<MidiCIProfile> = mutableListOf()
     var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK
     var productInstanceId: String = ""
     var maxSimultaneousPropertyRequests: Byte = 1
@@ -81,34 +81,41 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     var processInvalidateMUID = { sourceMUID: Int, targetMUID: Int -> sendAck(sourceMUID) }
 
     // Profile Configuration
+    private fun MutableList<MidiCIProfile>.getMatchingProfiles(address: Byte, enabled: Boolean) =
+        when (address) {
+            0x7E.toByte() -> this.filter { it.enabled == enabled }.map { it.profile }
+            else -> this.filter { it.address == address && it.enabled == enabled }.map { it.profile }
+        }
 
     val sendProfileReply: (msg: Message.ProfileReply) -> Unit = { msg ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIProfileInquiryReply(dst, msg.source, msg.sourceMUID, msg.destinationMUID,
-            msg.profiles.filter { it.second}.map { it.first },
-            msg.profiles.filter { !it.second}.map { it.first })
+        sendOutput(CIFactory.midiCIProfileInquiryReply(dst, msg.address, msg.sourceMUID, msg.destinationMUID,
+            msg.enabledProfiles,
+            msg.disabledProfiles)
         )
     }
-    val getProfileReplyForInquiry: (msg: Message.ProfileInquiry) -> Message.ProfileReply = { msg ->
-        Message.ProfileReply(msg.source, muid, msg.sourceMUID, profileSet)
+    val getProfileRepliesForInquiry: (msg: Message.ProfileInquiry) -> Sequence<Message.ProfileReply> = { msg ->
+        sequence {
+            yield(Message.ProfileReply(msg.address, muid, msg.sourceMUID,
+                profileSet.getMatchingProfiles(msg.address, true),
+                profileSet.getMatchingProfiles(msg.address, false)))
+        }
     }
     var processProfileInquiry: (msg: Message.ProfileInquiry) -> Unit = { msg ->
-        sendProfileReply(getProfileReplyForInquiry(msg))
+        getProfileRepliesForInquiry(msg).forEach {
+            sendProfileReply(it)
+        }
     }
 
-    var onProfileSet: (profile: MidiCIProfileId, enabled: Boolean) -> Unit = { _, _ -> }
+    var onProfileSet: (profile: MidiCIProfile) -> Unit = {}
 
-    private val defaultProcessSetProfile = { destinationChannel: Byte, initiatorMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, enabled: Boolean ->
-        val newEntry = Pair(profile, enabled)
-        val existing = profileSet.indexOfFirst { it.first.mid1_7e == profile.mid1_7e &&
-                it.first.mid2_bank == profile.mid2_bank && it.first.mid3_number == profile.mid3_number &&
-                it.first.msi1_version == profile.msi1_version && it.first.msi2_level == profile.msi2_level }
-        if (existing >= 0) {
-            profileSet[existing] = newEntry
-        }
-        else
-            profileSet.add(newEntry)
-        onProfileSet(profile, enabled)
+    private val defaultProcessSetProfile = { address: Byte, initiatorMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, enabled: Boolean ->
+        val newEntry = MidiCIProfile(profile, address, enabled)
+        val existing = profileSet.firstOrNull { it.toString() == profile.toString() }
+        if (existing != null)
+            profileSet.remove(existing)
+        profileSet.add(newEntry)
+        onProfileSet(newEntry)
         enabled
     }
     /**
@@ -122,7 +129,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
      */
     var processSetProfile = defaultProcessSetProfile
 
-    var processProfileSpecificData: (sourceChannel: Byte, sourceMUID: Int, destinationMUID: Int, profileId: MidiCIProfileId, data: List<Byte>) -> Unit = { _, _, _, _, _ -> }
+    var processProfileSpecificData: (address: Byte, sourceMUID: Int, destinationMUID: Int, profileId: MidiCIProfileId, data: List<Byte>) -> Unit = { _, _, _, _, _ -> }
 
     // Handling invalid messages
 
@@ -240,28 +247,28 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
             CIFactory.SUB_ID_2_SET_PROFILE_ON, CIFactory.SUB_ID_2_SET_PROFILE_OFF -> {
                 var enabled = data[3] == CIFactory.SUB_ID_2_SET_PROFILE_ON
-                val destination = CIRetrieval.midiCIGetDestination(data)
+                val address = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
-                enabled = processSetProfile(destination, sourceMUID, destinationMUID, profileId, enabled)
+                enabled = processSetProfile(address, sourceMUID, destinationMUID, profileId, enabled)
 
                 val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-                CIFactory.midiCIProfileReport(dst, destination, enabled, muid, profileId)
+                CIFactory.midiCIProfileReport(dst, address, enabled, muid, profileId)
                 sendOutput(dst)
             }
 
             CIFactory.SUB_ID_2_PROFILE_SPECIFIC_DATA -> {
-                val sourceChannel = CIRetrieval.midiCIGetDestination(data)
+                val address = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
                 val dataLength = CIRetrieval.midiCIGetProfileSpecificDataSize(data)
-                processProfileSpecificData(sourceChannel, sourceMUID, destinationMUID, profileId, data.drop(21).take(dataLength))
+                processProfileSpecificData(address, sourceMUID, destinationMUID, profileId, data.drop(21).take(dataLength))
             }
 
             // Property Exchange
 
             CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY -> {
-                val destination = CIRetrieval.midiCIGetDestination(data)
+                val destination = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val max = CIRetrieval.midiCIGetMaxPropertyRequests(data)
 

@@ -25,6 +25,8 @@ data class MidiCIProfileId(val mid1_7e: Byte = 0x7E, val mid2_bank: Byte, val mi
         "${mid1_7e.toString(16)}:${mid2_bank.toString(16)}:${mid3_number.toString(16)}:${msi1_version.toString(16)}:${msi2_level.toString(16)}"
 }
 
+data class MidiCIProfile(val profile: MidiCIProfileId, val address: Byte, val enabled: Boolean)
+
 object CIFactory {
 
     const val SUB_ID: Byte = 0xD

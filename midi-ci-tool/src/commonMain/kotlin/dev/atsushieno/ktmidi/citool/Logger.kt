@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi.citool
 
 import dev.atsushieno.ktmidi.ci.Message
+import dev.atsushieno.ktmidi.ci.MidiCIProfile
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 import dev.atsushieno.ktmidi.citool.view.ViewModel
 
@@ -29,8 +30,8 @@ class Logger {
 
     fun profileRemoved(msg: Message.ProfileRemoved) = logMessage(msg)
 
-    fun profileSet(profile: MidiCIProfileId, enabled: Boolean) {
-        ViewModel.log("- Profile${if (enabled) "Enabled" else "Disabled"}($profile})")
+    fun profileSet(profile: MidiCIProfile) {
+        ViewModel.log("- Profile${if (profile.enabled) "Enabled" else "Disabled"}($profile})")
     }
 
     fun propertyGetCapabilitiesInquiry(msg: Message.PropertyGetCapabilities) = logMessage(msg)
