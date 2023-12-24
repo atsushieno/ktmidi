@@ -6,11 +6,11 @@ import dev.atsushieno.ktmidi.citool.view.ViewModel
 
 class Logger {
     fun nak(data: List<Byte>) {
-        ViewModel.logText.value += "- NAK(${data.joinToString { it.toString(16) }}\n"
+        ViewModel.log("- NAK(${data.joinToString { it.toString(16) }}")
     }
 
     private fun logMessage(msg: Any) {
-        ViewModel.logText.value += "- $msg\n"
+        ViewModel.log("- $msg")
     }
 
     fun discovery(msg: Message.DiscoveryInquiry) = logMessage(msg)
@@ -30,7 +30,7 @@ class Logger {
     fun profileRemoved(msg: Message.ProfileRemoved) = logMessage(msg)
 
     fun profileSet(profile: MidiCIProfileId, enabled: Boolean) {
-        ViewModel.logText.value += "- Profile${if (enabled) "Enabled" else "Disabled"}($profile})\n"
+        ViewModel.log("- Profile${if (enabled) "Enabled" else "Disabled"}($profile})")
     }
 
     fun propertyGetCapabilitiesInquiry(msg: Message.PropertyGetCapabilities) = logMessage(msg)

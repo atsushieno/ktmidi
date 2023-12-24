@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi.citool
 
+import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.ci.Message
 import dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo
 import dev.atsushieno.ktmidi.ci.MidiCIInitiator
@@ -13,9 +14,7 @@ import kotlin.random.Random
 class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     fun processCIMessage(data: List<Byte>) {
         val time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        ViewModel.logText.value += "[${
-            time.time.toString().substring(0, 8)
-        }] SYSEX: " + data.joinToString { it.toString(16) } + "\n"
+        ViewModel.log("[${time.time.toString().substring(0, 8)}] SYSEX: " + data.joinToString { it.toString(16) })
         initiator.processInput(data)
     }
 
@@ -40,7 +39,7 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         "atsushieno", "KtMidi", "KtMidi-CI-Tool Initiator", "0.1")
 
     val initiator = MidiCIInitiator(device, { data ->
-        ViewModel.logText.value += "[I] REQUEST SYSEX: " + data.joinToString { it.toString(16) } + "\n"
+        ViewModel.log("[I] REQUEST SYSEX: " + data.joinToString { it.toString(16) } + "\n")
         outputSender(data)
     }).apply {
         productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)

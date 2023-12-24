@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -23,7 +25,15 @@ import dev.atsushieno.ktmidi.citool.AppModel
 @Composable
 fun App() {
     MaterialTheme {
+        Scaffold {
+            MainContent()
+        }
+    }
+}
 
+@Composable
+fun MainContent() {
+    Column(Modifier.verticalScroll(rememberScrollState())) {
         var tabIndex by remember { mutableStateOf(0) }
 
         val tabs = listOf("Initiator", "Responder", "Logs", "Settings")
@@ -68,7 +78,7 @@ fun ResponderScreen() {
 
 @Composable
 fun LogScreen() {
-    val logText = remember { ViewModel.logText }
+    val logText = remember { ViewModel.log }
 
     TextField(logText.value, onValueChange = { _: String -> }, readOnly = true)
 }

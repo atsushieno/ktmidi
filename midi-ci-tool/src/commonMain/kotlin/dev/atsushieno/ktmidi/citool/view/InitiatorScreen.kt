@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
@@ -27,7 +28,7 @@ fun InitiatorScreen() {
         }
         val destinationMUID by remember { ViewModel.selectedRemoteDeviceMUID }
         InitiatorDestinationSelector(destinationMUID,
-            onChange = { ViewModel.selectedRemoteDeviceMUID.value = it })
+            onChange = { Snapshot.withMutableSnapshot { ViewModel.selectedRemoteDeviceMUID.value = it } })
 
         val conn = ViewModel.selectedRemoteDevice.value
         if (conn != null) {

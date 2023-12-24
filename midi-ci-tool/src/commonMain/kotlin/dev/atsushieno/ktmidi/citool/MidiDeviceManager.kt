@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi.citool
 
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.*
 import dev.atsushieno.ktmidi.ci.MidiCIConstants
 import kotlinx.coroutines.GlobalScope
@@ -68,8 +69,10 @@ class MidiDeviceManager {
             runBlocking {
                 midiOutput.close()
                 midiOutput = if (id != null) midiAccessValue.openOutput(id) else emptyMidiOutput
-                midiOutputError.value = null
-                virtualMidiOutputError.value = null
+                Snapshot.withMutableSnapshot {
+                    midiOutputError.value = null
+                    virtualMidiOutputError.value = null
+                }
                 midiOutputOpened.forEach { it(midiOutput) }
             }
         }
@@ -95,13 +98,13 @@ class MidiDeviceManager {
             if (midiOutputError.value == null)
                 midiOutput.send(bytes, 0, bytes.size, timestamp)
         } catch (ex: Exception) {
-            midiOutputError.value = ex
+            Snapshot.withMutableSnapshot { midiOutputError.value = ex }
         }
         try {
             if (virtualMidiOutputError.value == null)
                 virtualMidiOutput?.send(bytes, 0, bytes.size, timestamp)
         } catch (ex: Exception) {
-            virtualMidiOutputError.value = ex
+            Snapshot.withMutableSnapshot { virtualMidiOutputError.value = ex }
         }
     }
 

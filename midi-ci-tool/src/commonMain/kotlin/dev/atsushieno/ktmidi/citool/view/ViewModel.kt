@@ -1,8 +1,10 @@
 package dev.atsushieno.ktmidi.citool.view
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.ci.MidiCIInitiator
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 import dev.atsushieno.ktmidi.ci.ObservableProfileList
@@ -10,7 +12,13 @@ import dev.atsushieno.ktmidi.ci.ObservablePropertyList
 import dev.atsushieno.ktmidi.citool.AppModel
 
 object ViewModel {
-    var logText = mutableStateOf("")
+    private var logText = mutableStateOf("")
+
+    val log: MutableState<String>
+        get() = logText
+    fun log(msg: String) {
+        Snapshot.withMutableSnapshot { logText.value += msg + (if (msg.endsWith('\n')) "" else "\n") }
+    }
 
     var selectedRemoteDeviceMUID = mutableStateOf(0)
     val selectedRemoteDevice = derivedStateOf {
@@ -22,14 +30,15 @@ object ViewModel {
         // When a new entry is appeared and nothing was selected, move to the new entry.
         AppModel.ciDeviceManager.initiator.initiator.connectionsChanged.add { change, conn ->
             if (selectedRemoteDeviceMUID.value == 0 && change == MidiCIInitiator.ConnectionChange.Added)
-                selectedRemoteDeviceMUID.value = conn.muid
+                Snapshot.withMutableSnapshot { selectedRemoteDeviceMUID.value = conn.muid }
         }
     }
 }
 
 class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     fun selectProfile(profile: MidiCIProfileId) {
-        selectedProfile.value = profiles.firstOrNull { it.profileId.toString() == profile.toString() }
+        val nextProfile = profiles.firstOrNull { it.profileId.toString() == profile.toString() }
+        Snapshot.withMutableSnapshot { selectedProfile.value = nextProfile }
     }
 
     var selectedProfile = mutableStateOf<MidiClientProfileViewModel?>(null)

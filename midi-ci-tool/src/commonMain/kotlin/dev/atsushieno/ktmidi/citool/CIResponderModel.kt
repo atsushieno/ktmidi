@@ -10,7 +10,7 @@ import kotlin.random.Random
 class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     fun processCIMessage(data: List<Byte>) {
         val time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        ViewModel.logText.value += "[${time.time.toString().substring(0, 8)}] SYSEX: " + data.joinToString { it.toString(16) } + "\n"
+        ViewModel.log("[${time.time.toString().substring(0, 8)}] SYSEX: " + data.joinToString { it.toString(16) } + "\n")
         responder.processInput(data)
     }
 
@@ -34,7 +34,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         "atsushieno", "KtMidi", "KtMidi-CI-Tool Responder", "0.1")
 
     private val responder = MidiCIResponder(device, { data ->
-        ViewModel.logText.value += "[R] REPLY SYSEX: " + data.joinToString { it.toString(16) } + "\n"
+        ViewModel.log("[R] REPLY SYSEX: " + data.joinToString { it.toString(16) })
         outputSender(data)
     }).apply {
         productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
