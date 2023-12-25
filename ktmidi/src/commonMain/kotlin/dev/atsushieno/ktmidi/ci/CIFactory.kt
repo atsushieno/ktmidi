@@ -111,10 +111,10 @@ object CIFactory {
 
     fun midiCIMessageCommon(
         dst: MutableList<Byte>,
-        deviceId: Byte, sysexSubId2: Byte, versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int
+        address: Byte, sysexSubId2: Byte, versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int
     ) {
         dst[0] = MidiCIConstants.UNIVERSAL_SYSEX
-        dst[1] = deviceId
+        dst[1] = address
         dst[2] = MidiCIConstants.UNIVERSAL_SYSEX_SUB_ID_MIDI_CI
         dst[3] = sysexSubId2
         dst[4] = versionAndFormat
@@ -132,7 +132,7 @@ object CIFactory {
         softwareRevisionLevel: Int, ciCategorySupported: Byte, receivableMaxSysExSize: Int,
         initiatorOutputPathId: Byte
     ) {
-        midiCIMessageCommon(dst, 0x7F, sysexSubId2, versionAndFormat, sourceMUID, destinationMUID)
+        midiCIMessageCommon(dst, MidiCIConstants.WHOLE_FUNCTION_BLOCK, sysexSubId2, versionAndFormat, sourceMUID, destinationMUID)
         midiCiDirectUint32At(
             dst, 13,
             deviceManufacturer3Bytes
@@ -207,10 +207,10 @@ object CIFactory {
     }
 
     fun midiCIDiscoveryNak(
-        dst: MutableList<Byte>, deviceId: Byte,
+        dst: MutableList<Byte>, address: Byte,
         versionAndFormat: Byte, sourceMUID: Int, destinationMUID: Int
     ) : List<Byte> {
-        midiCIMessageCommon(dst, deviceId, 0x7F, versionAndFormat, sourceMUID, destinationMUID)
+        midiCIMessageCommon(dst, address, 0x7F, versionAndFormat, sourceMUID, destinationMUID)
         return dst.take(13)
     }
 
@@ -236,64 +236,6 @@ object CIFactory {
         }
     }
 
-    fun midiCIProtocolNegotiation(
-        dst: MutableList<Byte>, isReply: Boolean,
-        sourceMUID: Int, destinationMUID: Int,
-        authorityLevel: Byte,
-        protocolTypes: List<MidiCIProtocolTypeInfo>
-    ) {
-        midiCIMessageCommon(
-            dst, 0x7F,
-            if (isReply) SUB_ID_2_PROTOCOL_NEGOTIATION_REPLY else SUB_ID_2_PROTOCOL_NEGOTIATION_INQUIRY,
-            1, sourceMUID, destinationMUID
-        )
-        dst[13] = authorityLevel
-        midiCIProtocols(dst, 14, protocolTypes)
-    }
-
-    fun midiCIProtocolSet(
-        dst: MutableList<Byte>,
-        sourceMUID: Int, destinationMUID: Int,
-        authorityLevel: Byte, newProtocolType: MidiCIProtocolTypeInfo
-    ) {
-        midiCIMessageCommon(
-            dst, 0x7F,
-            SUB_ID_2_SET_NEW_PROTOCOL,
-            1, sourceMUID, destinationMUID
-        )
-        dst[13] = authorityLevel
-        midiCIProtocolInfo(dst, 14, newProtocolType)
-    }
-
-    fun midiCIProtocolTest(
-        dst: MutableList<Byte>,
-        isInitiatorToResponder: Boolean,
-        sourceMUID: Int, destinationMUID: Int,
-        authorityLevel: Byte, testData48Bytes: List<Byte>
-    ) {
-        midiCIMessageCommon(
-            dst, 0x7F,
-            if (isInitiatorToResponder) SUB_ID_2_TEST_NEW_PROTOCOL_I2R else SUB_ID_2_TEST_NEW_PROTOCOL_R2I,
-            1, sourceMUID, destinationMUID
-        )
-        dst[13] = authorityLevel
-        memcpy(dst, 14, testData48Bytes, 48)
-    }
-
-    fun midiCIProtocolConfirmEstablished(
-        dst: MutableList<Byte>,
-        sourceMUID: Int, destinationMUID: Int,
-        authorityLevel: Byte
-    ) {
-        midiCIMessageCommon(
-            dst, 0x7F,
-            SUB_ID_2_CONFIRM_NEW_PROTOCOL_ESTABLISHED,
-            1, sourceMUID, destinationMUID
-        )
-        dst[13] = authorityLevel
-    }
-
-
 // Profile Configuration
 
     fun midiCIProfile(dst: MutableList<Byte>, offset: Int, info: MidiCIProfileId) {
@@ -305,11 +247,11 @@ object CIFactory {
     }
 
     fun midiCIProfileInquiry(
-        dst: MutableList<Byte>, destinationChannelOr7F: Byte,
+        dst: MutableList<Byte>, address: Byte,
         sourceMUID: Int, destinationMUID: Int
     ) : List<Byte> {
         midiCIMessageCommon(
-            dst, destinationChannelOr7F,
+            dst, address,
             SUB_ID_2_PROFILE_INQUIRY,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
@@ -317,13 +259,13 @@ object CIFactory {
     }
 
     fun midiCIProfileInquiryReply(
-        dst: MutableList<Byte>, source: Byte,
+        dst: MutableList<Byte>, address: Byte,
         sourceMUID: Int, destinationMUID: Int,
         enabledProfiles: List<MidiCIProfileId>,
         disabledProfiles: List<MidiCIProfileId>
     ) : List<Byte> {
         midiCIMessageCommon(
-            dst, source,
+            dst, address,
             SUB_ID_2_PROFILE_INQUIRY_REPLY,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
@@ -343,11 +285,11 @@ object CIFactory {
     }
 
     fun midiCIProfileSet(
-        dst: MutableList<Byte>, destination: Byte, turnOn: Boolean,
+        dst: MutableList<Byte>, address: Byte, turnOn: Boolean,
         sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId
     ) : List<Byte> {
         midiCIMessageCommon(
-            dst, destination,
+            dst, address,
             if (turnOn) SUB_ID_2_SET_PROFILE_ON else SUB_ID_2_SET_PROFILE_OFF,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
@@ -356,11 +298,11 @@ object CIFactory {
     }
 
     fun midiCIProfileAddedRemoved(
-        dst: MutableList<Byte>, destination: Byte, isRemoved: Boolean,
+        dst: MutableList<Byte>, address: Byte, isRemoved: Boolean,
         sourceMUID: Int, profile: MidiCIProfileId
     ) : List<Byte> {
         midiCIMessageCommon(
-            dst, destination,
+            dst, address,
             if (isRemoved) SUB_ID_2_PROFILE_REMOVED_REPORT else SUB_ID_2_PROFILE_ADDED_REPORT,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, 0x7F7F7F7F
         )
@@ -369,11 +311,11 @@ object CIFactory {
     }
 
     fun midiCIProfileReport(
-        dst: MutableList<Byte>, source: Byte, isEnabledReport: Boolean,
+        dst: MutableList<Byte>, address: Byte, isEnabledReport: Boolean,
         sourceMUID: Int, profile: MidiCIProfileId
     ) : List<Byte> {
         midiCIMessageCommon(
-            dst, source,
+            dst, address,
             if (isEnabledReport) SUB_ID_2_PROFILE_ENABLED_REPORT else SUB_ID_2_PROFILE_DISABLED_REPORT,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, 0x7F7F7F7F
         )
@@ -382,11 +324,11 @@ object CIFactory {
     }
 
     fun midiCIProfileSpecificData(
-        dst: MutableList<Byte>, source: Byte,
+        dst: MutableList<Byte>, address: Byte,
         sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, dataSize: Int, data: MutableList<Byte>
     ) : List<Byte> {
         midiCIMessageCommon(
-            dst, source,
+            dst, address,
             SUB_ID_2_PROFILE_SPECIFIC_DATA,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
@@ -399,11 +341,11 @@ object CIFactory {
 
     // Property Exchange
     fun midiCIPropertyGetCapabilities(
-        dst: MutableList<Byte>, destination: Byte, isReply: Boolean,
+        dst: MutableList<Byte>, address: Byte, isReply: Boolean,
         sourceMUID: Int, destinationMUID: Int, maxSimulutaneousRequests: Byte
     ) : List<Byte> {
         midiCIMessageCommon(
-            dst, destination,
+            dst, address,
             if (isReply) SUB_ID_2_PROPERTY_CAPABILITIES_REPLY else SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
@@ -416,12 +358,12 @@ object CIFactory {
 
     // common to all of: has data & reply, get data & reply, set data & reply, subscribe & reply, notify
     fun midiCIPropertyCommon(
-        dst: MutableList<Byte>, destination: Byte, messageTypeSubId2: Byte,
+        dst: MutableList<Byte>, address: Byte, messageTypeSubId2: Byte,
         sourceMUID: Int, destinationMUID: Int,
         requestId: Byte, header: List<Byte>,
         numChunks: UShort, chunkIndex: UShort, data: List<Byte>
     ) {
-        midiCIMessageCommon(dst, destination, messageTypeSubId2,
+        midiCIMessageCommon(dst, address, messageTypeSubId2,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID)
         dst[13] = requestId
         midiCiDirectUint16At(dst, 14, header.size.toUShort())
@@ -471,7 +413,7 @@ object CIFactory {
     fun midiCIAckNak(
         dst: MutableList<Byte>,
         isNak: Boolean,
-        sourceDeviceId: Byte,
+        address: Byte,
         versionAndFormat: Byte,
         sourceMUID: Int,
         destinationMUID: Int,
@@ -482,7 +424,7 @@ object CIFactory {
         messageTextData: List<Byte>
     ): List<Byte> {
         midiCIMessageCommon(
-            dst, sourceDeviceId, if (isNak) SUB_ID_2_NAK else SUB_ID_2_ACK,
+            dst, address, if (isNak) SUB_ID_2_NAK else SUB_ID_2_ACK,
             versionAndFormat, sourceMUID, destinationMUID)
         dst[13] = originalSubId
         dst[14] = statusCode
