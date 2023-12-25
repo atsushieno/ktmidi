@@ -163,27 +163,28 @@ data class PropertyResource(
     val canPaginate: Boolean = false,
     val columns: List<PropertyResourceColumn> = listOf()
 ) {
+    private fun jsonValuePairs() = sequence {
+        yield(Pair(Json.JsonValue("resource"), Json.JsonValue(resource)))
+        if (!canGet)
+            yield(Pair(Json.JsonValue("canGet"), if (canGet) Json.TrueValue else Json.FalseValue))
+        if (canSet != PropertySetAccess.NONE)
+            yield(Pair(Json.JsonValue("canSet"), Json.JsonValue(canSet)))
+        if (canSubscribe)
+            yield(Pair(Json.JsonValue("canSubscribe"), if (canSubscribe) Json.TrueValue else Json.FalseValue))
+        if (requireResId)
+            yield(Pair(Json.JsonValue("requireResId"), if (requireResId) Json.TrueValue else Json.FalseValue))
+        if (mediaTypes.size != 1 || mediaTypes[0] != "application/json")
+            yield(Pair(Json.JsonValue("mediaTypes"), Json.JsonValue(mediaTypes.map { s -> Json.JsonValue(s) })))
+        if (encodings.size != 1 || encodings[0] != "ASCII")
+            yield(Pair(Json.JsonValue("encodings"), Json.JsonValue(encodings.map { s -> Json.JsonValue(s) })))
+        if (canPaginate)
+            yield(Pair(Json.JsonValue("canPaginate"), if (canPaginate) Json.TrueValue else Json.FalseValue))
+        if (columns.any())
+            yield(Pair(Json.JsonValue("columns"), Json.JsonValue(columns.map { c -> c.toJsonValue() })))
+    }
+
     fun toJsonValue(): Json.JsonValue = Json.JsonValue(
-        mapOf(
-            Pair(Json.JsonValue("resource"), Json.JsonValue(resource)),
-            Pair(Json.JsonValue("canGet"), if (canGet) Json.TrueValue else Json.FalseValue),
-            Pair(Json.JsonValue("canSet"), Json.JsonValue(canSet)),
-            Pair(Json.JsonValue("canSubscribe"), if (canSubscribe) Json.TrueValue else Json.FalseValue),
-            Pair(Json.JsonValue("requireResId"), if (requireResId) Json.TrueValue else Json.FalseValue),
-            Pair(
-                Json.JsonValue("mediaTypes"),
-                Json.JsonValue(mediaTypes.map { s -> Json.JsonValue(s) })
-            ),
-            Pair(
-                Json.JsonValue("encodings"),
-                Json.JsonValue(encodings.map { s -> Json.JsonValue(s) })
-            ),
-            Pair(Json.JsonValue("canPaginate"), if (canPaginate) Json.TrueValue else Json.FalseValue),
-            Pair(
-                Json.JsonValue("columns"),
-                Json.JsonValue(columns.map { c -> c.toJsonValue() })
-            )
-        )
+        jsonValuePairs().toMap()
     )
 }
 
@@ -374,7 +375,7 @@ class CommonRulesPropertyService(private val muid: Int, private val deviceInfo: 
     ).apply {
         if (src.message != null)
             this[Json.JsonValue(PropertyCommonHeaderKeys.MESSAGE)] = Json.JsonValue(src.message)
-        if (src.mutualEncoding != null)
+        if (src.mutualEncoding != null && src.mutualEncoding != PropertyDataEncoding.ASCII)
             this[Json.JsonValue(PropertyCommonHeaderKeys.MUTUAL_ENCODING)] = Json.JsonValue(src.mutualEncoding)
         if (src.cacheTime != null)
             this[Json.JsonValue(PropertyCommonHeaderKeys.CACHE_TIME)] = Json.JsonValue(src.cacheTime)

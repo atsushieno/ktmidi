@@ -161,7 +161,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     fun sendPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, msg.destination, true,
-            muid, msg.sourceMUID, msg.maxSimultaneousRequests))
+            msg.sourceMUID, msg.destinationMUID, msg.maxSimultaneousRequests))
     }
     val getPropertyCapabilitiesReplyFor: (msg: Message.PropertyGetCapabilities) -> Message.PropertyGetCapabilitiesReply = { msg ->
         val establishedMaxSimultaneousPropertyRequests =

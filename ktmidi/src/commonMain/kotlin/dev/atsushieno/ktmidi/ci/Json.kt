@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
+import kotlin.math.roundToInt
+
 class JsonParserException(message: String = "JSON parser exception", innerException: Exception? = null) : Exception(message, innerException)
 
 object Json {
@@ -248,7 +250,9 @@ object Json {
             TokenType.True -> "true"
             TokenType.False -> "false"
             TokenType.String -> json.source.substring(json.token.offset, json.token.offset + json.token.length)
-            TokenType.Number -> json.token.number.toString()
+            // do not try to serialize non-fractional numbers with floating points.
+            // For example, we do not need {"status": 200.0}
+            TokenType.Number -> if (json.token.number.compareTo(json.token.number.toInt()) == 0) json.token.number.toInt().toString() else json.token.number.toString()
             TokenType.Array -> "[" + json.token.seq.map { serialize(it) }.joinToString(", ") + "]"
             TokenType.Object -> "{" + json.token.map.map { serialize(it.key) + ":" + serialize(it.value) }.joinToString(",") + "}"
         }
