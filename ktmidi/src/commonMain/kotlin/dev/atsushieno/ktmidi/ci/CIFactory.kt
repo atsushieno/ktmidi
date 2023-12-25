@@ -29,12 +29,6 @@ data class MidiCIProfile(val profile: MidiCIProfileId, val address: Byte, var en
 
 object CIFactory {
     // Assumes the input value is already 7-bit encoded if required.
-    fun midiCiDirectUint16At(dst: MutableList<Byte>, offset: Int, v: UShort) {
-        dst[offset] = (v and 0xFFu).toByte()
-        dst[offset + 1] = (v.toInt() shr 8 and 0xFF).toByte()
-    }
-
-    // Assumes the input value is already 7-bit encoded if required.
     fun midiCiDirectInt16At(dst: MutableList<Byte>, offset: Int, v: Short) {
         dst[offset] = (v.toInt() and 0x7F).toByte()
         dst[offset + 1] = (v.toInt() shr 8 and 0x7F).toByte()
@@ -299,16 +293,16 @@ object CIFactory {
         dst: MutableList<Byte>, address: Byte, messageTypeSubId2: Byte,
         sourceMUID: Int, destinationMUID: Int,
         requestId: Byte, header: List<Byte>,
-        numChunks: UShort, chunkIndex: UShort, data: List<Byte>
+        numChunks: Short, chunkIndex: Short, data: List<Byte>
     ) {
         midiCIMessageCommon(dst, address, messageTypeSubId2,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID)
         dst[13] = requestId
-        midiCiDirectUint16At(dst, 14, header.size.toUShort())
+        midiCI7bitInt14At(dst, 14, header.size.toShort())
         memcpy(dst, 16, header, header.size)
-        midiCiDirectUint16At(dst, 16 + header.size, numChunks)
-        midiCiDirectUint16At(dst, 18 + header.size, chunkIndex)
-        midiCiDirectUint16At(dst, 20 + header.size, data.size.toUShort())
+        midiCI7bitInt14At(dst, 16 + header.size, numChunks)
+        midiCI7bitInt14At(dst, 18 + header.size, chunkIndex)
+        midiCI7bitInt14At(dst, 20 + header.size, data.size.toShort())
         memcpy(dst, 22 + header.size, data, data.size)
     }
 
@@ -319,7 +313,7 @@ object CIFactory {
 
     fun midiCIPropertyPacketCommon(dst: MutableList<Byte>, subId: Byte, sourceMUID: Int, destinationMUID: Int,
                                     requestId: Byte, header: List<Byte>,
-                                    numChunks: UShort, chunkIndex1Based: UShort,
+                                    numChunks: Short, chunkIndex1Based: Short,
                                     data: List<Byte>) : List<Byte> {
         midiCIPropertyCommon(dst, MidiCIConstants.WHOLE_FUNCTION_BLOCK, subId,
             sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex1Based, data)
@@ -330,12 +324,12 @@ object CIFactory {
         requestId: Byte, header: List<Byte>, data: List<Byte>, maxDataLengthInPacket: Int = data.size) : List<List<Byte>> {
         if (data.isEmpty())
             return listOf(midiCIPropertyPacketCommon(dst, subId, sourceMUID, destinationMUID, requestId, header,
-                1u, 1u, data))
+                1, 1, data))
 
         val chunks = data.chunked(maxDataLengthInPacket)
         return chunks.mapIndexed { index, packetData ->
             midiCIPropertyPacketCommon(dst, subId, sourceMUID, destinationMUID, requestId, header,
-                chunks.size.toUShort(), (index + 1).toUShort(), packetData)
+                chunks.size.toShort(), (index + 1).toShort(), packetData)
         }
     }
 
