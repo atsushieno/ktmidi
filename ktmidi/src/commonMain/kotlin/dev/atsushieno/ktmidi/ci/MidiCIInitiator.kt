@@ -58,6 +58,11 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     var productInstanceId: String? = null
     var maxSimultaneousPropertyRequests: Byte = 1
 
+    var autoSendEndpointInquiry = true
+    var autoSendProfileInquiry = true
+    var autoSendPropertyExchangeCapabilitiesInquiry = true
+    var autoSendGetResourceList = true
+
     val connections = mutableMapOf<Int, Connection>()
     enum class ConnectionChange {
         Added,
@@ -156,11 +161,12 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         connections[msg.sourceMUID]= connection
         connectionsChanged.forEach { it(ConnectionChange.Added, connection) }
 
-        sendEndpointMessage(msg.sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
+        if (autoSendEndpointInquiry)
+            sendEndpointMessage(msg.sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
 
-        if ((msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROFILE_CONFIGURATION.toInt()) != 0)
+        if (autoSendProfileInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROFILE_CONFIGURATION.toInt()) != 0)
             requestProfiles(0x7F, msg.sourceMUID)
-        if ((msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROPERTY_EXCHANGE.toInt()) != 0)
+        if (autoSendPropertyExchangeCapabilitiesInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROPERTY_EXCHANGE.toInt()) != 0)
             requestPropertyExchangeCapabilities(0x7F, msg.sourceMUID, maxSimultaneousPropertyRequests)
     }
     var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
@@ -240,19 +246,17 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             conn.maxSimultaneousPropertyRequests = msg.maxSimultaneousRequests
 
             // proceed to query resource list
-            GlobalScope.launch {
-                conn.propertyClient.requestPropertyIds(msg.sourceMUID, requestIdSerial++)
-            }
+            if (autoSendGetResourceList)
+                GlobalScope.launch {
+                    conn.propertyClient.requestPropertyIds(msg.sourceMUID, requestIdSerial++)
+                }
         }
         // FIXME: else -> error reporting
     }
     var processPropertyCapabilitiesReply = defaultProcessPropertyCapabilitiesReply
 
     val defaultProcessGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->
-        val conn = connections[msg.sourceMUID]
-        if (conn != null) {
-            conn.updateProperty(msg)
-        }
+        connections[msg.sourceMUID]?.updateProperty(msg)
     }
 
     var processGetDataReply = defaultProcessGetDataReply
@@ -367,7 +371,6 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                 processProfileRemovedReport(Message.ProfileRemoved(address, sourceMUID, profile))
             }
             // FIXME: support set profile details reply
-            // FIXME: support set profile enabled/disabled reports
 
             CISubId2.PROFILE_ENABLED_REPORT -> {
                 val address = CIRetrieval.midiCIGetAddressing(data)
