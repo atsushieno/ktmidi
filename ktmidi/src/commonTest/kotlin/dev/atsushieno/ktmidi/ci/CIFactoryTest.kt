@@ -103,7 +103,7 @@ class CIFactoryTest {
         val actual3 = MutableList<Byte>(18) { 0 }
         CIFactory.midiCIProfileSet(
             actual3, 5, true, 0x10101010, 0x20202020,
-            profiles1[0]
+            profiles1[0], 1
         )
         assertEquals(expected3, actual3)
 
@@ -111,7 +111,7 @@ class CIFactoryTest {
         val actual4 = MutableList<Byte>(18) { 0 }
         CIFactory.midiCIProfileSet(
             actual4, 5, false, 0x10101010, 0x20202020,
-            profiles1[0]
+            profiles1[0], 1
         )
         assertEquals(0x23, actual4[3])
 

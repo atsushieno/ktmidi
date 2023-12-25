@@ -127,14 +127,15 @@ fun ClientProfileListEntry(profileId: MidiCIProfileId, isSelected: Boolean, sele
 }
 
 @Composable
-fun ClientProfileDetails(vm: ConnectionViewModel, profileId: MidiCIProfileId) {
+fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
     Column {
         Text("by addressing:")
-        val entries = vm.profiles.filter { it.profile.toString() == profileId.toString() }
+        val entries = vm.profiles.filter { it.profile.toString() == profile.toString() }
         entries.forEach {
             Row {
-                Switch(checked = it.enabled, onCheckedChange = {
-                    TODO("FIXME: implement")
+                val enabled by remember { it.enabled }
+                Switch(checked = enabled, onCheckedChange = { newEnabled ->
+                    AppModel.ciDeviceManager.initiator.setProfile(vm.conn.muid, it.address, it.profile, newEnabled)
                 })
                 Text("${it.address.toString(16)}: ${it.profile}")
             }

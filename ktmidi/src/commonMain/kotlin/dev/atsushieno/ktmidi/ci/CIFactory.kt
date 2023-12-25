@@ -25,7 +25,7 @@ data class MidiCIProfileId(val manuId1OrStandard: Byte = 0x7E, val manuId2OrBank
         "${manuId1OrStandard.toString(16)}:${manuId2OrBank.toString(16)}:${manuId3OrNumber.toString(16)}:${specificInfoOrVersion.toString(16)}:${specificInfoOrLevel.toString(16)}"
 }
 
-data class MidiCIProfile(val profile: MidiCIProfileId, val address: Byte, val enabled: Boolean)
+data class MidiCIProfile(val profile: MidiCIProfileId, val address: Byte, var enabled: Boolean)
 
 object CIFactory {
     // Assumes the input value is already 7-bit encoded if required.
@@ -48,8 +48,8 @@ object CIFactory {
         dst[offset + 3] = ((v shr 24) and 0xFF).toByte()
     }
 
-    fun midiCI7bitInt14At(dst: MutableList<Byte>, offset: Int, v: UShort) {
-        dst[offset] = (v and 0x7Fu).toByte()
+    fun midiCI7bitInt14At(dst: MutableList<Byte>, offset: Int, v: Short) {
+        dst[offset] = (v.toInt() and 0x7F).toByte()
         dst[offset + 1] = (v.toInt() shr 7 and 0x7F).toByte()
     }
 
@@ -149,7 +149,7 @@ object CIFactory {
     ) : List<Byte> {
         midiCIMessageCommon(dst, MidiCIConstants.WHOLE_FUNCTION_BLOCK, CISubId2.ENDPOINT_MESSAGE_REPLY, versionAndFormat, sourceMUID, destinationMUID)
         dst[13] = status
-        midiCI7bitInt14At(dst, 14, informationData.size.toUShort())
+        midiCI7bitInt14At(dst, 14, informationData.size.toShort())
         memcpy(dst, 16, informationData, informationData.size)
         return dst.take(16 + informationData.size)
     }
@@ -221,7 +221,8 @@ object CIFactory {
 
     fun midiCIProfileSet(
         dst: MutableList<Byte>, address: Byte, turnOn: Boolean,
-        sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId
+        sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId,
+        numChannelsRequested: Short
     ) : List<Byte> {
         midiCIMessageCommon(
             dst, address,
@@ -229,7 +230,9 @@ object CIFactory {
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
         midiCIProfile(dst, 13, profile)
-        return dst.take(18)
+        // new field in MIDI-CI v1.2
+        midiCI7bitInt14At(dst, 18, numChannelsRequested)
+        return dst.take(20)
     }
 
     fun midiCIProfileAddedRemoved(

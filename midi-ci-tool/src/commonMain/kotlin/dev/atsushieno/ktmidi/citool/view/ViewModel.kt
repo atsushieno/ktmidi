@@ -32,6 +32,9 @@ object ViewModel {
     }
 }
 
+class MidiCIProfileState(
+    val address: Byte, val profile: MidiCIProfileId, val enabled: MutableState<Boolean> = mutableStateOf(false))
+
 class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     fun selectProfile(profile: MidiCIProfileId) {
         Snapshot.withMutableSnapshot { selectedProfile.value = profile }
@@ -39,8 +42,8 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
 
     var selectedProfile = mutableStateOf<MidiCIProfileId?>(null)
 
-    val profiles = mutableStateListOf<MidiCIProfile>().apply {
-        addAll(conn.profiles.profiles)
+    val profiles = mutableStateListOf<MidiCIProfileState>().apply {
+        addAll(conn.profiles.profiles.map { MidiCIProfileState(it.address, it.profile, mutableStateOf(it.enabled)) })
     }
 
     val properties = mutableStateListOf<ObservablePropertyList.Entry>().apply { addAll(conn.properties.entries)}
@@ -48,10 +51,19 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     init {
         conn.profiles.profilesChanged.add { change, profile ->
             when (change) {
-                ObservableProfileList.ProfilesChange.Added -> profiles.add(profile)
-                ObservableProfileList.ProfilesChange.Removed -> profiles.remove(profile)
+                ObservableProfileList.ProfilesChange.Added ->
+                    profiles.add(MidiCIProfileState(profile.address, profile.profile, mutableStateOf(profile.enabled)))
+                ObservableProfileList.ProfilesChange.Removed ->
+                    profiles.removeAll {it.profile == profile.profile }
             }
         }
+        conn.profiles.profileEnabledChanged.add { profile, numChannelsRequested ->
+            if (numChannelsRequested > 1)
+                TODO("FIXME: implement")
+            profiles.filter { it.profile == profile.profile && it.address == profile.address }
+                .forEach { Snapshot.withMutableSnapshot { it.enabled.value = profile.enabled } }
+        }
+
         conn.properties.propertiesCatalogUpdated.add {
             properties.clear()
             properties.addAll(conn.properties.entries)

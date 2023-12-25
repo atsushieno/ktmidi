@@ -71,8 +71,15 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
             }
         }
         onProfileSet = { profile ->
-            logger.profileSet(profile)
             events.profileStateChanged.forEach { it(profile) }
+        }
+        processSetProfileOn = { msg ->
+            logger.setProfileOn(msg)
+            defaultProcessSetProfileOn(msg)
+        }
+        processSetProfileOff = { msg ->
+            logger.setProfileOff(msg)
+            defaultProcessSetProfileOff(msg)
         }
         // PE
         processPropertyCapabilitiesInquiry = { msg ->

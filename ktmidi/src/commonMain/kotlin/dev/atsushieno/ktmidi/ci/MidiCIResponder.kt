@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
+import dev.atsushieno.ktmidi.shl
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.random.Random
@@ -117,16 +118,24 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
         onProfileSet(newEntry)
         enabled
     }
-    /**
-     * Arguments
-     * - destinationChannel: Byte - target channel
-     * - initiatorMUID: Int - points to the initiator MUID
-     * - destinationMUID: Int - should point to MUID of this responder
-     * - profile: MidiCIProfileId - the target profile
-     * - enabled: Boolean - true to enable, false to disable
-     * Return true if enabled, or false if disabled. It will be reported back to Initiator
-     */
-    var processSetProfile = defaultProcessSetProfile
+
+    fun sendSetProfileReport(address: Byte, profile: MidiCIProfileId, enabled: Boolean) {
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        CIFactory.midiCIProfileReport(dst, address, enabled, muid, profile)
+        sendOutput(dst)
+    }
+
+    fun defaultProcessSetProfileOn(msg: Message.SetProfileOn) {
+        if (defaultProcessSetProfile(msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, true))
+            sendSetProfileReport(msg.address, msg.profile, true)
+    }
+    fun defaultProcessSetProfileOff(msg: Message.SetProfileOff) {
+        if (defaultProcessSetProfile(msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, false))
+            sendSetProfileReport(msg.address, msg.profile, false)
+    }
+
+    var processSetProfileOn = { msg: Message.SetProfileOn -> defaultProcessSetProfileOn(msg) }
+    var processSetProfileOff = { msg: Message.SetProfileOff -> defaultProcessSetProfileOff(msg) }
 
     var processProfileSpecificData: (address: Byte, sourceMUID: Int, destinationMUID: Int, profileId: MidiCIProfileId, data: List<Byte>) -> Unit = { _, _, _, _, _ -> }
 
@@ -245,15 +254,15 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
             }
 
             CISubId2.SET_PROFILE_ON, CISubId2.SET_PROFILE_OFF -> {
-                var enabled = data[3] == CISubId2.SET_PROFILE_ON
+                val enabled = data[3] == CISubId2.SET_PROFILE_ON
                 val address = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
-                enabled = processSetProfile(address, sourceMUID, destinationMUID, profileId, enabled)
-
-                val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-                CIFactory.midiCIProfileReport(dst, address, enabled, muid, profileId)
-                sendOutput(dst)
+                val channels = (data[18] + (data[19] shl 7)).toShort()
+                if (enabled)
+                    processSetProfileOn(Message.SetProfileOn(address, sourceMUID, destinationMUID, profileId, channels))
+                else
+                    processSetProfileOff(Message.SetProfileOff(address, sourceMUID, destinationMUID, profileId))
             }
 
             CISubId2.PROFILE_SPECIFIC_DATA -> {

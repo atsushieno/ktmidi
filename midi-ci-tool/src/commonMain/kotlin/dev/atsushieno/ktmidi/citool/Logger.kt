@@ -30,9 +30,13 @@ class Logger {
 
     fun profileRemoved(msg: Message.ProfileRemoved) = logMessage(msg)
 
-    fun profileSet(profile: MidiCIProfile) {
-        ViewModel.log("- Profile${if (profile.enabled) "Enabled" else "Disabled"}($profile})")
-    }
+    fun setProfileOn(msg: Message.SetProfileOn) = logMessage(msg)
+
+    fun setProfileOff(msg: Message.SetProfileOff) = logMessage(msg)
+
+    fun profileEnabled(msg: Message.ProfileEnabled) = logMessage(msg)
+
+    fun profileDisabled(msg: Message.ProfileDisabled) = logMessage(msg)
 
     fun propertyGetCapabilitiesInquiry(msg: Message.PropertyGetCapabilities) = logMessage(msg)
 

@@ -21,16 +21,28 @@ class Message {
 
     // Profile Configuration
     data class ProfileInquiry(val address: Byte, val sourceMUID: Int, val destinationMUID: Int) {
-        override fun toString() = "ProfileInquiry(source = $address, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)})"
+        override fun toString() = "ProfileInquiry(address = $address, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)})"
     }
     data class ProfileReply(val address: Byte, val sourceMUID: Int, val destinationMUID: Int, val enabledProfiles: List<MidiCIProfileId>, val disabledProfiles: List<MidiCIProfileId>) {
-        override fun toString() = "ProfileReply(source = $address, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, enabledProfiles=[${enabledProfiles.joinToString { it.toString() }}],  disabledProfiles=[${disabledProfiles.joinToString { it.toString() }}])"
+        override fun toString() = "ProfileReply(address = $address, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, enabledProfiles=[${enabledProfiles.joinToString { it.toString() }}],  disabledProfiles=[${disabledProfiles.joinToString { it.toString() }}])"
     }
     data class ProfileAdded(val address: Byte, val sourceMUID: Int, val profile: MidiCIProfileId) {
-        override fun toString() = "ProfileAdded(deviceId = $address, sourceMUID = ${sourceMUID.toString(16)}, profile=$profile)"
+        override fun toString() = "ProfileAdded(address = $address, sourceMUID = ${sourceMUID.toString(16)}, profile=$profile)"
     }
     data class ProfileRemoved(val address: Byte, val sourceMUID: Int, val profile: MidiCIProfileId) {
-        override fun toString() = "ProfileRemoved(deviceId = $address, sourceMUID = ${sourceMUID.toString(16)}, profile=$profile)"
+        override fun toString() = "ProfileRemoved(address = $address, sourceMUID = ${sourceMUID.toString(16)}, profile=$profile)"
+    }
+    data class SetProfileOn(val address: Byte, val sourceMUID: Int, val destinationMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short) {
+        override fun toString() = "SetProfileOn(address = $address, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, profile=$profile, numChannelsRequested = $numChannelsRequested)"
+    }
+    data class SetProfileOff(val address: Byte, val sourceMUID: Int, val destinationMUID: Int, val profile: MidiCIProfileId) {
+        override fun toString() = "SetProfileOff(address = $address, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, profile=$profile)"
+    }
+    data class ProfileEnabled(val address: Byte, val sourceMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short) {
+        override fun toString() = "ProfileEnabled(address = $address, sourceMUID = ${sourceMUID.toString(16)}, profile=$profile, numChannelsRequested = $numChannelsRequested)"
+    }
+    data class ProfileDisabled(val address: Byte, val sourceMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short) {
+        override fun toString() = "ProfileDisabled(address = $address, sourceMUID = ${sourceMUID.toString(16)}, profile=$profile, numChannelsRequested = $numChannelsRequested)"
     }
 
     // Property Exchange

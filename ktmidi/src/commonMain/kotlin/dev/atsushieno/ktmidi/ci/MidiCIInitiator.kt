@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
+import dev.atsushieno.ktmidi.shl
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -97,6 +98,22 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     fun requestProfiles(destinationChannelOr7F: Byte, destinationMUID: Int) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIProfileInquiry(buf, destinationChannelOr7F, muid, destinationMUID))
+    }
+
+    fun setProfile(address: Byte, sourceMUID: Int, destinationMUID: Int, profileId: MidiCIProfileId, numChannelsRequested: Short, enabled: Boolean) =
+        if (enabled)
+            setProfileOn(Message.SetProfileOn(address, sourceMUID, destinationMUID, profileId, numChannelsRequested))
+        else
+            setProfileOff(Message.SetProfileOff(address, sourceMUID, destinationMUID, profileId))
+
+    fun setProfileOn(msg: Message.SetProfileOn) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIProfileSet(buf, msg.address, true, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.numChannelsRequested))
+    }
+
+    fun setProfileOff(msg: Message.SetProfileOff) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIProfileSet(buf, msg.address, false, msg.sourceMUID, msg.destinationMUID, msg.profile, 0))
     }
 
     // Property Exchange
@@ -204,6 +221,17 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         conn?.profiles?.remove(msg.profile)
     }
     var processProfileRemovedReport = defaultProcessProfileRemovedReport
+
+    val defaultProcessProfileEnabledReport: (msg: Message.ProfileEnabled) -> Unit = { msg ->
+        val conn = connections[msg.sourceMUID]
+        conn?.profiles?.setEnabled(true, msg.address, msg.profile, msg.numChannelsRequested)
+    }
+    val defaultProcessProfileDisabledReport: (msg: Message.ProfileDisabled) -> Unit = { msg ->
+        val conn = connections[msg.sourceMUID]
+        conn?.profiles?.setEnabled(false, msg.address, msg.profile, msg.numChannelsRequested)
+    }
+    var processProfileEnabledReport = defaultProcessProfileEnabledReport
+    var processProfileDisabledReport = defaultProcessProfileDisabledReport
 
     // Property Exchange
     val defaultProcessPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
@@ -340,6 +368,21 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             }
             // FIXME: support set profile details reply
             // FIXME: support set profile enabled/disabled reports
+
+            CISubId2.PROFILE_ENABLED_REPORT -> {
+                val address = CIRetrieval.midiCIGetAddressing(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val profile = CIRetrieval.midiCIGetProfileId(data)
+                val channels = (data[18] + (data[19] shl 7)).toShort()
+                processProfileEnabledReport(Message.ProfileEnabled(address, sourceMUID, profile, channels))
+            }
+            CISubId2.PROFILE_DISABLED_REPORT -> {
+                val address = CIRetrieval.midiCIGetAddressing(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val profile = CIRetrieval.midiCIGetProfileId(data)
+                val channels = (data[18] + (data[19] shl 7)).toShort()
+                processProfileDisabledReport(Message.ProfileDisabled(address, sourceMUID, profile, channels))
+            }
 
             // Property Exchange
             CISubId2.PROPERTY_CAPABILITIES_REPLY -> {

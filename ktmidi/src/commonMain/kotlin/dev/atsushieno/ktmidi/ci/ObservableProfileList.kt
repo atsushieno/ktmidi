@@ -22,5 +22,16 @@ class ObservableProfileList {
         }
     }
 
+    fun setEnabled(enabled: Boolean, address: Byte, profileId: MidiCIProfileId, numChannelsRequested: Short) {
+        val profile = profiles.firstOrNull { it.address == address && it.profile.toString() == profileId.toString() }
+        if (profile != null) {
+            if (numChannelsRequested > 1)
+                TODO("FIXME: implement")
+            profile.enabled = enabled
+            profileEnabledChanged.forEach { it(profile, numChannelsRequested) }
+        }
+    }
+
     val profilesChanged = mutableListOf<(change: ProfilesChange, profile: MidiCIProfile) -> Unit>()
+    val profileEnabledChanged = mutableListOf<(profile: MidiCIProfile, numChannelsRequested: Short) -> Unit>()
 }

@@ -1,10 +1,7 @@
 package dev.atsushieno.ktmidi.citool
 
 import androidx.compose.runtime.snapshots.Snapshot
-import dev.atsushieno.ktmidi.ci.Message
-import dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo
-import dev.atsushieno.ktmidi.ci.MidiCIInitiator
-import dev.atsushieno.ktmidi.ci.MidiCIProfileId
+import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.view.ViewModel
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
@@ -26,6 +23,8 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         val profileInquiryReplyReceived = mutableListOf<(Message.ProfileReply) -> Unit>()
         val profileAddedReceived = mutableListOf<(Message.ProfileAdded) -> Unit>()
         val profileRemovedReceived = mutableListOf<(Message.ProfileRemoved) -> Unit>()
+        val profileEnabledReceived = mutableListOf<(Message.ProfileEnabled) -> Unit>()
+        val profileDisabledReceived = mutableListOf<(Message.ProfileDisabled) -> Unit>()
         val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
         val propertyCapabilityReplyReceived = mutableListOf<(Message.PropertyGetCapabilitiesReply) -> Unit>()
         val getPropertyDataReplyReceived = mutableListOf<(msg: Message.GetPropertyDataReply) -> Unit>()
@@ -63,6 +62,8 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
             defaultProcessEndpointReply(msg)
         }
 
+        // Profile Configuration
+
         processProfileReply = { msg ->
             logger.profileReply(msg)
             events.profileInquiryReplyReceived.forEach { it(msg) }
@@ -80,6 +81,20 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
             events.profileRemovedReceived.forEach { it(msg) }
             defaultProcessProfileRemovedReport(msg)
         }
+
+        processProfileEnabledReport = { msg ->
+            logger.profileEnabled(msg)
+            events.profileEnabledReceived.forEach { it(msg) }
+            defaultProcessProfileEnabledReport(msg)
+        }
+
+        processProfileDisabledReport = { msg ->
+            logger.profileDisabled(msg)
+            events.profileDisabledReceived.forEach { it(msg) }
+            defaultProcessProfileDisabledReport(msg)
+        }
+
+        // Property Exchange
 
         processPropertyCapabilitiesReply = { msg ->
             logger.propertyGetCapabilitiesReply(msg)
@@ -111,6 +126,20 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         val msg = initiator.createEndpointMessage(targetMUID)
         logger.endpointInquiry(msg)
         initiator.sendEndpointMessage(msg)
+    }
+
+    fun setProfile(destinationMUID: Int, address: Byte, profile: MidiCIProfileId, nextEnabled: Boolean) {
+        if (nextEnabled) {
+            // FIXME: maybe we should pass number of channels somehow?
+            val msg = Message.SetProfileOn(address, initiator.muid, destinationMUID, profile,
+                if (address < 0x10) 1 else 0)
+            logger.setProfileOn(msg)
+            initiator.setProfileOn(msg)
+        } else {
+            val msg = Message.SetProfileOff(address, initiator.muid, destinationMUID, profile)
+            logger.setProfileOff(msg)
+            initiator.setProfileOff(msg)
+        }
     }
 }
 
