@@ -69,12 +69,21 @@ class JsonTest {
 
     @Test
     fun parseObject() {
-        val obj1 = Json.parse("{ }")
+        val obj1 = Json.parse("{}")
         assertEquals(Json.TokenType.Object, obj1.token.type, "obj1.token.type")
         assertEquals(0, obj1.token.offset, "obj1.token.offset")
-        assertEquals(3, obj1.token.length, "obj1.token.length")
+        assertEquals(2, obj1.token.length, "obj1.token.length")
         assertEquals(0, obj1.token.map.size, "obj1.token.map.size")
 
+        val obj2 = Json.parse("{ }")
+        assertEquals(Json.TokenType.Object, obj2.token.type, "obj2.token.type")
+        assertEquals(0, obj2.token.offset, "obj2.token.offset")
+        assertEquals(3, obj2.token.length, "obj2.token.length")
+        assertEquals(0, obj2.token.map.size, "obj2.token.map.size")
+    }
+
+    @Test
+    fun parseObject2() {
         val obj2 = Json.parse("{\"x,y\": 5, \"a,\\b\": 7}")
         assertEquals(Json.TokenType.Object, obj2.token.type, "obj2.token.type")
         assertEquals(0, obj2.token.offset, "obj2.token.offset")
@@ -90,13 +99,31 @@ class JsonTest {
         val s = Json.getUnescapedString(obj2At1First)
         assertEquals("a,\b", s, "obj2Map[1] as string")
         assertEquals(7.0, obj2Map[1].second.token.number, "obj2Map[1].token.number")
+    }
 
+    @Test
+    fun parseObject3() {
         val obj3 = Json.parse("{\"key1\": null, \"key2\": {\"key2-1\": true}, \"key3\": {\"key3-1\": {}, \"key3-2\": []} }")
         assertEquals(3, obj3.token.map.size, "obj3.token.map.size")
     }
 
     @Test
     fun parseArray() {
+        val arr1 = Json.parse("[]")
+        assertEquals(Json.TokenType.Array, arr1.token.type, "arr1.token.type")
+        assertEquals(0, arr1.token.offset, "arr1.token.offset")
+        assertEquals(2, arr1.token.length, "arr1.token.length")
+        assertEquals(0, arr1.token.map.size, "arr1.token.map.size")
+
+        val arr2 = Json.parse("[ ]")
+        assertEquals(Json.TokenType.Array, arr2.token.type, "arr2.token.type")
+        assertEquals(0, arr2.token.offset, "arr2.token.offset")
+        assertEquals(3, arr2.token.length, "arr2.token.length")
+        assertEquals(0, arr2.token.map.size, "arr2.token.map.size")
+    }
+
+    @Test
+    fun parseArray2() {
         val arr1 = Json.parse("[1,2,3,4,5]")
         assertEquals(Json.TokenType.Array, arr1.token.type, "arr1.token.type")
         assertEquals(0, arr1.token.offset, "arr1.token.offset")
@@ -107,18 +134,36 @@ class JsonTest {
         assertEquals(Json.TokenType.Number, arr1Items[0].token.type, "arr1Items[0].token.type")
         assertEquals(1.0, arr1Items[0].token.number, "arr1Items[0].token.number")
         assertEquals(5.0, arr1Items[4].token.number, "arr1Items[4].token.number")
+    }
 
-        val arr2 = Json.parse("[\"1\",2,[3,4],{\"x,y\": 5, \"a,\\b\": 7}]")
+    @Test
+    fun parseArray3() {
+        val arr2 = Json.parse("[\"1\",2,[3,4],{\"x,y\": 5, \"a,\\b\": 7}, {\"\": {}}, \"{}[]\"]")
         assertEquals(Json.TokenType.Array, arr2.token.type, "arr2.token.type")
         assertEquals(0, arr2.token.offset, "arr2.token.offset")
-        assertEquals(35, arr2.token.length, "arr2.token.length")
+        assertEquals(53, arr2.token.length, "arr2.token.length")
         val arr2Items = arr2.token.seq.toList()
-        assertEquals(4, arr2Items.size, "arr2Items.size")
+        assertEquals(6, arr2Items.size, "arr2Items.size")
         assertEquals(arr2.source, arr2Items[0].source, "arr2.source")
         assertEquals(Json.TokenType.String, arr2Items[0].token.type, "arr2Items[0].token.type")
         assertEquals("1", Json.getUnescapedString(arr2Items[0]), "arr2Items[0] as string")
         assertEquals(Json.TokenType.Number, arr2Items[1].token.type, "arr2Items[1].token.type")
         assertEquals(Json.TokenType.Array, arr2Items[2].token.type, "arr2Items[2].token.type")
         assertEquals(Json.TokenType.Object, arr2Items[3].token.type, "arr2Items[3].token.type")
+        assertEquals(Json.TokenType.Object, arr2Items[4].token.type, "arr2Items[4].token.type")
+        assertEquals(Json.TokenType.String, arr2Items[5].token.type, "arr2Items[5].token.type")
+        assertEquals("{}[]", Json.getUnescapedString(arr2Items[5]), "arr2Items[5] value")
+    }
+
+    @Test
+    fun parseArray4() {
+        val arr3 = Json.parse("[{\"resource\":\"DeviceInfo\"},{\"resource\":\"foo\"},{\"resource\":\"bar\"}]")
+        assertEquals(Json.TokenType.Array, arr3.token.type, "arr3.token.type")
+        val arr3Items = arr3.token.seq.toList()
+        assertEquals(3, arr3Items.size, "arr3Items.size")
+        arr3Items.forEachIndexed { index, it ->
+            assertEquals(Json.TokenType.Object, it.token.type, "arr3Items[$index].type")
+            assertEquals(1, it.token.map.size, "arr3Items[$index].map.size")
+        }
     }
 }

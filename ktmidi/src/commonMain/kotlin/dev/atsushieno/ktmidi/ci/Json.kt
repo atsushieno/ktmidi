@@ -28,24 +28,31 @@ object Json {
     fun parse(source: String) = parse(source, 0, source.length)
 
     private val splitChecked = charArrayOf(',', '{', '[', '}', ']', '"', ':')
-    private val splitChecked2 = charArrayOf(',', ':')
     private fun <T>splitEntries(source: String, offset: Int, length: Int, isMap: Boolean): Sequence<T> = sequence {
-        val range = IntRange(offset, offset + length - 1)
-        val sliced = source.slice(range)
-        val pos = sliced.indexOfAny(splitChecked2) + offset
-        if (pos < offset) {
-            if (isMap && skipWhitespace(sliced, offset) == sliced.length)
-                return@sequence
-            else if (!isMap) {
-                yield(parse(source, offset, length) as T)
-                return@sequence
+        val start = skipWhitespace(source, offset)
+        val end = offset + length
+        val len = length - (start - offset)
+
+        if (len == 0)
+            return@sequence
+
+        if (!isMap) {
+            val range = IntRange(offset, end - 1)
+            val sliced = source.slice(range)
+            val pos = sliced.indexOf(',') + start
+            if (pos < start) {
+                if (isMap && skipWhitespace(sliced, start) == sliced.length)
+                    return@sequence
+                else if (!isMap) {
+                    yield(parse(source, start, len) as T)
+                    return@sequence
+                }
             }
         }
 
         // there might be commas within nested split or string literal
-        var lastTokenPos = offset
-        var p = offset
-        val end = offset + length
+        var lastTokenPos = start
+        var p = start
         var inQuote = false
         var openBrace = 0
         var openCurly = 0
@@ -55,7 +62,7 @@ object Json {
             var t = source.indexOfAny(splitChecked, p)
             if (t < 0 || t >= end) {
                 if (inQuote || openCurly > 0 || openBrace > 0)
-                    throw JsonParserException("Incomplete content within ${if (isMap) "object" else "array"} (begins at $offset)")
+                    throw JsonParserException("Incomplete content within ${if (isMap) "object" else "array"} (begins at $start)")
             }
             else when (source[t]) {
                 '[' -> if (!inQuote) openBrace++
@@ -65,7 +72,7 @@ object Json {
                 '\\' -> if (inQuote) t++ // skip next character, which may be "
                 '"' -> inQuote = !inQuote
                 ':' -> if (isMap && openBrace == 0 && openCurly == 0 && !inQuote) {
-                    key = parse(source, offset, t - offset)
+                    key = parse(source, start, t - start)
                     lastTokenPos = t + 1
                 }
                 ',' -> if (openBrace == 0 && openCurly == 0 && !inQuote) {
@@ -78,7 +85,7 @@ object Json {
                     }
                     else
                         yield(entryOrKey as T)
-                    splitEntries<T>(source, t + 1, length - (t - offset) - 1, isMap).forEach { yield(it) }
+                    splitEntries<T>(source, t + 1, len - (t - start) - 1, isMap).forEach { yield(it) }
                     return@sequence
                 }
                 else -> {}
@@ -97,6 +104,36 @@ object Json {
             yield(entryOrKey as T)
     }
 
+    private fun findLastMatching(source: String, target: Char, offset: Int, length: Int): Int {
+        val start = skipWhitespace(source, offset)
+        val end = offset + length
+        var p = end - 1
+        var inQuote = false
+        var openBrace = 0
+        var openCurly = 0
+
+        while (p >= start) {
+            var t = source.lastIndexOfAny(splitChecked, p)
+            if (t < 0 || t < start) {
+                if (inQuote || openCurly > 0 || openBrace > 0)
+                    throw JsonParserException("Incomplete content within an object or an array (begins at $start)")
+            }
+            else if (source[t] == target && !inQuote && openBrace == 0 && openCurly == 0)
+                return t
+            else when (source[t]) {
+                '[' -> if (!inQuote) openBrace++
+                ']' -> if (!inQuote) openBrace--
+                '{' -> if (!inQuote) openCurly++
+                '}' -> if (!inQuote) openCurly--
+                '\\' -> if (inQuote) t++ // skip next character, which may be "
+                '"' -> inQuote = !inQuote
+                else -> {}
+            }
+            p = t - 1
+        }
+        return -1
+    }
+
     private fun parse(source: String, offset: Int, length: Int) : JsonValue {
         val pos = skipWhitespace(source, offset)
         if (pos == source.length)
@@ -104,14 +141,14 @@ object Json {
         return when (source[pos]) {
             '{' -> {
                 val start = skipWhitespace(source, pos + 1)
-                val end = source.lastIndexOf('}', start + length - (start - offset))
-                checkRange(source, offset, length, pos, end, "Incomplete JSON object token")
+                val end = findLastMatching(source, '}', start, length - (start - offset))
+                checkRange(source, offset, length, start, end, "Incomplete JSON object token")
                 JsonValue(source, JsonToken(TokenType.Object, pos, end - pos + 1, map = splitEntries<Pair<JsonValue,JsonValue>>(source, start, end - start, true).toMap()))
             }
             '[' -> {
                 val start = skipWhitespace(source, pos + 1)
-                val end = source.lastIndexOf(']', start + length - (start - offset))
-                checkRange(source, offset, length, pos, end, "Incomplete JSON array token")
+                val end = findLastMatching(source, ']', start, length - (start - offset))
+                checkRange(source, offset, length, start, end, "Incomplete JSON array token")
                 JsonValue(source, JsonToken(TokenType.Array, pos, end - pos + 1, seq = splitEntries(source, start, end - start, false)))
             }
             '"' -> {
