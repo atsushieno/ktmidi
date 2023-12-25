@@ -44,7 +44,7 @@ object CIRetrieval {
     fun midiCIGetProfileSet(sysex: List<Byte>): List<Pair<MidiCIProfileId, Boolean>> = mutableListOf<Pair<MidiCIProfileId, Boolean>>().apply {
         val numEnabled = sysex[13] + (sysex[14] shl 7)
         (0 until numEnabled).forEach { i ->
-            this.add(Pair(midiCIGetProfileIdEntry(sysex, 9 + i * 5), true))
+            this.add(Pair(midiCIGetProfileIdEntry(sysex, 15 + i * 5), true))
         }
         val pos = 15 + numEnabled * 5
         val numDisabled = sysex[pos] + (sysex[pos + 1] shl 7)
