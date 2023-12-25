@@ -106,8 +106,11 @@ private fun InitiatorDestinationSelector(destinationMUID: Int,
 @Composable
 fun ClientProfileList(vm: ConnectionViewModel) {
     Column {
-        vm.profiles.map { it.profile }.distinct().forEach {
-            ClientProfileListEntry(it, vm.selectedProfile.value == it) { profileId -> vm.selectProfile(profileId) }
+        val profileIds = vm.profiles.map { it.profile }.distinct()
+        Snapshot.withMutableSnapshot {
+            profileIds.forEach {
+                ClientProfileListEntry(it, vm.selectedProfile.value == it) { profileId -> vm.selectProfile(profileId) }
+            }
         }
     }
 }
