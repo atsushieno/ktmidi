@@ -14,8 +14,8 @@ import dev.atsushieno.ktmidi.citool.AppModel
 @Composable
 fun MidiDeviceSelector() {
     Row {
-        MidiDeviceSelector(true, AppModel.midiDeviceManager.midiInput.details, AppModel.midiInputPorts)
-        MidiDeviceSelector(false, AppModel.midiDeviceManager.midiOutput.details, AppModel.midiOutputPorts)
+        MidiDeviceSelector(true, AppModel.midiDeviceManager.midiInput.details, AppModel.midiDeviceManager.midiAccess.inputs.toList())
+        MidiDeviceSelector(false, AppModel.midiDeviceManager.midiOutput.details, AppModel.midiDeviceManager.midiAccess.outputs.toList())
     }
 }
 
@@ -44,7 +44,6 @@ private fun MidiDeviceSelector(isInput: Boolean, currentPort: MidiPortDetails?, 
     }
     Card(
         modifier = Modifier.clickable(onClick = {
-            AppModel.updateMidiDeviceList()
             dialogState = true
         }).padding(12.dp),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)

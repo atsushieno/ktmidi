@@ -48,11 +48,6 @@ class MidiDeviceManager {
             }
         }
 
-    val midiInputPorts : Iterable<MidiPortDetails>
-        get() = midiAccess.inputs
-    val midiOutputPorts : Iterable<MidiPortDetails>
-        get() = midiAccess.outputs
-
     var midiInputDeviceId: String?
         get() = midiInput.details.id
         set(id) {
