@@ -10,7 +10,5 @@ class MidiCIResponderTest {
     fun initialState() {
         val mediator = TestCIMediator()
         val responder = mediator.responder
-
-        assertEquals(MidiCIConstants.Midi2ThenMidi1Protocols, responder.supportedProtocols)
     }
 }

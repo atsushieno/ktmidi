@@ -7,7 +7,7 @@ class CIFactoryTest {
 
     @Test
     fun testDiscoveryMessages() {
-        val all_supported = (CIFactory.PROTOCOL_NEGOTIATION_SUPPORTED + CIFactory.PROFILE_CONFIGURATION_SUPPORTED + CIFactory.PROPERTY_EXCHANGE_SUPPORTED).toByte()
+        val all_supported = (MidiCISupportedCategories.THREE_P)
 
         // Service Discovery (Inquiry)
         val expected1 = mutableListOf<Byte>(
@@ -16,7 +16,7 @@ class CIFactoryTest {
             0x56, 0x34, 0x12, 0x57, 0x13, 0x68, 0x24,
             // LAMESPEC: Software Revision Level does not mention in which endianness this field is stored.
             0x7F, 0x5F, 0x3F, 0x1F,
-            0b00001110,
+            0b00011100,
             0x00, 0x02, 0, 0, 0
         )
         val actual1 = MutableList<Byte>(30) { 0 }
@@ -176,7 +176,7 @@ class CIFactoryTest {
         // Get Property Data
         val actual5 = MutableList<Byte>(31) { 0 }
         CIFactory.midiCIPropertyCommon(
-            actual5, 5, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY,
+            actual5, 5, CISubId2.PROPERTY_GET_DATA_INQUIRY,
             0x10101010, 0x20202020,
             2, header, 3u, 1u, data
         )
@@ -185,7 +185,7 @@ class CIFactoryTest {
         // Reply to Get Property Data
         val actual6 = MutableList<Byte>(31) { 0 }
         CIFactory.midiCIPropertyCommon(
-            actual6, 5, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY,
+            actual6, 5, CISubId2.PROPERTY_GET_DATA_REPLY,
             0x10101010, 0x20202020,
             2, header, 3u, 1u, data
         )
@@ -194,7 +194,7 @@ class CIFactoryTest {
         // Set Property Data
         val actual7 = MutableList<Byte>(31) { 0 }
         CIFactory.midiCIPropertyCommon(
-            actual7, 5, CIFactory.SUB_ID_2_PROPERTY_SET_DATA_INQUIRY,
+            actual7, 5, CISubId2.PROPERTY_SET_DATA_INQUIRY,
             0x10101010, 0x20202020,
             2, header, 3u, 1u, data
         )
@@ -203,7 +203,7 @@ class CIFactoryTest {
         // Reply to Set Property Data
         val actual8 = MutableList<Byte>(31) { 0 }
         CIFactory.midiCIPropertyCommon(
-            actual8, 5, CIFactory.SUB_ID_2_PROPERTY_SET_DATA_REPLY,
+            actual8, 5, CISubId2.PROPERTY_SET_DATA_REPLY,
             0x10101010, 0x20202020,
             2, header, 3u, 1u, data
         )
@@ -212,7 +212,7 @@ class CIFactoryTest {
         // Subscription
         val actual9 = MutableList<Byte>(31) { 0 }
         CIFactory.midiCIPropertyCommon(
-            actual9, 5, CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE,
+            actual9, 5, CISubId2.PROPERTY_SUBSCRIBE,
             0x10101010, 0x20202020,
             2, header, 3u, 1u, data
         )
@@ -221,7 +221,7 @@ class CIFactoryTest {
         // Reply to Subscription
         val actual10 = MutableList<Byte>(31) { 0 }
         CIFactory.midiCIPropertyCommon(
-            actual10, 5, CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY,
+            actual10, 5, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
             0x10101010, 0x20202020,
             2, header, 3u, 1u, data
         )
@@ -230,7 +230,7 @@ class CIFactoryTest {
         // Notify
         val actual11 = MutableList<Byte>(31) { 0 }
         CIFactory.midiCIPropertyCommon(
-            actual11, 5, CIFactory.SUB_ID_2_PROPERTY_NOTIFY,
+            actual11, 5, CISubId2.PROPERTY_NOTIFY,
             0x10101010, 0x20202020,
             2, header, 3u, 1u, data
         )

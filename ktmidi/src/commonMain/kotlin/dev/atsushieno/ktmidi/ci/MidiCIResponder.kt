@@ -16,9 +16,8 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                       private val sendOutput: (data: List<Byte>) -> Unit,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
-    var capabilityInquirySupported = MidiCIDiscoveryCategoryFlags.ThreePs
+    var capabilityInquirySupported = MidiCISupportedCategories.THREE_P
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
-    var supportedProtocols: List<MidiCIProtocolTypeInfo> = MidiCIConstants.Midi2ThenMidi1Protocols
     val profileSet: MutableList<MidiCIProfile> = mutableListOf()
     var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK
     var productInstanceId: String = ""
@@ -76,7 +75,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
         // FIXME: we need to implement some sort of state management for each initiator
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIAckNak(dst, false, MidiCIConstants.DEVICE_ID_MIDI_PORT,
-            MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID, CIFactory.SUB_ID_2_INVALIDATE_MUID, 0, 0, listOf(), listOf()))
+            MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID, CISubId2.INVALIDATE_MUID, 0, 0, listOf(), listOf()))
     }
     var processInvalidateMUID = { sourceMUID: Int, targetMUID: Int -> sendAck(sourceMUID) }
 
@@ -168,7 +167,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     fun sendPropertyGetDataReply(msg: Message.GetPropertyDataReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(
-            dst, CIFactory.SUB_ID_2_PROPERTY_GET_DATA_REPLY,
+            dst, CISubId2.PROPERTY_GET_DATA_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
             sendOutput(it)
@@ -181,7 +180,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     fun sendPropertySetDataReply(msg: Message.SetPropertyDataReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(
-            dst, CIFactory.SUB_ID_2_PROPERTY_SET_DATA_REPLY,
+            dst, CISubId2.PROPERTY_SET_DATA_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, listOf()
         ).forEach {
             sendOutput(it)
@@ -194,7 +193,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(
-            dst, CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE_REPLY,
+            dst, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
             sendOutput(it)
@@ -214,7 +213,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
         when (data[3]) {
             // Discovery
-            CIFactory.SUB_ID_2_DISCOVERY_INQUIRY -> {
+            CISubId2.DISCOVERY_INQUIRY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val device = CIRetrieval.midiCIGetDeviceDetails(data)
                 val ciSupported = data[24]
@@ -224,14 +223,14 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 processDiscovery(Message.DiscoveryInquiry(sourceMUID, device, ciSupported, max, initiatorOutputPath))
             }
 
-            CIFactory.SUB_ID_2_ENDPOINT_MESSAGE_INQUIRY -> {
+            CISubId2.ENDPOINT_MESSAGE_INQUIRY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 // only available in MIDI-CI 1.2 or later.
                 val status = data[13]
                 processEndpointMessage(Message.EndpointInquiry(sourceMUID, destinationMUID, status))
             }
 
-            CIFactory.SUB_ID_2_INVALIDATE_MUID -> {
+            CISubId2.INVALIDATE_MUID -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val targetMUID = CIRetrieval.midiCIGetMUIDToInvalidate(data)
                 processInvalidateMUID(sourceMUID, targetMUID)
@@ -239,14 +238,14 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
             // Profile Configuration
 
-            CIFactory.SUB_ID_2_PROFILE_INQUIRY -> {
+            CISubId2.PROFILE_INQUIRY -> {
                 val source = data[1]
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 processProfileInquiry(Message.ProfileInquiry(source, sourceMUID, destinationMUID))
             }
 
-            CIFactory.SUB_ID_2_SET_PROFILE_ON, CIFactory.SUB_ID_2_SET_PROFILE_OFF -> {
-                var enabled = data[3] == CIFactory.SUB_ID_2_SET_PROFILE_ON
+            CISubId2.SET_PROFILE_ON, CISubId2.SET_PROFILE_OFF -> {
+                var enabled = data[3] == CISubId2.SET_PROFILE_ON
                 val address = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
@@ -257,7 +256,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 sendOutput(dst)
             }
 
-            CIFactory.SUB_ID_2_PROFILE_SPECIFIC_DATA -> {
+            CISubId2.PROFILE_SPECIFIC_DATA -> {
                 val address = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
@@ -267,7 +266,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
             // Property Exchange
 
-            CIFactory.SUB_ID_2_PROPERTY_CAPABILITIES_INQUIRY -> {
+            CISubId2.PROPERTY_CAPABILITIES_INQUIRY -> {
                 val destination = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val max = CIRetrieval.midiCIGetMaxPropertyRequests(data)
@@ -276,7 +275,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                     Message.PropertyGetCapabilities(destination, sourceMUID, destinationMUID, max))
             }
 
-            CIFactory.SUB_ID_2_PROPERTY_GET_DATA_INQUIRY -> {
+            CISubId2.PROPERTY_GET_DATA_INQUIRY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
@@ -288,7 +287,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 processGetPropertyData(Message.GetPropertyData(sourceMUID, destinationMUID, requestId, header))
             }
 
-            CIFactory.SUB_ID_2_PROPERTY_SET_DATA_INQUIRY -> {
+            CISubId2.PROPERTY_SET_DATA_INQUIRY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
@@ -301,7 +300,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
                 processSetPropertyData(Message.SetPropertyData(sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex, propData))
             }
 
-            CIFactory.SUB_ID_2_PROPERTY_SUBSCRIBE -> {
+            CISubId2.PROPERTY_SUBSCRIBE -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
