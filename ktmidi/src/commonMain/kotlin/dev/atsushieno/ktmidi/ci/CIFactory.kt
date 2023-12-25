@@ -489,11 +489,11 @@ object CIFactory {
         dst[15] = statusData
         if (nakDetails.size == 5)
             memcpy(dst, 16, nakDetails, 5)
-        dst[20] = (messageTextData.size % 0x80).toByte()
-        dst[21] = (messageTextData.size / 0x80).toByte()
+        dst[21] = (messageTextData.size % 0x80).toByte()
+        dst[22] = (messageTextData.size / 0x80).toByte()
         if (messageTextData.isNotEmpty())
-            memcpy(dst, 22, messageTextData, messageTextData.size)
-        return dst.take(22 + messageTextData.size)
+            memcpy(dst, 23, messageTextData, messageTextData.size)
+        return dst.take(23 + messageTextData.size)
     }
 
 }

@@ -235,8 +235,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         val source = data[1]
         val originalSubId = data[3]
         val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-        val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
-        val nak = MidiCIAckNakData(source, sourceMUID, destinationMUID, originalSubId,
+        val nak = MidiCIAckNakData(source, muid, sourceMUID, originalSubId,
             CINakStatus.MessageNotSupported, 0, listOf(), listOf())
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIAckNak(dst, true, nak))
