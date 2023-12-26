@@ -1,5 +1,5 @@
 [versions]
-agp = "8.1.4"
+agp = "8.2.0"
 android-compileSdk = "34"
 android-minSdk = "24"
 android-targetSdk = "34"
@@ -42,6 +42,10 @@ alsakt = { module = "dev.atsushieno:alsakt", version.ref = "alsakt" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter-api" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter-api" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines-core" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines-core" }
+kotlinx-coroutines-core-js = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-js", version.ref = "kotlinx-coroutines-core" }
+kotlinx-coroutines-core-wasmjs = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-wasmjs", version.ref = "kotlinx-coroutines-core" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-core" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor-io" }
