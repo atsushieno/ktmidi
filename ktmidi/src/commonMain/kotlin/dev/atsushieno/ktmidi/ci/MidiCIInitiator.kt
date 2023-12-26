@@ -249,7 +249,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             // proceed to query resource list
             if (autoSendGetResourceList)
                 GlobalScope.launch {
-                    conn.propertyClient.requestPropertyIds(msg.sourceMUID, requestIdSerial++)
+                    conn.propertyClient.requestPropertyList(msg.sourceMUID, requestIdSerial++)
                 }
         }
         // FIXME: else -> error reporting

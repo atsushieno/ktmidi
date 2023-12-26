@@ -68,6 +68,12 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
         addAll(conn.profiles.profiles.map { MidiCIProfileState(it.address, it.profile, mutableStateOf(it.enabled)) })
     }
 
+    fun selectProperty(propertyId: String) {
+        Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
+    }
+
+    var selectedProperty = mutableStateOf<String?>(null)
+
     val properties = mutableStateListOf<ObservablePropertyList.Entry>().apply { addAll(conn.properties.entries)}
 
     init {

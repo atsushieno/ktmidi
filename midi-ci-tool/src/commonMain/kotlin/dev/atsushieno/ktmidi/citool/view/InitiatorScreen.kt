@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import dev.atsushieno.ktmidi.ci.Json
 import dev.atsushieno.ktmidi.ci.MidiCIProfile
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 import dev.atsushieno.ktmidi.citool.AppModel
@@ -63,10 +64,12 @@ fun ClientConnection(vm: ConnectionViewModel) {
 
         Text("Properties", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
 
-        vm.properties.forEach {
-            Row {
-                Text(it.id)
-            }
+        Row {
+            ClientPropertyList(vm)
+            val selectedProperty by remember { vm.selectedProperty }
+            val sp = selectedProperty
+            if (sp != null)
+                ClientPropertyDetails(vm, sp)
         }
     }
 }
@@ -102,6 +105,8 @@ private fun InitiatorDestinationSelector(destinationMUID: Int,
             text = if (destinationMUID != 0) destinationMUID.toString() else "-- Select CI Device --")
     }
 }
+
+
 
 @Composable
 fun ClientProfileList(vm: ConnectionViewModel) {
@@ -140,5 +145,67 @@ fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
                 Text("${it.address.toString(16)}: ${it.profile}")
             }
         }
+    }
+}
+
+
+@Composable
+fun ClientPropertyList(vm: ConnectionViewModel) {
+    Column {
+        val properties = vm.properties.map { it.id }.distinct()
+        Snapshot.withMutableSnapshot {
+            properties.forEach {
+                ClientPropertyListEntry(it, vm.selectedProperty.value == it) { propertyId -> vm.selectProperty(propertyId) }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ClientPropertyListEntry(propertyId: String, isSelected: Boolean, selectedPropertyChanged: (property: String) -> Unit) {
+    val border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null
+    Card(border = border, onClick = {
+        selectedPropertyChanged(propertyId)
+    }) {
+        Text(modifier = Modifier.padding(12.dp, 0.dp), text = propertyId)
+    }
+}
+
+@Composable
+fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String) {
+    Column {
+        Text("Property Metadata")
+
+        val entry = vm.properties.first { it.id == propertyId }
+        val def = vm.conn.propertyClient.getPropertyList()?.firstOrNull { it.resource == propertyId }
+        Text("resource: ${entry.id}")
+        if (def != null) {
+            Text("canGet: ${def.canGet}")
+            Text("canSet: ${def.canSet}")
+            Text("canSubscribe: ${def.canSubscribe}")
+            Text("requireResId: ${def.requireResId}")
+            Text("mimeType: ${def.mediaTypes.joinToString()}")
+            Text("encodings: ${def.encodings.joinToString()}")
+            if (def.schema != null)
+                Text("schema: ${Json.getUnescapedString(def.schema!!)}")
+            Text("canPaginate: ${def.canPaginate}")
+            Text("columns:")
+            def.columns.forEach {
+                if (it.property != null)
+                    Text("Property ${it.property}: ${it.title}")
+                // could be "else if", but in case we want to see buggy column entry...
+                if (it.link != null)
+                    Text("Link ${it.link}: ${it.title}")
+            }
+        }
+        /*
+        Row {
+            val enabled by remember { it.enabled }
+            Switch(checked = enabled, onCheckedChange = { newEnabled ->
+                AppModel.ciDeviceManager.initiator.setProfile(vm.conn.muid, it.address, it.profile, newEnabled)
+            })
+            Text("${it.address.toString(16)}: ${it.profile}")
+        }*/
     }
 }

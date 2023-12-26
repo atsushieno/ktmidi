@@ -149,38 +149,61 @@ object PropertySetAccess {
     const val Partial = "partial"
 }
 
-val defaultPropertyResource = PropertyResource("ktmidiDefaultPropertyResource")
+object PropertyResourceFields {
+    const val RESOURCE = "resource"
+    const val CAN_GET = "canGet"
+    const val CAN_SET = "canSet"
+    const val CAN_SUBSCRIBE = "canSubscribe"
+    const val REQUIRE_RES_ID = "requireResId"
+    const val MEDIA_TYPE = "mediaTypes"
+    const val ENCODINGS = "encodings"
+    const val SCHEMA = "schema"
+    const val CAN_PAGINATE = "canPaginate"
+    const val COLUMNS = "columns"
+}
 
-data class PropertyResource(
-    val resource: String,
-    val canGet: Boolean = true,
-    val canSet: String = PropertySetAccess.NONE,
-    val canSubscribe: Boolean = false,
-    val requireResId: Boolean = false,
-    val mediaTypes: List<String> = listOf("application/json"),
-    val encodings: List<String> = listOf("ASCII"),
-    val schema: Json.JsonValue? = null,
-    val canPaginate: Boolean = false,
-    val columns: List<PropertyResourceColumn> = listOf()
-) {
+object PropertyResourceColumnFields {
+
+    const val PROPERTY = "property"
+    const val LINK = "link"
+    const val TITLE = "title"
+}
+
+class PropertyResource() {
+    var resource: String = ""
+    var canGet: Boolean = true
+    var canSet: String = PropertySetAccess.NONE
+    var canSubscribe: Boolean = false
+    var requireResId: Boolean = false
+    var mediaTypes: List<String> = listOf("application/json")
+    var encodings: List<String> = listOf("ASCII")
+    var schema: Json.JsonValue? = null
+    // additional properties for List resources
+    var canPaginate: Boolean = false
+    var columns: List<PropertyResourceColumn> = listOf()
+
+    constructor(resource: String) : this() { this.resource = resource }
+
     private fun jsonValuePairs() = sequence {
-        yield(Pair(Json.JsonValue("resource"), Json.JsonValue(resource)))
+        yield(Pair(Json.JsonValue(PropertyResourceFields.RESOURCE), Json.JsonValue(resource)))
         if (!canGet)
-            yield(Pair(Json.JsonValue("canGet"), if (canGet) Json.TrueValue else Json.FalseValue))
+            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_GET), if (canGet) Json.TrueValue else Json.FalseValue))
         if (canSet != PropertySetAccess.NONE)
-            yield(Pair(Json.JsonValue("canSet"), Json.JsonValue(canSet)))
+            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_SET), Json.JsonValue(canSet)))
         if (canSubscribe)
-            yield(Pair(Json.JsonValue("canSubscribe"), if (canSubscribe) Json.TrueValue else Json.FalseValue))
+            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_SUBSCRIBE), if (canSubscribe) Json.TrueValue else Json.FalseValue))
         if (requireResId)
-            yield(Pair(Json.JsonValue("requireResId"), if (requireResId) Json.TrueValue else Json.FalseValue))
+            yield(Pair(Json.JsonValue(PropertyResourceFields.REQUIRE_RES_ID), if (requireResId) Json.TrueValue else Json.FalseValue))
         if (mediaTypes.size != 1 || mediaTypes[0] != "application/json")
-            yield(Pair(Json.JsonValue("mediaTypes"), Json.JsonValue(mediaTypes.map { s -> Json.JsonValue(s) })))
+            yield(Pair(Json.JsonValue(PropertyResourceFields.MEDIA_TYPE), Json.JsonValue(mediaTypes.map { s -> Json.JsonValue(s) })))
         if (encodings.size != 1 || encodings[0] != "ASCII")
-            yield(Pair(Json.JsonValue("encodings"), Json.JsonValue(encodings.map { s -> Json.JsonValue(s) })))
+            yield(Pair(Json.JsonValue(PropertyResourceFields.ENCODINGS), Json.JsonValue(encodings.map { s -> Json.JsonValue(s) })))
+        if (schema != null)
+            yield(Pair(Json.JsonValue(PropertyResourceFields.SCHEMA), schema!!))
         if (canPaginate)
-            yield(Pair(Json.JsonValue("canPaginate"), if (canPaginate) Json.TrueValue else Json.FalseValue))
+            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_PAGINATE), if (canPaginate) Json.TrueValue else Json.FalseValue))
         if (columns.any())
-            yield(Pair(Json.JsonValue("columns"), Json.JsonValue(columns.map { c -> c.toJsonValue() })))
+            yield(Pair(Json.JsonValue(PropertyResourceFields.COLUMNS), Json.JsonValue(columns.map { c -> c.toJsonValue() })))
     }
 
     fun toJsonValue(): Json.JsonValue = Json.JsonValue(
@@ -188,18 +211,18 @@ data class PropertyResource(
     )
 }
 
-data class PropertyResourceColumn(
-    val title: String,
-    val property: String? = null,
-    val link: String? = null
-) {
+class PropertyResourceColumn {
+    var title: String = ""
+    var property: String? = null
+    var link: String? = null
+
     fun toJsonValue(): Json.JsonValue = Json.JsonValue(
         mapOf(
             if (property != null)
-                Pair(Json.JsonValue("property"), Json.JsonValue(property))
+                Pair(Json.JsonValue(PropertyResourceColumnFields.PROPERTY), Json.JsonValue(property ?: ""))
             else
-                Pair(Json.JsonValue("link"), Json.JsonValue(link ?: "")),
-            Pair(Json.JsonValue("title"), Json.JsonValue(title))
+                Pair(Json.JsonValue(PropertyResourceColumnFields.LINK), Json.JsonValue(link ?: "")),
+            Pair(Json.JsonValue(PropertyResourceColumnFields.TITLE), Json.JsonValue(title))
         )
     )
 }
@@ -244,9 +267,9 @@ object CommonRulesPropertyHelper {
 class CommonRulesPropertyClient(private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) : MidiCIPropertyClient {
     override fun getPropertyIdForHeader(header: List<Byte>) = CommonRulesPropertyHelper.getPropertyIdentifier(header)
 
-    override fun getPropertyIds(): List<String>? = resourceList
+    override fun getPropertyList(): List<PropertyResource> = resourceList
 
-    override suspend fun requestPropertyIds(destinationMUID: Int, requestId: Byte) =
+    override suspend fun requestPropertyList(destinationMUID: Int, requestId: Byte) =
         requestResourceList(destinationMUID, requestId)
 
     override fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
@@ -268,7 +291,7 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
 
     // implementation
 
-    private val resourceList = mutableListOf<String>()
+    private val resourceList = mutableListOf<PropertyResource>()
 
     private fun requestResourceList(destinationMUID: Int, requestId: Byte) {
         val requestASCIIBytes = CommonRulesPropertyHelper.getResourceListRequestBytes()
@@ -276,24 +299,49 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
         sendGetPropertyData(msg)
     }
 
-    private fun getPropertyListForMessage(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply): List<String>? {
+    private fun getPropertyListForMessage(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply): List<PropertyResource>? {
         val id = getPropertyIdForHeader(request.header)
         return if (id == PropertyResourceNames.RESOURCE_LIST) getResourceListForBody(reply.body) else null
     }
 
-    private fun getResourceListForBody(body: List<Byte>): List<String> {
+    private fun getResourceListForBody(body: List<Byte>): List<PropertyResource> {
         val json = Json.parse(Json.getUnescapedString(body.toByteArray().decodeToString()))
         return getResourceListForBody(json)
     }
 
-    private fun getResourceListForBody(body: Json.JsonValue): List<String> {
-        // list of entries (name: value)
+    private fun getResourceListForBody(body: Json.JsonValue): List<PropertyResource> {
+        // list of entries (name: value sich as {"resource": "foo", "canSet": "partial"})
         val list = body.token.seq.toList()
         return list.map { entry ->
             val pairs = entry.token.map.toList()
-            pairs.map {
-                Json.getUnescapedString(it.second)
-            }.firstOrNull() ?: ""
+            val res = PropertyResource()
+            entry.token.map.forEach {
+                val v = it.value
+                when (Json.getUnescapedString(it.key)) {
+                    PropertyResourceFields.RESOURCE -> res.resource = Json.getUnescapedString(v)
+                    PropertyResourceFields.CAN_GET -> res.canGet = v.token.type == Json.TokenType.True
+                    PropertyResourceFields.CAN_SET -> res.canSet = Json.getUnescapedString(v)
+                    PropertyResourceFields.CAN_SUBSCRIBE -> res.canSubscribe = v.token.type == Json.TokenType.True
+                    PropertyResourceFields.REQUIRE_RES_ID -> res.requireResId = v.token.type == Json.TokenType.True
+                    PropertyResourceFields.ENCODINGS -> res.encodings = v.token.seq.map { e -> Json.getUnescapedString(e) }.toList()
+                    PropertyResourceFields.MEDIA_TYPE -> res.mediaTypes = v.token.seq.map { e -> Json.getUnescapedString(e) }.toList()
+                    PropertyResourceFields.SCHEMA -> res.schema = v
+                    PropertyResourceFields.CAN_PAGINATE -> res.canPaginate = v.token.type == Json.TokenType.True
+                    PropertyResourceFields.COLUMNS -> res.columns = v.token.seq.map { c ->
+                        val col = PropertyResourceColumn()
+                        c.token.map.forEach {
+                            val cv = it.value
+                            when (Json.getUnescapedString(it.key)) {
+                                PropertyResourceColumnFields.PROPERTY -> col.property = Json.getUnescapedString(cv)
+                                PropertyResourceColumnFields.LINK -> col.link = Json.getUnescapedString(cv)
+                                PropertyResourceColumnFields.TITLE -> col.title = Json.getUnescapedString(cv)
+                            }
+                        }
+                        col
+                    }.toList()
+                }
+            }
+            res
         }.toList()
     }
 }
