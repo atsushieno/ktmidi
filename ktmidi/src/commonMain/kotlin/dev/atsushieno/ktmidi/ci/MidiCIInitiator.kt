@@ -139,7 +139,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     fun sendGetPropertyData(destinationMUID: Int, resource: String) {
         val conn = connections[destinationMUID]
         if (conn != null) {
-            val header = conn.propertyClient.createRequestHeader(resource)
+            val header = conn.propertyClient.createRequestHeader(resource, false)
             sendGetPropertyData(Message.GetPropertyData(muid, destinationMUID, requestIdSerial++, header))
         }
     }
@@ -154,10 +154,10 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         }
     }
 
-    fun sendSetPropertyData(destinationMUID: Int, resource: String, data: List<Byte>) {
+    fun sendSetPropertyData(destinationMUID: Int, resource: String, data: List<Byte>, isPartial: Boolean = false) {
         val conn = connections[destinationMUID]
         if (conn != null) {
-            val header = conn.propertyClient.createRequestHeader(resource)
+            val header = conn.propertyClient.createRequestHeader(resource, isPartial)
             // FIXME: handle body data chunks
             sendSetPropertyData(Message.SetPropertyData(muid, destinationMUID, requestIdSerial++, header, 1, 1, data))
         }

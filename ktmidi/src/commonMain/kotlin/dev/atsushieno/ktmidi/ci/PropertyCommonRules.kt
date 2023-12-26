@@ -40,6 +40,8 @@ object PropertyCommonHeaderKeys {
     const val CACHE_TIME = "cacheTime"
     // M2-103-UM 5.5 Extra Header Property for Using Property Data which is Not JSON Data
     const val MEDIA_TYPE = "mediaType"
+    // M2-103-UM 8. Full and Partial SET Inquiries
+    const val SET_PARTIAL = "setPartial"
 }
 
 object CommonRulesKnownMimeTypes {
@@ -259,7 +261,7 @@ object CommonRulesPropertyHelper {
         return resId ?: resource ?: ""
     }
 
-    fun getResourceListRequestJson() = createRequestHeader(PropertyResourceNames.RESOURCE_LIST)
+    fun getResourceListRequestJson() = createRequestHeader(PropertyResourceNames.RESOURCE_LIST, false)
 
     fun getResourceListRequestBytes(): List<Byte> {
         val json = getResourceListRequestJson()
@@ -267,22 +269,23 @@ object CommonRulesPropertyHelper {
         return requestASCIIBytes
     }
 
-    fun createRequestHeader(resourceIdentifier: String): Json.JsonValue {
+    private val partialSetPair = Pair(Json.JsonValue(PropertyCommonHeaderKeys.SET_PARTIAL), Json.TrueValue)
+    fun createRequestHeader(resourceIdentifier: String, isPartialSet: Boolean): Json.JsonValue {
         val headerContent = Pair(
             Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
             Json.JsonValue(resourceIdentifier))
-        return Json.JsonValue(mapOf(headerContent))
+        return Json.JsonValue(if (isPartialSet) mapOf(headerContent, partialSetPair) else mapOf(headerContent))
     }
 
-    fun createRequestHeaderBytes(resourceIdentifier: String): List<Byte> {
-        val json = createRequestHeader(resourceIdentifier)
+    fun createRequestHeaderBytes(resourceIdentifier: String, isPartialSet: Boolean): List<Byte> {
+        val json = createRequestHeader(resourceIdentifier, isPartialSet)
         val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
         return requestASCIIBytes
     }
 }
 
 class CommonRulesPropertyClient(private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) : MidiCIPropertyClient {
-    override fun createRequestHeader(resourceIdentifier: String): List<Byte> = CommonRulesPropertyHelper.createRequestHeaderBytes(resourceIdentifier)
+    override fun createRequestHeader(resourceIdentifier: String, isPartialSet: Boolean): List<Byte> = CommonRulesPropertyHelper.createRequestHeaderBytes(resourceIdentifier, isPartialSet)
 
     override fun getPropertyIdForHeader(header: List<Byte>) = CommonRulesPropertyHelper.getPropertyIdentifier(header)
 

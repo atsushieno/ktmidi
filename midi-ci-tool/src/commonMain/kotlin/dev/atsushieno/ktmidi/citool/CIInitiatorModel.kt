@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi.citool
 
-import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.view.ViewModel
 import kotlinx.datetime.Clock
@@ -145,8 +144,8 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String) {
         initiator.sendGetPropertyData(destinationMUID, resource)
     }
-    fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>) {
-        initiator.sendSetPropertyData(destinationMUID, resource, data)
+    fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, isPartial: Boolean) {
+        initiator.sendSetPropertyData(destinationMUID, resource, data, isPartial)
     }
 }
 

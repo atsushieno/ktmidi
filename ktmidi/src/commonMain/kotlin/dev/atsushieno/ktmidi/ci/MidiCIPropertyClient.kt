@@ -10,7 +10,7 @@ package dev.atsushieno.ktmidi.ci
  *   - The list acquisition must be automatically detected.
  */
 interface MidiCIPropertyClient {
-    fun createRequestHeader(resourceIdentifier: String): List<Byte>
+    fun createRequestHeader(resourceIdentifier: String, isPartialSet: Boolean): List<Byte>
 
     fun getPropertyIdForHeader(header: List<Byte>): String
 

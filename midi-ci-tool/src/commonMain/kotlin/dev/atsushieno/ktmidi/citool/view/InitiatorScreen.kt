@@ -261,11 +261,20 @@ fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyResource?, p
             }
             if (editable) {
                 var text by remember { mutableStateOf(bodyText) }
-                Button(onClick = {
-                    val bytes = Json.getEscapedString(text).encodeToByteArray().toList()
-                    AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, property.id, bytes)
-                }) {
-                    Text("Commit changes")
+                var partial by remember { mutableStateOf("") }
+                Row {
+                    if (def?.canSet == "partial") {
+                        Text("Partial?")
+                        TextField(partial, { partial = it })
+                    }
+                    Button(onClick = {
+                        val bytes = Json.getEscapedString(partial.ifEmpty { text }).encodeToByteArray().toList()
+                        AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, property.id, bytes,
+                            partial.isNotEmpty()
+                        )
+                    }) {
+                        Text("Commit changes")
+                    }
                 }
                 TextField(text, { text = it })
             } else {
