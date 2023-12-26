@@ -2,21 +2,17 @@ package dev.atsushieno.ktmidi.citool.view
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import dev.atsushieno.ktmidi.ci.Json
-import dev.atsushieno.ktmidi.ci.MidiCIProfile
-import dev.atsushieno.ktmidi.ci.MidiCIProfileId
+import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
@@ -28,14 +24,17 @@ fun InitiatorScreen() {
             }
             MidiDeviceSelector()
         }
-        val destinationMUID by remember { ViewModel.selectedRemoteDeviceMUID }
-        InitiatorDestinationSelector(destinationMUID,
-            onChange = { Snapshot.withMutableSnapshot { ViewModel.selectedRemoteDeviceMUID.value = it } })
-
         val conn = ViewModel.selectedRemoteDevice.value
-        if (conn != null) {
-            ClientConnection(conn)
+        Row {
+            val destinationMUID by remember { ViewModel.selectedRemoteDeviceMUID }
+            InitiatorDestinationSelector(destinationMUID,
+                onChange = { Snapshot.withMutableSnapshot { ViewModel.selectedRemoteDeviceMUID.value = it } })
+
+            if (conn != null)
+                ClientConnectionInfo(conn)
         }
+        if (conn != null)
+            ClientConnection(conn)
     }
 }
 
@@ -43,15 +42,6 @@ fun InitiatorScreen() {
 fun ClientConnection(vm: ConnectionViewModel) {
     val conn = vm.conn
     Column(Modifier.padding(12.dp, 0.dp)) {
-        Text("Device", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
-        val small = TextUnit(0.8f, TextUnitType.Em)
-        Text("Manufacturer: ${conn.device.manufacturer.toString(16)}", fontSize = small)
-        Text("Family: ${conn.device.family.toString(16)}", fontSize = small)
-        Text("Model: ${conn.device.modelNumber.toString(16)}", fontSize = small)
-        Text("Revision: ${conn.device.softwareRevisionLevel.toString(16)}", fontSize = small)
-        Text("instance ID: ${conn.productInstanceId}", fontSize = small)
-        Text("max connections: ${conn.maxSimultaneousPropertyRequests}")
-
         Text("Profiles", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
 
         Row {
@@ -70,6 +60,37 @@ fun ClientConnection(vm: ConnectionViewModel) {
             val sp = selectedProperty
             if (sp != null)
                 ClientPropertyDetails(vm, sp)
+        }
+    }
+}
+
+@Composable
+fun DeviceItemCard(label: String) {
+    Card { Text(label, modifier= Modifier.padding(6.dp, 0.dp)) }
+}
+
+@Composable
+private fun ClientConnectionInfo(vm: ConnectionViewModel) {
+    val conn = vm.conn
+    Column {
+        Text("Device", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
+        val small = TextUnit(0.8f, TextUnitType.Em)
+        Row {
+            DeviceItemCard("Manufacturer")
+            Text(conn.device.manufacturer.toString(16), fontSize = small)
+            DeviceItemCard("Family")
+            Text(conn.device.family.toString(16), fontSize = small)
+            DeviceItemCard("Model")
+            Text(conn.device.modelNumber.toString(16), fontSize = small)
+            DeviceItemCard("Revision")
+            Text(conn.device.softwareRevisionLevel.toString(16), fontSize = small)
+        }
+        Row {
+            DeviceItemCard("instance ID")
+            Text(conn.productInstanceId, fontSize = small)
+            DeviceItemCard("max connections")
+            Text("${conn.maxSimultaneousPropertyRequests}")
+
         }
     }
 }
@@ -155,7 +176,10 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
         val properties = vm.properties.map { it.id }.distinct()
         Snapshot.withMutableSnapshot {
             properties.forEach {
-                ClientPropertyListEntry(it, vm.selectedProperty.value == it) { propertyId -> vm.selectProperty(propertyId) }
+                ClientPropertyListEntry(it, vm.selectedProperty.value == it) {
+                    propertyId -> vm.selectProperty(propertyId)
+                    AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, propertyId)
+                }
             }
         }
     }
@@ -175,37 +199,58 @@ fun ClientPropertyListEntry(propertyId: String, isSelected: Boolean, selectedPro
 @Composable
 fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String) {
     Column {
-        Text("Property Metadata")
-
         val entry = vm.properties.first { it.id == propertyId }
-        val def = vm.conn.propertyClient.getPropertyList()?.firstOrNull { it.resource == propertyId }
-        Text("resource: ${entry.id}")
-        if (def != null) {
-            Text("canGet: ${def.canGet}")
-            Text("canSet: ${def.canSet}")
-            Text("canSubscribe: ${def.canSubscribe}")
-            Text("requireResId: ${def.requireResId}")
-            Text("mimeType: ${def.mediaTypes.joinToString()}")
-            Text("encodings: ${def.encodings.joinToString()}")
-            if (def.schema != null)
-                Text("schema: ${Json.getUnescapedString(def.schema!!)}")
-            Text("canPaginate: ${def.canPaginate}")
-            Text("columns:")
-            def.columns.forEach {
-                if (it.property != null)
-                    Text("Property ${it.property}: ${it.title}")
-                // could be "else if", but in case we want to see buggy column entry...
-                if (it.link != null)
-                    Text("Link ${it.link}: ${it.title}")
+        val def = vm.conn.propertyClient.getPropertyList()?.firstOrNull { it.resource == entry.id }
+        ClientPropertyValueEditor(vm, def, entry)
+        if (def != null)
+            ClientPropertyMetadata(vm, def)
+        else
+            Text("(Metadata not available - not in ResourceList)")
+    }
+}
+
+@Composable
+fun PropertyColumn(label: String, content: @Composable () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Card(modifier = Modifier.width(180.dp).padding(12.dp, 0.dp)) { Text(label, Modifier.padding(12.dp, 0.dp)) }
+        content()
+    }
+}
+
+@Composable
+fun ClientPropertyMetadata(vm: ConnectionViewModel, def: PropertyResource) {
+    Column(Modifier.padding(12.dp)) {
+        Text("Property Metadata", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
+
+        PropertyColumn("resource") { TextField(def.resource, {}, enabled = false) }
+        PropertyColumn("canGet") { Checkbox(def.canGet, {}, enabled = false) }
+        PropertyColumn("canSet") { TextField(def.canSet, {}, enabled = false) }
+        PropertyColumn("canSubscribe") { Checkbox(def.canSubscribe, {}, enabled = false) }
+        PropertyColumn("requireResId") { Checkbox(def.requireResId, {}, enabled = false) }
+        PropertyColumn("mediaTypes") { TextField(def.mediaTypes.joinToString("\n"), {}, enabled = false, minLines = 2) }
+        PropertyColumn("encodings") { TextField(def.encodings.joinToString("\n"), {}, enabled = false, minLines = 2) }
+        PropertyColumn("schema") { TextField(if (def.schema == null) "" else Json.getUnescapedString(def.schema!!), {}, enabled = false) }
+        PropertyColumn("canPaginate") { Checkbox(def.canPaginate, {}, enabled = false) }
+        PropertyColumn("columns") {
+            Column(Modifier.padding(12.dp)) {
+                def.columns.forEach {
+                    if (it.property != null)
+                        Text("Property ${it.property}: ${it.title}")
+                    if (it.link != null)
+                        Text("Link ${it.link}: ${it.title}")
+                }
             }
         }
-        /*
-        Row {
-            val enabled by remember { it.enabled }
-            Switch(checked = enabled, onCheckedChange = { newEnabled ->
-                AppModel.ciDeviceManager.initiator.setProfile(vm.conn.muid, it.address, it.profile, newEnabled)
-            })
-            Text("${it.address.toString(16)}: ${it.profile}")
-        }*/
     }
+}
+
+@Composable
+fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyResource?, property: ObservablePropertyList.Entry) {
+    Text("Property Value", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
+
+    val mediaType = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
+    if (mediaType != null)
+        Text("mediaType: $mediaType")
+    if (mediaType == null || mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON)
+        TextField(Json.getUnescapedString(property.body.toByteArray().decodeToString()), {})
 }

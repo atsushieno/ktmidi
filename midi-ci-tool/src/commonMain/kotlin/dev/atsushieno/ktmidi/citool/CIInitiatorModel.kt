@@ -141,5 +141,9 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
             initiator.setProfileOff(msg)
         }
     }
+
+    fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String) {
+        initiator.sendGetPropertyData(destinationMUID, resource)
+    }
 }
 

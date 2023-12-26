@@ -136,6 +136,14 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         ))
     }
 
+    fun sendGetPropertyData(destinationMUID: Int, resource: String) {
+        val conn = connections[destinationMUID]
+        if (conn != null) {
+            val header = conn.propertyClient.createRequestHeader(resource)
+            sendGetPropertyData(Message.GetPropertyData(muid, destinationMUID, requestIdSerial++, header))
+        }
+    }
+
     fun sendGetPropertyData(msg: Message.GetPropertyData) {
         val conn = connections[msg.destinationMUID]
         conn?.addPendingRequest(msg)

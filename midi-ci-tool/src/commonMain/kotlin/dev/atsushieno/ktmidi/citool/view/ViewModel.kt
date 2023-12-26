@@ -92,6 +92,16 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
                 .forEach { Snapshot.withMutableSnapshot { it.enabled.value = profile.enabled } }
         }
 
+        conn.properties.propertyChanged.add { entry ->
+            val index = properties.indexOfFirst { it.id == entry.id }
+            if (index < 0)
+                properties.add(entry)
+            else {
+                properties.removeAt(index)
+                properties.add(index, entry)
+            }
+        }
+
         conn.properties.propertiesCatalogUpdated.add {
             properties.clear()
             properties.addAll(conn.properties.entries)

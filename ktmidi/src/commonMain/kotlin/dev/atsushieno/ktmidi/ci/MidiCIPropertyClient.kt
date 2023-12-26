@@ -10,6 +10,7 @@ package dev.atsushieno.ktmidi.ci
  *   - The list acquisition must be automatically detected.
  */
 interface MidiCIPropertyClient {
+    fun createRequestHeader(resourceIdentifier: String): List<Byte>
 
     fun getPropertyIdForHeader(header: List<Byte>): String
 
@@ -20,6 +21,8 @@ interface MidiCIPropertyClient {
     fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply)
 
     fun getReplyStatusFor(header: List<Byte>): Int?
+
+    fun getMediaTypeFor(replyHeader: List<Byte>): String?
 
     val propertyCatalogUpdated: MutableList<() -> Unit>
 }

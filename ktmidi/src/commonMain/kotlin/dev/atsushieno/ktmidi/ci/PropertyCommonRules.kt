@@ -38,6 +38,12 @@ object PropertyCommonHeaderKeys {
     const val STATUS = "status"
     const val MESSAGE = "message"
     const val CACHE_TIME = "cacheTime"
+    // M2-103-UM 5.5 Extra Header Property for Using Property Data which is Not JSON Data
+    const val MEDIA_TYPE = "mediaType"
+}
+
+object CommonRulesKnownMimeTypes {
+    const val APPLICATION_JSON = "application/json"
 }
 
 object PropertyExchangeStatus {
@@ -109,7 +115,9 @@ data class PropertyCommonReplyHeader(
     val status: Int,
     val message: String? = null,
     val mutualEncoding: String? = PropertyDataEncoding.ASCII,
-    val cacheTime: String? = null
+    val cacheTime: String? = null,
+    // M2-103-UM 5.5 Extra Header Property for Using Property Data which is Not JSON Data
+    val mediaType: String? = null
 )
 
 object PropertyCommonConverter {
@@ -251,20 +259,31 @@ object CommonRulesPropertyHelper {
         return resId ?: resource ?: ""
     }
 
-    fun getResourceListRequestJson(): Json.JsonValue {
-        val headerContent = Pair(
-            Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
-            Json.JsonValue(PropertyResourceNames.RESOURCE_LIST))
-        return Json.JsonValue(mapOf(headerContent))
-    }
+    fun getResourceListRequestJson() = createRequestHeader(PropertyResourceNames.RESOURCE_LIST)
+
     fun getResourceListRequestBytes(): List<Byte> {
         val json = getResourceListRequestJson()
+        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
+        return requestASCIIBytes
+    }
+
+    fun createRequestHeader(resourceIdentifier: String): Json.JsonValue {
+        val headerContent = Pair(
+            Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
+            Json.JsonValue(resourceIdentifier))
+        return Json.JsonValue(mapOf(headerContent))
+    }
+
+    fun createRequestHeaderBytes(resourceIdentifier: String): List<Byte> {
+        val json = createRequestHeader(resourceIdentifier)
         val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
         return requestASCIIBytes
     }
 }
 
 class CommonRulesPropertyClient(private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) : MidiCIPropertyClient {
+    override fun createRequestHeader(resourceIdentifier: String): List<Byte> = CommonRulesPropertyHelper.createRequestHeaderBytes(resourceIdentifier)
+
     override fun getPropertyIdForHeader(header: List<Byte>) = CommonRulesPropertyHelper.getPropertyIdentifier(header)
 
     override fun getPropertyList(): List<PropertyResource> = resourceList
@@ -280,11 +299,27 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
         propertyCatalogUpdated.forEach { it() }
     }
 
-    override fun getReplyStatusFor(header: List<Byte>): Int? {
+    private fun getReplyHeaderField(header: List<Byte>, field: String): Json.JsonValue? {
+        if (header.isEmpty())
+            return null
         val replyString = Json.getUnescapedString(header.toByteArray().decodeToString())
         val replyJson = Json.parse(replyString)
-        val statusPair = replyJson.token.map.toList().firstOrNull { Json.getUnescapedString(it.first) == PropertyCommonHeaderKeys.STATUS } ?: return null
-        return if (statusPair.second.token.type == Json.TokenType.Number) statusPair.second.token.number.toInt() else null
+        val valuePair = replyJson.token.map.toList().firstOrNull { Json.getUnescapedString(it.first) == field } ?: return null
+        return valuePair.second
+    }
+
+    override fun getReplyStatusFor(header: List<Byte>): Int? {
+        val json = getReplyHeaderField(header, PropertyCommonHeaderKeys.STATUS)
+        return if (json == null) null
+            else if (json.token.type == Json.TokenType.Number) json.token.number.toInt()
+            else null
+    }
+
+    override fun getMediaTypeFor(replyHeader: List<Byte>): String? {
+        val json = getReplyHeaderField(replyHeader, PropertyCommonHeaderKeys.MEDIA_TYPE)
+        return if (json == null) null
+        else if (json.token.type == Json.TokenType.String) Json.getUnescapedString(json)
+        else null
     }
 
     override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
@@ -427,6 +462,8 @@ class CommonRulesPropertyService(private val muid: Int, private val deviceInfo: 
             this[Json.JsonValue(PropertyCommonHeaderKeys.MUTUAL_ENCODING)] = Json.JsonValue(src.mutualEncoding)
         if (src.cacheTime != null)
             this[Json.JsonValue(PropertyCommonHeaderKeys.CACHE_TIME)] = Json.JsonValue(src.cacheTime)
+        if (src.mediaType != null)
+            this[Json.JsonValue(PropertyCommonHeaderKeys.MEDIA_TYPE)] = Json.JsonValue(src.mediaType)
     })
 
     fun getPropertyData(headerJson: Json.JsonValue): Pair<Json.JsonValue,Json.JsonValue> {
