@@ -174,7 +174,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         handleNewEndpoint(msg)
     }
 
-    private val defaultProcessInvalidateMUID = { sourceMUID: Int, destinationMUID: Int, muidToInvalidate: Int ->
+    private val defaultProcessInvalidateMUID = { sourceMUID: Int, muidToInvalidate: Int ->
         val conn = connections[muidToInvalidate]
         if (conn != null)
             connections.remove(muidToInvalidate)
@@ -312,10 +312,8 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                 processEndpointReply(Message.EndpointReply(sourceMUID, destinationMUID, status, dataValue))
             }
             CISubId2.INVALIDATE_MUID -> {
-                // Invalid MUID
                 processInvalidateMUID(
                     CIRetrieval.midiCIGetSourceMUID(data),
-                    0x7F7F7F7F,
                     CIRetrieval.midiCIGetMUIDToInvalidate(data)
                     )
             }

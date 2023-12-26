@@ -26,6 +26,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     var midiCIBufferSize = 4096
 
+    val profiles = mutableListOf<MidiCIProfile>()
     val propertyService = CommonRulesPropertyService(muid, device)
 
     // smaller value of initiator's maxSimulutaneousPropertyRequests vs. this.maxSimulutaneousPropertyRequests upon PEx inquiry request
@@ -75,17 +76,14 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     val sendAck: (sourceMUID: Int) -> Unit = { sourceMUID ->
         // FIXME: we need to implement some sort of state management for each initiator
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIAckNak(dst, false, MidiCIConstants.DEVICE_ID_MIDI_PORT,
+        sendOutput(CIFactory.midiCIAckNak(dst, false, MidiCIConstants.ADDRESS_FUNCTION_BLOCK,
             MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID, CISubId2.INVALIDATE_MUID, 0, 0, listOf(), listOf()))
     }
     var processInvalidateMUID = { sourceMUID: Int, targetMUID: Int -> sendAck(sourceMUID) }
 
     // Profile Configuration
     private fun MutableList<MidiCIProfile>.getMatchingProfiles(address: Byte, enabled: Boolean) =
-        when (address) {
-            0x7E.toByte() -> this.filter { it.enabled == enabled }.map { it.profile }
-            else -> this.filter { it.address == address && it.enabled == enabled }.map { it.profile }
-        }
+        this.filter { it.address == address && it.enabled == enabled }.map { it.profile }
 
     val sendProfileReply: (msg: Message.ProfileReply) -> Unit = { msg ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
@@ -94,11 +92,20 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
             msg.disabledProfiles)
         )
     }
+
+    private fun getAllAddresses(address: Byte) = sequence {
+        if (address == MidiCIConstants.ADDRESS_FUNCTION_BLOCK)
+            yieldAll(profileSet.map { it.address }.distinct().sorted())
+        else
+            yield(address)
+    }
     val getProfileRepliesForInquiry: (msg: Message.ProfileInquiry) -> Sequence<Message.ProfileReply> = { msg ->
         sequence {
-            yield(Message.ProfileReply(msg.address, muid, msg.sourceMUID,
-                profileSet.getMatchingProfiles(msg.address, true),
-                profileSet.getMatchingProfiles(msg.address, false)))
+            getAllAddresses(msg.address).forEach { address ->
+                yield(Message.ProfileReply(address, muid, msg.sourceMUID,
+                    profileSet.getMatchingProfiles(address, true),
+                    profileSet.getMatchingProfiles(address, false)))
+            }
         }
     }
     var processProfileInquiry: (msg: Message.ProfileInquiry) -> Unit = { msg ->

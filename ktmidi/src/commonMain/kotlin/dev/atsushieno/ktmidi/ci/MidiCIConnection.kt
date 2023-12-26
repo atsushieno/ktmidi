@@ -93,12 +93,15 @@ object MidiCIConstants {
 
     const val DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE = 4096
 
-    const val DEVICE_ID_MIDI_PORT: Byte = 0x7F
+    const val ADDRESS_GROUP: Byte = 0x7E
+    const val ADDRESS_FUNCTION_BLOCK: Byte = 0x7F
 
     const val NO_FUNCTION_BLOCK: Byte = 0x7F
     const val WHOLE_FUNCTION_BLOCK: Byte = 0x7F
 
     const val BROADCAST_MUID_28 = 0xFFFFFFF
     const val BROADCAST_MUID_32 = 0x7F7F7F7F
+
+    const val STANDARD_DEFINED_PROFILE: Byte = 0x7E
 }
 

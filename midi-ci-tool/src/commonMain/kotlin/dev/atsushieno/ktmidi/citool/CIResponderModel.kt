@@ -33,7 +33,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     private val device = MidiCIDeviceInfo(1,2,2,1,
         "atsushieno", "KtMidi", "KtMidi-CI-Tool Responder", "0.1")
 
-    private val responder = MidiCIResponder(device, { data ->
+    val responder = MidiCIResponder(device, { data ->
         ViewModel.log("[R] REPLY SYSEX: " + data.joinToString { it.toString(16) })
         outputSender(data)
     }).apply {
@@ -111,7 +111,9 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         }
 
         // FIXME: they are dummy items that should be removed.
-        profileSet.add(MidiCIProfile(MidiCIProfileId(0x7E, 1, 2, 3, 4), 0x7e, true))
-        profileSet.add(MidiCIProfile(MidiCIProfileId(0x7E, 5, 6, 7, 8), 0x7e, true))
+        profileSet.add(MidiCIProfile(MidiCIProfileId(0, 1, 2, 3, 4), 0x7E, true))
+        profileSet.add(MidiCIProfile(MidiCIProfileId(5, 6, 7, 8, 9), 0x7F, true))
+        profileSet.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 0, false))
+        profileSet.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 4, true))
     }
 }
