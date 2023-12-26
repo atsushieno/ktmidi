@@ -98,17 +98,18 @@ class CIFactoryTest {
         val expected3 = mutableListOf<Byte>(
             0x7E, 5, 0x0D, 0x22, 2,
             0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
-            0x7E, 2, 3, 4, 5
+            0x7E, 2, 3, 4, 5, 1, 0
         )
-        val actual3 = MutableList<Byte>(18) { 0 }
+        val actual3 = MutableList<Byte>(20) { 0 }
         CIFactory.midiCIProfileSet(
             actual3, 5, true, 0x10101010, 0x20202020,
             profiles1[0], 1
         )
         assertEquals(expected3, actual3)
+        assertEquals(1, actual3[18])
 
         // Set Profile Off
-        val actual4 = MutableList<Byte>(18) { 0 }
+        val actual4 = MutableList<Byte>(20) { 0 }
         CIFactory.midiCIProfileSet(
             actual4, 5, false, 0x10101010, 0x20202020,
             profiles1[0], 1
@@ -119,9 +120,9 @@ class CIFactoryTest {
         val expected5 = mutableListOf<Byte>(
             0x7E, 5, 0x0D, 0x24, 2,
             0x10, 0x10, 0x10, 0x10, 0x7F, 0x7F, 0x7F, 0x7F,
-            0x7E, 2, 3, 4, 5
+            0x7E, 2, 3, 4, 5, 0, 0
         )
-        val actual5 = MutableList<Byte>(18) { 0 }
+        val actual5 = MutableList<Byte>(20) { 0 }
         CIFactory.midiCIProfileReport(
             actual5, 5, true, 0x10101010,
             profiles1[0]
@@ -129,7 +130,7 @@ class CIFactoryTest {
         assertEquals(expected5, actual5)
 
         // Profile Disabled Report
-        val actual6 = MutableList<Byte>(18) { 0 }
+        val actual6 = MutableList<Byte>(20) { 0 }
         CIFactory.midiCIProfileReport(
             actual6, 5, false, 0x10101010,
             profiles1[0]
@@ -178,7 +179,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual5, 5, CISubId2.PROPERTY_GET_DATA_INQUIRY,
             0x10101010, 0x20202020,
-            2, header, 3u, 1u, data
+            2, header, 3, 1, data
         )
         assertEquals(0x34, actual5[3])
 
@@ -187,7 +188,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual6, 5, CISubId2.PROPERTY_GET_DATA_REPLY,
             0x10101010, 0x20202020,
-            2, header, 3u, 1u, data
+            2, header, 3, 1, data
         )
         assertEquals(0x35, actual6[3])
 
@@ -196,7 +197,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual7, 5, CISubId2.PROPERTY_SET_DATA_INQUIRY,
             0x10101010, 0x20202020,
-            2, header, 3u, 1u, data
+            2, header, 3, 1, data
         )
         assertEquals(0x36, actual7[3])
 
@@ -205,7 +206,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual8, 5, CISubId2.PROPERTY_SET_DATA_REPLY,
             0x10101010, 0x20202020,
-            2, header, 3u, 1u, data
+            2, header, 3, 1, data
         )
         assertEquals(0x37, actual8[3])
 
@@ -214,7 +215,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual9, 5, CISubId2.PROPERTY_SUBSCRIBE,
             0x10101010, 0x20202020,
-            2, header, 3u, 1u, data
+            2, header, 3, 1, data
         )
         assertEquals(0x38, actual9[3])
 
@@ -223,7 +224,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual10, 5, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
             0x10101010, 0x20202020,
-            2, header, 3u, 1u, data
+            2, header, 3, 1, data
         )
         assertEquals(0x39, actual10[3])
 
@@ -232,7 +233,7 @@ class CIFactoryTest {
         CIFactory.midiCIPropertyCommon(
             actual11, 5, CISubId2.PROPERTY_NOTIFY,
             0x10101010, 0x20202020,
-            2, header, 3u, 1u, data
+            2, header, 3, 1, data
         )
         assertEquals(0x3F, actual11[3])
     }
