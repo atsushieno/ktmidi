@@ -9,9 +9,9 @@ import kotlin.random.Random
     Typical MIDI-CI processing flow
 
     - MidiCIInitiator.sendDiscovery()
-    - MidiCIResponder.processDiscovery()
-    - MidiCIInitiator.requestProfiles()
-    - MidiCIResponder.processProfileInquiry()
+    - MidiCIResponder.processInput() -> .processDiscovery
+    - MidiCIInitiator.sendEndpointMessage(), .requestProfiles(), .requestPropertyExchangeCapabilities()
+    - MidiCIResponder receives and processes each of the replies ...
 
  The argument `sendOutput` takes a sysex bytestream which is NOT specific to MIDI 1.0 bytestream (i.e. it should
  support sysex7 UMPs) and thus does NOT contain F0 and F7.
@@ -20,6 +20,7 @@ import kotlin.random.Random
 */
 class MidiCIInitiator(val device: MidiCIDeviceInfo,
                       private val sendOutput: (data: List<Byte>) -> Unit,
+                      // FIXME: make use of it somehow
                       val outputPathId: Byte = 0,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
@@ -105,11 +106,11 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         sendOutput(CIFactory.midiCIProfileInquiry(buf, destinationChannelOr7F, muid, destinationMUID))
     }
 
-    fun setProfile(address: Byte, sourceMUID: Int, destinationMUID: Int, profileId: MidiCIProfileId, numChannelsRequested: Short, enabled: Boolean) =
+    fun setProfile(address: Byte, destinationMUID: Int, profileId: MidiCIProfileId, numChannelsRequested: Short, enabled: Boolean) =
         if (enabled)
-            setProfileOn(Message.SetProfileOn(address, sourceMUID, destinationMUID, profileId, numChannelsRequested))
+            setProfileOn(Message.SetProfileOn(address, muid, destinationMUID, profileId, numChannelsRequested))
         else
-            setProfileOff(Message.SetProfileOff(address, sourceMUID, destinationMUID, profileId))
+            setProfileOff(Message.SetProfileOff(address, muid, destinationMUID, profileId))
 
     fun setProfileOn(msg: Message.SetProfileOn) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
