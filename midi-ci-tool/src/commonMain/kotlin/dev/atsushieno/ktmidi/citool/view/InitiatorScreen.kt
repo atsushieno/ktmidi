@@ -90,7 +90,6 @@ private fun ClientConnectionInfo(vm: ConnectionViewModel) {
             Text(conn.productInstanceId, fontSize = small)
             DeviceItemCard("max connections")
             Text("${conn.maxSimultaneousPropertyRequests}")
-
         }
     }
 }
@@ -222,14 +221,14 @@ fun ClientPropertyMetadata(vm: ConnectionViewModel, def: PropertyResource) {
     Column(Modifier.padding(12.dp)) {
         Text("Property Metadata", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
 
-        PropertyColumn("resource") { TextField(def.resource, {}, enabled = false) }
+        PropertyColumn("resource") { TextField(def.resource, {}, readOnly = true) }
         PropertyColumn("canGet") { Checkbox(def.canGet, {}, enabled = false) }
-        PropertyColumn("canSet") { TextField(def.canSet, {}, enabled = false) }
+        PropertyColumn("canSet") { TextField(def.canSet, {}, readOnly = true) }
         PropertyColumn("canSubscribe") { Checkbox(def.canSubscribe, {}, enabled = false) }
         PropertyColumn("requireResId") { Checkbox(def.requireResId, {}, enabled = false) }
-        PropertyColumn("mediaTypes") { TextField(def.mediaTypes.joinToString("\n"), {}, enabled = false, minLines = 2) }
-        PropertyColumn("encodings") { TextField(def.encodings.joinToString("\n"), {}, enabled = false, minLines = 2) }
-        PropertyColumn("schema") { TextField(if (def.schema == null) "" else Json.getUnescapedString(def.schema!!), {}, enabled = false) }
+        PropertyColumn("mediaTypes") { TextField(def.mediaTypes.joinToString("\n"), {}, readOnly = true, minLines = 2) }
+        PropertyColumn("encodings") { TextField(def.encodings.joinToString("\n"), {}, readOnly = true, minLines = 2) }
+        PropertyColumn("schema") { TextField(if (def.schema == null) "" else Json.getUnescapedString(def.schema!!), {}, readOnly = true, minLines = 2) }
         PropertyColumn("canPaginate") { Checkbox(def.canPaginate, {}, enabled = false) }
         PropertyColumn("columns") {
             Column(Modifier.padding(12.dp)) {
@@ -246,11 +245,32 @@ fun ClientPropertyMetadata(vm: ConnectionViewModel, def: PropertyResource) {
 
 @Composable
 fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyResource?, property: ObservablePropertyList.Entry) {
-    Text("Property Value", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
+    Column {
+        Text("Property Value", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
 
-    val mediaType = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
-    if (mediaType != null)
-        Text("mediaType: $mediaType")
-    if (mediaType == null || mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON)
-        TextField(Json.getUnescapedString(property.body.toByteArray().decodeToString()), {})
+        val mediaType = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
+        if (mediaType != null)
+            Text("mediaType: $mediaType")
+        val isEditableByMetadata = def?.canSet == "full" || def?.canSet == "partial"
+        if (isEditableByMetadata && (mediaType == null || mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON)) {
+            val bodyText = Json.getUnescapedString(property.body.toByteArray().decodeToString())
+            var editable by remember { mutableStateOf(false) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(editable, { editable = !editable })
+                Text("editable")
+            }
+            if (editable) {
+                var text by remember { mutableStateOf(bodyText) }
+                Button(onClick = {
+                    val bytes = Json.getEscapedString(text).encodeToByteArray().toList()
+                    AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, property.id, bytes)
+                }) {
+                    Text("Commit changes")
+                }
+                TextField(text, { text = it })
+            } else {
+                TextField(bodyText, {}, readOnly = true)
+            }
+        }
+    }
 }

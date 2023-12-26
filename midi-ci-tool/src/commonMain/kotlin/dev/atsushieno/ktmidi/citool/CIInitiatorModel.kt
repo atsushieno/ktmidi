@@ -145,5 +145,8 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String) {
         initiator.sendGetPropertyData(destinationMUID, resource)
     }
+    fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>) {
+        initiator.sendSetPropertyData(destinationMUID, resource, data)
+    }
 }
 

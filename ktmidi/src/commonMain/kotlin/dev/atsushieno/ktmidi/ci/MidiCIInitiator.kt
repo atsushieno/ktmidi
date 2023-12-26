@@ -154,6 +154,23 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         }
     }
 
+    fun sendSetPropertyData(destinationMUID: Int, resource: String, data: List<Byte>) {
+        val conn = connections[destinationMUID]
+        if (conn != null) {
+            val header = conn.propertyClient.createRequestHeader(resource)
+            // FIXME: handle body data chunks
+            sendSetPropertyData(Message.SetPropertyData(muid, destinationMUID, requestIdSerial++, header, 1, 1, data))
+        }
+    }
+
+    fun sendSetPropertyData(msg: Message.SetPropertyData) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        CIFactory.midiCIPropertyChunks(buf, CISubId2.PROPERTY_SET_DATA_INQUIRY,
+            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body).forEach {
+            sendOutput(it)
+        }
+    }
+
     private var requestIdSerial: Byte = 1
 
     // Reply handler
