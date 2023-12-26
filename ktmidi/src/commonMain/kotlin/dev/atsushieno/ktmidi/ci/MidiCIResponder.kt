@@ -19,14 +19,13 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     var capabilityInquirySupported = MidiCISupportedCategories.THREE_P
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
-    val profileSet: MutableList<MidiCIProfile> = mutableListOf()
+    val profileSet = ObservableProfileList()
     var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK
     var productInstanceId: String = ""
     var maxSimultaneousPropertyRequests: Byte = 1
 
     var midiCIBufferSize = 4096
 
-    val profiles = mutableListOf<MidiCIProfile>()
     val propertyService = CommonRulesPropertyService(muid, device)
 
     // smaller value of initiator's maxSimulutaneousPropertyRequests vs. this.maxSimulutaneousPropertyRequests upon PEx inquiry request
@@ -82,8 +81,6 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     var processInvalidateMUID = { sourceMUID: Int, targetMUID: Int -> sendAck(sourceMUID) }
 
     // Profile Configuration
-    private fun MutableList<MidiCIProfile>.getMatchingProfiles(address: Byte, enabled: Boolean) =
-        this.filter { it.address == address && it.enabled == enabled }.map { it.profile }
 
     val sendProfileReply: (msg: Message.ProfileReply) -> Unit = { msg ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
@@ -95,7 +92,7 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     private fun getAllAddresses(address: Byte) = sequence {
         if (address == MidiCIConstants.ADDRESS_FUNCTION_BLOCK)
-            yieldAll(profileSet.map { it.address }.distinct().sorted())
+            yieldAll(profileSet.profiles.map { it.address }.distinct().sorted())
         else
             yield(address)
     }
@@ -118,9 +115,9 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     private val defaultProcessSetProfile = { address: Byte, initiatorMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, enabled: Boolean ->
         val newEntry = MidiCIProfile(profile, address, enabled)
-        val existing = profileSet.firstOrNull { it.toString() == profile.toString() }
+        val existing = profileSet.profiles.firstOrNull { it.toString() == profile.toString() }
         if (existing != null)
-            profileSet.remove(existing)
+            profileSet.remove(existing.profile)
         profileSet.add(newEntry)
         onProfileSet(newEntry)
         enabled
@@ -128,16 +125,17 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
 
     fun sendSetProfileReport(address: Byte, profile: MidiCIProfileId, enabled: Boolean) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIProfileReport(dst, address, enabled, muid, profile)
-        sendOutput(dst)
+        sendOutput(CIFactory.midiCIProfileReport(dst, address, enabled, muid, profile))
     }
 
     fun defaultProcessSetProfileOn(msg: Message.SetProfileOn) {
+        // send Profile Enabled Report only when it is actually enabled
         if (defaultProcessSetProfile(msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, true))
             sendSetProfileReport(msg.address, msg.profile, true)
     }
     fun defaultProcessSetProfileOff(msg: Message.SetProfileOff) {
-        if (defaultProcessSetProfile(msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, false))
+        // send Profile Disabled Report only when it is actually disabled
+        if (!defaultProcessSetProfile(msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, false))
             sendSetProfileReport(msg.address, msg.profile, false)
     }
 

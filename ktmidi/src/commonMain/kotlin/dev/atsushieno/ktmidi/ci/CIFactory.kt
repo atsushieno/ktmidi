@@ -252,7 +252,7 @@ object CIFactory {
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, 0x7F7F7F7F
         )
         midiCIProfile(dst, 13, profile)
-        return dst.take(18)
+        return dst.take(20)
     }
 
     fun midiCIProfileSpecificData(

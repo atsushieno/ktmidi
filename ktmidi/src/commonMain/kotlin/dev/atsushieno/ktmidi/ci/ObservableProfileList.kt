@@ -32,6 +32,9 @@ class ObservableProfileList {
         }
     }
 
+    fun getMatchingProfiles(address: Byte, enabled: Boolean) =
+        profiles.filter { it.address == address && it.enabled == enabled }.map { it.profile }
+
     val profilesChanged = mutableListOf<(change: ProfilesChange, profile: MidiCIProfile) -> Unit>()
     val profileEnabledChanged = mutableListOf<(profile: MidiCIProfile, numChannelsRequested: Short) -> Unit>()
 }
