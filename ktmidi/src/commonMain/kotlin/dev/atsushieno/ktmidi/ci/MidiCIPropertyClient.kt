@@ -22,7 +22,7 @@ interface MidiCIPropertyClient {
 
     fun getReplyStatusFor(header: List<Byte>): Int?
 
-    fun getMediaTypeFor(replyHeader: List<Byte>): String?
+    fun getMediaTypeFor(replyHeader: List<Byte>): String
 
     val propertyCatalogUpdated: MutableList<() -> Unit>
 }

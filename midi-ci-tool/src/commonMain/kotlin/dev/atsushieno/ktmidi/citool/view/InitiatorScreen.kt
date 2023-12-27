@@ -197,7 +197,7 @@ fun ClientPropertyListEntry(propertyId: String, isSelected: Boolean, selectedPro
 
 @Composable
 fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String) {
-    Column {
+    Column(Modifier.padding(12.dp)) {
         val entry = vm.properties.first { it.id == propertyId }
         val def = vm.conn.propertyClient.getPropertyList()?.firstOrNull { it.resource == entry.id }
         ClientPropertyValueEditor(vm, def, entry)
@@ -218,7 +218,7 @@ fun PropertyColumn(label: String, content: @Composable () -> Unit) {
 
 @Composable
 fun ClientPropertyMetadata(vm: ConnectionViewModel, def: PropertyResource) {
-    Column(Modifier.padding(12.dp)) {
+    Column {
         Text("Property Metadata", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
 
         PropertyColumn("resource") { TextField(def.resource, {}, readOnly = true) }
@@ -248,39 +248,46 @@ fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyResource?, p
     Column {
         Text("Property Value", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
 
-        val mediaType = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
-        if (mediaType != null)
-            Text("mediaType: $mediaType")
-        val isEditableByMetadata = def?.canSet != null && def.canSet != PropertySetAccess.NONE
-        if (isEditableByMetadata && (mediaType == null || mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON)) {
+        val mediaType: String = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
+        val isTextRenderable = mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON
+        if (isTextRenderable) {
             val bodyText = PropertyCommonConverter.decodeASCIIToString(property.body.toByteArray().decodeToString())
-            var editable by remember { mutableStateOf(false) }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(editable, { editable = !editable })
-                Text("editable")
-            }
-            if (editable) {
-                var text by remember { mutableStateOf(bodyText) }
-                var partial by remember { mutableStateOf("") }
-                Row {
-                    if (def?.canSet == PropertySetAccess.PARTIAL) {
-                        Text("Partial?")
-                        TextField(partial, { partial = it })
-                    }
-                    Button(onClick = {
-                        val jsonString = Json.getEscapedString(partial.ifEmpty { text })
-                        val bytes = PropertyCommonConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
-                        AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, property.id, bytes,
-                            partial.isNotEmpty()
-                        )
-                    }) {
-                        Text("Commit changes")
-                    }
+            val isEditableByMetadata = def?.canSet != null && def.canSet != PropertySetAccess.NONE
+            if (isEditableByMetadata) {
+                var editing by remember { mutableStateOf(false) }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(editing, { editing = !editing })
+                    Text("edit")
                 }
-                TextField(text, { text = it })
+                if (editing) {
+                    var text by remember { mutableStateOf(bodyText) }
+                    var partial by remember { mutableStateOf("") }
+                    Row {
+                        if (def?.canSet == PropertySetAccess.PARTIAL) {
+                            Text("Partial?")
+                            TextField(partial, { partial = it })
+                        }
+                        Button(onClick = {
+                            val jsonString = Json.getEscapedString(partial.ifEmpty { text })
+                            val bytes = PropertyCommonConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
+                            AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(
+                                vm.conn.muid, property.id, bytes,
+                                partial.isNotEmpty()
+                            )
+                        }) {
+                            Text("Commit changes")
+                        }
+                    }
+                    TextField(text, { text = it })
+                } else {
+                    TextField(bodyText, {}, readOnly = true)
+                }
             } else {
+                Text("read-only")
                 TextField(bodyText, {}, readOnly = true)
             }
+        } else {
+            Text("unrecognized mime type for editing")
         }
     }
 }

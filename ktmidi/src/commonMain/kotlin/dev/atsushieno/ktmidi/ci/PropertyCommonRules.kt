@@ -318,11 +318,12 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
             else null
     }
 
-    override fun getMediaTypeFor(replyHeader: List<Byte>): String? {
+    private val defaultMimeType = CommonRulesKnownMimeTypes.APPLICATION_JSON
+    override fun getMediaTypeFor(replyHeader: List<Byte>): String {
         val json = getReplyHeaderField(replyHeader, PropertyCommonHeaderKeys.MEDIA_TYPE)
-        return if (json == null) null
+        return if (json == null) defaultMimeType
         else if (json.token.type == Json.TokenType.String) json.stringValue
-        else null
+        else defaultMimeType
     }
 
     override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
