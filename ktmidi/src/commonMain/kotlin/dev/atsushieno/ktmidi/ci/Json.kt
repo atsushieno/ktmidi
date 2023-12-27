@@ -21,6 +21,22 @@ object Json {
                 : this("", JsonToken(TokenType.Array, 0, 0, seq = array.asSequence()))
         constructor(map: Map<JsonValue, JsonValue>)
                 : this("", JsonToken(TokenType.Object, 0, 0, map = map))
+
+        val numberValue: Number
+            get() = if (token.type == TokenType.Number) token.number else Double.NaN
+        val stringValue: String
+            get() = if (token.type == TokenType.String) getUnescapedString(this) else ""
+        val arrayValue: Sequence<JsonValue>
+            get() = if (token.type == TokenType.Array) token.seq else sequenceOf()
+        val objectValue: Map<JsonValue,JsonValue>
+            get() = if (token.type == TokenType.Object) token.map else mapOf()
+
+        val allObjectKeys: List<String>
+            get() = if (token.type == TokenType.Object) token.map.keys.map { it.stringValue } else listOf()
+        fun getObjectValue(key: String): JsonValue? =
+            if (token.type == TokenType.Object)
+                token.map.firstNotNullOfOrNull { if (it.key.stringValue == key) it.value else null }
+            else null
     }
 
     val NullValue = JsonValue("null", JsonToken(TokenType.Null, 0, 4))

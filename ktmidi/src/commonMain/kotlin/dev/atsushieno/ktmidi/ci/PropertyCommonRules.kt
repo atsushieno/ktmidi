@@ -155,8 +155,8 @@ object PropertyCommonConverter {
 
 object PropertySetAccess {
     const val NONE = "none"
-    const val Full = "full"
-    const val Partial = "partial"
+    const val FULL = "full"
+    const val PARTIAL = "partial"
 }
 
 object PropertyResourceFields {
@@ -248,14 +248,14 @@ object CommonRulesPropertyHelper {
         val json = Json.parse(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
         val resId =
             json.token.map.firstNotNullOfOrNull {
-                if (Json.getUnescapedString(it.key) == PropertyCommonHeaderKeys.RES_ID)
-                    Json.getUnescapedString(it.value)
+                if (it.key.stringValue == PropertyCommonHeaderKeys.RES_ID)
+                    it.value.stringValue
                 else null
             }
         val resource =
             json.token.map.firstNotNullOfOrNull {
-                if (Json.getUnescapedString(it.key) == PropertyCommonHeaderKeys.RESOURCE)
-                    Json.getUnescapedString(it.value)
+                if (it.key.stringValue == PropertyCommonHeaderKeys.RESOURCE)
+                    it.value.stringValue
                 else null
             }
         return resId ?: resource ?: ""
@@ -305,9 +305,9 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
     private fun getReplyHeaderField(header: List<Byte>, field: String): Json.JsonValue? {
         if (header.isEmpty())
             return null
-        val replyString = Json.getUnescapedString(header.toByteArray().decodeToString())
+        val replyString = PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString())
         val replyJson = Json.parse(replyString)
-        val valuePair = replyJson.token.map.toList().firstOrNull { Json.getUnescapedString(it.first) == field } ?: return null
+        val valuePair = replyJson.token.map.toList().firstOrNull { it.first.stringValue == field } ?: return null
         return valuePair.second
     }
 
@@ -321,7 +321,7 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
     override fun getMediaTypeFor(replyHeader: List<Byte>): String? {
         val json = getReplyHeaderField(replyHeader, PropertyCommonHeaderKeys.MEDIA_TYPE)
         return if (json == null) null
-        else if (json.token.type == Json.TokenType.String) Json.getUnescapedString(json)
+        else if (json.token.type == Json.TokenType.String) json.stringValue
         else null
     }
 
@@ -343,36 +343,35 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
     }
 
     private fun getResourceListForBody(body: List<Byte>): List<PropertyResource> {
-        val json = Json.parse(Json.getUnescapedString(body.toByteArray().decodeToString()))
+        val json = Json.parse(PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
         return getResourceListForBody(json)
     }
 
     private fun getResourceListForBody(body: Json.JsonValue): List<PropertyResource> {
-        // list of entries (name: value sich as {"resource": "foo", "canSet": "partial"})
+        // list of entries (name: value such as {"resource": "foo", "canSet": "partial"})
         val list = body.token.seq.toList()
         return list.map { entry ->
-            val pairs = entry.token.map.toList()
             val res = PropertyResource()
             entry.token.map.forEach {
                 val v = it.value
-                when (Json.getUnescapedString(it.key)) {
-                    PropertyResourceFields.RESOURCE -> res.resource = Json.getUnescapedString(v)
+                when (it.key.stringValue) {
+                    PropertyResourceFields.RESOURCE -> res.resource = v.stringValue
                     PropertyResourceFields.CAN_GET -> res.canGet = v.token.type == Json.TokenType.True
-                    PropertyResourceFields.CAN_SET -> res.canSet = Json.getUnescapedString(v)
+                    PropertyResourceFields.CAN_SET -> res.canSet = v.stringValue
                     PropertyResourceFields.CAN_SUBSCRIBE -> res.canSubscribe = v.token.type == Json.TokenType.True
                     PropertyResourceFields.REQUIRE_RES_ID -> res.requireResId = v.token.type == Json.TokenType.True
-                    PropertyResourceFields.ENCODINGS -> res.encodings = v.token.seq.map { e -> Json.getUnescapedString(e) }.toList()
-                    PropertyResourceFields.MEDIA_TYPE -> res.mediaTypes = v.token.seq.map { e -> Json.getUnescapedString(e) }.toList()
+                    PropertyResourceFields.ENCODINGS -> res.encodings = v.token.seq.map { e -> e.stringValue }.toList()
+                    PropertyResourceFields.MEDIA_TYPE -> res.mediaTypes = v.token.seq.map { e -> e.stringValue }.toList()
                     PropertyResourceFields.SCHEMA -> res.schema = v
                     PropertyResourceFields.CAN_PAGINATE -> res.canPaginate = v.token.type == Json.TokenType.True
                     PropertyResourceFields.COLUMNS -> res.columns = v.token.seq.map { c ->
                         val col = PropertyResourceColumn()
                         c.token.map.forEach {
                             val cv = it.value
-                            when (Json.getUnescapedString(it.key)) {
-                                PropertyResourceColumnFields.PROPERTY -> col.property = Json.getUnescapedString(cv)
-                                PropertyResourceColumnFields.LINK -> col.link = Json.getUnescapedString(cv)
-                                PropertyResourceColumnFields.TITLE -> col.title = Json.getUnescapedString(cv)
+                            when (it.key.stringValue) {
+                                PropertyResourceColumnFields.PROPERTY -> col.property = cv.stringValue
+                                PropertyResourceColumnFields.LINK -> col.link = cv.stringValue
+                                PropertyResourceColumnFields.TITLE -> col.title = cv.stringValue
                             }
                         }
                         col
@@ -429,13 +428,6 @@ class CommonRulesPropertyService(private val muid: Int, private val deviceInfo: 
     private val values = mutableMapOf<String, Json.JsonValue>()
     private val subscriptions = mutableListOf<SubscriptionEntry>()
 
-    private fun getPropertyString(json: Json.JsonValue, key: String): String? {
-        val ret = json.token.map.firstNotNullOfOrNull {
-            if (Json.getUnescapedString(it.key) == key) it.value else null
-        }
-        return if (ret != null) Json.getUnescapedString(ret) else null
-    }
-
     private fun bytesToJsonArray(list: List<Byte>) = list.map { Json.JsonValue(it.toDouble()) }
     private fun getDeviceInfoJson() = Json.JsonValue(mapOf(
         Pair(Json.JsonValue(DeviceInfoPropertyNames.MANUFACTURER_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.manufacturerIdBytes()))),
@@ -452,10 +444,10 @@ class CommonRulesPropertyService(private val muid: Int, private val deviceInfo: 
 
     private fun getPropertyHeader(json: Json.JsonValue) =
         PropertyCommonRequestHeader(
-            getPropertyString(json, PropertyCommonHeaderKeys.RESOURCE) ?: "",
-            getPropertyString(json, PropertyCommonHeaderKeys.RES_ID),
-            getPropertyString(json, PropertyCommonHeaderKeys.MUTUAL_ENCODING),
-            )
+            json.getObjectValue(PropertyCommonHeaderKeys.RESOURCE)?.stringValue ?: "",
+            json.getObjectValue(PropertyCommonHeaderKeys.RES_ID)?.stringValue,
+            json.getObjectValue(PropertyCommonHeaderKeys.MUTUAL_ENCODING)?.stringValue
+        )
     private fun getReplyHeaderJson(src: PropertyCommonReplyHeader) = Json.JsonValue(mutableMapOf(
         Pair(Json.JsonValue(PropertyCommonHeaderKeys.STATUS), Json.JsonValue(src.status.toDouble()))
     ).apply {

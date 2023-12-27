@@ -251,9 +251,9 @@ fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyResource?, p
         val mediaType = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
         if (mediaType != null)
             Text("mediaType: $mediaType")
-        val isEditableByMetadata = def?.canSet == "full" || def?.canSet == "partial"
+        val isEditableByMetadata = def?.canSet != null && def.canSet != PropertySetAccess.NONE
         if (isEditableByMetadata && (mediaType == null || mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON)) {
-            val bodyText = Json.getUnescapedString(property.body.toByteArray().decodeToString())
+            val bodyText = PropertyCommonConverter.decodeASCIIToString(property.body.toByteArray().decodeToString())
             var editable by remember { mutableStateOf(false) }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(editable, { editable = !editable })
@@ -263,12 +263,13 @@ fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyResource?, p
                 var text by remember { mutableStateOf(bodyText) }
                 var partial by remember { mutableStateOf("") }
                 Row {
-                    if (def?.canSet == "partial") {
+                    if (def?.canSet == PropertySetAccess.PARTIAL) {
                         Text("Partial?")
                         TextField(partial, { partial = it })
                     }
                     Button(onClick = {
-                        val bytes = Json.getEscapedString(partial.ifEmpty { text }).encodeToByteArray().toList()
+                        val jsonString = Json.getEscapedString(partial.ifEmpty { text })
+                        val bytes = PropertyCommonConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
                         AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, property.id, bytes,
                             partial.isNotEmpty()
                         )
