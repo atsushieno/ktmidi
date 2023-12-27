@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi.citool.view
 
+import Platform
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,8 +13,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
+import getPlatform
 
 @Composable
 fun InitiatorScreen() {
@@ -249,10 +252,41 @@ fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyResource?, p
         Text("Property Value", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
 
         val mediaType: String = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
+        val isEditableByMetadata = def?.canSet != null && def.canSet != PropertySetAccess.NONE
         val isTextRenderable = mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON
+        val showGetButton = @Composable {
+            Button(onClick = {
+                AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, property.id)
+            }) {
+                Text("Refresh")
+            }
+        }
+        val commitSetProperty: (List<Byte>, Boolean) -> Unit = { bytes, isPartial ->
+            AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(
+                vm.conn.muid, property.id, bytes, isPartial
+            )
+        }
+        var showFilePicker by remember { mutableStateOf(false) }
+        val showUploadButton = @Composable {
+            if (getPlatform().canReadLocalFile) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("... or ...")
+                    Button(onClick = { showFilePicker = !showFilePicker }) {
+                        Text("Commit value via binary File")
+                    }
+                    getPlatform().BinaryFilePicker(showFilePicker) { file ->
+                        showFilePicker = false
+                        if (file != null) {
+                            val bytes = getPlatform().loadFileContent(file)
+                            commitSetProperty(bytes, false)
+                        }
+                    }
+                }
+            }
+        }
+
         if (isTextRenderable) {
             val bodyText = PropertyCommonConverter.decodeASCIIToString(property.body.toByteArray().decodeToString())
-            val isEditableByMetadata = def?.canSet != null && def.canSet != PropertySetAccess.NONE
             if (isEditableByMetadata) {
                 var editing by remember { mutableStateOf(false) }
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -263,31 +297,39 @@ fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyResource?, p
                     var text by remember { mutableStateOf(bodyText) }
                     var partial by remember { mutableStateOf("") }
                     Row {
-                        if (def?.canSet == PropertySetAccess.PARTIAL) {
-                            Text("Partial?")
-                            TextField(partial, { partial = it })
-                        }
-                        Button(onClick = {
-                            val jsonString = Json.getEscapedString(partial.ifEmpty { text })
-                            val bytes = PropertyCommonConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
-                            AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(
-                                vm.conn.muid, property.id, bytes,
-                                partial.isNotEmpty()
-                            )
-                        }) {
-                            Text("Commit changes")
+                        if (isEditableByMetadata) {
+                            if (def?.canSet == PropertySetAccess.PARTIAL) {
+                                TextField(partial, { partial = it }, label = {
+                                    Text("Partial? RFC6901 Pointer here then:")
+                                })
+                            }
+                            showGetButton()
+                            Button(onClick = {
+                                val jsonString = Json.getEscapedString(partial.ifEmpty { text })
+                                val bytes =
+                                    PropertyCommonConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
+                                commitSetProperty(bytes, partial.isEmpty())
+                            }) {
+                                Text("Commit changes")
+                            }
                         }
                     }
                     TextField(text, { text = it })
+                    showUploadButton()
                 } else {
+                    showGetButton()
                     TextField(bodyText, {}, readOnly = true)
                 }
             } else {
                 Text("read-only")
+                showGetButton()
                 TextField(bodyText, {}, readOnly = true)
             }
         } else {
-            Text("unrecognized mime type for editing")
+            Text("MIME type '$mediaType' not supported for editing")
+            showGetButton()
+            if (isEditableByMetadata)
+                showUploadButton()
         }
     }
 }

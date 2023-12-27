@@ -150,3 +150,6 @@ ktmidi is distributed under the MIT license.
 [jazz-soft/JZZ](https://github.com/jazz-soft/JZZ) is included in ktmidi-js package and is distributed under the MIT license.
 
 [rtmidi](https://github.com/thestk/rtmidi/) is included in ktmidi-native-ext package and is distributed under the MIT license. (It is also indirectly referenced via rtmidi-jna, which may be a different version.)
+
+midi-ci-tool uses [Wavesonics/compose-multiplatform-file-picker](https://github.com/Wavesonics/compose-multiplatform-file-picker) which is distributed under the MIT license.
+
