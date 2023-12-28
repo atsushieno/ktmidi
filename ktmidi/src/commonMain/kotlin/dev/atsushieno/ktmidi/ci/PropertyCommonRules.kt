@@ -1,7 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.sync.Mutex
 
 class PropertyExchangeException(message: String = "Property Exchange exception", innerException: Exception? = null) : Exception(message, innerException)
 
@@ -151,6 +150,24 @@ object PropertyCommonConverter {
         }.joinToString("")
 
     // FIXME: implement Mcoded7 and zlib+Mcoded7 conversions
+
+    private fun padTo8Bytes(list: List<Byte>): List<Byte> = listOf(0.toByte()) + list + if (list.size % 7 != 0) List(7 - list.size) { 0.toByte() } else listOf()
+    fun encodeToMcoded7(bytes: List<Byte>): List<Byte> =
+        bytes.chunked(56).map { part ->
+            part.chunked(8)
+        }.flatMap { eights ->
+            padTo8Bytes(eights.map { it[0] }) + eights.flatMap {
+                listOf(0.toByte()) + it.drop(1)
+            }
+        }
+
+    fun decodeMcoded7(bytes: List<Byte>): List<Byte> =
+        bytes.chunked(64).map { part ->
+            part.chunked(8)
+        }.flatMap { eights ->
+            val head = eights[0].drop(1)
+            eights.drop(1).flatMapIndexed { index, it -> listOf(head[index]) + it.drop(1) }
+        }
 }
 
 object PropertySetAccess {
