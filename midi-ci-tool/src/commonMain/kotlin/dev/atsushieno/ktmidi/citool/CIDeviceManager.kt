@@ -14,7 +14,7 @@ class CIDeviceManager(private val midiDeviceManager: MidiDeviceManager) {
         val midi1Bytes = listOf(Midi1Status.SYSEX.toByte()) + data + listOf(Midi1Status.SYSEX_END.toByte())
         midiDeviceManager.sendToAll(midi1Bytes.toByteArray(), 0)
     }
-    private val responder = CIResponderModel { data ->
+    val responder = CIResponderModel { data ->
         val midi1Bytes = listOf(Midi1Status.SYSEX.toByte()) + data + listOf(Midi1Status.SYSEX_END.toByte())
         midiDeviceManager.sendToAll(midi1Bytes.toByteArray(), 0)
     }

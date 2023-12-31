@@ -21,8 +21,6 @@ class PropertyCommonConverterTest {
                 listOf(0, 1, 9, 17, 0, 0, 0, 0) +
                         listOf(0, 2, 3, 4, 5, 6, 7, 8, 0, 10, 11, 12, 13, 14, 15, 16, 0, 18, 19, 20)
                 ).map { it.toByte() }
-        val s = PropertyCommonConverter.decodeMcoded7(input).map { it.toString(16) }.joinToString()
-        println(s)
         assertContentEquals(expected, PropertyCommonConverter.decodeMcoded7(input))
     }
 }

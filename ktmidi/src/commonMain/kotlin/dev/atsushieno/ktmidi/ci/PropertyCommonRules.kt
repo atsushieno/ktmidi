@@ -5,16 +5,17 @@ import io.ktor.utils.io.core.*
 class PropertyExchangeException(message: String = "Property Exchange exception", innerException: Exception? = null) : Exception(message, innerException)
 
 data class MidiCIDeviceInfo(
-    val manufacturerId: Int,
-    val familyId: Short,
-    val modelId: Short,
-    val versionId: Int,
-    val manufacturer: String,
-    val family: String,
-    val model: String,
-    val version: String,
-    val serialNumber: String? = null
+    var manufacturerId: Int,
+    var familyId: Short,
+    var modelId: Short,
+    var versionId: Int,
+    var manufacturer: String,
+    var family: String,
+    var model: String,
+    var version: String,
+    var serialNumber: String? = null
 ) {
+
     private fun toBytes(v: Int) = listOf(
         (v and 0x7F).toByte(),
         ((v shr 8) and 0x7F).toByte(),
@@ -256,8 +257,8 @@ class PropertyResourceColumn {
 
 private val defaultPropertyList = listOf(
     PropertyResource(PropertyResourceNames.DEVICE_INFO),
-    PropertyResource(PropertyResourceNames.CHANNEL_LIST),
-    PropertyResource(PropertyResourceNames.JSON_SCHEMA)
+    //PropertyResource(PropertyResourceNames.CHANNEL_LIST),
+    //PropertyResource(PropertyResourceNames.JSON_SCHEMA)
 )
 
 object CommonRulesPropertyHelper {
@@ -401,7 +402,7 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
     }
 }
 
-class CommonRulesPropertyService(private val muid: Int, private val deviceInfo: MidiCIDeviceInfo,
+class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
                                  private val propertyList: MutableList<PropertyResource> = mutableListOf<PropertyResource>().apply { addAll(defaultPropertyList) })
     : MidiCIPropertyService {
 
@@ -447,18 +448,20 @@ class CommonRulesPropertyService(private val muid: Int, private val deviceInfo: 
     private val subscriptions = mutableListOf<SubscriptionEntry>()
 
     private fun bytesToJsonArray(list: List<Byte>) = list.map { Json.JsonValue(it.toDouble()) }
-    private fun getDeviceInfoJson() = Json.JsonValue(mapOf(
-        Pair(Json.JsonValue(DeviceInfoPropertyNames.MANUFACTURER_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.manufacturerIdBytes()))),
-        Pair(Json.JsonValue(DeviceInfoPropertyNames.FAMILY_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.familyIdBytes()))),
-        Pair(Json.JsonValue(DeviceInfoPropertyNames.MODEL_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.modelIdBytes()))),
-        Pair(Json.JsonValue(DeviceInfoPropertyNames.VERSION_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.versionIdBytes()))),
-        Pair(Json.JsonValue(DeviceInfoPropertyNames.MANUFACTURER), Json.JsonValue(deviceInfo.manufacturer)),
-        Pair(Json.JsonValue(DeviceInfoPropertyNames.FAMILY), Json.JsonValue(deviceInfo.family)),
-        Pair(Json.JsonValue(DeviceInfoPropertyNames.MODEL), Json.JsonValue(deviceInfo.model)),
-        Pair(Json.JsonValue(DeviceInfoPropertyNames.VERSION), Json.JsonValue(deviceInfo.version)),
-    ) + if (deviceInfo.serialNumber != null) mapOf(
-        Pair(Json.JsonValue(DeviceInfoPropertyNames.SERIAL_NUMBER), Json.JsonValue(deviceInfo.serialNumber)),
-    ) else mapOf())
+    private fun getDeviceInfoJson(): Json.JsonValue {
+        return Json.JsonValue(mapOf(
+            Pair(Json.JsonValue(DeviceInfoPropertyNames.MANUFACTURER_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.manufacturerIdBytes()))),
+            Pair(Json.JsonValue(DeviceInfoPropertyNames.FAMILY_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.familyIdBytes()))),
+            Pair(Json.JsonValue(DeviceInfoPropertyNames.MODEL_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.modelIdBytes()))),
+            Pair(Json.JsonValue(DeviceInfoPropertyNames.VERSION_ID), Json.JsonValue(bytesToJsonArray(deviceInfo.versionIdBytes()))),
+            Pair(Json.JsonValue(DeviceInfoPropertyNames.MANUFACTURER), Json.JsonValue(deviceInfo.manufacturer)),
+            Pair(Json.JsonValue(DeviceInfoPropertyNames.FAMILY), Json.JsonValue(deviceInfo.family)),
+            Pair(Json.JsonValue(DeviceInfoPropertyNames.MODEL), Json.JsonValue(deviceInfo.model)),
+            Pair(Json.JsonValue(DeviceInfoPropertyNames.VERSION), Json.JsonValue(deviceInfo.version)),
+        ) + if (deviceInfo.serialNumber != null) mapOf(
+            Pair(Json.JsonValue(DeviceInfoPropertyNames.SERIAL_NUMBER), Json.JsonValue(deviceInfo.serialNumber!!)),
+        ) else mapOf())
+    }
 
     private fun getPropertyHeader(json: Json.JsonValue) =
         PropertyCommonRequestHeader(

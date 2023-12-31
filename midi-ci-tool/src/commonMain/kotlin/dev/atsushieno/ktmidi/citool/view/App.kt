@@ -23,6 +23,10 @@ fun App() {
     }
 }
 
+object FeatureDescription {
+    const val responderScreen = "It receives MIDI-CI requests on the Virtual In port and sends replies back from the Virtual Out port"
+}
+
 @Composable
 fun MainContent() {
     Column(Modifier.verticalScroll(rememberScrollState())) {
@@ -45,7 +49,7 @@ fun MainContent() {
                         icon = {
                             when (index) {
                                 0 -> Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null)
-                                1 -> Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+                                1 -> Icon(imageVector = Icons.Default.ArrowBack, contentDescription = FeatureDescription.responderScreen)
                                 2 -> Icon(imageVector = Icons.Default.List, contentDescription = null)
                                 3 -> Icon(imageVector = Icons.Default.Settings, contentDescription = null)
                             }
@@ -61,11 +65,6 @@ fun MainContent() {
             }
         }
     }
-}
-
-@Composable
-fun ResponderScreen() {
-    Text("It receives MIDI-CI requests on the Virtual In port and sends replies back from the Virtual Out port")
 }
 
 @Composable

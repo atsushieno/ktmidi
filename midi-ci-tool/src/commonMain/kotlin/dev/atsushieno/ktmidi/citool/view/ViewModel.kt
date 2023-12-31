@@ -45,6 +45,8 @@ object ViewModel {
         if (conn != null) ConnectionViewModel(conn) else null
     }
 
+    val localDeviceConfiguration = LocalConfigurationViewModel(AppModel.ciDeviceManager.responder.responder.device)
+
     init {
         // When a new entry is appeared and nothing was selected, move to the new entry.
         AppModel.ciDeviceManager.initiator.initiator.connectionsChanged.add { change, conn ->
@@ -106,5 +108,39 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
             properties.clear()
             properties.addAll(conn.properties.entries)
         }
+    }
+}
+
+class LocalConfigurationViewModel(deviceInfo: MidiCIDeviceInfo) {
+    val device = DeviceConfigurationViewModel(deviceInfo)
+    var maxSimultaneousPropertyRequests = mutableStateOf(0.toByte())
+
+    fun updateMaxSimultaneousPropertyRequests(newValue: Byte) {
+        AppModel.ciDeviceManager.responder.responder.maxSimultaneousPropertyRequests = newValue
+    }
+}
+class DeviceConfigurationViewModel(deviceInfo: MidiCIDeviceInfo) {
+
+    var manufacturerId = mutableStateOf(deviceInfo.manufacturerId)
+    var familyId = mutableStateOf(deviceInfo.familyId)
+    var modelId = mutableStateOf(deviceInfo.modelId)
+    var versionId = mutableStateOf(deviceInfo.versionId)
+    var manufacturer = mutableStateOf(deviceInfo.manufacturer)
+    var family = mutableStateOf(deviceInfo.family)
+    var model = mutableStateOf(deviceInfo.model)
+    var version = mutableStateOf(deviceInfo.version)
+    var serialNumber = mutableStateOf(deviceInfo.serialNumber)
+
+    fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
+        AppModel.ciDeviceManager.responder.responder.device = deviceInfo
+        this.manufacturerId.value = deviceInfo.manufacturerId
+        this.familyId.value = deviceInfo.familyId
+        this.modelId.value = deviceInfo.modelId
+        this.versionId.value = deviceInfo.versionId
+        this.manufacturer.value = deviceInfo.manufacturer
+        this.family.value = deviceInfo.family
+        this.model.value = deviceInfo.model
+        this.version.value = deviceInfo.version
+        this.serialNumber.value = deviceInfo.serialNumber
     }
 }

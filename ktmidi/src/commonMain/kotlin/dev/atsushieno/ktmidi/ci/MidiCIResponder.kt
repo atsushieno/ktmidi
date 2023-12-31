@@ -13,9 +13,15 @@ import kotlin.random.Random
  * Same goes for `processInput()` function.
  *
  */
-class MidiCIResponder(val device: MidiCIDeviceInfo,
+class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
                       private val sendOutput: (data: List<Byte>) -> Unit,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
+    var device: MidiCIDeviceInfo
+        get() = midiCIDevice
+        set(value) {
+            midiCIDevice = value
+            propertyService.deviceInfo = value
+        }
 
     var capabilityInquirySupported = MidiCISupportedCategories.THREE_P
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
@@ -27,10 +33,6 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
     var midiCIBufferSize = 4096
 
     val propertyService = CommonRulesPropertyService(muid, device)
-
-    // smaller value of initiator's maxSimulutaneousPropertyRequests vs. this.maxSimulutaneousPropertyRequests upon PEx inquiry request
-    // FIXME: enable this when we start supporting Property Exchange.
-    //var establishedMaxSimulutaneousPropertyRequests: Byte? = null
 
     val sendDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
@@ -72,13 +74,13 @@ class MidiCIResponder(val device: MidiCIDeviceInfo,
         sendEndpointReply(getEndpointReplyForInquiry(msg))
     }
 
-    val sendAck: (sourceMUID: Int) -> Unit = { sourceMUID ->
+    val sendAckForInvalidateMUID: (sourceMUID: Int) -> Unit = { sourceMUID ->
         // FIXME: we need to implement some sort of state management for each initiator
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIAckNak(dst, false, MidiCIConstants.ADDRESS_FUNCTION_BLOCK,
             MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID, CISubId2.INVALIDATE_MUID, 0, 0, listOf(), listOf()))
     }
-    var processInvalidateMUID = { sourceMUID: Int, targetMUID: Int -> sendAck(sourceMUID) }
+    var processInvalidateMUID = { sourceMUID: Int, targetMUID: Int -> sendAckForInvalidateMUID(sourceMUID) }
 
     // Profile Configuration
 
