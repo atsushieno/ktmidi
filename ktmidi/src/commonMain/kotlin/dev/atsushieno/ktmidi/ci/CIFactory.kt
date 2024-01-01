@@ -25,7 +25,7 @@ data class MidiCIProfileId(val manuId1OrStandard: Byte = 0x7E, val manuId2OrBank
         "${manuId1OrStandard.toString(16)}:${manuId2OrBank.toString(16)}:${manuId3OrNumber.toString(16)}:${specificInfoOrVersion.toString(16)}:${specificInfoOrLevel.toString(16)}"
 }
 
-data class MidiCIProfile(val profile: MidiCIProfileId, val address: Byte, var enabled: Boolean)
+data class MidiCIProfile(val profile: MidiCIProfileId, var address: Byte, var enabled: Boolean)
 
 object CIFactory {
     // Assumes the input value is already 7-bit encoded if required.

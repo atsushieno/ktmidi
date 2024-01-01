@@ -25,7 +25,7 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
 
     var capabilityInquirySupported = MidiCISupportedCategories.THREE_P
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
-    val profileSet = ObservableProfileList()
+    val profiles = ObservableProfileList()
     var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK
     var productInstanceId: String = ""
     var maxSimultaneousPropertyRequests: Byte = 1
@@ -94,7 +94,7 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
 
     private fun getAllAddresses(address: Byte) = sequence {
         if (address == MidiCIConstants.ADDRESS_FUNCTION_BLOCK)
-            yieldAll(profileSet.profiles.map { it.address }.distinct().sorted())
+            yieldAll(profiles.profiles.map { it.address }.distinct().sorted())
         else
             yield(address)
     }
@@ -102,8 +102,8 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         sequence {
             getAllAddresses(msg.address).forEach { address ->
                 yield(Message.ProfileReply(address, muid, msg.sourceMUID,
-                    profileSet.getMatchingProfiles(address, true),
-                    profileSet.getMatchingProfiles(address, false)))
+                    profiles.getMatchingProfiles(address, true),
+                    profiles.getMatchingProfiles(address, false)))
             }
         }
     }
@@ -117,10 +117,10 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
 
     private val defaultProcessSetProfile = { address: Byte, initiatorMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, enabled: Boolean ->
         val newEntry = MidiCIProfile(profile, address, enabled)
-        val existing = profileSet.profiles.firstOrNull { it.toString() == profile.toString() }
+        val existing = profiles.profiles.firstOrNull { it.toString() == profile.toString() }
         if (existing != null)
-            profileSet.remove(existing.profile)
-        profileSet.add(newEntry)
+            profiles.remove(existing.profile)
+        profiles.add(newEntry)
         onProfileSet(newEntry)
         enabled
     }

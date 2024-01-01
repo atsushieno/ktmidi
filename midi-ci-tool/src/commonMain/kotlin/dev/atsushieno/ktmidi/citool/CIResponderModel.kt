@@ -1,7 +1,7 @@
 package dev.atsushieno.ktmidi.citool
 
-import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
+import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
 import dev.atsushieno.ktmidi.citool.view.ViewModel
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
@@ -31,8 +31,30 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
 
     private val events = Events()
 
-    private val device = MidiCIDeviceInfo(1,2,2,1,
+    private val device = MidiCIDeviceInfo(0x123456,0x1234,0x5678,0x00000001,
         "atsushieno", "KtMidi", "KtMidi-CI-Tool Responder", "0.1")
+
+    fun updateProfileEnablement(address: Byte, profileId: MidiCIProfileId, newEnabled: Boolean, numChannelsRequested: Short) {
+        val profile = responder.profiles.profiles.first { it.address == address && it.profile == profileId }
+        responder.profiles.update(profile, newEnabled, address, numChannelsRequested)
+    }
+
+    fun updateProfileTarget(profileState: MidiCIProfileState, address: Byte, enabled: Boolean, numChannelsRequested: Short) {
+        val profile = responder.profiles.profiles.first { it.address == profileState.address && it.profile == profileState.profile }
+        responder.profiles.update(profile, enabled, address, numChannelsRequested)
+    }
+
+    fun addProfile(profile: MidiCIProfile) {
+        responder.profiles.add(profile)
+    }
+
+    fun removeProfile(profile: MidiCIProfileId) {
+        responder.profiles.remove(profile)
+    }
+
+    fun removeProfileEntry(address: Byte, profile: MidiCIProfileId) {
+        responder.profiles.removeProfileTarget(address, profile)
+    }
 
     val responder = MidiCIResponder(device, { data ->
         ViewModel.log("[R] REPLY SYSEX: " + data.joinToString { it.toString(16) })
@@ -112,9 +134,9 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         }
 
         // FIXME: they are dummy items that should be removed.
-        profileSet.add(MidiCIProfile(MidiCIProfileId(0, 1, 2, 3, 4), 0x7E, true))
-        profileSet.add(MidiCIProfile(MidiCIProfileId(5, 6, 7, 8, 9), 0x7F, true))
-        profileSet.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 0, false))
-        profileSet.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 4, true))
+        profiles.add(MidiCIProfile(MidiCIProfileId(0, 1, 2, 3, 4), 0x7E, true))
+        profiles.add(MidiCIProfile(MidiCIProfileId(5, 6, 7, 8, 9), 0x7F, true))
+        profiles.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 0, false))
+        profiles.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 4, true))
     }
 }

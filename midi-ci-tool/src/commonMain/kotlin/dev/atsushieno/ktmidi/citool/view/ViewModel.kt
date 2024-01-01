@@ -45,7 +45,7 @@ object ViewModel {
         if (conn != null) ConnectionViewModel(conn) else null
     }
 
-    val localDeviceConfiguration = LocalConfigurationViewModel(AppModel.ciDeviceManager.responder.responder.device)
+    val localDeviceConfiguration = LocalConfigurationViewModel(AppModel.ciDeviceManager.responder.responder)
 
     init {
         // When a new entry is appeared and nothing was selected, move to the new entry.
@@ -83,8 +83,9 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
             when (change) {
                 ObservableProfileList.ProfilesChange.Added ->
                     profiles.add(MidiCIProfileState(profile.address, profile.profile, mutableStateOf(profile.enabled)))
+                ObservableProfileList.ProfilesChange.Updated -> throw IllegalStateException("should not happen")
                 ObservableProfileList.ProfilesChange.Removed ->
-                    profiles.removeAll {it.profile == profile.profile }
+                    profiles.removeAll {it.profile == profile.profile && it.address == profile.address }
             }
         }
         conn.profiles.profileEnabledChanged.add { profile, numChannelsRequested ->
@@ -111,14 +112,54 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     }
 }
 
-class LocalConfigurationViewModel(deviceInfo: MidiCIDeviceInfo) {
-    val device = DeviceConfigurationViewModel(deviceInfo)
-    var maxSimultaneousPropertyRequests = mutableStateOf(0.toByte())
+class LocalConfigurationViewModel(private val responder: MidiCIResponder) {
+    val device = DeviceConfigurationViewModel(responder.device)
+    val maxSimultaneousPropertyRequests =
+        mutableStateOf(responder.maxSimultaneousPropertyRequests)
 
     fun updateMaxSimultaneousPropertyRequests(newValue: Byte) {
-        AppModel.ciDeviceManager.responder.responder.maxSimultaneousPropertyRequests = newValue
+        responder.maxSimultaneousPropertyRequests = newValue
+    }
+
+    // Profile Configuration
+    fun selectProfile(profile: MidiCIProfileId) {
+        Snapshot.withMutableSnapshot { selectedProfile.value = profile }
+    }
+
+    var selectedProfile = mutableStateOf<MidiCIProfileId?>(null)
+    var isSelectedProfileIdEditing = mutableStateOf(false)
+
+    val profiles = mutableStateListOf<MidiCIProfileState>().apply {
+        addAll(responder.profiles.profiles.map {
+            MidiCIProfileState(
+                it.address,
+                it.profile,
+                mutableStateOf(it.enabled)
+            )
+        })
+    }
+
+    init {
+        responder.profiles.profilesChanged.add { change, profile ->
+            when (change) {
+                ObservableProfileList.ProfilesChange.Added ->
+                    profiles.add(MidiCIProfileState(profile.address, profile.profile, mutableStateOf(profile.enabled)))
+                ObservableProfileList.ProfilesChange.Updated -> {
+
+                } // FIXME: implement?
+                ObservableProfileList.ProfilesChange.Removed ->
+                    profiles.removeAll { it.profile == profile.profile && it.address == profile.address }
+            }
+        }
+        responder.profiles.profileEnabledChanged.add { profile, numChannelsRequested ->
+            if (numChannelsRequested > 1)
+                TODO("FIXME: implement")
+            profiles.filter { it.profile == profile.profile && it.address == profile.address }
+                .forEach { Snapshot.withMutableSnapshot { it.enabled.value = profile.enabled } }
+        }
     }
 }
+
 class DeviceConfigurationViewModel(deviceInfo: MidiCIDeviceInfo) {
 
     var manufacturerId = mutableStateOf(deviceInfo.manufacturerId)
