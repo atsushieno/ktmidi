@@ -3,19 +3,20 @@ package dev.atsushieno.ktmidi.ci
 /**
  * Observable list of MIDI-CI Properties
  */
-class ObservablePropertyList(private val propertyClient: MidiCIPropertyClient) {
+
+abstract class ObservablePropertyList {
     data class Entry(val id: String, val replyHeader: List<Byte>, val body: List<Byte>)
 
-    private val properties = mutableListOf<Entry>()
+    protected val properties = mutableListOf<Entry>()
 
     val entries: List<Entry>
         get() = properties
 
-    fun getPropertyIdFor(header: List<Byte>) = propertyClient.getPropertyIdForHeader(header)
-    fun getReplyStatusFor(header: List<Byte>) = propertyClient.getReplyStatusFor(header)
-    fun getMediaTypeFor(replyHeader: List<Byte>) = propertyClient.getMediaTypeFor(replyHeader)
+    abstract fun getPropertyIdFor(header: List<Byte>): String
+    abstract fun getReplyStatusFor(header: List<Byte>): Int?
+    abstract fun getMediaTypeFor(replyHeader: List<Byte>): String
+    abstract fun getPropertyList(): List<PropertyResource>?
 
-    fun getPropertyList(): List<PropertyResource>? = propertyClient.getPropertyList()
     fun getProperty(header: List<Byte>): List<Byte>? = getProperty(getPropertyIdFor(header))
     fun getProperty(propertyId: String): List<Byte>? = getPropertyEntry(propertyId)?.body
     fun getPropertyEntry(header: List<Byte>): Entry? = getPropertyEntry(getPropertyIdFor(header))
@@ -32,6 +33,15 @@ class ObservablePropertyList(private val propertyClient: MidiCIPropertyClient) {
 
     val propertyChanged = mutableListOf<(entry: Entry) -> Unit>()
     val propertiesCatalogUpdated = mutableListOf<() -> Unit>()
+}
+
+class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyClient)
+    : ObservablePropertyList() {
+    override fun getPropertyIdFor(header: List<Byte>) = propertyClient.getPropertyIdForHeader(header)
+    override fun getReplyStatusFor(header: List<Byte>) = propertyClient.getReplyStatusFor(header)
+    override fun getMediaTypeFor(replyHeader: List<Byte>) = propertyClient.getMediaTypeFor(replyHeader)
+
+    override fun getPropertyList(): List<PropertyResource>? = propertyClient.getPropertyList()
 
     init {
         propertyClient.propertyCatalogUpdated.add {
@@ -49,5 +59,28 @@ class ObservablePropertyList(private val propertyClient: MidiCIPropertyClient) {
 
             propertiesCatalogUpdated.forEach { it() }
         }
+    }
+}
+
+class ServiceObservablePropertyList(private val propertyService: MidiCIPropertyService)
+    : ObservablePropertyList() {
+    override fun getPropertyIdFor(header: List<Byte>) = propertyService.getPropertyIdForHeader(header)
+    override fun getReplyStatusFor(header: List<Byte>) = propertyService.getReplyStatusFor(header)
+    override fun getMediaTypeFor(replyHeader: List<Byte>) = propertyService.getMediaTypeFor(replyHeader)
+
+    override fun getPropertyList(): List<PropertyResource>? = propertyService.getPropertyList()
+
+    init {
+        val newEntries = mutableListOf<Entry>()
+        val list = getPropertyList()
+        list?.forEach { entry ->
+            val existing = properties.firstOrNull { it.id == entry.resource }
+            if (existing != null)
+                newEntries.add(existing)
+            else
+                newEntries.add(Entry(entry.resource, listOf(), listOf()))
+        }
+        properties.clear()
+        properties.addAll(newEntries)
     }
 }

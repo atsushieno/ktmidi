@@ -113,7 +113,7 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     }
 }
 
-class LocalConfigurationViewModel(private val responder: MidiCIResponder) {
+class LocalConfigurationViewModel(val responder: MidiCIResponder) {
     val device = DeviceConfigurationViewModel(responder.device)
     val maxSimultaneousPropertyRequests =
         mutableStateOf(responder.maxSimultaneousPropertyRequests)
@@ -129,7 +129,6 @@ class LocalConfigurationViewModel(private val responder: MidiCIResponder) {
 
     var selectedProfile = mutableStateOf<MidiCIProfileId?>(null)
     var isSelectedProfileIdEditing = mutableStateOf(false)
-
     val profiles = mutableStateListOf<MidiCIProfileState>().apply {
         addAll(responder.profiles.profiles.map {
             MidiCIProfileState(
@@ -139,6 +138,12 @@ class LocalConfigurationViewModel(private val responder: MidiCIResponder) {
             )
         })
     }
+
+    fun selectProperty(propertyId: String) {
+        Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
+    }
+    var selectedProperty = mutableStateOf<String?>(null)
+    val properties by lazy { mutableStateListOf<ObservablePropertyList.Entry>().apply { addAll(responder.properties.entries) } }
 
     init {
         responder.profiles.profilesChanged.add { change, profile ->

@@ -19,10 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import dev.atsushieno.ktmidi.ci.MidiCIConstants
-import dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo
-import dev.atsushieno.ktmidi.ci.MidiCIProfile
-import dev.atsushieno.ktmidi.ci.MidiCIProfileId
+import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
@@ -43,6 +40,14 @@ fun ResponderScreen() {
     }
 
     Text("Properties", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
+
+    Row {
+        LocalPropertyList(vm)
+        val selectedProperty by remember { vm.selectedProperty }
+        val sp = selectedProperty
+        if (sp != null)
+            LocalPropertyDetails(vm, sp)
+    }
 }
 
 @Composable
@@ -289,4 +294,43 @@ fun AddressSelector(address: Byte, valueChange: (Byte) -> Unit) {
             )
         }
     }
+}
+
+
+@Composable
+fun LocalPropertyList(vm: LocalConfigurationViewModel) {
+    Column {
+        val properties = vm.properties.map { it.id }.distinct()
+        Snapshot.withMutableSnapshot {
+            properties.forEach {
+                PropertyListEntry(it, vm.selectedProperty.value == it) {
+                    propertyId -> vm.selectProperty(propertyId)
+                    // FIXME: implement
+                    //AppModel.ciDeviceManager.responder.sendGetPropertyDataRequest(vm.responder.muid, propertyId)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String) {
+    Column(Modifier.padding(12.dp)) {
+        val entry = vm.properties.first { it.id == propertyId }
+        val def = vm.responder.propertyService.getPropertyList()?.firstOrNull { it.resource == entry.id }
+        LocalPropertyValueEditor(vm, def, entry)
+        if (def != null)
+            PropertyMetadataList(def, false)
+        else
+            Text("(Metadata not available - not in ResourceList)")
+    }
+}
+
+@Composable
+fun LocalPropertyValueEditor(vm: LocalConfigurationViewModel, def: PropertyResource?, property: ObservablePropertyList.Entry) {
+    val mediaType: String = vm.responder.propertyService.getMediaTypeFor(property.replyHeader)
+    PropertyValueEditor(mediaType, def, property,
+        { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.responder.muid, property.id) },
+        { bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.responder.muid, property.id, bytes, isPartial) }
+    )
 }

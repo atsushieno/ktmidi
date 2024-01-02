@@ -15,7 +15,11 @@ package dev.atsushieno.ktmidi.ci
  */
 interface MidiCIPropertyService {
     fun getPropertyIdForHeader(header: List<Byte>): String
+    fun getPropertyList(): List<PropertyResource>?
     fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply
     fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply
     fun subscribeProperty(msg: Message.SubscribeProperty) : Message.SubscribePropertyReply
+    fun getReplyStatusFor(header: List<Byte>): Int?
+    fun getMediaTypeFor(replyHeader: List<Byte>): String
+
 }

@@ -34,7 +34,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     ) {
         val profiles = ObservableProfileList()
 
-        val properties = ObservablePropertyList(propertyClient)
+        val properties = ClientObservablePropertyList(propertyClient)
 
         private val openRequests = mutableListOf<Message.GetPropertyData>()
 

@@ -33,6 +33,7 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
     var midiCIBufferSize = 4096
 
     val propertyService = CommonRulesPropertyService(muid, device)
+    val properties = ServiceObservablePropertyList(propertyService)
 
     val sendDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
