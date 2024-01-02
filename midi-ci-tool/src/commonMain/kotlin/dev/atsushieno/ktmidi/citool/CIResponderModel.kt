@@ -21,7 +21,8 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         val discoveryReceived = mutableListOf<(msg: Message.DiscoveryInquiry) -> Unit>()
         val endpointInquiryReceived = mutableListOf<(msg: Message.EndpointInquiry) -> Unit>()
         val profileInquiryReceived = mutableListOf<(msg: Message.ProfileInquiry) -> Unit>()
-        val profileStateChanged = mutableListOf<(profile: MidiCIProfile) -> Unit>()
+        val setProfileOnReceived = mutableListOf<(profile: Message.SetProfileOn) -> Unit>()
+        val setProfileOffReceived = mutableListOf<(profile: Message.SetProfileOff) -> Unit>()
         val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
         val propertyCapabilityInquiryReceived = mutableListOf<(Message.PropertyGetCapabilities) -> Unit>()
         val getPropertyDataReceived = mutableListOf<(msg: Message.GetPropertyData) -> Unit>()
@@ -34,11 +35,6 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     private val device = MidiCIDeviceInfo(0x123456,0x1234,0x5678,0x00000001,
         "atsushieno", "KtMidi", "KtMidi-CI-Tool Responder", "0.1")
 
-    fun updateProfileEnablement(address: Byte, profileId: MidiCIProfileId, newEnabled: Boolean, numChannelsRequested: Short) {
-        val profile = responder.profiles.profiles.first { it.address == address && it.profile == profileId }
-        responder.profiles.update(profile, newEnabled, address, numChannelsRequested)
-    }
-
     fun updateProfileTarget(profileState: MidiCIProfileState, address: Byte, enabled: Boolean, numChannelsRequested: Short) {
         val profile = responder.profiles.profiles.first { it.address == profileState.address.value && it.profile == profileState.profile }
         responder.profiles.update(profile, enabled, address, numChannelsRequested)
@@ -46,20 +42,17 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
 
     fun addProfile(profile: MidiCIProfile) {
         responder.profiles.add(profile)
+        responder.sendProfileAddedReport(profile)
     }
 
-    fun removeProfile(profile: MidiCIProfileId) {
-        responder.profiles.remove(profile)
-    }
-
-    fun removeProfileEntry(address: Byte, profile: MidiCIProfileId) {
+    fun removeProfile(address: Byte, profile: MidiCIProfileId) {
         responder.profiles.removeProfileTarget(address, profile)
     }
 
     fun updateProfileName(oldProfile: MidiCIProfileId, newProfile: MidiCIProfileId) {
         val removed = responder.profiles.profiles.filter { it.profile == oldProfile }
         val added = removed.map { MidiCIProfile(newProfile, it.address, it.enabled) }
-        removeProfile(oldProfile)
+        removed.forEach { removeProfile(it.address, it.profile) }
         added.forEach { addProfile(it) }
     }
 
@@ -100,15 +93,17 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
                 sendProfileReply(reply)
             }
         }
-        onProfileSet = { profile ->
-            events.profileStateChanged.forEach { it(profile) }
+        onProfileSet.add { profile, numChannelsRequested ->
+            profiles.profileEnabledChanged.forEach { it(profile, numChannelsRequested) }
         }
         processSetProfileOn = { msg ->
             logger.setProfileOn(msg)
+            events.setProfileOnReceived.forEach { it(msg) }
             defaultProcessSetProfileOn(msg)
         }
         processSetProfileOff = { msg ->
             logger.setProfileOff(msg)
+            events.setProfileOffReceived.forEach { it(msg) }
             defaultProcessSetProfileOff(msg)
         }
         // PE

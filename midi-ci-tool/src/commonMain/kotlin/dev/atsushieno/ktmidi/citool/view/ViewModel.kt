@@ -47,6 +47,8 @@ object ViewModel {
 
     val localDeviceConfiguration = LocalConfigurationViewModel(AppModel.ciDeviceManager.responder.responder)
 
+    val settings = ApplicationSetingsViewModel()
+
     init {
         // When a new entry is appeared and nothing was selected, move to the new entry.
         AppModel.ciDeviceManager.initiator.initiator.connectionsChanged.add { change, conn ->
@@ -157,8 +159,8 @@ class LocalConfigurationViewModel(private val responder: MidiCIResponder) {
         responder.profiles.profileEnabledChanged.add { profile, numChannelsRequested ->
             if (numChannelsRequested > 1)
                 TODO("FIXME: implement")
-            profiles.filter { it.profile == profile.profile && it.address.value == profile.address }
-                .forEach { Snapshot.withMutableSnapshot { it.enabled.value = profile.enabled } }
+            val dst = profiles.first { it.profile == profile.profile && it.address.value == profile.address }
+            dst.enabled.value = profile.enabled
         }
     }
 }
@@ -187,4 +189,8 @@ class DeviceConfigurationViewModel(deviceInfo: MidiCIDeviceInfo) {
         this.version.value = deviceInfo.version
         this.serialNumber.value = deviceInfo.serialNumber
     }
+}
+
+class ApplicationSetingsViewModel {
+    var workaroundJUCEProfileNumChannelsIssue = mutableStateOf(false)
 }

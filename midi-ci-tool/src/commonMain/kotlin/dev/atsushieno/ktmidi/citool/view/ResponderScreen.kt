@@ -15,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
@@ -158,22 +157,12 @@ fun LocalProfileList(vm: LocalConfigurationViewModel) {
             val b0 = 0.toByte()
             Button(onClick = {
                 val state = MidiCIProfile(MidiCIProfileId(b0, b0, b0, b0, b0), MidiCIConstants.ADDRESS_FUNCTION_BLOCK, false)
-                vm.profiles.add(MidiCIProfileState(mutableStateOf(state.address), state.profile, mutableStateOf(state.enabled)))
                 AppModel.ciDeviceManager.responder.addProfile(state)
                 vm.selectedProfile.value = state.profile
                 vm.isSelectedProfileIdEditing.value = true
+                editedProfileName = state.profile.toString()
             }) {
                 Image(Icons.Default.Add, "Add")
-            }
-            Button(onClick = {
-                val selected = vm.selectedProfile.value
-                if (selected != null) {
-                    val removed = vm.profiles.filter { it.profile == selected }
-                    removed.forEach { vm.profiles.remove(it) }
-                    AppModel.ciDeviceManager.responder.removeProfile(selected)
-                }
-            }, enabled = vm.selectedProfile.value != null) {
-                Image(Icons.Default.Delete, "Delete")
             }
             if (vm.isSelectedProfileIdEditing.value) {
                 Button(onClick = {
@@ -230,7 +219,7 @@ fun LocalProfileDetails(vm: LocalConfigurationViewModel, profile: MidiCIProfileI
         val entries = vm.profiles.filter { it.profile.toString() == profile.toString() }
 
         Row {
-            Text("On/Off", Modifier.width(80.dp))
+            Text("Off/On", Modifier.width(80.dp))
             Text("Ch./Grp.", Modifier.width(200.dp))
             Text("NumChannels", Modifier.width(120.dp))
         }
@@ -238,10 +227,7 @@ fun LocalProfileDetails(vm: LocalConfigurationViewModel, profile: MidiCIProfileI
         entries.forEach {
             var numChannelsRequested by remember { mutableStateOf(1.toShort()) }
             Row {
-                val enabled by remember { it.enabled }
-                Switch(checked = enabled, onCheckedChange = { newEnabled ->
-                    AppModel.ciDeviceManager.responder.updateProfileEnablement(it.address.value, it.profile, newEnabled, numChannelsRequested)
-                }, Modifier.width(80.dp))
+                Switch(checked = it.enabled.value, onCheckedChange = {}, Modifier.width(80.dp), enabled = false)
                 AddressSelector(it.address.value) { newAddress ->
                     AppModel.ciDeviceManager.responder.updateProfileTarget(it, newAddress, it.enabled.value, numChannelsRequested)
                 }
@@ -251,7 +237,7 @@ fun LocalProfileDetails(vm: LocalConfigurationViewModel, profile: MidiCIProfileI
                         numChannelsRequested = v
                 }, Modifier.width(80.dp))
                 Button(onClick = {
-                    AppModel.ciDeviceManager.responder.removeProfileEntry(it.address.value, it.profile)
+                    AppModel.ciDeviceManager.responder.removeProfile(it.address.value, it.profile)
                 }, Modifier.padding(12.dp, 0.dp)) {
                     Image(Icons.Default.Delete, "Delete")
                 }

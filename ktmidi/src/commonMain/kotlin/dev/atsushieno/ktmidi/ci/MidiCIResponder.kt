@@ -113,31 +113,41 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         }
     }
 
-    var onProfileSet: (profile: MidiCIProfile) -> Unit = {}
+    var onProfileSet = mutableListOf<(profile: MidiCIProfile, numChannelsRequested: Short) -> Unit>()
 
-    private val defaultProcessSetProfile = { address: Byte, initiatorMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, enabled: Boolean ->
+    private val defaultProcessSetProfile = { address: Byte, initiatorMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, numChannelsRequested: Short, enabled: Boolean ->
         val newEntry = MidiCIProfile(profile, address, enabled)
-        val existing = profiles.profiles.firstOrNull { it.toString() == profile.toString() }
+        val existing = profiles.profiles.firstOrNull { it.profile == profile }
         if (existing != null)
             profiles.remove(existing.profile)
         profiles.add(newEntry)
-        onProfileSet(newEntry)
+        onProfileSet.forEach { it(newEntry, numChannelsRequested) }
         enabled
     }
 
-    fun sendSetProfileReport(address: Byte, profile: MidiCIProfileId, enabled: Boolean) {
+    private fun sendSetProfileReport(address: Byte, profile: MidiCIProfileId, enabled: Boolean) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIProfileReport(dst, address, enabled, muid, profile))
     }
 
+    fun sendProfileAddedReport(profile: MidiCIProfile) {
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIProfileAddedRemoved(dst, profile.address, false, muid, profile.profile))
+    }
+
+    fun sendProfileRemovedReport(profile: MidiCIProfile) {
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIProfileAddedRemoved(dst, profile.address, true, muid, profile.profile))
+    }
+
     fun defaultProcessSetProfileOn(msg: Message.SetProfileOn) {
         // send Profile Enabled Report only when it is actually enabled
-        if (defaultProcessSetProfile(msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, true))
+        if (defaultProcessSetProfile(msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.numChannelsRequested, true))
             sendSetProfileReport(msg.address, msg.profile, true)
     }
     fun defaultProcessSetProfileOff(msg: Message.SetProfileOff) {
         // send Profile Disabled Report only when it is actually disabled
-        if (!defaultProcessSetProfile(msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, false))
+        if (!defaultProcessSetProfile(msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, 0, false))
             sendSetProfileReport(msg.address, msg.profile, false)
     }
 

@@ -74,7 +74,3 @@ fun LogScreen() {
     TextField(logText.value, onValueChange = { _: String -> }, readOnly = true)
 }
 
-@Composable
-fun SettingsScreen() {
-    Text("TODO")
-}
