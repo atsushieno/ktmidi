@@ -306,7 +306,7 @@ fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyResource?, p
                                 val jsonString = Json.getEscapedString(partial.ifEmpty { text })
                                 val bytes =
                                     PropertyCommonConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
-                                commitSetProperty(bytes, partial.isEmpty())
+                                commitSetProperty(bytes, partial.isNotBlank())
                             }) {
                                 Text("Commit changes")
                             }
