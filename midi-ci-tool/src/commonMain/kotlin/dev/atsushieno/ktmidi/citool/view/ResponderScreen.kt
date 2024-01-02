@@ -9,9 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
@@ -146,16 +144,21 @@ fun LocalProfileList(vm: LocalConfigurationViewModel) {
     Column {
         var isSelectedProfileEditable by remember { vm.isSelectedProfileIdEditing }
         val profileIds = vm.profiles.map { it.profile }.distinct()
+        var editedProfileName by remember { mutableStateOf("") }
         Snapshot.withMutableSnapshot {
             profileIds.forEach {
-                LocalProfileListEntry(it, vm.selectedProfile.value == it, isSelectedProfileEditable) { profileId -> vm.selectProfile(profileId) }
+                LocalProfileListEntry(it, editedProfileName,
+                    { s -> editedProfileName = s },
+                    vm.selectedProfile.value == it, isSelectedProfileEditable) {
+                    profileId -> vm.selectProfile(profileId)
+                }
             }
         }
         Row {
             val b0 = 0.toByte()
             Button(onClick = {
                 val state = MidiCIProfile(MidiCIProfileId(b0, b0, b0, b0, b0), MidiCIConstants.ADDRESS_FUNCTION_BLOCK, false)
-                vm.profiles.add(MidiCIProfileState(state.address, state.profile, mutableStateOf(state.enabled)))
+                vm.profiles.add(MidiCIProfileState(mutableStateOf(state.address), state.profile, mutableStateOf(state.enabled)))
                 AppModel.ciDeviceManager.responder.addProfile(state)
                 vm.selectedProfile.value = state.profile
                 vm.isSelectedProfileIdEditing.value = true
@@ -172,10 +175,31 @@ fun LocalProfileList(vm: LocalConfigurationViewModel) {
             }, enabled = vm.selectedProfile.value != null) {
                 Image(Icons.Default.Delete, "Delete")
             }
-            Button(onClick = {
-                vm.isSelectedProfileIdEditing.value = !vm.isSelectedProfileIdEditing.value
-            }) {
-                Image(Icons.Default.Edit, "Edit")
+            if (vm.isSelectedProfileIdEditing.value) {
+                Button(onClick = {
+                    val splitN = editedProfileName.split(':').map { it.toByteOrNull(16) }
+                    if (splitN.size == 5 && splitN.all { it != null }) {
+                        val split = splitN.map { it!! }
+                        val newProfileId = MidiCIProfileId(split[0], split[1], split[2], split[3], split[4])
+                        AppModel.ciDeviceManager.responder.updateProfileName(vm.selectedProfile.value!!, newProfileId)
+                        vm.isSelectedProfileIdEditing.value = false
+                    }
+                }) {
+                    Image(Icons.Default.Done, "Commit changes")
+                }
+                Button(onClick = {
+                    vm.isSelectedProfileIdEditing.value = false
+                }) {
+                    Image(Icons.Default.Close, "Discard changes")
+                }
+            } else {
+                Button(onClick = {
+                    editedProfileName = vm.selectedProfile.value?.toString() ?: ""
+                    vm.isSelectedProfileIdEditing.value = true
+                }, enabled = vm.selectedProfile.value != null) {
+                    Image(Icons.Default.Edit, "Edit")
+                }
+
             }
         }
     }
@@ -183,12 +207,13 @@ fun LocalProfileList(vm: LocalConfigurationViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocalProfileListEntry(profileId: MidiCIProfileId, isSelected: Boolean, isSelectedProfileEditing: Boolean, selectedProfileChanged: (profile: MidiCIProfileId) -> Unit) {
+fun LocalProfileListEntry(profileId: MidiCIProfileId, currentProfileNameEdit: String, onProfileNameEdit: (String) -> Unit, isSelected: Boolean, isSelectedProfileEditing: Boolean, selectedProfileChanged: (profile: MidiCIProfileId) -> Unit) {
     val border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.outline) else null
-    var profileIdString by remember { mutableStateOf(profileId.toString()) }
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (isSelected && isSelectedProfileEditing)
-            TextField(profileIdString, { it: String -> profileIdString = it }, modifier = Modifier.padding(12.dp, 0.dp).width(150.dp))
+            TextField(currentProfileNameEdit,
+                { it: String -> onProfileNameEdit(it) },
+                modifier = Modifier.padding(12.dp, 0.dp).width(150.dp))
         else {
             Card(border = border, onClick = {
                 selectedProfileChanged(profileId)
@@ -215,9 +240,9 @@ fun LocalProfileDetails(vm: LocalConfigurationViewModel, profile: MidiCIProfileI
             Row {
                 val enabled by remember { it.enabled }
                 Switch(checked = enabled, onCheckedChange = { newEnabled ->
-                    AppModel.ciDeviceManager.responder.updateProfileEnablement(it.address, it.profile, newEnabled, numChannelsRequested)
+                    AppModel.ciDeviceManager.responder.updateProfileEnablement(it.address.value, it.profile, newEnabled, numChannelsRequested)
                 }, Modifier.width(80.dp))
-                AddressSelector(it.address) { newAddress ->
+                AddressSelector(it.address.value) { newAddress ->
                     AppModel.ciDeviceManager.responder.updateProfileTarget(it, newAddress, it.enabled.value, numChannelsRequested)
                 }
                 TextField(numChannelsRequested.toString(), { s:String ->
@@ -226,7 +251,7 @@ fun LocalProfileDetails(vm: LocalConfigurationViewModel, profile: MidiCIProfileI
                         numChannelsRequested = v
                 }, Modifier.width(80.dp))
                 Button(onClick = {
-                    AppModel.ciDeviceManager.responder.removeProfileEntry(it.address, it.profile)
+                    AppModel.ciDeviceManager.responder.removeProfileEntry(it.address.value, it.profile)
                 }, Modifier.padding(12.dp, 0.dp)) {
                     Image(Icons.Default.Delete, "Delete")
                 }

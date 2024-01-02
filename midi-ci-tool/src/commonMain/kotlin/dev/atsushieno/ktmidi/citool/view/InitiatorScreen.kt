@@ -162,9 +162,9 @@ fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
             Row {
                 val enabled by remember { it.enabled }
                 Switch(checked = enabled, onCheckedChange = { newEnabled ->
-                    AppModel.ciDeviceManager.initiator.setProfile(vm.conn.muid, it.address, it.profile, newEnabled)
+                    AppModel.ciDeviceManager.initiator.setProfile(vm.conn.muid, it.address.value, it.profile, newEnabled)
                 })
-                Text("${it.address.toString(16)}: ${it.profile}")
+                Text("${it.address.value.toString(16)}: ${it.profile}")
             }
         }
     }

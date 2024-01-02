@@ -40,7 +40,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     }
 
     fun updateProfileTarget(profileState: MidiCIProfileState, address: Byte, enabled: Boolean, numChannelsRequested: Short) {
-        val profile = responder.profiles.profiles.first { it.address == profileState.address && it.profile == profileState.profile }
+        val profile = responder.profiles.profiles.first { it.address == profileState.address.value && it.profile == profileState.profile }
         responder.profiles.update(profile, enabled, address, numChannelsRequested)
     }
 
@@ -54,6 +54,13 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
 
     fun removeProfileEntry(address: Byte, profile: MidiCIProfileId) {
         responder.profiles.removeProfileTarget(address, profile)
+    }
+
+    fun updateProfileName(oldProfile: MidiCIProfileId, newProfile: MidiCIProfileId) {
+        val removed = responder.profiles.profiles.filter { it.profile == oldProfile }
+        val added = removed.map { MidiCIProfile(newProfile, it.address, it.enabled) }
+        removeProfile(oldProfile)
+        added.forEach { addProfile(it) }
     }
 
     val responder = MidiCIResponder(device, { data ->

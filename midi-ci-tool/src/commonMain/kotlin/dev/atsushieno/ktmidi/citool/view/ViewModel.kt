@@ -57,7 +57,7 @@ object ViewModel {
 }
 
 class MidiCIProfileState(
-    val address: Byte, val profile: MidiCIProfileId, val enabled: MutableState<Boolean> = mutableStateOf(false))
+    var address: MutableState<Byte>, val profile: MidiCIProfileId, val enabled: MutableState<Boolean> = mutableStateOf(false))
 
 class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     fun selectProfile(profile: MidiCIProfileId) {
@@ -67,7 +67,7 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     var selectedProfile = mutableStateOf<MidiCIProfileId?>(null)
 
     val profiles = mutableStateListOf<MidiCIProfileState>().apply {
-        addAll(conn.profiles.profiles.map { MidiCIProfileState(it.address, it.profile, mutableStateOf(it.enabled)) })
+        addAll(conn.profiles.profiles.map { MidiCIProfileState(mutableStateOf(it.address), it.profile, mutableStateOf(it.enabled)) })
     }
 
     fun selectProperty(propertyId: String) {
@@ -82,16 +82,15 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
         conn.profiles.profilesChanged.add { change, profile ->
             when (change) {
                 ObservableProfileList.ProfilesChange.Added ->
-                    profiles.add(MidiCIProfileState(profile.address, profile.profile, mutableStateOf(profile.enabled)))
-                ObservableProfileList.ProfilesChange.Updated -> throw IllegalStateException("should not happen")
+                    profiles.add(MidiCIProfileState(mutableStateOf(profile.address), profile.profile, mutableStateOf(profile.enabled)))
                 ObservableProfileList.ProfilesChange.Removed ->
-                    profiles.removeAll {it.profile == profile.profile && it.address == profile.address }
+                    profiles.removeAll {it.profile == profile.profile && it.address.value == profile.address }
             }
         }
         conn.profiles.profileEnabledChanged.add { profile, numChannelsRequested ->
             if (numChannelsRequested > 1)
                 TODO("FIXME: implement")
-            profiles.filter { it.profile == profile.profile && it.address == profile.address }
+            profiles.filter { it.profile == profile.profile && it.address.value == profile.address }
                 .forEach { Snapshot.withMutableSnapshot { it.enabled.value = profile.enabled } }
         }
 
@@ -132,7 +131,7 @@ class LocalConfigurationViewModel(private val responder: MidiCIResponder) {
     val profiles = mutableStateListOf<MidiCIProfileState>().apply {
         addAll(responder.profiles.profiles.map {
             MidiCIProfileState(
-                it.address,
+                mutableStateOf(it.address),
                 it.profile,
                 mutableStateOf(it.enabled)
             )
@@ -143,18 +142,22 @@ class LocalConfigurationViewModel(private val responder: MidiCIResponder) {
         responder.profiles.profilesChanged.add { change, profile ->
             when (change) {
                 ObservableProfileList.ProfilesChange.Added ->
-                    profiles.add(MidiCIProfileState(profile.address, profile.profile, mutableStateOf(profile.enabled)))
-                ObservableProfileList.ProfilesChange.Updated -> {
-
-                } // FIXME: implement?
+                    profiles.add(MidiCIProfileState(mutableStateOf(profile.address), profile.profile, mutableStateOf(profile.enabled)))
                 ObservableProfileList.ProfilesChange.Removed ->
-                    profiles.removeAll { it.profile == profile.profile && it.address == profile.address }
+                    profiles.removeAll { it.profile == profile.profile && it.address.value == profile.address }
             }
+        }
+        responder.profiles.profileUpdated.add { profileId: MidiCIProfileId, oldAddress: Byte, newEnabled: Boolean, newAddress: Byte, numChannelsRequested: Short ->
+            val entry = profiles.first { it.profile == profileId && it.address.value == oldAddress }
+            if (numChannelsRequested > 1)
+                TODO("FIXME: implement")
+            entry.address.value = newAddress
+            entry.enabled.value = newEnabled
         }
         responder.profiles.profileEnabledChanged.add { profile, numChannelsRequested ->
             if (numChannelsRequested > 1)
                 TODO("FIXME: implement")
-            profiles.filter { it.profile == profile.profile && it.address == profile.address }
+            profiles.filter { it.profile == profile.profile && it.address.value == profile.address }
                 .forEach { Snapshot.withMutableSnapshot { it.enabled.value = profile.enabled } }
         }
     }

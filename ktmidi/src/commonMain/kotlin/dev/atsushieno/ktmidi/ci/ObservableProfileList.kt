@@ -4,7 +4,7 @@ package dev.atsushieno.ktmidi.ci
  * Observable list of MIDI-CI Profiles
  */
 class ObservableProfileList {
-    enum class ProfilesChange { Added, Updated, Removed }
+    enum class ProfilesChange { Added, Removed }
     private val pl = mutableListOf<MidiCIProfile>()
     val profiles: List<MidiCIProfile>
         get() = pl
@@ -15,7 +15,7 @@ class ObservableProfileList {
         profilesChanged.forEach { it(ProfilesChange.Added, profile) }
     }
     fun remove(profile: MidiCIProfileId) {
-        val items = profiles.filter { it.toString() == profile.toString() }
+        val items = profiles.filter { it.profile.toString() == profile.toString() }
         pl.removeAll(items)
         items.forEach { p ->
             profilesChanged.forEach { it(ProfilesChange.Removed, p) }
@@ -32,12 +32,14 @@ class ObservableProfileList {
         }
     }
 
+    // local profile could be updated to change the target channel (address)
     fun update(profile: MidiCIProfile, enabled: Boolean, address: Byte, numChannelsRequested: Short) {
         if (numChannelsRequested > 1)
             TODO("FIXME: implement")
+        val oldAddress = profile.address
         profile.enabled = enabled
         profile.address = address
-        profileUpdated.forEach { it(profile, enabled, address, numChannelsRequested) }
+        profileUpdated.forEach { it(profile.profile, oldAddress, enabled, address, numChannelsRequested) }
     }
 
     fun getMatchingProfiles(address: Byte, enabled: Boolean) =
@@ -53,5 +55,5 @@ class ObservableProfileList {
 
     val profilesChanged = mutableListOf<(change: ProfilesChange, profile: MidiCIProfile) -> Unit>()
     val profileEnabledChanged = mutableListOf<(profile: MidiCIProfile, numChannelsRequested: Short) -> Unit>()
-    val profileUpdated = mutableListOf<(profile: MidiCIProfile, enabled: Boolean, address: Byte, numChannelsRequested: Short) -> Unit>()
+    val profileUpdated = mutableListOf<(profileId: MidiCIProfileId, oldAddress: Byte, newEnabled: Boolean, newAddress: Byte, numChannelsRequested: Short) -> Unit>()
 }
