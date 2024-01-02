@@ -167,6 +167,11 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
             val dst = profiles.first { it.profile == profile.profile && it.address.value == profile.address }
             dst.enabled.value = profile.enabled
         }
+
+        responder.properties.propertiesCatalogUpdated.add {
+            properties.clear()
+            properties.addAll(responder.properties.entries)
+        }
     }
 }
 

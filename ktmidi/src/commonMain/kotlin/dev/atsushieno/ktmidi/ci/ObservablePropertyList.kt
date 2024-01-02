@@ -33,18 +33,10 @@ abstract class ObservablePropertyList {
 
     val propertyChanged = mutableListOf<(entry: Entry) -> Unit>()
     val propertiesCatalogUpdated = mutableListOf<() -> Unit>()
-}
+    abstract val internalCatalogUpdated: MutableList<() -> Unit>
 
-class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyClient)
-    : ObservablePropertyList() {
-    override fun getPropertyIdFor(header: List<Byte>) = propertyClient.getPropertyIdForHeader(header)
-    override fun getReplyStatusFor(header: List<Byte>) = propertyClient.getReplyStatusFor(header)
-    override fun getMediaTypeFor(replyHeader: List<Byte>) = propertyClient.getMediaTypeFor(replyHeader)
-
-    override fun getPropertyList(): List<PropertyResource>? = propertyClient.getPropertyList()
-
-    init {
-        propertyClient.propertyCatalogUpdated.add {
+    fun initializeCatalogUpdatedEvent() {
+        internalCatalogUpdated.add {
             val newEntries = mutableListOf<Entry>()
             val list = getPropertyList()
             list?.forEach { entry ->
@@ -62,6 +54,22 @@ class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyCli
     }
 }
 
+class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyClient)
+    : ObservablePropertyList() {
+    override fun getPropertyIdFor(header: List<Byte>) = propertyClient.getPropertyIdForHeader(header)
+    override fun getReplyStatusFor(header: List<Byte>) = propertyClient.getReplyStatusFor(header)
+    override fun getMediaTypeFor(replyHeader: List<Byte>) = propertyClient.getMediaTypeFor(replyHeader)
+
+    override fun getPropertyList(): List<PropertyResource>? = propertyClient.getPropertyList()
+
+    override val internalCatalogUpdated: MutableList<() -> Unit>
+        get() = propertyClient.propertyCatalogUpdated
+
+    init {
+        initializeCatalogUpdatedEvent()
+    }
+}
+
 class ServiceObservablePropertyList(private val propertyService: MidiCIPropertyService)
     : ObservablePropertyList() {
     override fun getPropertyIdFor(header: List<Byte>) = propertyService.getPropertyIdForHeader(header)
@@ -70,17 +78,15 @@ class ServiceObservablePropertyList(private val propertyService: MidiCIPropertyS
 
     override fun getPropertyList(): List<PropertyResource>? = propertyService.getPropertyList()
 
+    override val internalCatalogUpdated: MutableList<() -> Unit>
+        get() = propertyService.propertyCatalogUpdated
+
+    fun add(property: PropertyResource) {
+        propertyService.addProperty(property)
+        propertiesCatalogUpdated.forEach { it() }
+    }
+
     init {
-        val newEntries = mutableListOf<Entry>()
-        val list = getPropertyList()
-        list?.forEach { entry ->
-            val existing = properties.firstOrNull { it.id == entry.resource }
-            if (existing != null)
-                newEntries.add(existing)
-            else
-                newEntries.add(Entry(entry.resource, listOf(), listOf()))
-        }
-        properties.clear()
-        properties.addAll(newEntries)
+        initializeCatalogUpdatedEvent()
     }
 }

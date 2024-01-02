@@ -10,12 +10,12 @@ class ObservableProfileList {
         get() = pl
 
     fun add(profile: MidiCIProfile) {
-        pl.removeAll { it.toString() == profile.toString() }
+        pl.removeAll { it.profile == profile.profile }
         pl.add(profile)
         profilesChanged.forEach { it(ProfilesChange.Added, profile) }
     }
-    fun remove(profile: MidiCIProfileId) {
-        val items = profiles.filter { it.profile.toString() == profile.toString() }
+    fun remove(profile: MidiCIProfile) {
+        val items = profiles.filter { it.profile == profile.profile && it.address == profile.address }
         pl.removeAll(items)
         items.forEach { p ->
             profilesChanged.forEach { it(ProfilesChange.Removed, p) }
@@ -32,7 +32,7 @@ class ObservableProfileList {
         }
     }
 
-    // local profile could be updated to change the target channel (address)
+    // Used by local profile, which could be updated to change the target channel (address)
     fun update(profile: MidiCIProfile, enabled: Boolean, address: Byte, numChannelsRequested: Short) {
         if (numChannelsRequested > 1)
             TODO("FIXME: implement")
@@ -44,14 +44,6 @@ class ObservableProfileList {
 
     fun getMatchingProfiles(address: Byte, enabled: Boolean) =
         profiles.filter { it.address == address && it.enabled == enabled }.map { it.profile }
-
-    fun removeProfileTarget(address: Byte, profile: MidiCIProfileId) {
-        val list = pl.filter { it.address == address && it.profile == profile }
-        pl.removeAll(list)
-        list.forEach { p ->
-            profilesChanged.forEach { it(ProfilesChange.Removed, p) }
-        }
-    }
 
     val profilesChanged = mutableListOf<(change: ProfilesChange, profile: MidiCIProfile) -> Unit>()
     val profileEnabledChanged = mutableListOf<(profile: MidiCIProfile, numChannelsRequested: Short) -> Unit>()

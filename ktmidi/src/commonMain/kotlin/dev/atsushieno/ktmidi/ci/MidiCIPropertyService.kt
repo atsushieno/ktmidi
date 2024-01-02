@@ -21,5 +21,7 @@ interface MidiCIPropertyService {
     fun subscribeProperty(msg: Message.SubscribeProperty) : Message.SubscribePropertyReply
     fun getReplyStatusFor(header: List<Byte>): Int?
     fun getMediaTypeFor(replyHeader: List<Byte>): String
+    fun addProperty(property: PropertyResource)
 
+    val propertyCatalogUpdated: MutableList<() -> Unit>
 }

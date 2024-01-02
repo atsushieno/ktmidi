@@ -94,6 +94,13 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
     override fun getMediaTypeFor(replyHeader: List<Byte>): String =
         CommonRulesPropertyHelper.getMediaTypeFor(replyHeader)
 
+    override fun addProperty(property: PropertyResource) {
+        propertyList.add(property)
+        propertyCatalogUpdated.forEach { it() }
+    }
+
+    override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
+
     // impl
 
     data class SubscriptionEntry(val resource: String, val muid: Int)

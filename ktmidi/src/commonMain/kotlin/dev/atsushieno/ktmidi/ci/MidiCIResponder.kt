@@ -120,7 +120,7 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         val newEntry = MidiCIProfile(profile, address, enabled)
         val existing = profiles.profiles.firstOrNull { it.profile == profile }
         if (existing != null)
-            profiles.remove(existing.profile)
+            profiles.remove(existing)
         profiles.add(newEntry)
         onProfileSet.forEach { it(newEntry, numChannelsRequested) }
         enabled

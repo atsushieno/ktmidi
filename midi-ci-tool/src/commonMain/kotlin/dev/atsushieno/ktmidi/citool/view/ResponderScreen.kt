@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
+import kotlin.random.Random
 
 @Composable
 fun ResponderScreen() {
@@ -301,14 +302,19 @@ fun AddressSelector(address: Byte, valueChange: (Byte) -> Unit) {
 fun LocalPropertyList(vm: LocalConfigurationViewModel) {
     Column {
         val properties = vm.properties.map { it.id }.distinct()
-        Snapshot.withMutableSnapshot {
-            properties.forEach {
-                PropertyListEntry(it, vm.selectedProperty.value == it) {
-                    propertyId -> vm.selectProperty(propertyId)
-                    // FIXME: implement
-                    //AppModel.ciDeviceManager.responder.sendGetPropertyDataRequest(vm.responder.muid, propertyId)
-                }
+        properties.forEach {
+            PropertyListEntry(it, vm.selectedProperty.value == it) {
+                propertyId -> vm.selectProperty(propertyId)
+                // FIXME: implement
+                //AppModel.ciDeviceManager.responder.sendGetPropertyDataRequest(vm.responder.muid, propertyId)
             }
+        }
+        Button(onClick = {
+            val property = PropertyResource().apply { resource = "Property${Random.nextInt()}" }
+            AppModel.ciDeviceManager.responder.addProperty(property)
+            //vm.selectedProperty.value = property.resource
+        }) {
+            Image(Icons.Default.Add, "Add")
         }
     }
 }
@@ -319,8 +325,9 @@ fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String) {
         val entry = vm.properties.first { it.id == propertyId }
         val def = vm.responder.propertyService.getPropertyList()?.firstOrNull { it.resource == entry.id }
         LocalPropertyValueEditor(vm, def, entry)
+        var schemaString: String? = null
         if (def != null)
-            PropertyMetadataList(def, false)
+            PropertyMetadataList(def, false, schemaString) { schemaString = it }
         else
             Text("(Metadata not available - not in ResourceList)")
     }

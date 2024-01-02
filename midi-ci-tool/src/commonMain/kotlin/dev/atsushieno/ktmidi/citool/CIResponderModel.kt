@@ -45,8 +45,11 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         responder.sendProfileAddedReport(profile)
     }
 
-    fun removeProfile(address: Byte, profile: MidiCIProfileId) {
-        responder.profiles.removeProfileTarget(address, profile)
+    fun removeProfile(address: Byte, profileId: MidiCIProfileId) {
+        // create a dummy entry...
+        val profile = MidiCIProfile(profileId, address, false)
+        responder.profiles.remove(profile)
+        responder.sendProfileRemovedReport(profile)
     }
 
     fun updateProfileName(oldProfile: MidiCIProfileId, newProfile: MidiCIProfileId) {
@@ -54,6 +57,10 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         val added = removed.map { MidiCIProfile(newProfile, it.address, it.enabled) }
         removed.forEach { removeProfile(it.address, it.profile) }
         added.forEach { addProfile(it) }
+    }
+
+    fun addProperty(property: PropertyResource) {
+        responder.properties.add(property)
     }
 
     val responder = MidiCIResponder(device, { data ->

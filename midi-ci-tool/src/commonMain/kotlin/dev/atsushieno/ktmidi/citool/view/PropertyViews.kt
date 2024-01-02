@@ -36,18 +36,20 @@ fun PropertyListEntry(propertyId: String, isSelected: Boolean, selectedPropertyC
 }
 
 @Composable
-fun PropertyMetadataList(def: PropertyResource, readOnly: Boolean) {
+fun PropertyMetadataList(def: PropertyResource, readOnly: Boolean, schemaString: String? = null, updateSchemaString: (String)->Unit = {}) {
     Column {
         Text("Property Metadata", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
 
-        PropertyColumn("resource") { TextField(def.resource, {}, readOnly = readOnly) }
-        PropertyColumn("canGet") { Checkbox(def.canGet, {}, enabled = !readOnly) }
-        PropertyColumn("canSet") { TextField(def.canSet, {}, readOnly = readOnly) }
-        PropertyColumn("canSubscribe") { Checkbox(def.canSubscribe, {}, enabled = !readOnly) }
-        PropertyColumn("requireResId") { Checkbox(def.requireResId, {}, enabled = !readOnly) }
-        PropertyColumn("mediaTypes") { TextField(def.mediaTypes.joinToString("\n"), {}, readOnly = readOnly, minLines = 2) }
-        PropertyColumn("encodings") { TextField(def.encodings.joinToString("\n"), {}, readOnly = readOnly, minLines = 2) }
-        PropertyColumn("schema") { TextField(if (def.schema == null) "" else Json.getUnescapedString(def.schema!!), {}, readOnly = readOnly, minLines = 2) }
+        // FIXME: make them remembered
+        PropertyColumn("resource") { TextField(def.resource, { def.resource = it }, readOnly = readOnly) }
+        PropertyColumn("canGet") { Checkbox(def.canGet, { def.canGet = it }, enabled = !readOnly) }
+        PropertyColumn("canSet") { TextField(def.canSet, { def.canSet = it }, readOnly = readOnly) }
+        PropertyColumn("canSubscribe") { Checkbox(def.canSubscribe, { def.canSubscribe = it }, enabled = !readOnly) }
+        PropertyColumn("requireResId") { Checkbox(def.requireResId, { def.requireResId = it }, enabled = !readOnly) }
+        PropertyColumn("mediaTypes") { TextField(def.mediaTypes.joinToString("\n"), { def.mediaTypes = it.split('\n') }, readOnly = readOnly, minLines = 2) }
+        PropertyColumn("encodings") { TextField(def.encodings.joinToString("\n"), { def.encodings = it.split('\n') }, readOnly = readOnly, minLines = 2) }
+        val schemaStringNullable by remember { mutableStateOf(schemaString ?: if (def.schema == null) "" else Json.getUnescapedString(def.schema!!)) }
+        PropertyColumn("schema") { TextField(schemaStringNullable, { updateSchemaString(it) }, readOnly = readOnly, minLines = 2) }
         PropertyColumn("canPaginate") { Checkbox(def.canPaginate, {}, enabled = !readOnly) }
         PropertyColumn("columns") {
             Column(Modifier.padding(12.dp)) {

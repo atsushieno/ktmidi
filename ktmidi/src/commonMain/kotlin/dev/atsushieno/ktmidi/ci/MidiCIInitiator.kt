@@ -250,7 +250,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
     val defaultProcessProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
-        conn?.profiles?.remove(msg.profile)
+        conn?.profiles?.remove(MidiCIProfile(msg.profile, msg.address, false))
     }
     var processProfileRemovedReport = defaultProcessProfileRemovedReport
 
