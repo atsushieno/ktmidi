@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi.ci
 
-import dev.atsushieno.ktmidi.shl
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlin.random.Random

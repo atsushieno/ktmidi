@@ -1,15 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
-buildscript {
-    repositories {
-        maven("https://plugins.gradle.org/m2/")
-    }
-    dependencies {
-        classpath(libs.metalava.gradle)
-    }
-}
-
 plugins {
     id("com.android.library")
     kotlin("multiplatform")

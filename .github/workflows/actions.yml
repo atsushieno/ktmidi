@@ -69,6 +69,7 @@ jobs:
             ktmidi/build/reports/
             ktmidi-jvm-desktop/build/reports/
             ktmidi/*.log
+            ktmidi-ci/*.log
             ktmidi-native-ext/*.log
             ktmidi-jvm-desktop/*.log
       - name: upload artifact
@@ -79,6 +80,8 @@ jobs:
           path: |
             ktmidi/build/libs/*.jar
             ktmidi/build/outputs/aar/*.aar
+            ktmidi-ci/build/libs/*.jar
+            ktmidi-ci/build/outputs/aar/*.aar
             ktmidi-native-ext/build/bin
             ktmidi-jvm-desktop/build/libs/*.jar
       # only for releases

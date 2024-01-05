@@ -1,15 +1,6 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
-buildscript {
-    repositories {
-        maven("https://plugins.gradle.org/m2/")
-    }
-    dependencies {
-        classpath(libs.metalava.gradle)
-    }
-}
-
 plugins {
     id("com.android.library")
     kotlin("multiplatform")
@@ -85,11 +76,7 @@ kotlin {
             }
         }
         val jvmMain by getting
-        val androidMain by getting {
-            dependencies {
-                implementation(libs.androidx.core.ktx)
-            }
-        }
+        val androidMain by getting
         val androidUnitTest by getting {
             dependencies {
                 implementation(kotlin("test-junit"))
@@ -101,11 +88,7 @@ kotlin {
                 implementation(kotlin("test-junit"))
             }
         }
-        val jsMain by getting {
-            dependencies {
-                implementation(npm("jzz", "1.7.6"))
-            }
-        }
+        val jsMain by getting
         val jsTest by getting {
             dependencies {
                 implementation(kotlin("test-js"))

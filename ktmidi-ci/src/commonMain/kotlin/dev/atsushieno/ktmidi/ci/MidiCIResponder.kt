@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi.ci
 
-import dev.atsushieno.ktmidi.shl
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.random.Random

@@ -1,7 +1,5 @@
 package dev.atsushieno.ktmidi.ci
 
-import dev.atsushieno.ktmidi.shl
-
 object CIRetrieval {
     /** retrieves destination channel, "whole MIDI Port", or "the Function block" from a MIDI-CI sysex7 chunk.
      * The argument sysex bytestream is NOT specific to MIDI 1.0 bytestream and thus does NOT contain F0 and F7 (i.e. starts with 0xFE, xx, 0x0D...)
