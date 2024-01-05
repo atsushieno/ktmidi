@@ -2,7 +2,6 @@
 
 package dev.atsushieno.ktmidi
 
-import dev.atsushieno.ktmidi.ci.DeviceDetails
 import io.ktor.utils.io.core.*
 import kotlin.experimental.and
 
@@ -725,11 +724,11 @@ object UmpFactory {
                     ).toInt(),
             0, 0)
 
-    fun deviceIdentityNotification(device: DeviceDetails) =
+    fun deviceIdentityNotification(manufacturer: Int, family: Short, modelNumber: Short, softwareRevisionLevel: Int) =
         Ump(0xF002_0000L.toInt(),
-            device.manufacturer,
-            ((device.family.toInt() shl 16) + device.modelNumber).toInt(),
-            device.softwareRevisionLevel)
+            manufacturer,
+            ((family.toInt() shl 16) + modelNumber),
+            softwareRevisionLevel)
 
     fun endpointNameNotification(name: String) = endpointNameNotification(name.toByteArray())
     fun endpointNameNotification(name: ByteArray) = umpStreamTextCommon(3, name)

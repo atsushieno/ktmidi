@@ -3,7 +3,6 @@ package dev.atsushieno.ktmidi.citool
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.*
-import dev.atsushieno.ktmidi.ci.MidiCIConstants
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

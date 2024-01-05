@@ -60,6 +60,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.mpfilepicker)
             implementation(project(":ktmidi"))
+            implementation(project(":ktmidi-ci"))
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

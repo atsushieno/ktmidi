@@ -19,6 +19,7 @@ rootProject.name = 'ktmidi-project'
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 include(":ktmidi")
+include(":ktmidi-ci")
 include(":ktmidi-jvm-desktop")
 include(":ktmidi-native-ext")
 include(":input-sample")

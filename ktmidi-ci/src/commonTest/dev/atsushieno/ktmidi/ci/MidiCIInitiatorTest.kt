@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi.ci
 
-import dev.atsushieno.ktmidi.MidiCIProtocolType
 import kotlin.test.*
 
 class MidiCIInitiatorTest {

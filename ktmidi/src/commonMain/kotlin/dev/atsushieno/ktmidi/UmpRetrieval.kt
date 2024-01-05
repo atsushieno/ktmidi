@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import dev.atsushieno.ktmidi.ci.DeviceDetails
 import io.ktor.utils.io.core.*
 
 val Ump.groupByte: Int
@@ -319,11 +318,14 @@ val Ump.endpointInfoSupportsRxJR
 val Ump.endpointInfoSupportsTxJR
     get() = (int2 and 1) != 0
 
-val Ump.deviceIdentity
-    get() = DeviceDetails(manufacturer = int2 and 0xFFFFFF,
-        family = ((int3 shr 16) and 0xFFFF).toShort(),
-        modelNumber = (int3 and 0xFFFF).toShort(),
-        softwareRevisionLevel = int4)
+val Ump.deviceIdentificationManufacturer
+    get() = int2 and 0xFFFFFF
+val Ump.deviceIdentificationFamily
+    get() = ((int3 shr 16) and 0xFFFF).toShort()
+val Ump.deviceIdentificationModelNumber
+    get() = (int3 and 0xFFFF).toShort()
+val Ump.deviceIdentificationSoftwareRevisionLevel
+    get() = int4
 
 val Ump.streamConfigProtocol
     get() = (int1 shr 8) and 0xFF

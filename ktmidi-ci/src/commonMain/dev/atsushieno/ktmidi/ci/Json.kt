@@ -1,7 +1,5 @@
 package dev.atsushieno.ktmidi.ci
 
-import kotlin.math.roundToInt
-
 class JsonParserException(message: String = "JSON parser exception", innerException: Exception? = null) : Exception(message, innerException)
 
 object Json {

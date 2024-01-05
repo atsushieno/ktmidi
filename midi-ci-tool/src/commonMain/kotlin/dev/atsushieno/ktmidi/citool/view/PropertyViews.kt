@@ -40,7 +40,7 @@ fun PropertyMetadataList(def: PropertyResource, readOnly: Boolean, schemaString:
     Column {
         Text("Property Metadata", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
 
-        // FIXME: make them remembered
+        // FIXME: make them remembered mutableStateOf<T>.
         PropertyColumn("resource") { TextField(def.resource, { def.resource = it }, readOnly = readOnly) }
         PropertyColumn("canGet") { Checkbox(def.canGet, { def.canGet = it }, enabled = !readOnly) }
         PropertyColumn("canSet") { TextField(def.canSet, { def.canSet = it }, readOnly = readOnly) }

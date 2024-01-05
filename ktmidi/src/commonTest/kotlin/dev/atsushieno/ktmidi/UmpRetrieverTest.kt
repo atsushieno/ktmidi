@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import dev.atsushieno.ktmidi.ci.DeviceDetails
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -166,13 +165,14 @@ class UmpRetrieverTest {
     @Test
     fun testDeviceIdentityNotification() {
         val dn1 = Ump(0xF002_0000L.toInt(), 0x0012_3456, 0x789A_7654, 0x3210_6543)
-        val device = dn1.deviceIdentity
-        val reference = DeviceDetails(0x123456, 0x789A, 0x7654, 0x32106543)
-        assertEquals(reference.manufacturer, device.manufacturer, "manufacturer")
-        assertEquals(reference.family, device.family, "family")
-        assertEquals(reference.modelNumber, device.modelNumber, "familyModelNumber")
-        assertEquals(reference.softwareRevisionLevel, device.softwareRevisionLevel, "softwareRevisionLevel")
-        assertEquals(reference.manufacturer, device.manufacturer, "manufacturer")
+        val manufacturer = 0x123456
+        val family:Short = 0x789A
+        val modelNumber:Short = 0x7654
+        val softwareRevisionLevel = 0x32106543
+        assertEquals(manufacturer, dn1.deviceIdentificationManufacturer, "manufacturer")
+        assertEquals(family, dn1.deviceIdentificationFamily, "family")
+        assertEquals(modelNumber, dn1.deviceIdentificationModelNumber, "familyModelNumber")
+        assertEquals(softwareRevisionLevel, dn1.deviceIdentificationSoftwareRevisionLevel, "softwareRevisionLevel")
     }
 
     @Test

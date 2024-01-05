@@ -1,8 +1,6 @@
 package dev.atsushieno.ktmidi.citool
 
 import dev.atsushieno.ktmidi.ci.Message
-import dev.atsushieno.ktmidi.ci.MidiCIProfile
-import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 import dev.atsushieno.ktmidi.citool.view.ViewModel
 
 class Logger {
