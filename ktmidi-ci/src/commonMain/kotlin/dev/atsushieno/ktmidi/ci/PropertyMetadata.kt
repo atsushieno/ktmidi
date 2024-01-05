@@ -1,6 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
-class PropertyResource() {
+class PropertyMetadata() {
     var resource: String = ""
     var canGet: Boolean = true
     var canSet: String = PropertySetAccess.NONE

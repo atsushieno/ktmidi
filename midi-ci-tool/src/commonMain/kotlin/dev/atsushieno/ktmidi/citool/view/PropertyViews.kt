@@ -36,7 +36,7 @@ fun PropertyListEntry(propertyId: String, isSelected: Boolean, selectedPropertyC
 }
 
 @Composable
-fun PropertyMetadataList(def: PropertyResource, readOnly: Boolean, schemaString: String? = null, updateSchemaString: (String)->Unit = {}) {
+fun PropertyMetadataList(def: PropertyMetadata, readOnly: Boolean, schemaString: String? = null, updateSchemaString: (String)->Unit = {}) {
     Column {
         Text("Property Metadata", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
 
@@ -65,7 +65,7 @@ fun PropertyMetadataList(def: PropertyResource, readOnly: Boolean, schemaString:
 }
 
 @Composable
-fun PropertyValueEditor(mediaType: String, def: PropertyResource?, property: ObservablePropertyList.Entry,
+fun PropertyValueEditor(mediaType: String, def: PropertyMetadata?, property: ObservablePropertyList.Entry,
                         onGetValueClick: () -> Unit,
                         onCommitSetPropertyClick: (List<Byte>, Boolean) -> Unit) {
     Column {

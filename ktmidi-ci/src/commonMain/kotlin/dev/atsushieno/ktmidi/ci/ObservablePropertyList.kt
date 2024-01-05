@@ -15,7 +15,7 @@ abstract class ObservablePropertyList {
     abstract fun getPropertyIdFor(header: List<Byte>): String
     abstract fun getReplyStatusFor(header: List<Byte>): Int?
     abstract fun getMediaTypeFor(replyHeader: List<Byte>): String
-    abstract fun getPropertyList(): List<PropertyResource>?
+    abstract fun getMetadataList(): List<PropertyMetadata>?
 
     fun getProperty(header: List<Byte>): List<Byte>? = getProperty(getPropertyIdFor(header))
     fun getProperty(propertyId: String): List<Byte>? = getPropertyEntry(propertyId)?.body
@@ -38,7 +38,7 @@ abstract class ObservablePropertyList {
     fun initializeCatalogUpdatedEvent() {
         internalCatalogUpdated.add {
             val newEntries = mutableListOf<Entry>()
-            val list = getPropertyList()
+            val list = getMetadataList()
             list?.forEach { entry ->
                 val existing = properties.firstOrNull { it.id == entry.resource }
                 if (existing != null)
@@ -60,7 +60,7 @@ class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyCli
     override fun getReplyStatusFor(header: List<Byte>) = propertyClient.getReplyStatusFor(header)
     override fun getMediaTypeFor(replyHeader: List<Byte>) = propertyClient.getMediaTypeFor(replyHeader)
 
-    override fun getPropertyList(): List<PropertyResource>? = propertyClient.getPropertyList()
+    override fun getMetadataList(): List<PropertyMetadata>? = propertyClient.getMetadataList()
 
     override val internalCatalogUpdated: MutableList<() -> Unit>
         get() = propertyClient.propertyCatalogUpdated
@@ -76,13 +76,13 @@ class ServiceObservablePropertyList(private val propertyService: MidiCIPropertyS
     override fun getReplyStatusFor(header: List<Byte>) = propertyService.getReplyStatusFor(header)
     override fun getMediaTypeFor(replyHeader: List<Byte>) = propertyService.getMediaTypeFor(replyHeader)
 
-    override fun getPropertyList(): List<PropertyResource>? = propertyService.getPropertyList()
+    override fun getMetadataList(): List<PropertyMetadata>? = propertyService.getMetadataList()
 
     override val internalCatalogUpdated: MutableList<() -> Unit>
         get() = propertyService.propertyCatalogUpdated
 
-    fun add(property: PropertyResource) {
-        propertyService.addProperty(property)
+    fun addMetadata(property: PropertyMetadata) {
+        propertyService.addMetadata(property)
         propertiesCatalogUpdated.forEach { it() }
     }
 

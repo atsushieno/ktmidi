@@ -14,7 +14,7 @@ interface MidiCIPropertyClient {
 
     fun getPropertyIdForHeader(header: List<Byte>): String
 
-    fun getPropertyList(): List<PropertyResource>?
+    fun getMetadataList(): List<PropertyMetadata>?
 
     suspend fun requestPropertyList(destinationMUID: Int, requestId: Byte)
 

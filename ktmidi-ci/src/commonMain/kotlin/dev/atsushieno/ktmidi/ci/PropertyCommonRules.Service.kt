@@ -3,13 +3,13 @@ package dev.atsushieno.ktmidi.ci
 import io.ktor.utils.io.core.*
 
 private val defaultPropertyList = listOf(
-    PropertyResource(PropertyResourceNames.DEVICE_INFO),
+    PropertyMetadata(PropertyResourceNames.DEVICE_INFO),
     //PropertyResource(PropertyResourceNames.CHANNEL_LIST),
     //PropertyResource(PropertyResourceNames.JSON_SCHEMA)
 )
 
 
-private fun PropertyResource.jsonValuePairs() = sequence {
+private fun PropertyMetadata.jsonValuePairs() = sequence {
     yield(Pair(Json.JsonValue(PropertyResourceFields.RESOURCE), Json.JsonValue(resource)))
     if (!canGet)
         yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_GET), if (canGet) Json.TrueValue else Json.FalseValue))
@@ -40,19 +40,19 @@ private fun PropertyResource.jsonValuePairs() = sequence {
         ))
 }
 
-fun PropertyResource.toJsonValue(): Json.JsonValue = Json.JsonValue(
+fun PropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
     jsonValuePairs().toMap()
 )
 
 class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
-                                 private val propertyList: MutableList<PropertyResource> = mutableListOf<PropertyResource>().apply { addAll(defaultPropertyList) })
+                                 private val metadataList: MutableList<PropertyMetadata> = mutableListOf<PropertyMetadata>().apply { addAll(defaultPropertyList) })
     : MidiCIPropertyService {
 
     // MidiCIPropertyService implementation
     override fun getPropertyIdForHeader(header: List<Byte>) = CommonRulesPropertyHelper.getPropertyIdentifier(header)
 
-    override fun getPropertyList(): List<PropertyResource> {
-        return propertyList
+    override fun getMetadataList(): List<PropertyMetadata> {
+        return metadataList
     }
 
     override fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply {
@@ -94,8 +94,8 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
     override fun getMediaTypeFor(replyHeader: List<Byte>): String =
         CommonRulesPropertyHelper.getMediaTypeFor(replyHeader)
 
-    override fun addProperty(property: PropertyResource) {
-        propertyList.add(property)
+    override fun addMetadata(property: PropertyMetadata) {
+        metadataList.add(property)
         propertyCatalogUpdated.forEach { it() }
     }
 
@@ -161,7 +161,7 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
     fun getPropertyData(headerJson: Json.JsonValue): Pair<Json.JsonValue, Json.JsonValue> {
         val header = getPropertyHeader(headerJson)
         val body = when(header.resource) {
-            PropertyResourceNames.RESOURCE_LIST -> Json.JsonValue(propertyList.map { it.toJsonValue() })
+            PropertyResourceNames.RESOURCE_LIST -> Json.JsonValue(metadataList.map { it.toJsonValue() })
             PropertyResourceNames.DEVICE_INFO -> getDeviceInfoJson()
             PropertyResourceNames.CHANNEL_LIST -> Json.JsonValue(mapOf()) // FIXME: implement
             PropertyResourceNames.JSON_SCHEMA -> Json.JsonValue(mapOf()) // FIXME: implement

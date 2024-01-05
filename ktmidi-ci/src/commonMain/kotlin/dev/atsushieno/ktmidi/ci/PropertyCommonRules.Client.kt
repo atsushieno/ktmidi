@@ -7,14 +7,14 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
 
     override fun getPropertyIdForHeader(header: List<Byte>) = CommonRulesPropertyHelper.getPropertyIdentifier(header)
 
-    override fun getPropertyList(): List<PropertyResource> = resourceList
+    override fun getMetadataList(): List<PropertyMetadata> = resourceList
 
     override suspend fun requestPropertyList(destinationMUID: Int, requestId: Byte) =
         requestResourceList(destinationMUID, requestId)
 
     override fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
         // If the reply message is about ResourceList, then store the list internally.
-        val list = getPropertyListForMessage(request, reply) ?: return
+        val list = getMetadataListForMessage(request, reply) ?: return
         resourceList.clear()
         resourceList.addAll(list)
         propertyCatalogUpdated.forEach { it() }
@@ -29,7 +29,7 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
 
     // implementation
 
-    private val resourceList = mutableListOf<PropertyResource>()
+    private val resourceList = mutableListOf<PropertyMetadata>()
 
     private fun requestResourceList(destinationMUID: Int, requestId: Byte) {
         val requestASCIIBytes = CommonRulesPropertyHelper.getResourceListRequestBytes()
@@ -37,21 +37,21 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
         sendGetPropertyData(msg)
     }
 
-    private fun getPropertyListForMessage(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply): List<PropertyResource>? {
+    private fun getMetadataListForMessage(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply): List<PropertyMetadata>? {
         val id = getPropertyIdForHeader(request.header)
-        return if (id == PropertyResourceNames.RESOURCE_LIST) getResourceListForBody(reply.body) else null
+        return if (id == PropertyResourceNames.RESOURCE_LIST) getMetadataListForBody(reply.body) else null
     }
 
-    private fun getResourceListForBody(body: List<Byte>): List<PropertyResource> {
+    private fun getMetadataListForBody(body: List<Byte>): List<PropertyMetadata> {
         val json = Json.parse(PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
-        return getResourceListForBody(json)
+        return getMetadataListForBody(json)
     }
 
-    private fun getResourceListForBody(body: Json.JsonValue): List<PropertyResource> {
+    private fun getMetadataListForBody(body: Json.JsonValue): List<PropertyMetadata> {
         // list of entries (name: value such as {"resource": "foo", "canSet": "partial"})
         val list = body.token.seq.toList()
         return list.map { entry ->
-            val res = PropertyResource()
+            val res = PropertyMetadata()
             entry.token.map.forEach {
                 val v = it.value
                 when (it.key.stringValue) {

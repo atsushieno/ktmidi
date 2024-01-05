@@ -59,8 +59,8 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         added.forEach { addProfile(it) }
     }
 
-    fun addProperty(property: PropertyResource) {
-        responder.properties.add(property)
+    fun addProperty(property: PropertyMetadata) {
+        responder.properties.addMetadata(property)
     }
 
     val responder = MidiCIResponder(device, { data ->

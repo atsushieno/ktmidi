@@ -189,7 +189,7 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
 fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String) {
     Column(Modifier.padding(12.dp)) {
         val entry = vm.properties.first { it.id == propertyId }
-        val def = vm.conn.propertyClient.getPropertyList()?.firstOrNull { it.resource == entry.id }
+        val def = vm.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == entry.id }
         ClientPropertyValueEditor(vm, def, entry)
         if (def != null)
             PropertyMetadataList(def, true)
@@ -199,7 +199,7 @@ fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String) {
 }
 
 @Composable
-fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyResource?, property: ObservablePropertyList.Entry) {
+fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyMetadata?, property: ObservablePropertyList.Entry) {
     val mediaType: String = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
     PropertyValueEditor(mediaType, def, property,
         { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, property.id) },

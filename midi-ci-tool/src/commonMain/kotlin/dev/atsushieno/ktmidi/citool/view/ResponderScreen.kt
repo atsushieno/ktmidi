@@ -310,7 +310,7 @@ fun LocalPropertyList(vm: LocalConfigurationViewModel) {
             }
         }
         Button(onClick = {
-            val property = PropertyResource().apply { resource = "Property${Random.nextInt()}" }
+            val property = PropertyMetadata().apply { resource = "Property${Random.nextInt()}" }
             AppModel.ciDeviceManager.responder.addProperty(property)
             //vm.selectedProperty.value = property.resource
         }) {
@@ -323,7 +323,7 @@ fun LocalPropertyList(vm: LocalConfigurationViewModel) {
 fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String) {
     Column(Modifier.padding(12.dp)) {
         val entry = vm.properties.first { it.id == propertyId }
-        val def = vm.responder.propertyService.getPropertyList()?.firstOrNull { it.resource == entry.id }
+        val def = vm.responder.propertyService.getMetadataList()?.firstOrNull { it.resource == entry.id }
         LocalPropertyValueEditor(vm, def, entry)
         var schemaString: String? = null
         if (def != null)
@@ -334,7 +334,7 @@ fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String) {
 }
 
 @Composable
-fun LocalPropertyValueEditor(vm: LocalConfigurationViewModel, def: PropertyResource?, property: ObservablePropertyList.Entry) {
+fun LocalPropertyValueEditor(vm: LocalConfigurationViewModel, def: PropertyMetadata?, property: ObservablePropertyList.Entry) {
     val mediaType: String = vm.responder.propertyService.getMediaTypeFor(property.replyHeader)
     PropertyValueEditor(mediaType, def, property,
         { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.responder.muid, property.id) },
