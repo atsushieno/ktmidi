@@ -199,7 +199,7 @@ fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String) {
 }
 
 @Composable
-fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyMetadata?, property: ObservablePropertyList.Entry) {
+fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyMetadata?, property: PropertyValue) {
     val mediaType: String = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
     PropertyValueEditor(mediaType, def, property,
         { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, property.id) },

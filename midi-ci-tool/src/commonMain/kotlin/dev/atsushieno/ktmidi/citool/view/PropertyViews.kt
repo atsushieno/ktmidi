@@ -65,7 +65,7 @@ fun PropertyMetadataList(def: PropertyMetadata, readOnly: Boolean, schemaString:
 }
 
 @Composable
-fun PropertyValueEditor(mediaType: String, def: PropertyMetadata?, property: ObservablePropertyList.Entry,
+fun PropertyValueEditor(mediaType: String, def: PropertyMetadata?, property: PropertyValue,
                         onGetValueClick: () -> Unit,
                         onCommitSetPropertyClick: (List<Byte>, Boolean) -> Unit) {
     Column {

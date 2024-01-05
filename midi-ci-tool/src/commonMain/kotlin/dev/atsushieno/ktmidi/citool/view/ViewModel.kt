@@ -78,7 +78,7 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
 
     var selectedProperty = mutableStateOf<String?>(null)
 
-    val properties = mutableStateListOf<ObservablePropertyList.Entry>().apply { addAll(conn.properties.entries)}
+    val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.properties.values)}
 
     init {
         conn.profiles.profilesChanged.add { change, profile ->
@@ -96,7 +96,7 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
                 .forEach { Snapshot.withMutableSnapshot { it.enabled.value = profile.enabled } }
         }
 
-        conn.properties.propertyChanged.add { entry ->
+        conn.properties.valueUpdated.add { entry ->
             val index = properties.indexOfFirst { it.id == entry.id }
             if (index < 0)
                 properties.add(entry)
@@ -108,7 +108,7 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
 
         conn.properties.propertiesCatalogUpdated.add {
             properties.clear()
-            properties.addAll(conn.properties.entries)
+            properties.addAll(conn.properties.values)
         }
     }
 }
@@ -143,7 +143,7 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
     }
     var selectedProperty = mutableStateOf<String?>(null)
-    val properties by lazy { mutableStateListOf<ObservablePropertyList.Entry>().apply { addAll(responder.properties.entries) } }
+    val properties by lazy { mutableStateListOf<PropertyValue>().apply { addAll(responder.properties.values) } }
 
     init {
         responder.profiles.profilesChanged.add { change, profile ->
@@ -170,7 +170,7 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
 
         responder.properties.propertiesCatalogUpdated.add {
             properties.clear()
-            properties.addAll(responder.properties.entries)
+            properties.addAll(responder.properties.values)
         }
     }
 }

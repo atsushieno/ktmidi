@@ -1,16 +1,17 @@
 package dev.atsushieno.ktmidi.ci
 
 /**
- * Observable list of MIDI-CI Properties
+ * Observable list of MIDI-CI Properties. Note that each entry is NOT observable.
  */
 
+data class PropertyValue(val id: String, val replyHeader: List<Byte>, val body: List<Byte>)
+
 abstract class ObservablePropertyList {
-    data class Entry(val id: String, val replyHeader: List<Byte>, val body: List<Byte>)
 
-    protected val properties = mutableListOf<Entry>()
+    protected val internalValues = mutableListOf<PropertyValue>()
 
-    val entries: List<Entry>
-        get() = properties
+    val values: List<PropertyValue>
+        get() = internalValues
 
     abstract fun getPropertyIdFor(header: List<Byte>): String
     abstract fun getReplyStatusFor(header: List<Byte>): Int?
@@ -18,36 +19,36 @@ abstract class ObservablePropertyList {
     abstract fun getMetadataList(): List<PropertyMetadata>?
 
     fun getProperty(header: List<Byte>): List<Byte>? = getProperty(getPropertyIdFor(header))
-    fun getProperty(propertyId: String): List<Byte>? = getPropertyEntry(propertyId)?.body
-    fun getPropertyEntry(header: List<Byte>): Entry? = getPropertyEntry(getPropertyIdFor(header))
-    fun getPropertyEntry(propertyId: String): Entry? =
-        properties.firstOrNull { it.id == propertyId }
+    fun getProperty(propertyId: String): List<Byte>? = getPropertyValue(propertyId)?.body
+    fun getPropertyValue(header: List<Byte>): PropertyValue? = getPropertyValue(getPropertyIdFor(header))
+    fun getPropertyValue(propertyId: String): PropertyValue? =
+        internalValues.firstOrNull { it.id == propertyId }
 
     fun set(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
         val id = getPropertyIdFor(request.header)
-        properties.removeAll { it.id == id }
-        val entry = Entry(id, reply.header, reply.body)
-        properties.add(entry)
-        propertyChanged.forEach { it(entry) }
+        internalValues.removeAll { it.id == id }
+        val propertyValue = PropertyValue(id, reply.header, reply.body)
+        internalValues.add(propertyValue)
+        valueUpdated.forEach { it(propertyValue) }
     }
 
-    val propertyChanged = mutableListOf<(entry: Entry) -> Unit>()
+    val valueUpdated = mutableListOf<(propertyValue: PropertyValue) -> Unit>()
     val propertiesCatalogUpdated = mutableListOf<() -> Unit>()
     abstract val internalCatalogUpdated: MutableList<() -> Unit>
 
     fun initializeCatalogUpdatedEvent() {
         internalCatalogUpdated.add {
-            val newEntries = mutableListOf<Entry>()
+            val newEntries = mutableListOf<PropertyValue>()
             val list = getMetadataList()
             list?.forEach { entry ->
-                val existing = properties.firstOrNull { it.id == entry.resource }
+                val existing = internalValues.firstOrNull { it.id == entry.resource }
                 if (existing != null)
                     newEntries.add(existing)
                 else
-                    newEntries.add(Entry(entry.resource, listOf(), listOf()))
+                    newEntries.add(PropertyValue(entry.resource, listOf(), listOf()))
             }
-            properties.clear()
-            properties.addAll(newEntries)
+            internalValues.clear()
+            internalValues.addAll(newEntries)
 
             propertiesCatalogUpdated.forEach { it() }
         }

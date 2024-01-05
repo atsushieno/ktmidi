@@ -334,7 +334,7 @@ fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String) {
 }
 
 @Composable
-fun LocalPropertyValueEditor(vm: LocalConfigurationViewModel, def: PropertyMetadata?, property: ObservablePropertyList.Entry) {
+fun LocalPropertyValueEditor(vm: LocalConfigurationViewModel, def: PropertyMetadata?, property: PropertyValue) {
     val mediaType: String = vm.responder.propertyService.getMediaTypeFor(property.replyHeader)
     PropertyValueEditor(mediaType, def, property,
         { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.responder.muid, property.id) },
