@@ -173,10 +173,11 @@ fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
 @Composable
 fun ClientPropertyList(vm: ConnectionViewModel) {
     Column {
-        val properties = vm.properties.map { it.id }.distinct()
+        val properties = vm.properties.values.map { it.id }.distinct()
         Snapshot.withMutableSnapshot {
             properties.forEach {
-                PropertyListEntry(it, vm.selectedProperty.value == it) {
+                val id by remember { it }
+                PropertyListEntry(id, vm.selectedProperty.value == id) {
                     propertyId -> vm.selectProperty(propertyId)
                     AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, propertyId)
                 }
@@ -188,21 +189,22 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
 @Composable
 fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String) {
     Column(Modifier.padding(12.dp)) {
-        val entry = vm.properties.first { it.id == propertyId }
-        val def = vm.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == entry.id }
+        val entry = vm.properties.values.first { it.id.value == propertyId }
+        val def = vm.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == entry.id.value }
         ClientPropertyValueEditor(vm, def, entry)
         if (def != null)
-            PropertyMetadataList(def, true)
+            PropertyMetadataEditor(def, {}, true)
         else
             Text("(Metadata not available - not in ResourceList)")
     }
 }
 
 @Composable
-fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyMetadata?, property: PropertyValue) {
+fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyMetadata?, property: PropertyValueState) {
+    val id by remember { property.id }
     val mediaType: String = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
-    PropertyValueEditor(mediaType, def, property,
-        { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, property.id) },
-        { bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, property.id, bytes, isPartial) }
+    PropertyValueEditor(false, mediaType, def, property,
+        { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, id) },
+        { bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, id, bytes, isPartial) }
     )
 }

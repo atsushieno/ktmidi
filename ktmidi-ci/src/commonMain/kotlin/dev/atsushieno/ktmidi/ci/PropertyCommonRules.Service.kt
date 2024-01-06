@@ -57,35 +57,44 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
 
     override fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply {
         val jsonInquiry =
-            Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+            Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+        // FIXME: log error if it failed to parse JSON
 
-        val result = getPropertyData(jsonInquiry)
+        val result = if (jsonInquiry != null) getPropertyData(jsonInquiry) else null
 
-        val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
-        val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
+        // FIXME: header should set error status
+        val replyHeader = if (result == null) listOf() else PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
+        val replyBody = if (result == null) listOf() else PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
         return Message.GetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader, 1, 1, replyBody)
     }
     override fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply {
         val jsonInquiryHeader =
-            Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+            Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
         val jsonInquiryBody =
-            Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.body.toByteArray().decodeToString()))
+            Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(msg.body.toByteArray().decodeToString()))
+        // FIXME: log errors if it parsed to fail either of JSON above.
 
-        val result = setPropertyData(jsonInquiryHeader, jsonInquiryBody)
+        val result =
+            if (jsonInquiryHeader != null && jsonInquiryBody != null)
+                setPropertyData(jsonInquiryHeader, jsonInquiryBody)
+            else null
 
-        val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result)).toByteArray().toList()
+        // FIXME: header should set error status
+        val replyHeader = if (result == null) listOf() else PropertyCommonConverter.encodeStringToASCII(Json.serialize(result)).toByteArray().toList()
         return Message.SetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader)
     }
 
     override fun subscribeProperty(msg: Message.SubscribeProperty): Message.SubscribePropertyReply {
         val jsonHeader =
-            Json.parse(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+            Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
         // body is ignored in PropertyCommonRules.
+        // FIXME: log errors if it parsed to fail either of JSON above.
 
-        val result = subscribe(msg.sourceMUID, jsonHeader)
+        val result = if (jsonHeader != null) subscribe(msg.sourceMUID, jsonHeader) else null
 
-        val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
-        val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
+        // FIXME: header should set error status
+        val replyHeader = if (result == null) listOf() else PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
+        val replyBody = if (result == null) listOf() else PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
         return Message.SubscribePropertyReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody)
     }
 

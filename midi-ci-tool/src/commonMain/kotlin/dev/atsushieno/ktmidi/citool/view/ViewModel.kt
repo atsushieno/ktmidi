@@ -78,7 +78,7 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
 
     var selectedProperty = mutableStateOf<String?>(null)
 
-    val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.properties.values)}
+    val properties = ClientObservablePropertyList(conn.propertyClient)
 
     init {
         conn.profiles.profilesChanged.add { change, profile ->
@@ -96,19 +96,8 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
                 .forEach { Snapshot.withMutableSnapshot { it.enabled.value = profile.enabled } }
         }
 
-        conn.properties.valueUpdated.add { entry ->
-            val index = properties.indexOfFirst { it.id == entry.id }
-            if (index < 0)
-                properties.add(entry)
-            else {
-                properties.removeAt(index)
-                properties.add(index, entry)
-            }
-        }
-
-        conn.properties.propertiesCatalogUpdated.add {
-            properties.clear()
-            properties.addAll(conn.properties.values)
+        properties.valueUpdated.add { entry ->
+            properties.updateValue(entry)
         }
     }
 }
@@ -140,10 +129,15 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
     }
 
     fun selectProperty(propertyId: String) {
-        Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
+        selectedProperty.value = propertyId
     }
     var selectedProperty = mutableStateOf<String?>(null)
-    val properties by lazy { mutableStateListOf<PropertyValue>().apply { addAll(responder.properties.values) } }
+    val properties by lazy { ServiceObservablePropertyList(responder.propertyService) }
+    fun refreshPropertyList() {
+        // FIXME: implement
+        //properties.clear()
+        //properties.addAll(responder.properties.values)
+    }
 
     init {
         responder.profiles.profilesChanged.add { change, profile ->
@@ -168,9 +162,8 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
             dst.enabled.value = profile.enabled
         }
 
-        responder.properties.propertiesCatalogUpdated.add {
-            properties.clear()
-            properties.addAll(responder.properties.values)
+        properties.propertiesCatalogUpdated.add {
+            refreshPropertyList()
         }
     }
 }

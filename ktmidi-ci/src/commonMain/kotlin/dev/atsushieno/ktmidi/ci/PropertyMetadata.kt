@@ -1,6 +1,19 @@
 package dev.atsushieno.ktmidi.ci
 
 class PropertyMetadata() {
+    fun updateFrom(it: PropertyMetadata) {
+        resource = it.resource
+        canGet = it.canGet
+        canSet = it.canSet
+        canSubscribe = it.canSubscribe
+        requireResId = it.requireResId
+        mediaTypes = it.mediaTypes
+        encodings = it.encodings
+        schema = it.schema
+        canPaginate = it.canPaginate
+        columns = it.columns
+    }
+
     var resource: String = ""
     var canGet: Boolean = true
     var canSet: String = PropertySetAccess.NONE

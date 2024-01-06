@@ -47,7 +47,7 @@ object CommonRulesPropertyHelper {
         if (header.isEmpty())
             return null
         val replyString = PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString())
-        val replyJson = Json.parse(replyString)
+        val replyJson = Json.parseOrNull(replyString) ?: return null // FIXME: log error?
         val valuePair = replyJson.token.map.toList().firstOrNull { it.first.stringValue == field } ?: return null
         return valuePair.second
     }

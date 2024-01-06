@@ -42,9 +42,10 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
         return if (id == PropertyResourceNames.RESOURCE_LIST) getMetadataListForBody(reply.body) else null
     }
 
-    private fun getMetadataListForBody(body: List<Byte>): List<PropertyMetadata> {
-        val json = Json.parse(PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
-        return getMetadataListForBody(json)
+    private fun getMetadataListForBody(body: List<Byte>): List<PropertyMetadata>? {
+        val json = Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
+        // FIXME: log error if it failed to parse JSON
+        return if (json != null) getMetadataListForBody(json) else null
     }
 
     private fun getMetadataListForBody(body: Json.JsonValue): List<PropertyMetadata> {

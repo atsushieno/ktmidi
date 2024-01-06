@@ -43,11 +43,24 @@ fun ResponderScreen() {
     Text("Properties", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
 
     Row {
-        LocalPropertyList(vm)
-        val selectedProperty by remember { vm.selectedProperty }
-        val sp = selectedProperty
+        LocalPropertyList(vm.properties.values.map { it.id.value }, vm.selectedProperty.value, {
+            vm.selectProperty(it)
+        }, {
+            val property = PropertyMetadata().apply { resource = "Property${Random.nextInt()}" }
+            AppModel.ciDeviceManager.responder.addProperty(property)
+            property
+        })
+
+        val sp = vm.selectedProperty.value
         if (sp != null)
-            LocalPropertyDetails(vm, sp)
+            LocalPropertyDetails(vm, sp,
+                {
+                    vm.properties.updateMetadata(it)
+                    vm.refreshPropertyList()
+                },
+                { id, bytes, isPartial ->
+                    AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.responder.muid, id, bytes, isPartial)
+                })
     }
 }
 
@@ -299,20 +312,13 @@ fun AddressSelector(address: Byte, valueChange: (Byte) -> Unit) {
 
 
 @Composable
-fun LocalPropertyList(vm: LocalConfigurationViewModel) {
+fun LocalPropertyList(properties: List<String>, selectedProperty: String?, selectProperty: (String)->Unit, addProperty: () -> PropertyMetadata) {
     Column {
-        val properties = vm.properties.map { it.id }.distinct()
         properties.forEach {
-            PropertyListEntry(it, vm.selectedProperty.value == it) {
-                propertyId -> vm.selectProperty(propertyId)
-                // FIXME: implement
-                //AppModel.ciDeviceManager.responder.sendGetPropertyDataRequest(vm.responder.muid, propertyId)
-            }
+            PropertyListEntry(it, selectedProperty == it) { propertyId -> selectProperty(propertyId) }
         }
         Button(onClick = {
-            val property = PropertyMetadata().apply { resource = "Property${Random.nextInt()}" }
-            AppModel.ciDeviceManager.responder.addProperty(property)
-            //vm.selectedProperty.value = property.resource
+            selectProperty(addProperty().resource)
         }) {
             Image(Icons.Default.Add, "Add")
         }
@@ -320,24 +326,28 @@ fun LocalPropertyList(vm: LocalConfigurationViewModel) {
 }
 
 @Composable
-fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String) {
+fun LocalPropertyDetails(vm: LocalConfigurationViewModel,
+                         propertyId: String,
+                         propertyMetadataUpdateCommitted: (PropertyMetadata) -> Unit,
+                         onCommitSetProperty: (id: String, bytes: List<Byte>, isPartial: Boolean) -> Unit) {
     Column(Modifier.padding(12.dp)) {
-        val entry = vm.properties.first { it.id == propertyId }
-        val def = vm.responder.propertyService.getMetadataList()?.firstOrNull { it.resource == entry.id }
-        LocalPropertyValueEditor(vm, def, entry)
-        var schemaString: String? = null
-        if (def != null)
-            PropertyMetadataList(def, false, schemaString) { schemaString = it }
+        val value = vm.properties.values.first { it.id.value == propertyId }
+        val metadata = vm.responder.propertyService.getMetadataList().firstOrNull { it.resource == value.id.value }
+
+        PropertyValueEditor(true, vm.responder.propertyService.getMediaTypeFor(value.replyHeader),
+            metadata,
+            value,
+            {},
+            { bytes, isPartial -> onCommitSetProperty(propertyId, bytes, isPartial) }
+        )
+        var m = metadata
+        if (m != null)
+            PropertyMetadataEditor(m,
+                {
+                    propertyMetadataUpdateCommitted(it)
+                    m = it
+                }, false)
         else
             Text("(Metadata not available - not in ResourceList)")
     }
-}
-
-@Composable
-fun LocalPropertyValueEditor(vm: LocalConfigurationViewModel, def: PropertyMetadata?, property: PropertyValue) {
-    val mediaType: String = vm.responder.propertyService.getMediaTypeFor(property.replyHeader)
-    PropertyValueEditor(mediaType, def, property,
-        { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.responder.muid, property.id) },
-        { bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.responder.muid, property.id, bytes, isPartial) }
-    )
 }

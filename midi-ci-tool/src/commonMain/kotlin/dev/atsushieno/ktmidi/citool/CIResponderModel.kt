@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.citool
 
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
 import dev.atsushieno.ktmidi.citool.view.ViewModel
@@ -7,6 +9,48 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.random.Random
+
+/*
+class ObservablePropertyMetadata(src: PropertyMetadata) {
+    var resource = mutableStateOf(src.resource)
+    var canGet = mutableStateOf(src.canGet)
+    var canSet = mutableStateOf(src.canSet)
+    var canSubscribe = mutableStateOf(src.canSubscribe)
+    var requireResId = mutableStateOf(src.requireResId)
+    var mediaTypes = mutableStateListOf<String>().apply { addAll(src.mediaTypes) }
+    var encodings = mutableStateListOf<String>().apply { addAll(src.encodings) }
+    var schema = mutableStateOf(src.schema)
+    // additional properties for List resources
+    var canPaginate = mutableStateOf(src.canPaginate)
+    var columns = mutableStateListOf<PropertyResourceColumn>().apply { addAll(src.columns) }
+
+    fun createNew() = PropertyMetadata().also {
+        it.resource = resource.value
+        it.canGet = canGet.value
+        it.canSet = canSet.value
+        it.canSubscribe = canSubscribe.value
+        it.requireResId = requireResId.value
+        it.mediaTypes = mediaTypes.toList()
+        it.encodings = encodings.toList()
+        it.schema = schema.value
+        it.canPaginate = canPaginate.value
+        it.columns = columns.toList()
+    }
+
+    fun updateAll(src: PropertyMetadata) {
+        resource.value = src.resource
+        canGet.value = src.canGet
+        canSet.value = src.canSet
+        canSubscribe.value = src.canSubscribe
+        requireResId.value = src.requireResId
+        mediaTypes.removeAll { !src.mediaTypes.contains(it) }
+        mediaTypes.addAll(mediaTypes.filter { !src.mediaTypes.contains(it) })
+        encodings.removeAll { !src.encodings.contains(it) }
+        encodings.addAll(encodings.filter { !src.encodings.contains(it) })
+        columns.removeAll { !src.columns.contains(it) }
+        columns.addAll(columns.filter { !src.columns.contains(it) })
+    }
+}*/
 
 class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     fun processCIMessage(data: List<Byte>) {

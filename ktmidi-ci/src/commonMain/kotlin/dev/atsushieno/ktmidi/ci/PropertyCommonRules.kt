@@ -200,6 +200,15 @@ class PropertyResourceColumn {
     var property: String? = null
     var link: String? = null
 
+    override fun equals(other: Any?): Boolean {
+        val o = if (other is PropertyResourceColumn) other else return false
+        return title == o.title && property == o.property && link == o.link
+    }
+
+    override fun hashCode(): Int {
+        return title.hashCode() + property.hashCode() + link.hashCode()
+    }
+
     fun toJsonValue(): Json.JsonValue = Json.JsonValue(
         mapOf(
             if (property != null)
