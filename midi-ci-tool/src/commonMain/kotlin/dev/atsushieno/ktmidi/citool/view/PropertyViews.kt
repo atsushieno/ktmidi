@@ -96,7 +96,7 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
                 // FIXME: columns too
             })
         }) {
-            Text("Update")
+            Text("Update Metadata")
         }}
         updateButton()
         PropertyColumn("resource") { TextField(resource, { resource = it }, readOnly = readOnly) }
@@ -158,7 +158,6 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         val showUploadButton = @Composable {
             if (getPlatform().canReadLocalFile) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("... or ...")
                     Button(onClick = { showFilePicker = !showFilePicker }) {
                         Text("Commit value via binary File")
                     }
@@ -209,6 +208,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         }
                     }
                     TextField(text, { text = it })
+                    Text("... or ...")
                     showUploadButton()
                 } else {
                     showRefreshButton()

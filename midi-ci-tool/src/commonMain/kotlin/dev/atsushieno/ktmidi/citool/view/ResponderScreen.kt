@@ -346,8 +346,7 @@ fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String,
 
 @Composable
 fun LocalPropertyValueEditor(vm: LocalConfigurationViewModel, def: PropertyMetadata?, property: PropertyValue) {
-    val mediaType: String = vm.responder.propertyService.getMediaTypeFor(property.replyHeader)
-    PropertyValueEditor(true, mediaType, def, property.body,
+    PropertyValueEditor(true, property.mediaType, def, property.body,
         {}, // local editor does not support value refresh
         { bytes, isPartial -> vm.updatePropertyValue(property.id, bytes, isPartial) }
     )

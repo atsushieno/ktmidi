@@ -193,7 +193,7 @@ fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
     Column(Modifier.padding(12.dp)) {
         val entry = vm.properties.first { it.id == propertyId }
         val def = vm.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == entry.id }
-        ClientPropertyValueEditor(vm, def, entry,
+        ClientPropertyValueEditor(def, entry,
             refreshValueClicked = { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, entry.id) },
             commitChangeClicked = { bytes, isPartial -> refreshValueClicked(entry.id, bytes, isPartial) }
         )
@@ -207,9 +207,8 @@ fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
 }
 
 @Composable
-fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyMetadata?, property: PropertyValue,
+fun ClientPropertyValueEditor(def: PropertyMetadata?, property: PropertyValue,
                               refreshValueClicked: () -> Unit,
                               commitChangeClicked: (bytes: List<Byte>, isPartial: Boolean) -> Unit) {
-    val mediaType: String = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
-    PropertyValueEditor(false, mediaType, def, property.body, refreshValueClicked, commitChangeClicked)
+    PropertyValueEditor(false, property.mediaType, def, property.body, refreshValueClicked, commitChangeClicked)
 }

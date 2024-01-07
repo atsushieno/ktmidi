@@ -152,7 +152,7 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
         // which means the id is already updated. So we do not use `oldPropertyId` here...
         val index = properties.indexOfFirst { it.id == property.resource }
         val existing = properties[index]
-        properties[index] = PropertyValue(property.resource, existing.replyHeader, existing.body)
+        properties[index] = PropertyValue(property.resource, existing.mediaType, existing.body)
         selectedProperty.value = property.resource
     }
 

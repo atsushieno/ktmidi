@@ -4,7 +4,7 @@ package dev.atsushieno.ktmidi.ci
  * Observable list of MIDI-CI Properties. Note that each entry is NOT observable.
  */
 
-data class PropertyValue(val id: String, val replyHeader: List<Byte>, var body: List<Byte>)
+data class PropertyValue(val id: String, val mediaType: String, var body: List<Byte>)
 
 abstract class ObservablePropertyList {
 
@@ -32,7 +32,7 @@ abstract class ObservablePropertyList {
                 if (existing != null)
                     newEntries.add(existing)
                 else
-                    newEntries.add(PropertyValue(entry.resource, listOf(), listOf()))
+                    newEntries.add(PropertyValue(entry.resource, entry.mediaTypes.firstOrNull() ?: "", listOf()))
             }
             internalValues.clear()
             internalValues.addAll(newEntries)
@@ -55,7 +55,8 @@ class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyCli
     fun updateValue(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
         val id = getPropertyIdFor(request.header)
         internalValues.removeAll { it.id == id }
-        val propertyValue = PropertyValue(id, reply.header, reply.body)
+        val mediaType = propertyClient.getMediaTypeFor(reply.header)
+        val propertyValue = PropertyValue(id, mediaType, reply.body)
         internalValues.add(propertyValue)
         valueUpdated.forEach { it(propertyValue) }
     }
