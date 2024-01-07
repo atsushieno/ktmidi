@@ -10,6 +10,7 @@ import dev.atsushieno.ktmidi.citool.AppModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 object ViewModel {
     private val uiScope = CoroutineScope(Dispatchers.Main)
@@ -74,6 +75,7 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
 
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
+        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.muid, propertyId)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
@@ -162,6 +164,18 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
         responder.properties.values.first { it.id == propertyId }.body = bytes
         // the assignee instance is most likely identical to above, but in case our logic has changed...
         properties.first { it.id == propertyId }.body = bytes
+    }
+
+    fun createNewProperty() {
+        val property = PropertyMetadata().apply { resource = "Property${Random.nextInt()}" }
+        AppModel.ciDeviceManager.responder.addProperty(property)
+        selectedProperty.value = property.resource
+    }
+
+    fun removeSelectedProperty() {
+        val p = selectedProperty.value ?: return
+        selectedProperty.value = null
+        AppModel.ciDeviceManager.responder.removeProperty(p)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)

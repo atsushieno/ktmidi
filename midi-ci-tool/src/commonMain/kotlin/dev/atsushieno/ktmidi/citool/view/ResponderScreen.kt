@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
-import kotlin.random.Random
 
 @Composable
 fun ResponderScreen() {
@@ -39,18 +38,35 @@ fun ResponderScreen() {
         if (sp != null)
             LocalProfileDetails(vm, sp)
     }
+    LocalPropertyConfiguration(vm)
+}
 
+@Composable
+fun LocalPropertyConfiguration(vm: LocalConfigurationViewModel) {
     Text("Properties", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
 
     Row {
-        LocalPropertyList(vm)
+        LocalPropertyList(
+            vm.properties.map { it.id }.distinct(),
+            vm.selectedProperty.value,
+            selectProperty = { vm.selectProperty(it) },
+            createNewProperty = { vm.createNewProperty() },
+            removeSelectedProperty = { vm.removeSelectedProperty() }
+        )
+
         val selectedProperty by remember { vm.selectedProperty }
         val sp = selectedProperty
-        if (sp != null)
-            LocalPropertyDetails(vm, sp,
-                metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) })
+        if (sp != null) {
+            val value = vm.properties.first { it.id == sp }
+            val def = vm.responder.propertyService.getMetadataList()?.firstOrNull { it.resource == sp }
+            LocalPropertyDetails(def, value,
+                updatePropertyValue = { id, data, isPartial -> vm.updatePropertyValue(id, data, isPartial) },
+                metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) }
+            )
+        }
     }
 }
+
 
 @Composable
 fun DeviceInfoItem(label: String) {
@@ -300,39 +316,36 @@ fun AddressSelector(address: Byte, valueChange: (Byte) -> Unit) {
 
 
 @Composable
-fun LocalPropertyList(vm: LocalConfigurationViewModel) {
+fun LocalPropertyList(properties: List<String>,
+                      selectedProperty: String?,
+                      selectProperty: (id: String)->Unit,
+                      createNewProperty: ()->Unit,
+                      removeSelectedProperty: ()->Unit) {
     Column {
-        val properties = vm.properties.map { it.id }.distinct()
         properties.forEach {
-            PropertyListEntry(it, vm.selectedProperty.value == it) {
-                propertyId -> vm.selectProperty(propertyId)
+            PropertyListEntry(it, selectedProperty == it) {
+                propertyId -> selectProperty(propertyId)
             }
         }
-        Button(onClick = {
-            val property = PropertyMetadata().apply { resource = "Property${Random.nextInt()}" }
-            AppModel.ciDeviceManager.responder.addProperty(property)
-            vm.selectedProperty.value = property.resource
-        }) {
+        Button(onClick = { createNewProperty() }) {
             Image(Icons.Default.Add, "Add")
         }
-        Button(onClick = {
-            val p = vm.selectedProperty.value ?: return@Button
-            vm.selectedProperty.value = null
-            AppModel.ciDeviceManager.responder.removeProperty(p)
-        }) {
+        Button(onClick = { removeSelectedProperty() }) {
             Image(Icons.Default.Delete, "Delete")
         }
     }
 }
 
 @Composable
-fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String,
+fun LocalPropertyDetails(def: PropertyMetadata?, property: PropertyValue,
+                         updatePropertyValue: (propertyId: String, bytes: List<Byte>, isPartial: Boolean) -> Unit,
                          metadataUpdateCommitted: (property: PropertyMetadata) -> Unit) {
     Column(Modifier.padding(12.dp)) {
-        val entry = vm.properties.first { it.id == propertyId }
-        val def = vm.responder.propertyService.getMetadataList()?.firstOrNull { it.resource == entry.id }
         if (def != null) {
-            LocalPropertyValueEditor(vm, def, entry)
+            PropertyValueEditor(true, property.mediaType, def, property.body,
+                {}, // local editor does not support value refresh
+                { bytes, isPartial -> updatePropertyValue(property.id, bytes, isPartial) }
+            )
             PropertyMetadataEditor(
                 def,
                 metadataUpdateCommitted,
@@ -342,12 +355,4 @@ fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String,
         else
             Text("(Metadata not available - not in ResourceList)")
     }
-}
-
-@Composable
-fun LocalPropertyValueEditor(vm: LocalConfigurationViewModel, def: PropertyMetadata?, property: PropertyValue) {
-    PropertyValueEditor(true, property.mediaType, def, property.body,
-        {}, // local editor does not support value refresh
-        { bytes, isPartial -> vm.updatePropertyValue(property.id, bytes, isPartial) }
-    )
 }

@@ -180,7 +180,6 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
             properties.forEach {
                 PropertyListEntry(it, vm.selectedProperty.value == it) {
                     propertyId -> vm.selectProperty(propertyId)
-                    AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, propertyId)
                 }
             }
         }
