@@ -348,7 +348,7 @@ fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String,
 fun LocalPropertyValueEditor(vm: LocalConfigurationViewModel, def: PropertyMetadata?, property: PropertyValue) {
     val mediaType: String = vm.responder.propertyService.getMediaTypeFor(property.replyHeader)
     PropertyValueEditor(true, mediaType, def, property.body,
-        { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.responder.muid, property.id) },
-        { bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.responder.muid, property.id, bytes, isPartial) }
+        {}, // local editor does not support value refresh
+        { bytes, isPartial -> vm.updatePropertyValue(property.id, bytes, isPartial) }
     )
 }

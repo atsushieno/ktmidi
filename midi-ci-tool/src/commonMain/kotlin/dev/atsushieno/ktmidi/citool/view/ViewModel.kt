@@ -156,6 +156,14 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
         selectedProperty.value = property.resource
     }
 
+    fun updatePropertyValue(propertyId: String, bytes: List<Byte>, isPartial: Boolean) {
+        if (isPartial)
+            TODO("FIXME: implement")
+        responder.properties.values.first { it.id == propertyId }.body = bytes
+        // the assignee instance is most likely identical to above, but in case our logic has changed...
+        properties.first { it.id == propertyId }.body = bytes
+    }
+
     var selectedProperty = mutableStateOf<String?>(null)
     val properties by lazy { mutableStateListOf<PropertyValue>().apply { addAll(responder.properties.values) } }
 

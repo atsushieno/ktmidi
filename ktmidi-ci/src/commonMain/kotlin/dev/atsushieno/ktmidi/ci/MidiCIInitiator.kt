@@ -44,7 +44,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
             if (status == PropertyExchangeStatus.OK) {
                 propertyClient.onGetPropertyDataReply(req, msg)
-                properties.set(req, msg)
+                properties.updateValue(req, msg)
             }
         }
 
