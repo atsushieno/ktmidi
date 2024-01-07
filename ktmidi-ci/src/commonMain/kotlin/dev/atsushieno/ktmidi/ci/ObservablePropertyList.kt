@@ -92,5 +92,8 @@ class ServiceObservablePropertyList(private val propertyService: MidiCIPropertyS
 
     init {
         initializeCatalogUpdatedEvent()
+        internalValues.addAll(propertyService.getMetadataList() ?.map {
+            PropertyValue(it.resource, it.mediaTypes.firstOrNull() ?: "", listOf())
+        } ?: listOf())
     }
 }
