@@ -60,7 +60,7 @@ fun LocalPropertyConfiguration(vm: LocalConfigurationViewModel) {
             val value = vm.properties.first { it.id == sp }
             val def = vm.responder.propertyService.getMetadataList()?.firstOrNull { it.resource == sp }
             LocalPropertyDetails(def, value,
-                updatePropertyValue = { id, data, isPartial -> vm.updatePropertyValue(id, data, isPartial) },
+                updatePropertyValue = { id, data -> vm.updatePropertyValue(id, data) },
                 metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) }
             )
         }
@@ -340,13 +340,13 @@ fun LocalPropertyList(properties: List<String>,
 
 @Composable
 fun LocalPropertyDetails(def: PropertyMetadata?, property: PropertyValue,
-                         updatePropertyValue: (propertyId: String, bytes: List<Byte>, isPartial: Boolean) -> Unit,
+                         updatePropertyValue: (propertyId: String, bytes: List<Byte>) -> Unit,
                          metadataUpdateCommitted: (property: PropertyMetadata) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         if (def != null) {
             PropertyValueEditor(true, property.mediaType, def, property.body,
                 {}, // local editor does not support value refresh
-                { bytes, isPartial -> updatePropertyValue(property.id, bytes, isPartial) }
+                { bytes, _ -> updatePropertyValue(property.id, bytes) }
             )
             PropertyMetadataEditor(
                 def,
