@@ -26,6 +26,8 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         val getPropertyDataReceived = mutableListOf<(msg: Message.GetPropertyData) -> Unit>()
         val setPropertyDataReceived = mutableListOf<(msg: Message.SetPropertyData) -> Unit>()
         val subscribePropertyReceived = mutableListOf<(msg: Message.SubscribeProperty) -> Unit>()
+        val subscribePropertyReplyReceived = mutableListOf<(msg: Message.SubscribePropertyReply) -> Unit>()
+        val propertyNotifyReceived = mutableListOf<(msg: Message.PropertyNotify) -> Unit>()
     }
 
     val events = Events()
@@ -50,6 +52,55 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
 
     val propertyService = CommonRulesPropertyService(muid, device)
     val properties = ServiceObservablePropertyList(propertyService)
+
+    private var requestIdSerial: Byte = 0
+
+    // updating property value involves updates to subscribers
+    // FIXME: property update notifications should also be sent when it is triggered by
+    //  client-side updates. Thus, it should be handled at CommonRulesPropertyService.
+    fun updatePropertyValue(propertyId: String, data: List<Byte>) {
+        properties.values.first { it.id == propertyId }.body = data
+        notifyPropertyUpdatesToSubscribers(propertyId, data)
+    }
+
+    var notifyPropertyUpdatesToSubscribers: (propertyId: String, data: List<Byte>) -> Unit = { propertyId, data ->
+        createPropertyNotification(propertyId, data).forEach { msg ->
+            logger.subscribeProperty(msg)
+            notifyPropertyUpdatesToSubscribers(msg)
+        }
+    }
+    var createPropertyNotification: (propertyId: String, data: List<Byte>) -> Sequence<Message.SubscribeProperty> = { propertyId, data ->
+        sequence {
+            propertyService.subscriptions.filter { it.resource == propertyId }.forEach {
+                // FIXME: maybe we should support partial notifications?
+                val header = propertyService.createUpdateNotificationHeader(it.subscribeId, false)
+                yield(Message.SubscribeProperty(muid, MidiCIConstants.BROADCAST_MUID_32, requestIdSerial++, header, data))
+            }
+        }
+    }
+
+    fun notifyPropertyUpdatesToSubscribers(msg: Message.SubscribeProperty) = sendPropertySubscription(msg)
+
+    // Notify end of subscription updates
+    fun sendPropertySubscription(msg: Message.SubscribeProperty) {
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        CIFactory.midiCIPropertyChunks(
+            dst, CISubId2.PROPERTY_SUBSCRIBE,
+            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
+        ).forEach {
+            sendOutput(it)
+        }
+    }
+    fun terminateSubscriptions() {
+        propertyService.subscriptions.forEach {
+            val msg = Message.SubscribeProperty(muid, it.muid, requestIdSerial++,
+                propertyService.createTerminateNotificationHeader(it.subscribeId), listOf()
+            )
+            sendPropertySubscription(msg)
+        }
+    }
+
+    // Message handlers
 
     val sendDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
@@ -282,6 +333,17 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         sendPropertySubscribeReply(reply)
     }
 
+    // It receives reply to property notifications
+    var processSubscribePropertyReply: (msg: Message.SubscribePropertyReply) -> Unit = { msg ->
+        logger.subscribePropertyReply(msg)
+        events.subscribePropertyReplyReceived.forEach { it(msg) }
+    }
+
+    var processPropertyNotify: (msg: Message.PropertyNotify) -> Unit = { msg ->
+        logger.propertyNotify(msg)
+        events.propertyNotifyReceived.forEach { it(msg) }
+    }
+
     fun processInput(data: List<Byte>) {
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
             return // not MIDI-CI sysex
@@ -384,7 +446,23 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
-                processSubscribeProperty(Message.SubscribeProperty(sourceMUID, destinationMUID, requestId, header))
+                processSubscribeProperty(Message.SubscribeProperty(sourceMUID, destinationMUID, requestId, header, listOf()))
+            }
+
+            CISubId2.PROPERTY_SUBSCRIBE_REPLY -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val requestId = data[13]
+                val headerSize = data[14] + (data[15].toInt() shl 7)
+                val header = data.drop(16).take(headerSize)
+                processSubscribePropertyReply(Message.SubscribePropertyReply(sourceMUID, destinationMUID, requestId, header, listOf()))
+            }
+
+            CISubId2.PROPERTY_NOTIFY -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val requestId = data[13]
+                val headerSize = data[14] + (data[15].toInt() shl 7)
+                val header = data.drop(16).take(headerSize)
+                processPropertyNotify(Message.PropertyNotify(sourceMUID, destinationMUID, requestId, header, listOf()))
             }
 
             else -> {

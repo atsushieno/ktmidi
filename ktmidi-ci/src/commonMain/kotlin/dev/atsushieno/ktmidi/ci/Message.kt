@@ -64,10 +64,13 @@ class Message {
     data class SetPropertyDataReply(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>) {
         override fun toString() = "SetPropertyDataReply(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()})"
     }
-    data class SubscribeProperty(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>) {
-        override fun toString() = "SubscribeProperty(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()})"
+    data class SubscribeProperty(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>) {
+        override fun toString() = "SubscribeProperty(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()}, body = ${body.toByteArray().decodeToString()})"
     }
     data class SubscribePropertyReply(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>) {
         override fun toString() = "SubscribePropertyReply(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()})"
+    }
+    data class PropertyNotify(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>) {
+        override fun toString() = "PropertyNotify(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()}, body = ${body.toByteArray().decodeToString()})"
     }
 }

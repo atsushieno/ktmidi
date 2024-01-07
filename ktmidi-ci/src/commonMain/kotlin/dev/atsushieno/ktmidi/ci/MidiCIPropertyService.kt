@@ -15,6 +15,7 @@ package dev.atsushieno.ktmidi.ci
  */
 interface MidiCIPropertyService {
     fun getPropertyIdForHeader(header: List<Byte>): String
+    fun createUpdateNotificationHeader(propertyId: String, isUpdatePartial: Boolean): List<Byte>
     fun getMetadataList(): List<PropertyMetadata>?
     fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply
     fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply

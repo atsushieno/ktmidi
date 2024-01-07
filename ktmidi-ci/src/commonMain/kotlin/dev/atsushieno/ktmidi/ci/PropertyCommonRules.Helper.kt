@@ -70,4 +70,21 @@ object CommonRulesPropertyHelper {
         else defaultMimeType
     }
 
+    fun createUpdateNotificationHeader(subscribeId: String, command: String): Json.JsonValue {
+        val resource = Pair(
+            Json.JsonValue(PropertyCommonHeaderKeys.SUBSCRIBE_ID),
+            Json.JsonValue(subscribeId)
+        )
+        val command = Pair(
+            Json.JsonValue(PropertyCommonHeaderKeys.COMMAND),
+            Json.JsonValue(command)
+        )
+        return Json.JsonValue(mapOf(resource, command))
+
+    }
+    fun createUpdateNotificationHeaderBytes(subscribeId: String, command: String): List<Byte> {
+        val json = createUpdateNotificationHeader(subscribeId, command)
+        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
+        return requestASCIIBytes
+    }
 }

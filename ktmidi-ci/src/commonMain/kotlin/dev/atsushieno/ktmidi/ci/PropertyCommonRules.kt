@@ -40,6 +40,10 @@ object PropertyCommonHeaderKeys {
     const val MEDIA_TYPE = "mediaType"
     // M2-103-UM 8. Full and Partial SET Inquiries
     const val SET_PARTIAL = "setPartial"
+    // M2-103-UM 9. Subscribing to Property Data
+    const val COMMAND = "command"
+    // M2-103-UM 9.1 Extra Request Header Properties for Subscriptions
+    const val SUBSCRIBE_ID = "subscribeId"
 }
 
 object CommonRulesKnownMimeTypes {
@@ -117,7 +121,9 @@ data class PropertyCommonReplyHeader(
     val mutualEncoding: String? = PropertyDataEncoding.ASCII,
     val cacheTime: String? = null,
     // M2-103-UM 5.5 Extra Header Property for Using Property Data which is Not JSON Data
-    val mediaType: String? = null
+    val mediaType: String? = null,
+    // M2-103-UM 9.1 Extra Request Header Properties for Subscriptions
+    val subscribeId: String? = null
 )
 
 object PropertyCommonConverter {

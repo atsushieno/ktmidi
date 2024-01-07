@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
 import io.ktor.utils.io.core.*
+import kotlin.random.Random
 
 private val defaultPropertyList = listOf(
     PropertyMetadata(PropertyResourceNames.DEVICE_INFO),
@@ -50,6 +51,9 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
 
     // MidiCIPropertyService implementation
     override fun getPropertyIdForHeader(header: List<Byte>) = CommonRulesPropertyHelper.getPropertyIdentifier(header)
+
+    override fun createUpdateNotificationHeader(subscribeId: String, isUpdatePartial: Boolean) =
+        CommonRulesPropertyHelper.createUpdateNotificationHeaderBytes(subscribeId, if (isUpdatePartial) MidiCISubscriptionCommand.PARTIAL else MidiCISubscriptionCommand.FULL)
 
     override fun getMetadataList(): List<PropertyMetadata> {
         return metadataList
@@ -111,11 +115,10 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
 
     // impl
 
-    data class SubscriptionEntry(val resource: String, val muid: Int)
-
     val linkedResources = mutableMapOf<String, Json.JsonValue>()
     private val values = mutableMapOf<String, Json.JsonValue>()
-    private val subscriptions = mutableListOf<SubscriptionEntry>()
+    data class SubscriptionEntry(val resource: String, val muid: Int, val subscribeId: String)
+    val subscriptions = mutableListOf<SubscriptionEntry>()
 
     private fun bytesToJsonArray(list: List<Byte>) = list.map { Json.JsonValue(it.toDouble()) }
     private fun getDeviceInfoJson(): Json.JsonValue {
@@ -164,6 +167,8 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
             this[Json.JsonValue(PropertyCommonHeaderKeys.CACHE_TIME)] = Json.JsonValue(src.cacheTime)
         if (src.mediaType != null)
             this[Json.JsonValue(PropertyCommonHeaderKeys.MEDIA_TYPE)] = Json.JsonValue(src.mediaType)
+        if (src.subscribeId != null)
+            this[Json.JsonValue(PropertyCommonHeaderKeys.SUBSCRIBE_ID)] = Json.JsonValue(src.subscribeId)
     })
 
     fun getPropertyData(headerJson: Json.JsonValue): Pair<Json.JsonValue, Json.JsonValue> {
@@ -192,10 +197,17 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
         return getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK))
     }
 
+    private fun createNewSubscriptionId(): String =
+        Random.nextInt(100000000).toString()
+
     fun subscribe(subscriberMUID: Int, headerJson: Json.JsonValue) : Pair<Json.JsonValue, Json.JsonValue> {
         val header = getPropertyHeader(headerJson)
-        subscriptions.add(SubscriptionEntry(header.resource, subscriberMUID))
+        val subscription = SubscriptionEntry(header.resource, subscriberMUID, createNewSubscriptionId())
+        subscriptions.add(subscription)
         // body is empty
-        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)), Json.JsonValue(mapOf()))
+        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, subscribeId = subscription.subscribeId)), Json.JsonValue(mapOf()))
     }
+
+    fun createTerminateNotificationHeader(subscribeId: String): List<Byte> =
+        CommonRulesPropertyHelper.createUpdateNotificationHeaderBytes(subscribeId, MidiCISubscriptionCommand.END)
 }

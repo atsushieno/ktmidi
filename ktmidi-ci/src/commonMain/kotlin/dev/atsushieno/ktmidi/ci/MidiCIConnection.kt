@@ -81,6 +81,14 @@ object MidiCISupportedCategories {
     const val THREE_P: Byte = (PROFILE_CONFIGURATION + PROPERTY_EXCHANGE + PROCES_INQUIRY).toByte()
 }
 
+object MidiCISubscriptionCommand {
+    const val START = "start"
+    const val PARTIAL = "partial"
+    const val FULL = "full"
+    const val NOTIFY = "notify"
+    const val END = "end"
+}
+
 object MidiCIConstants {
     const val UNIVERSAL_SYSEX: Byte = 0x7E
     const val UNIVERSAL_SYSEX_SUB_ID_MIDI_CI: Byte = 0x0D

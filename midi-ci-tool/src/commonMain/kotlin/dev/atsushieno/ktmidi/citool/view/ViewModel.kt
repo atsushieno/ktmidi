@@ -158,10 +158,10 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
         selectedProperty.value = property.resource
     }
 
-    fun updatePropertyValue(propertyId: String, bytes: List<Byte>) {
-        responder.properties.values.first { it.id == propertyId }.body = bytes
+    fun updatePropertyValue(propertyId: String, data: List<Byte>) {
+        responder.updatePropertyValue(propertyId, data)
         // the assignee instance is most likely identical to above, but in case our logic has changed...
-        properties.first { it.id == propertyId }.body = bytes
+        properties.first { it.id == propertyId }.body = data
     }
 
     fun createNewProperty() {

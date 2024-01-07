@@ -50,4 +50,6 @@ class Logger {
     fun subscribeProperty(msg: Message.SubscribeProperty) = logMessage(msg)
 
     fun subscribePropertyReply(msg: Message.SubscribePropertyReply) = logMessage(msg)
+
+    fun propertyNotify(msg: Message.PropertyNotify) = logMessage(msg)
 }
