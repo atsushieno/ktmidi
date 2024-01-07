@@ -23,6 +23,25 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                       val outputPathId: Byte = 0,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
+    class Events {
+        val discoveryReplyReceived = mutableListOf<(Message.DiscoveryReply) -> Unit>()
+        val endpointReplyReceived = mutableListOf<(Message.EndpointReply) -> Unit>()
+        val profileInquiryReplyReceived = mutableListOf<(Message.ProfileReply) -> Unit>()
+        val profileAddedReceived = mutableListOf<(Message.ProfileAdded) -> Unit>()
+        val profileRemovedReceived = mutableListOf<(Message.ProfileRemoved) -> Unit>()
+        val profileEnabledReceived = mutableListOf<(Message.ProfileEnabled) -> Unit>()
+        val profileDisabledReceived = mutableListOf<(Message.ProfileDisabled) -> Unit>()
+        val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
+        val propertyCapabilityReplyReceived = mutableListOf<(Message.PropertyGetCapabilitiesReply) -> Unit>()
+        val getPropertyDataReplyReceived = mutableListOf<(msg: Message.GetPropertyDataReply) -> Unit>()
+        val setPropertyDataReplyReceived = mutableListOf<(msg: Message.SetPropertyDataReply) -> Unit>()
+        val subscribePropertyReceived = mutableListOf<(msg: Message.SubscribePropertyReply) -> Unit>()
+    }
+
+    val events = Events()
+
+    val logger = Logger()
+
     class Connection(
         private val parent: MidiCIInitiator,
         val muid: Int,
@@ -195,6 +214,8 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             requestPropertyExchangeCapabilities(0x7F, msg.sourceMUID, maxSimultaneousPropertyRequests)
     }
     var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
+        logger.discoveryReply(msg)
+        events.discoveryReplyReceived.forEach { it(msg) }
         handleNewEndpoint(msg)
     }
 
@@ -229,7 +250,11 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                 conn.productInstanceId = msg.data.toByteArray().decodeToString() // FIXME: verify that it is only ASCII chars?
         }
     }
-    var processEndpointReply = defaultProcessEndpointReply
+    var processEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
+        logger.endpointReply(msg)
+        events.endpointReplyReceived.forEach { it(msg) }
+        defaultProcessEndpointReply(msg)
+    }
 
     // Protocol Negotiation is deprecated. We do not send any of them anymore.
 
@@ -239,19 +264,31 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         msg.enabledProfiles.forEach { conn?.profiles?.add(MidiCIProfile(it, msg.address, true)) }
         msg.disabledProfiles.forEach { conn?.profiles?.add(MidiCIProfile(it, msg.address, false)) }
     }
-    var processProfileReply = defaultProcessProfileReply
+    var processProfileReply = { msg: Message.ProfileReply ->
+        logger.profileReply(msg)
+        events.profileInquiryReplyReceived.forEach { it(msg) }
+        defaultProcessProfileReply(msg)
+    }
 
     val defaultProcessProfileAddedReport: (msg: Message.ProfileAdded) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
         conn?.profiles?.add(MidiCIProfile(msg.profile, msg.address, false))
     }
-    var processProfileAddedReport = defaultProcessProfileAddedReport
+    var processProfileAddedReport = { msg: Message.ProfileAdded ->
+        logger.profileAdded(msg)
+        events.profileAddedReceived.forEach { it(msg) }
+        defaultProcessProfileAddedReport(msg)
+    }
 
     val defaultProcessProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
         conn?.profiles?.remove(MidiCIProfile(msg.profile, msg.address, false))
     }
-    var processProfileRemovedReport = defaultProcessProfileRemovedReport
+    var processProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
+        logger.profileRemoved(msg)
+        events.profileRemovedReceived.forEach { it(msg) }
+        defaultProcessProfileRemovedReport(msg)
+    }
 
     val defaultProcessProfileEnabledReport: (msg: Message.ProfileEnabled) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
@@ -261,8 +298,16 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         val conn = connections[msg.sourceMUID]
         conn?.profiles?.setEnabled(false, msg.address, msg.profile, msg.numChannelsRequested)
     }
-    var processProfileEnabledReport = defaultProcessProfileEnabledReport
-    var processProfileDisabledReport = defaultProcessProfileDisabledReport
+    var processProfileEnabledReport: (msg: Message.ProfileEnabled) -> Unit = { msg ->
+        logger.profileEnabled(msg)
+        events.profileEnabledReceived.forEach { it(msg) }
+        defaultProcessProfileEnabledReport(msg)
+    }
+    var processProfileDisabledReport: (msg: Message.ProfileDisabled) -> Unit = { msg ->
+        logger.profileDisabled(msg)
+        events.profileDisabledReceived.forEach { it(msg) }
+        defaultProcessProfileDisabledReport(msg)
+    }
 
     // Property Exchange
     val defaultProcessPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
@@ -278,15 +323,27 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         }
         // FIXME: else -> error reporting
     }
-    var processPropertyCapabilitiesReply = defaultProcessPropertyCapabilitiesReply
+    var processPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
+        logger.propertyGetCapabilitiesReply(msg)
+        events.propertyCapabilityReplyReceived.forEach { it(msg) }
+        defaultProcessPropertyCapabilitiesReply(msg)
+    }
 
     val defaultProcessGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->
         connections[msg.sourceMUID]?.updateProperty(msg)
     }
 
-    var processGetDataReply = defaultProcessGetDataReply
+    var processGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->
+        logger.getPropertyDataReply(msg)
+        events.getPropertyDataReplyReceived.forEach { it(msg) }
+        defaultProcessGetDataReply(msg)
+    }
 
-    var processSetDataReply: (msg: Message.SetPropertyDataReply) -> Unit = {} // do nothing
+    var processSetDataReply: (msg: Message.SetPropertyDataReply) -> Unit = { msg ->
+        logger.setPropertyDataReply(msg)
+        events.setPropertyDataReplyReceived.forEach { it(msg) }
+        // nothing to delegate further
+    }
 
     fun sendNakForUnknownCIMessage(data: List<Byte>) {
         val source = data[1]
@@ -298,8 +355,11 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         sendOutput(CIFactory.midiCIAckNak(dst, true, nak))
     }
     var processUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
+        logger.nak(data)
+        events.unknownMessageReceived.forEach { it(data) }
         sendNakForUnknownCIMessage(data)
     }
+
 
     fun processInput(data: List<Byte>) {
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())

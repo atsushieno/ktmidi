@@ -15,6 +15,23 @@ import kotlin.random.Random
 class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
                       private val sendOutput: (data: List<Byte>) -> Unit,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
+    class Events {
+        val discoveryReceived = mutableListOf<(msg: Message.DiscoveryInquiry) -> Unit>()
+        val endpointInquiryReceived = mutableListOf<(msg: Message.EndpointInquiry) -> Unit>()
+        val profileInquiryReceived = mutableListOf<(msg: Message.ProfileInquiry) -> Unit>()
+        val setProfileOnReceived = mutableListOf<(profile: Message.SetProfileOn) -> Unit>()
+        val setProfileOffReceived = mutableListOf<(profile: Message.SetProfileOff) -> Unit>()
+        val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
+        val propertyCapabilityInquiryReceived = mutableListOf<(Message.PropertyGetCapabilities) -> Unit>()
+        val getPropertyDataReceived = mutableListOf<(msg: Message.GetPropertyData) -> Unit>()
+        val setPropertyDataReceived = mutableListOf<(msg: Message.SetPropertyData) -> Unit>()
+        val subscribePropertyReceived = mutableListOf<(msg: Message.SubscribeProperty) -> Unit>()
+    }
+
+    val events = Events()
+
+    val logger = Logger()
+
     var device: MidiCIDeviceInfo
         get() = midiCIDevice
         set(value) {
@@ -50,7 +67,11 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         Message.DiscoveryReply(muid, msg.muid, deviceDetails, capabilityInquirySupported, receivableMaxSysExSize, msg.outputPathId, functionBlock)
     }
     var processDiscovery: (msg: Message.DiscoveryInquiry) -> Unit = { msg ->
-        sendDiscoveryReply(getDiscoveryReplyForInquiry(msg))
+        logger.discovery(msg)
+        events.discoveryReceived.forEach { it(msg) }
+        val reply = getDiscoveryReplyForInquiry(msg)
+        logger.discoveryReply(reply)
+        sendDiscoveryReply(reply)
     }
 
     val sendEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
@@ -71,7 +92,11 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         )
     }
     var processEndpointMessage: (msg: Message.EndpointInquiry) -> Unit = { msg ->
-        sendEndpointReply(getEndpointReplyForInquiry(msg))
+        logger.endpointInquiry(msg)
+        events.endpointInquiryReceived.forEach { it(msg) }
+        val reply = getEndpointReplyForInquiry(msg)
+        logger.endpointReply(reply)
+        sendEndpointReply(reply)
     }
 
     val sendAckForInvalidateMUID: (sourceMUID: Int) -> Unit = { sourceMUID ->
@@ -108,8 +133,11 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         }
     }
     var processProfileInquiry: (msg: Message.ProfileInquiry) -> Unit = { msg ->
-        getProfileRepliesForInquiry(msg).forEach {
-            sendProfileReply(it)
+        logger.profileInquiry(msg)
+        events.profileInquiryReceived.forEach { it(msg) }
+        getProfileRepliesForInquiry(msg).forEach { reply ->
+            logger.profileReply(reply)
+            sendProfileReply(reply)
         }
     }
 
@@ -151,8 +179,16 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
             sendSetProfileReport(msg.address, msg.profile, false)
     }
 
-    var processSetProfileOn = { msg: Message.SetProfileOn -> defaultProcessSetProfileOn(msg) }
-    var processSetProfileOff = { msg: Message.SetProfileOff -> defaultProcessSetProfileOff(msg) }
+    var processSetProfileOn = { msg: Message.SetProfileOn ->
+        logger.setProfileOn(msg)
+        events.setProfileOnReceived.forEach { it(msg) }
+        defaultProcessSetProfileOn(msg)
+    }
+    var processSetProfileOff = { msg: Message.SetProfileOff ->
+        logger.setProfileOff(msg)
+        events.setProfileOffReceived.forEach { it(msg) }
+        defaultProcessSetProfileOff(msg)
+    }
 
     var processProfileSpecificData: (address: Byte, sourceMUID: Int, destinationMUID: Int, profileId: MidiCIProfileId, data: List<Byte>) -> Unit = { _, _, _, _, _ -> }
 
@@ -169,6 +205,8 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         sendOutput(CIFactory.midiCIAckNak(dst, true, nak))
     }
     var processUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
+        logger.nak(data)
+        events.unknownMessageReceived.forEach { it(data) }
         sendNakForUnknownCIMessage(data)
     }
 
@@ -187,7 +225,11 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         Message.PropertyGetCapabilitiesReply(msg.destination, muid, msg.sourceMUID, establishedMaxSimultaneousPropertyRequests)
     }
     var processPropertyCapabilitiesInquiry: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
-        sendPropertyCapabilitiesReply(getPropertyCapabilitiesReplyFor(msg))
+        logger.propertyGetCapabilitiesInquiry(msg)
+        events.propertyCapabilityInquiryReceived.forEach { it(msg) }
+        val reply = getPropertyCapabilitiesReplyFor(msg)
+        logger.propertyGetCapabilitiesReply(reply)
+        sendPropertyCapabilitiesReply(reply)
     }
 
     fun sendPropertyGetDataReply(msg: Message.GetPropertyDataReply) {
@@ -200,7 +242,11 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         }
     }
     var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
-        sendPropertyGetDataReply(propertyService.getPropertyData(msg))
+        logger.getPropertyData(msg)
+        events.getPropertyDataReceived.forEach { it(msg) }
+        val reply = propertyService.getPropertyData(msg)
+        logger.getPropertyDataReply(reply)
+        sendPropertyGetDataReply(reply)
     }
 
     fun sendPropertySetDataReply(msg: Message.SetPropertyDataReply) {
@@ -213,7 +259,10 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         }
     }
     var processSetPropertyData: (msg: Message.SetPropertyData) -> Unit = { msg ->
-        sendPropertySetDataReply(propertyService.setPropertyData(msg))
+        logger.setPropertyData(msg)
+        events.setPropertyDataReceived.forEach { it(msg) }
+        val reply = propertyService.setPropertyData(msg)
+        sendPropertySetDataReply(reply)
     }
 
     fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
@@ -226,7 +275,11 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         }
     }
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
-        sendPropertySubscribeReply(propertyService.subscribeProperty(msg))
+        logger.subscribeProperty(msg)
+        events.subscribePropertyReceived.forEach { it(msg) }
+        val reply = propertyService.subscribeProperty(msg)
+        logger.subscribePropertyReply(reply)
+        sendPropertySubscribeReply(reply)
     }
 
     fun processInput(data: List<Byte>) {

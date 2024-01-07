@@ -1,15 +1,14 @@
-package dev.atsushieno.ktmidi.citool
-
-import dev.atsushieno.ktmidi.ci.Message
-import dev.atsushieno.ktmidi.citool.view.ViewModel
+package dev.atsushieno.ktmidi.ci
 
 class Logger {
-    fun nak(data: List<Byte>) {
-        ViewModel.log("- NAK(${data.joinToString { it.toString(16) }}")
-    }
+    val logEventReceived = mutableListOf<(msg: Any)->Unit>()
 
     private fun logMessage(msg: Any) {
-        ViewModel.log("- $msg")
+        logEventReceived.forEach { it(msg) }
+    }
+
+    fun nak(data: List<Byte>) {
+        logMessage("- NAK(${data.joinToString { it.toString(16) }}")
     }
 
     fun discovery(msg: Message.DiscoveryInquiry) = logMessage(msg)
