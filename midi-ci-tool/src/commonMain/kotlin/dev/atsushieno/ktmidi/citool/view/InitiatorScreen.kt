@@ -58,7 +58,8 @@ fun ClientConnection(vm: ConnectionViewModel) {
             val sp = selectedProperty
             if (sp != null)
                 ClientPropertyDetails(vm, sp,
-                    refreshValueClicked = { id, bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, id, bytes, isPartial) }
+                    refreshValueClicked = { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, sp) },
+                    commitChangeClicked = { id, bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, id, bytes, isPartial) }
                 )
         }
     }
@@ -188,13 +189,14 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
 
 @Composable
 fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
-                          refreshValueClicked: (id: String, bytes: List<Byte>, isPartial: Boolean) -> Unit) {
+                          refreshValueClicked: () -> Unit,
+                          commitChangeClicked: (id: String, bytes: List<Byte>, isPartial: Boolean) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         val entry = vm.properties.first { it.id == propertyId }
         val def = vm.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == entry.id }
         ClientPropertyValueEditor(def, entry,
-            refreshValueClicked = { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, entry.id) },
-            commitChangeClicked = { bytes, isPartial -> refreshValueClicked(entry.id, bytes, isPartial) }
+            refreshValueClicked,
+            commitChangeClicked = { bytes, isPartial -> commitChangeClicked(entry.id, bytes, isPartial) }
         )
         if (def != null)
             PropertyMetadataEditor(def,
