@@ -36,21 +36,85 @@ fun PropertyListEntry(propertyId: String, isSelected: Boolean, selectedPropertyC
 }
 
 @Composable
-fun PropertyMetadataList(def: PropertyMetadata, readOnly: Boolean, schemaString: String? = null, updateSchemaString: (String)->Unit = {}) {
+fun PropertyMetadataEditor(def: PropertyMetadata,
+                           metadataUpdateCommitted: (PropertyMetadata)->Unit,
+                           readOnly: Boolean) {
+
     Column {
         Text("Property Metadata", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
 
-        // FIXME: make them remembered mutableStateOf<T>.
-        PropertyColumn("resource") { TextField(def.resource, { def.resource = it }, readOnly = readOnly) }
-        PropertyColumn("canGet") { Checkbox(def.canGet, { def.canGet = it }, enabled = !readOnly) }
-        PropertyColumn("canSet") { TextField(def.canSet, { def.canSet = it }, readOnly = readOnly) }
-        PropertyColumn("canSubscribe") { Checkbox(def.canSubscribe, { def.canSubscribe = it }, enabled = !readOnly) }
-        PropertyColumn("requireResId") { Checkbox(def.requireResId, { def.requireResId = it }, enabled = !readOnly) }
-        PropertyColumn("mediaTypes") { TextField(def.mediaTypes.joinToString("\n"), { def.mediaTypes = it.split('\n') }, readOnly = readOnly, minLines = 2) }
-        PropertyColumn("encodings") { TextField(def.encodings.joinToString("\n"), { def.encodings = it.split('\n') }, readOnly = readOnly, minLines = 2) }
-        val schemaStringNullable by remember { mutableStateOf(schemaString ?: if (def.schema == null) "" else Json.getUnescapedString(def.schema!!)) }
-        PropertyColumn("schema") { TextField(schemaStringNullable, { updateSchemaString(it) }, readOnly = readOnly, minLines = 2) }
-        PropertyColumn("canPaginate") { Checkbox(def.canPaginate, {}, enabled = !readOnly) }
+        var prev by remember { mutableStateOf(def) }
+
+        var resource by remember { mutableStateOf(def.resource) }
+        var canGet by remember { mutableStateOf(def.canGet) }
+        var canSet by remember { mutableStateOf(def.canSet) }
+        var canSubscribe by remember { mutableStateOf(def.canSubscribe) }
+        var requireResId by remember { mutableStateOf(def.requireResId) }
+        var mediaTypes by remember { mutableStateOf(def.mediaTypes.joinToString("\n")) }
+        var encodings by remember { mutableStateOf(def.encodings.joinToString("\n")) }
+        var schema by remember { mutableStateOf(if (def.schema == null) "" else Json.getUnescapedString(def.schema!!)) }
+        var canPaginate by remember { mutableStateOf(def.canPaginate) }
+        // FIXME: columns too
+
+        var schemaParserError by remember { mutableStateOf("") }
+
+        if (prev != def) {
+            // refresh the data entries
+            resource = def.resource
+            canGet = def.canGet
+            canSet = def.canSet
+            canSubscribe = def.canSubscribe
+            requireResId = def.requireResId
+            mediaTypes = def.mediaTypes.joinToString("\n")
+            encodings = def.encodings.joinToString("\n")
+            schema = if (def.schema == null) "" else Json.getUnescapedString(def.schema!!)
+            canPaginate = def.canPaginate
+            // FIXME: columns too
+            prev = def
+        }
+
+        val updateButton = @Composable { if (!readOnly) Button(onClick = {
+            schemaParserError = ""
+            val schemaJson = if (schema.isNotBlank()) {
+                try {
+                    Json.parse(schema)
+                } catch(ex: JsonParserException) {
+                    schemaParserError = ex.message ?: "JSON Schema parser error"
+                    return@Button
+                }
+            } else null
+            metadataUpdateCommitted(PropertyMetadata().also {
+                it.resource = resource
+                it.canGet = canGet
+                it.canSet = canSet
+                it.canSubscribe = canSubscribe
+                it.requireResId = requireResId
+                it.mediaTypes = mediaTypes.split('\n')
+                it.encodings = encodings.split('\n')
+                it.schema = schemaJson
+                it.canPaginate = canPaginate
+                // FIXME: columns too
+            })
+        }) {
+            Text("Update")
+        }}
+        updateButton()
+        PropertyColumn("resource") { TextField(resource, { resource = it }, readOnly = readOnly) }
+        PropertyColumn("canGet") { Checkbox(canGet, { canGet = it }, enabled = !readOnly) }
+        PropertyColumn("canSet") { TextField(canSet, { canSet = it }, readOnly = readOnly) }
+        PropertyColumn("canSubscribe") { Checkbox(canSubscribe, { canSubscribe = it }, enabled = !readOnly) }
+        PropertyColumn("requireResId") { Checkbox(requireResId, { requireResId = it }, enabled = !readOnly) }
+        PropertyColumn("mediaTypes") { TextField(mediaTypes, { mediaTypes = it }, readOnly = readOnly, minLines = 2) }
+        PropertyColumn("encodings") { TextField(encodings, { encodings = it }, readOnly = readOnly, minLines = 2) }
+        PropertyColumn("schema") {
+            Column {
+                TextField(schema, { schema = it }, readOnly = readOnly, minLines = 2)
+                if (schemaParserError.isNotBlank())
+                    Text(schemaParserError)
+            }
+        }
+        PropertyColumn("canPaginate") { Checkbox(canPaginate, { canPaginate = it }, enabled = !readOnly) }
+        //  FIXME: implement add/remove
         PropertyColumn("columns") {
             Column(Modifier.padding(12.dp)) {
                 def.columns.forEach {
@@ -61,25 +125,28 @@ fun PropertyMetadataList(def: PropertyMetadata, readOnly: Boolean, schemaString:
                 }
             }
         }
+        updateButton()
     }
 }
 
 @Composable
-fun PropertyValueEditor(mediaType: String, def: PropertyMetadata?, property: PropertyValue,
-                        onGetValueClick: () -> Unit,
-                        onCommitSetPropertyClick: (List<Byte>, Boolean) -> Unit) {
+fun PropertyValueEditor(isLocalEditor: Boolean,
+                        mediaType: String,
+                        metadata: PropertyMetadata?,
+                        body: List<Byte>,
+                        refreshValueClicked: () -> Unit,
+                        commitChangeClicked: (List<Byte>, Boolean) -> Unit) {
     Column {
         Text("Property Value", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
 
-        val isEditableByMetadata = def?.canSet != null && def.canSet != PropertySetAccess.NONE
+        val isEditableByMetadata = metadata?.canSet != null && metadata.canSet != PropertySetAccess.NONE
+        val isEditable = isLocalEditor || isEditableByMetadata
         val isTextRenderable = mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON
-        val showGetButton = @Composable {
-            Button(onClick = { onGetValueClick() }) {
-                Text("Refresh")
-            }
-        }
-        val commitSetProperty: (List<Byte>, Boolean) -> Unit = { bytes, isPartial ->
-            onCommitSetPropertyClick(bytes, isPartial)
+        val showRefreshButton = @Composable {
+            if (!isLocalEditor)
+                Button(onClick = { refreshValueClicked() }) {
+                    Text("Refresh")
+                }
         }
         var showFilePicker by remember { mutableStateOf(false) }
         val showUploadButton = @Composable {
@@ -93,7 +160,7 @@ fun PropertyValueEditor(mediaType: String, def: PropertyMetadata?, property: Pro
                         showFilePicker = false
                         if (file != null) {
                             val bytes = getPlatform().loadFileContent(file)
-                            commitSetProperty(bytes, false)
+                            commitChangeClicked(bytes, false)
                         }
                     }
                 }
@@ -101,8 +168,8 @@ fun PropertyValueEditor(mediaType: String, def: PropertyMetadata?, property: Pro
         }
 
         if (isTextRenderable) {
-            val bodyText = PropertyCommonConverter.decodeASCIIToString(property.body.toByteArray().decodeToString())
-            if (isEditableByMetadata) {
+            val bodyText = PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString())
+            if (isEditable) {
                 var editing by remember { mutableStateOf(false) }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(editing, { editing = !editing })
@@ -112,18 +179,18 @@ fun PropertyValueEditor(mediaType: String, def: PropertyMetadata?, property: Pro
                     var text by remember { mutableStateOf(bodyText) }
                     var partial by remember { mutableStateOf("") }
                     Row {
-                        if (isEditableByMetadata) {
-                            if (def?.canSet == PropertySetAccess.PARTIAL) {
+                        if (isEditable) {
+                            if (metadata?.canSet == PropertySetAccess.PARTIAL) {
                                 TextField(partial, { partial = it }, label = {
                                     Text("Partial? RFC6901 Pointer here then:")
                                 })
                             }
-                            showGetButton()
+                            showRefreshButton()
                             Button(onClick = {
                                 val jsonString = Json.getEscapedString(partial.ifEmpty { text })
                                 val bytes =
                                     PropertyCommonConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
-                                commitSetProperty(bytes, partial.isNotBlank())
+                                commitChangeClicked(bytes, partial.isNotBlank())
                             }) {
                                 Text("Commit changes")
                             }
@@ -132,18 +199,18 @@ fun PropertyValueEditor(mediaType: String, def: PropertyMetadata?, property: Pro
                     TextField(text, { text = it })
                     showUploadButton()
                 } else {
-                    showGetButton()
+                    showRefreshButton()
                     TextField(bodyText, {}, readOnly = true)
                 }
             } else {
                 Text("read-only")
-                showGetButton()
+                showRefreshButton()
                 TextField(bodyText, {}, readOnly = true)
             }
         } else {
             Text("MIME type '$mediaType' not supported for editing")
-            showGetButton()
-            if (isEditableByMetadata)
+            showRefreshButton()
+            if (isEditable)
                 showUploadButton()
         }
     }

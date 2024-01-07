@@ -327,7 +327,9 @@ fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String) {
         LocalPropertyValueEditor(vm, def, entry)
         var schemaString: String? = null
         if (def != null)
-            PropertyMetadataList(def, false, schemaString) { schemaString = it }
+            PropertyMetadataEditor(def,
+                { TODO("FIXME: implement") },
+                false)
         else
             Text("(Metadata not available - not in ResourceList)")
     }
@@ -336,7 +338,7 @@ fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String) {
 @Composable
 fun LocalPropertyValueEditor(vm: LocalConfigurationViewModel, def: PropertyMetadata?, property: PropertyValue) {
     val mediaType: String = vm.responder.propertyService.getMediaTypeFor(property.replyHeader)
-    PropertyValueEditor(mediaType, def, property,
+    PropertyValueEditor(true, mediaType, def, property.body,
         { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.responder.muid, property.id) },
         { bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.responder.muid, property.id, bytes, isPartial) }
     )

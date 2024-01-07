@@ -57,7 +57,9 @@ fun ClientConnection(vm: ConnectionViewModel) {
             val selectedProperty by remember { vm.selectedProperty }
             val sp = selectedProperty
             if (sp != null)
-                ClientPropertyDetails(vm, sp)
+                ClientPropertyDetails(vm, sp,
+                    refreshValueClicked = { id, bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, id, bytes, isPartial) }
+                )
         }
     }
 }
@@ -186,23 +188,28 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
 }
 
 @Composable
-fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String) {
+fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
+                          refreshValueClicked: (id: String, bytes: List<Byte>, isPartial: Boolean) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         val entry = vm.properties.first { it.id == propertyId }
         val def = vm.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == entry.id }
-        ClientPropertyValueEditor(vm, def, entry)
+        ClientPropertyValueEditor(vm, def, entry,
+            refreshValueClicked = { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, entry.id) },
+            commitChangeClicked = { bytes, isPartial -> refreshValueClicked(entry.id, bytes, isPartial) }
+        )
         if (def != null)
-            PropertyMetadataList(def, true)
+            PropertyMetadataEditor(def,
+                {}, // client does not support metadata editing
+                true)
         else
             Text("(Metadata not available - not in ResourceList)")
     }
 }
 
 @Composable
-fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyMetadata?, property: PropertyValue) {
+fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyMetadata?, property: PropertyValue,
+                              refreshValueClicked: () -> Unit,
+                              commitChangeClicked: (bytes: List<Byte>, isPartial: Boolean) -> Unit) {
     val mediaType: String = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
-    PropertyValueEditor(mediaType, def, property,
-        { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, property.id) },
-        { bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, property.id, bytes, isPartial) }
-    )
+    PropertyValueEditor(false, mediaType, def, property.body, refreshValueClicked, commitChangeClicked)
 }
