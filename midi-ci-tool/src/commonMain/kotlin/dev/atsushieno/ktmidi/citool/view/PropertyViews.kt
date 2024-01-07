@@ -1,10 +1,14 @@
 package dev.atsushieno.ktmidi.citool.view
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,16 +49,16 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
 
         var prev by remember { mutableStateOf(def) }
 
-        var resource by remember { mutableStateOf(def.resource) }
-        var canGet by remember { mutableStateOf(def.canGet) }
-        var canSet by remember { mutableStateOf(def.canSet) }
-        var canSubscribe by remember { mutableStateOf(def.canSubscribe) }
-        var requireResId by remember { mutableStateOf(def.requireResId) }
-        var mediaTypes by remember { mutableStateOf(def.mediaTypes.joinToString("\n")) }
-        var encodings by remember { mutableStateOf(def.encodings.joinToString("\n")) }
-        var schema by remember { mutableStateOf(if (def.schema == null) "" else Json.getUnescapedString(def.schema!!)) }
-        var canPaginate by remember { mutableStateOf(def.canPaginate) }
-        // FIXME: columns too
+        var resource by remember { mutableStateOf("") }
+        var canGet by remember { mutableStateOf(false) }
+        var canSet by remember { mutableStateOf("") }
+        var canSubscribe by remember { mutableStateOf(false) }
+        var requireResId by remember { mutableStateOf(false) }
+        var mediaTypes by remember { mutableStateOf("") }
+        var encodings by remember { mutableStateOf("") }
+        var schema by remember { mutableStateOf("") }
+        var canPaginate by remember { mutableStateOf(false) }
+        val columns = remember { mutableStateListOf<PropertyResourceColumn>() }
 
         var schemaParserError by remember { mutableStateOf("") }
 
@@ -69,6 +73,8 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
             encodings = def.encodings.joinToString("\n")
             schema = if (def.schema == null) "" else Json.getUnescapedString(def.schema!!)
             canPaginate = def.canPaginate
+            columns.clear()
+            columns.addAll(def.columns)
             // FIXME: columns too
             prev = def
         }
@@ -93,7 +99,7 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
                 it.encodings = encodings.split('\n')
                 it.schema = schemaJson
                 it.canPaginate = canPaginate
-                // FIXME: columns too
+                it.columns = columns.toList()
             })
         }) {
             Text("Update Metadata")
@@ -114,14 +120,44 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
             }
         }
         PropertyColumn("canPaginate") { Checkbox(canPaginate, { canPaginate = it }, enabled = !readOnly) }
-        //  FIXME: implement add/remove
         PropertyColumn("columns") {
-            Column(Modifier.padding(12.dp)) {
-                def.columns.forEach {
-                    if (it.property != null)
-                        Text("Property ${it.property}: ${it.title}")
-                    if (it.link != null)
-                        Text("Link ${it.link}: ${it.title}")
+            Column {
+                columns.forEachIndexed { index, it ->
+                    var titleText by remember { mutableStateOf(it.title) }
+                    var isLink by remember { mutableStateOf(it.link?.isNotEmpty() ?: false) }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        TextField(titleText, { s: String -> titleText = s; it.title = s }, readOnly = readOnly)
+                        if (!readOnly) {
+                            Button(onClick = { columns.removeAt(index) }) {
+                                Image(Icons.Default.Delete, "Delete")
+                            }
+                        }
+                    }
+                    var linkText by remember { mutableStateOf(it.link) }
+                    var propertyText by remember { mutableStateOf(it.property) }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Link?", fontSize = TextUnit(0.9f, TextUnitType.Em))
+                        Checkbox(isLink, { isLink = it }, enabled = !readOnly)
+                        TextField(
+                            if (isLink) linkText ?: "" else propertyText ?: "",
+                            { s: String ->
+                                if (isLink) {
+                                    linkText = s
+                                    it.link = s
+                                } else {
+                                    propertyText = s
+                                    it.property = s
+                                }
+                            }, readOnly = readOnly,
+                            modifier = Modifier.width(180.dp))
+                    }
+                }
+                if (!readOnly) {
+                    Button(onClick = {
+                        columns.add(PropertyResourceColumn())
+                    }) {
+                        Image(Icons.Default.Add, "Add")
+                    }
                 }
             }
         }
