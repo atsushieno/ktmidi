@@ -59,6 +59,7 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
         var schemaParserError by remember { mutableStateOf("") }
 
         if (prev != def) {
+            // refresh the data entries
             resource = def.resource
             canGet = def.canGet
             canSet = def.canSet
@@ -132,7 +133,7 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
 fun PropertyValueEditor(isLocalEditor: Boolean,
                         mediaType: String,
                         metadata: PropertyMetadata?,
-                        value: PropertyValueState,
+                        body: List<Byte>,
                         onRefreshValue: () -> Unit,
                         onCommitSetProperty: (List<Byte>, Boolean) -> Unit) {
     Column {
@@ -167,7 +168,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         }
 
         if (isTextRenderable) {
-            val bodyText = PropertyCommonConverter.decodeASCIIToString(value.body.toByteArray().decodeToString())
+            val bodyText = PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString())
             if (isEditable) {
                 var editing by remember { mutableStateOf(false) }
                 Row(verticalAlignment = Alignment.CenterVertically) {

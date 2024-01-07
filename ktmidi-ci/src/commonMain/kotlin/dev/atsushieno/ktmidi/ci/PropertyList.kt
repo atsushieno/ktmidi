@@ -52,4 +52,8 @@ class ServicePropertyList(private val propertyService: MidiCIPropertyService)
     fun addMetadata(property: PropertyMetadata) {
         propertyService.addMetadata(property)
     }
+
+    fun removeMetadata(propertyId: String) {
+        propertyService.removeMetadata(propertyId)
+    }
 }

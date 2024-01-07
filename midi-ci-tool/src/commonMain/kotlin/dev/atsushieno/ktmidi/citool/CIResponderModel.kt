@@ -107,6 +107,10 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         responder.properties.addMetadata(property)
     }
 
+    fun removeProperty(propertyId: String) {
+        responder.properties.removeMetadata(propertyId)
+    }
+
     val responder = MidiCIResponder(device, { data ->
         ViewModel.log("[R] REPLY SYSEX: " + data.joinToString { it.toString(16) })
         outputSender(data)

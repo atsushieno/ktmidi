@@ -189,9 +189,14 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
 @Composable
 fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String) {
     Column(Modifier.padding(12.dp)) {
-        val entry = vm.properties.values.first { it.id.value == propertyId }
-        val def = vm.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == entry.id.value }
-        ClientPropertyValueEditor(vm, def, entry)
+        val value = vm.properties.values.first { it.id.value == propertyId }
+        val def = vm.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == value.id.value }
+        ClientPropertyValueEditor(vm.conn.propertyClient.getMediaTypeFor(value.replyHeader),
+            def,
+            value,
+            { id -> AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, id) },
+            { id, bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, id, bytes, isPartial) }
+        )
         if (def != null)
             PropertyMetadataEditor(def, {}, true)
         else
@@ -200,11 +205,12 @@ fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String) {
 }
 
 @Composable
-fun ClientPropertyValueEditor(vm: ConnectionViewModel, def: PropertyMetadata?, property: PropertyValueState) {
+fun ClientPropertyValueEditor(mediaType: String, def: PropertyMetadata?, property: PropertyValueState,
+                              onRefreshValue: (id: String)->Unit,
+                              onCommitSetProperty: (id: String, bytes: List<Byte>, isPartial: Boolean) -> Unit) {
     val id by remember { property.id }
-    val mediaType: String = vm.conn.propertyClient.getMediaTypeFor(property.replyHeader)
-    PropertyValueEditor(false, mediaType, def, property,
-        { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, id) },
-        { bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, id, bytes, isPartial) }
+    PropertyValueEditor(false, mediaType, def, property.body,
+        { onRefreshValue(id) },
+        { bytes, isPartial -> onCommitSetProperty(id, bytes, isPartial) }
     )
 }

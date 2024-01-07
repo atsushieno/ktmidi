@@ -10,6 +10,7 @@ import dev.atsushieno.ktmidi.citool.AppModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 object ViewModel {
     private val uiScope = CoroutineScope(Dispatchers.Main)
@@ -134,9 +135,28 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
     var selectedProperty = mutableStateOf<String?>(null)
     val properties by lazy { ServiceObservablePropertyList(responder.propertyService) }
     fun refreshPropertyList() {
-        // FIXME: implement
-        //properties.clear()
-        //properties.addAll(responder.properties.values)
+        properties.refreshList()
+    }
+
+    fun createNewProperty() {
+        val property = PropertyMetadata().apply { resource = "Property${Random.nextInt()}" }
+        AppModel.ciDeviceManager.responder.addProperty(property)
+        // set it as the selected property
+        selectedProperty.value = property.resource
+    }
+    fun deleteProperty(propertyId: String) {
+        AppModel.ciDeviceManager.responder.removeProperty(propertyId)
+        selectedProperty.value = null
+    }
+
+    fun updatePropertyMetadata(oldPropertyId: String, it: PropertyMetadata) {
+        properties.updateMetadata(oldPropertyId, it)
+        selectedProperty.value = it.resource
+        refreshPropertyList()
+    }
+
+    fun updatePropertyValue(id: String, bytes: List<Byte>, isPartial: Boolean) {
+        properties.updateLocalValue(id, bytes, isPartial)
     }
 
     init {

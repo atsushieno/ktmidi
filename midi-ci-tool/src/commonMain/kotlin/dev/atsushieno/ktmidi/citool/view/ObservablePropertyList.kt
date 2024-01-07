@@ -3,7 +3,6 @@ package dev.atsushieno.ktmidi.citool.view
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import dev.atsushieno.ktmidi.ci.Message
 import dev.atsushieno.ktmidi.ci.MidiCIPropertyClient
 import dev.atsushieno.ktmidi.ci.MidiCIPropertyService
 import dev.atsushieno.ktmidi.ci.PropertyMetadata
@@ -18,23 +17,11 @@ abstract class ObservablePropertyList {
         get() = internalValues
 
     abstract fun getPropertyIdFor(header: List<Byte>): String
-    abstract fun getReplyStatusFor(header: List<Byte>): Int?
-    abstract fun getMediaTypeFor(replyHeader: List<Byte>): String
     abstract fun getMetadataList(): List<PropertyMetadata>?
 
-    fun getProperty(header: List<Byte>): List<Byte>? = getProperty(getPropertyIdFor(header))
     fun getProperty(propertyId: String): List<Byte>? = getPropertyValue(propertyId)?.body
-    fun getPropertyValue(header: List<Byte>): PropertyValueState? = getPropertyValue(getPropertyIdFor(header))
     fun getPropertyValue(propertyId: String): PropertyValueState? =
         internalValues.firstOrNull { it.id.value == propertyId }
-
-    fun set(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
-        val id = getPropertyIdFor(request.header)
-        internalValues.removeAll { it.id.value == id }
-        val propertyValue = PropertyValueState(mutableStateOf(id), reply.header, reply.body)
-        internalValues.add(propertyValue)
-        valueUpdated.forEach { it(propertyValue) }
-    }
 
     val valueUpdated = mutableListOf<(propertyValue: PropertyValueState) -> Unit>()
     val propertiesCatalogUpdated = mutableListOf<() -> Unit>()
@@ -63,13 +50,29 @@ abstract class ObservablePropertyList {
         internalValues.removeAt(existing)
         internalValues.add(existing, entry)
     }
+    fun updateLocalValue(id: String, data: List<Byte>, isPartial: Boolean) {
+        val idx = internalValues.indexOfFirst { it.id.value == id }
+        internalValues.removeAt(idx)
+        if (isPartial)
+            TODO("FIXME: implement")
+        val pvs = PropertyValueState(mutableStateOf(id), listOf(), data)
+        internalValues.add(idx, pvs)
+
+        valueUpdated.forEach { it(pvs) }
+        // resource name could change too
+        propertiesCatalogUpdated.forEach { it() }
+    }
+
+    fun refreshList() {
+        val existing = internalValues.toList()
+        internalValues.clear()
+        internalValues.addAll(existing)
+    }
 }
 
 class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyClient)
     : ObservablePropertyList() {
     override fun getPropertyIdFor(header: List<Byte>) = propertyClient.getPropertyIdForHeader(header)
-    override fun getReplyStatusFor(header: List<Byte>) = propertyClient.getReplyStatusFor(header)
-    override fun getMediaTypeFor(replyHeader: List<Byte>) = propertyClient.getMediaTypeFor(replyHeader)
 
     override fun getMetadataList(): List<PropertyMetadata>? = propertyClient.getMetadataList()
 
@@ -84,8 +87,6 @@ class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyCli
 class ServiceObservablePropertyList(private val propertyService: MidiCIPropertyService)
     : ObservablePropertyList() {
     override fun getPropertyIdFor(header: List<Byte>) = propertyService.getPropertyIdForHeader(header)
-    override fun getReplyStatusFor(header: List<Byte>) = propertyService.getReplyStatusFor(header)
-    override fun getMediaTypeFor(replyHeader: List<Byte>) = propertyService.getMediaTypeFor(replyHeader)
 
     override fun getMetadataList(): List<PropertyMetadata>? = propertyService.getMetadataList()
 
@@ -97,8 +98,8 @@ class ServiceObservablePropertyList(private val propertyService: MidiCIPropertyS
         propertiesCatalogUpdated.forEach { it() }
     }
 
-    fun updateMetadata(it: PropertyMetadata) {
-        propertyService.getMetadataList()!!.first { it.resource == it.resource }.updateFrom(it)
+    fun updateMetadata(oldPropertyId: String, property: PropertyMetadata) {
+        propertyService.getMetadataList()!!.first { it.resource == oldPropertyId }.updateFrom(property)
     }
 
     init {

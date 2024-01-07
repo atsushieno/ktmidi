@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
-import kotlin.random.Random
 
 @Composable
 fun ResponderScreen() {
@@ -46,21 +45,21 @@ fun ResponderScreen() {
         LocalPropertyList(vm.properties.values.map { it.id.value }, vm.selectedProperty.value, {
             vm.selectProperty(it)
         }, {
-            val property = PropertyMetadata().apply { resource = "Property${Random.nextInt()}" }
-            AppModel.ciDeviceManager.responder.addProperty(property)
-            property
+            vm.createNewProperty()
+        }, {
+            vm.deleteProperty(it)
         })
 
         val sp = vm.selectedProperty.value
-        if (sp != null)
+        if (sp != null) {
+            val value = vm.properties.values.first { it.id.value == sp }
             LocalPropertyDetails(vm, sp,
-                {
-                    vm.properties.updateMetadata(it)
-                    vm.refreshPropertyList()
-                },
-                { id, bytes, isPartial ->
-                    AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.responder.muid, id, bytes, isPartial)
-                })
+                value,
+                vm.responder.propertyService.getMediaTypeFor(value.replyHeader),
+                { vm.updatePropertyMetadata(sp, it) },
+                { id, bytes, isPartial -> vm.updatePropertyValue(id, bytes, isPartial) }
+            )
+        }
     }
 }
 
@@ -312,15 +311,16 @@ fun AddressSelector(address: Byte, valueChange: (Byte) -> Unit) {
 
 
 @Composable
-fun LocalPropertyList(properties: List<String>, selectedProperty: String?, selectProperty: (String)->Unit, addProperty: () -> PropertyMetadata) {
+fun LocalPropertyList(properties: List<String>, selectedProperty: String?, selectProperty: (String)->Unit, addProperty: ()->Unit, deleteProperty: (String)->Unit) {
     Column {
         properties.forEach {
             PropertyListEntry(it, selectedProperty == it) { propertyId -> selectProperty(propertyId) }
         }
-        Button(onClick = {
-            selectProperty(addProperty().resource)
-        }) {
+        Button(onClick = { addProperty() }) {
             Image(Icons.Default.Add, "Add")
+        }
+        Button(onClick = { deleteProperty(selectedProperty!!) }, enabled = selectedProperty != null) {
+            Image(Icons.Default.Delete, "Delete")
         }
     }
 }
@@ -328,17 +328,18 @@ fun LocalPropertyList(properties: List<String>, selectedProperty: String?, selec
 @Composable
 fun LocalPropertyDetails(vm: LocalConfigurationViewModel,
                          propertyId: String,
+                         value: PropertyValueState,
+                         mediaType: String,
                          propertyMetadataUpdateCommitted: (PropertyMetadata) -> Unit,
-                         onCommitSetProperty: (id: String, bytes: List<Byte>, isPartial: Boolean) -> Unit) {
+                         updatePropertyValue: (id: String, bytes: List<Byte>, isPartial: Boolean) -> Unit) {
     Column(Modifier.padding(12.dp)) {
-        val value = vm.properties.values.first { it.id.value == propertyId }
         val metadata = vm.responder.propertyService.getMetadataList().firstOrNull { it.resource == value.id.value }
 
-        PropertyValueEditor(true, vm.responder.propertyService.getMediaTypeFor(value.replyHeader),
+        PropertyValueEditor(true, mediaType,
             metadata,
-            value,
+            value.body,
             {},
-            { bytes, isPartial -> onCommitSetProperty(propertyId, bytes, isPartial) }
+            { bytes, isPartial -> updatePropertyValue(propertyId, bytes, isPartial) }
         )
         var m = metadata
         if (m != null)
