@@ -40,8 +40,15 @@ object Json {
     val NullValue = JsonValue("null", JsonToken(TokenType.Null, 0, 4))
     val TrueValue = JsonValue("true", JsonToken(TokenType.True, 0, 4))
     val FalseValue = JsonValue("false", JsonToken(TokenType.False, 0, 5))
+    val EmptyObject = JsonValue(emptyMap)
+    val EmptyArray = JsonValue(emptySequence.toList())
 
     fun parse(source: String) = parse(source, 0, source.length)
+    fun parseOrNull(source: String) = try {
+        parse(source)
+    } catch (ex: JsonParserException) {
+        null
+    }
 
     private val splitChecked = charArrayOf(',', '{', '[', '}', ']', '"', ':')
     private fun <T>splitEntries(source: String, offset: Int, length: Int, isMap: Boolean): Sequence<T> = sequence {

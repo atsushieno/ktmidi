@@ -4,7 +4,9 @@ import io.ktor.utils.io.core.*
 
 object CommonRulesPropertyHelper {
     fun getPropertyIdentifier(header: List<Byte>): String {
-        val json = Json.parse(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
+        // FIXME: log error if JSON parser failed
+        val json = Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
+            ?: return ""
         val resId =
             json.token.map.firstNotNullOfOrNull {
                 if (it.key.stringValue == PropertyCommonHeaderKeys.RES_ID)
@@ -47,7 +49,8 @@ object CommonRulesPropertyHelper {
         if (header.isEmpty())
             return null
         val replyString = PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString())
-        val replyJson = Json.parse(replyString)
+        // FIXME: log error if JSON parser failed
+        val replyJson = Json.parseOrNull(replyString) ?: return null
         val valuePair = replyJson.token.map.toList().firstOrNull { it.first.stringValue == field } ?: return null
         return valuePair.second
     }

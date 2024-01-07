@@ -43,7 +43,9 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
     }
 
     private fun getMetadataListForBody(body: List<Byte>): List<PropertyMetadata> {
-        val json = Json.parse(PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
+        // FIXME: log error if JSON parser failed
+        val json = Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
+            ?: return listOf()
         return getMetadataListForBody(json)
     }
 
