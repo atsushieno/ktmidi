@@ -142,6 +142,20 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
     }
+
+    fun updatePropertyMetadata(oldPropertyId: String, property: PropertyMetadata) {
+        // update definition
+        responder.properties.updateMetadata(oldPropertyId, property)
+        // then update property value storage
+        //
+        // With the current implementation, we reuse the same PropertyMetadata instance
+        // which means the id is already updated. So we do not use `oldPropertyId` here...
+        val index = properties.indexOfFirst { it.id == property.resource }
+        val existing = properties[index]
+        properties[index] = PropertyValue(property.resource, existing.replyHeader, existing.body)
+        selectedProperty.value = property.resource
+    }
+
     var selectedProperty = mutableStateOf<String?>(null)
     val properties by lazy { mutableStateListOf<PropertyValue>().apply { addAll(responder.properties.values) } }
 

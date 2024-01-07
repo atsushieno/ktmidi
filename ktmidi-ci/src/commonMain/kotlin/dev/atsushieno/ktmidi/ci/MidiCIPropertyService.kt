@@ -22,6 +22,7 @@ interface MidiCIPropertyService {
     fun getReplyStatusFor(header: List<Byte>): Int?
     fun getMediaTypeFor(replyHeader: List<Byte>): String
     fun addMetadata(property: PropertyMetadata)
+    fun removeMetadata(propertyId: String)
 
     val propertyCatalogUpdated: MutableList<() -> Unit>
 }

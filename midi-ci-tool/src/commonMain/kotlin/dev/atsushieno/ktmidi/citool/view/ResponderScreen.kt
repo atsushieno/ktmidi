@@ -47,7 +47,8 @@ fun ResponderScreen() {
         val selectedProperty by remember { vm.selectedProperty }
         val sp = selectedProperty
         if (sp != null)
-            LocalPropertyDetails(vm, sp)
+            LocalPropertyDetails(vm, sp,
+                metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) })
     }
 }
 
@@ -305,31 +306,39 @@ fun LocalPropertyList(vm: LocalConfigurationViewModel) {
         properties.forEach {
             PropertyListEntry(it, vm.selectedProperty.value == it) {
                 propertyId -> vm.selectProperty(propertyId)
-                // FIXME: implement
-                //AppModel.ciDeviceManager.responder.sendGetPropertyDataRequest(vm.responder.muid, propertyId)
             }
         }
         Button(onClick = {
             val property = PropertyMetadata().apply { resource = "Property${Random.nextInt()}" }
             AppModel.ciDeviceManager.responder.addProperty(property)
-            //vm.selectedProperty.value = property.resource
+            vm.selectedProperty.value = property.resource
         }) {
             Image(Icons.Default.Add, "Add")
+        }
+        Button(onClick = {
+            val p = vm.selectedProperty.value ?: return@Button
+            vm.selectedProperty.value = null
+            AppModel.ciDeviceManager.responder.removeProperty(p)
+        }) {
+            Image(Icons.Default.Delete, "Delete")
         }
     }
 }
 
 @Composable
-fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String) {
+fun LocalPropertyDetails(vm: LocalConfigurationViewModel, propertyId: String,
+                         metadataUpdateCommitted: (property: PropertyMetadata) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         val entry = vm.properties.first { it.id == propertyId }
         val def = vm.responder.propertyService.getMetadataList()?.firstOrNull { it.resource == entry.id }
-        LocalPropertyValueEditor(vm, def, entry)
-        var schemaString: String? = null
-        if (def != null)
-            PropertyMetadataEditor(def,
-                { TODO("FIXME: implement") },
-                false)
+        if (def != null) {
+            LocalPropertyValueEditor(vm, def, entry)
+            PropertyMetadataEditor(
+                def,
+                metadataUpdateCommitted,
+                false
+            )
+        }
         else
             Text("(Metadata not available - not in ResourceList)")
     }

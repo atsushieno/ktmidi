@@ -99,6 +99,11 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
         propertyCatalogUpdated.forEach { it() }
     }
 
+    override fun removeMetadata(propertyId: String) {
+        metadataList.removeAll { it.resource == propertyId }
+        propertyCatalogUpdated.forEach { it() }
+    }
+
     override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
 
     // impl

@@ -136,6 +136,10 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         body: List<Byte>,
                         refreshValueClicked: () -> Unit,
                         commitChangeClicked: (List<Byte>, Boolean) -> Unit) {
+    // It is saved to optionally reset cached state
+    var prev by remember { mutableStateOf(metadata) }
+    val resetState = prev != metadata
+
     Column {
         Text("Property Value", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
 
@@ -149,6 +153,8 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                 }
         }
         var showFilePicker by remember { mutableStateOf(false) }
+        if (resetState)
+            showFilePicker = false
         val showUploadButton = @Composable {
             if (getPlatform().canReadLocalFile) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -171,6 +177,8 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
             val bodyText = PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString())
             if (isEditable) {
                 var editing by remember { mutableStateOf(false) }
+                if (resetState)
+                    editing = false
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(editing, { editing = !editing })
                     Text("edit")
@@ -178,6 +186,10 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                 if (editing) {
                     var text by remember { mutableStateOf(bodyText) }
                     var partial by remember { mutableStateOf("") }
+                    if (resetState) {
+                        text = bodyText
+                        partial = ""
+                    }
                     Row {
                         if (isEditable) {
                             if (metadata?.canSet == PropertySetAccess.PARTIAL) {
@@ -213,5 +225,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
             if (isEditable)
                 showUploadButton()
         }
+
+        prev = metadata
     }
 }

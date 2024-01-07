@@ -87,6 +87,17 @@ class ServiceObservablePropertyList(private val propertyService: MidiCIPropertyS
         propertiesCatalogUpdated.forEach { it() }
     }
 
+    fun removeMetadata(propertyId: String) {
+        propertyService.removeMetadata(propertyId)
+        propertiesCatalogUpdated.forEach { it() }
+    }
+
+    fun updateMetadata(oldPropertyId: String, property: PropertyMetadata) {
+        // remove property first, then add a new property
+        propertyService.removeMetadata(oldPropertyId)
+        propertyService.addMetadata(property)
+    }
+
     init {
         initializeCatalogUpdatedEvent()
     }
