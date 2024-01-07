@@ -190,24 +190,27 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         partial = ""
                     }
                     Row {
-                        if (isEditable) {
+                        // There is no reason to support partial editor on Local property.
+                        if (isEditable && !isLocalEditor) {
                             if (metadata?.canSet == PropertySetAccess.PARTIAL) {
                                 TextField(partial, { partial = it }, label = {
                                     Text("Partial? RFC6901 Pointer here then:")
                                 })
                             }
                             showRefreshButton()
-                            Button(onClick = {
-                                val jsonString = Json.getEscapedString(partial.ifEmpty { text })
-                                val bytes =
-                                    PropertyCommonConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
-                                commitChangeClicked(bytes, partial.isNotBlank())
-                            }) {
-                                Text("Commit changes")
-                            }
                         }
                     }
                     TextField(text, { text = it })
+                    if (isEditable) {
+                        Button(onClick = {
+                            val jsonString = Json.getEscapedString(partial.ifEmpty { text })
+                            val bytes =
+                                PropertyCommonConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
+                            commitChangeClicked(bytes, partial.isNotBlank())
+                        }) {
+                            Text("Commit changes")
+                        }
+                    }
                     Text("... or ...")
                     showUploadButton()
                 } else {

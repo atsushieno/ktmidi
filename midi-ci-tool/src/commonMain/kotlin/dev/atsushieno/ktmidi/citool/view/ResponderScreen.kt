@@ -327,11 +327,13 @@ fun LocalPropertyList(properties: List<String>,
                 propertyId -> selectProperty(propertyId)
             }
         }
-        Button(onClick = { createNewProperty() }) {
-            Image(Icons.Default.Add, "Add")
-        }
-        Button(onClick = { removeSelectedProperty() }) {
-            Image(Icons.Default.Delete, "Delete")
+        Row {
+            Button(onClick = { createNewProperty() }) {
+                Image(Icons.Default.Add, "Add")
+            }
+            Button(onClick = { removeSelectedProperty() }) {
+                Image(Icons.Default.Delete, "Delete")
+            }
         }
     }
 }
