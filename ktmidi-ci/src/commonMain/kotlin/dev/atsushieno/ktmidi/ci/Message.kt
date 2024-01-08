@@ -39,10 +39,16 @@ class Message {
         override fun toString() = "SetProfileOff(address = $address, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, profile=$profile)"
     }
     data class ProfileEnabled(val address: Byte, val sourceMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short) {
-        override fun toString() = "ProfileEnabled(address = $address, sourceMUID = ${sourceMUID.toString(16)}, profile=$profile, numChannelsRequested = $numChannelsRequested)"
+        override fun toString() = "ProfileEnabled(address = $address, sourceMUID = ${sourceMUID.toString(16)}, profile = $profile, numChannelsRequested = $numChannelsRequested)"
     }
     data class ProfileDisabled(val address: Byte, val sourceMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short) {
-        override fun toString() = "ProfileDisabled(address = $address, sourceMUID = ${sourceMUID.toString(16)}, profile=$profile, numChannelsRequested = $numChannelsRequested)"
+        override fun toString() = "ProfileDisabled(address = $address, sourceMUID = ${sourceMUID.toString(16)}, profile = $profile, numChannelsRequested = $numChannelsRequested)"
+    }
+    data class ProfileDetailsInquiry(val address: Byte, val sourceMUID: Int, val destinationMUID: Int, val profile: MidiCIProfileId, val target: Byte) {
+        override fun toString() = "ProfileDetailsInquiry(address = $address, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)} profile = $profile, target = $target)"
+    }
+    data class ProfileDetailsReply(val address: Byte, val sourceMUID: Int, val destinationMUID: Int, val profile: MidiCIProfileId, val target: Byte, val data: List<Byte>) {
+        override fun toString() = "ProfileDetailsReply(address = $address, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)} profile = $profile, target = $target, data = (string: ${data.toByteArray().decodeToString()}, bytes: ${data.joinToString { it.toString(16) }}))"
     }
 
     // Property Exchange

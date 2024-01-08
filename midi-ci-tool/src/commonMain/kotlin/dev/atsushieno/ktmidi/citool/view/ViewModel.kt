@@ -70,6 +70,10 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
         addAll(conn.profiles.profiles.map { MidiCIProfileState(mutableStateOf(it.address), it.profile, mutableStateOf(it.enabled)) })
     }
 
+    fun sendProfileDetailsInquiry(profile: MidiCIProfileId, address: Byte, target: Byte) {
+        AppModel.ciDeviceManager.initiator.sendProfileDetailsInquiry(address, conn.muid, profile, target)
+    }
+
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
         AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.muid, propertyId)

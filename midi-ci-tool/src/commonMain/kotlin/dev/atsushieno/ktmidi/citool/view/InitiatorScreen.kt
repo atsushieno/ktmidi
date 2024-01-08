@@ -156,6 +156,31 @@ fun ClientProfileListEntry(profileId: MidiCIProfileId, isSelected: Boolean, sele
 @Composable
 fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
     Column {
+        Text("Details Inquiry")
+        var profileDetailsInquiryAddress by remember { mutableStateOf("0") }
+        var profileDetailsInquiryTarget by remember { mutableStateOf("0") }
+        Row {
+            Text("Address:")
+            TextField(
+                profileDetailsInquiryAddress,
+                { profileDetailsInquiryAddress = it },
+                modifier = Modifier.width(60.dp)
+            )
+            Text("Target:")
+            TextField(
+                profileDetailsInquiryTarget,
+                { profileDetailsInquiryTarget = it },
+                modifier = Modifier.width(60.dp)
+            )
+            Button(onClick = {
+                val address = profileDetailsInquiryAddress.toByteOrNull()
+                val target = profileDetailsInquiryTarget.toByteOrNull()
+                if (address != null && target != null)
+                    vm.sendProfileDetailsInquiry(profile, address, target)
+            }) {
+                Text("Send Details Inquiry")
+            }
+        }
         Text("Set Profile On Ch./Grp.")
         val entries = vm.profiles.filter { it.profile.toString() == profile.toString() }
         entries.forEach {

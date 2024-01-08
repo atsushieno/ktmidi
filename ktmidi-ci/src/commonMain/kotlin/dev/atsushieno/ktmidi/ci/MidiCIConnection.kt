@@ -32,7 +32,7 @@ object CISubId2 {
     const val PROFILE_ADDED_REPORT: Byte = 0x26
     const val PROFILE_REMOVED_REPORT: Byte = 0x27
     const val PROFILE_DETAILS_INQUIRY: Byte = 0x28
-    const val PROFILE_DETAILS_INQUIRY_REPLY: Byte = 0x29
+    const val PROFILE_DETAILS_REPLY: Byte = 0x29
     const val PROFILE_SPECIFIC_DATA: Byte = 0x2F
 
     const val PROPERTY_CAPABILITIES_INQUIRY: Byte = 0x30

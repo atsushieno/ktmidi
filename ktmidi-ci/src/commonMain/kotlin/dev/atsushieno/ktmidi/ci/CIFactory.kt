@@ -255,6 +255,20 @@ object CIFactory {
         return dst.take(20)
     }
 
+    fun midiCIProfileDetails(
+        dst: MutableList<Byte>, address: Byte,
+        sourceMUID: Int, destinationMUID: Int,
+        profile: MidiCIProfileId, target: Byte): List<Byte> {
+        midiCIMessageCommon(
+            dst, address,
+            CISubId2.PROFILE_DETAILS_INQUIRY,
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
+        )
+        midiCIProfile(dst, 13, profile)
+        dst[18] = target
+        return dst.take(19)
+    }
+
     fun midiCIProfileSpecificData(
         dst: MutableList<Byte>, address: Byte,
         sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, dataSize: Int, data: MutableList<Byte>

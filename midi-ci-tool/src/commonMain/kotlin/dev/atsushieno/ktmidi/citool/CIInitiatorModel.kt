@@ -55,6 +55,10 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         }
     }
 
+    fun sendProfileDetailsInquiry(address: Byte, muid: Int, profile: MidiCIProfileId, target: Byte) {
+        initiator.sendProfileDetailsInquiry(address, muid, profile, target)
+    }
+
     fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String) {
         initiator.sendGetPropertyData(destinationMUID, resource)
     }

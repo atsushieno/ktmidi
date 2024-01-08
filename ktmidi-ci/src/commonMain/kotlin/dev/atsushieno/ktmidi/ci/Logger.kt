@@ -35,6 +35,10 @@ class Logger {
 
     fun profileDisabled(msg: Message.ProfileDisabled) = logMessage(msg)
 
+    fun profileDetails(msg: Message.ProfileDetailsInquiry) = logMessage(msg)
+
+    fun profileDetailsReply(msg: Message.ProfileDetailsReply) = logMessage(msg)
+
     fun propertyGetCapabilitiesInquiry(msg: Message.PropertyGetCapabilities) = logMessage(msg)
 
     fun propertyGetCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) = logMessage(msg)

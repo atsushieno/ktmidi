@@ -31,6 +31,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         val profileRemovedReceived = mutableListOf<(Message.ProfileRemoved) -> Unit>()
         val profileEnabledReceived = mutableListOf<(Message.ProfileEnabled) -> Unit>()
         val profileDisabledReceived = mutableListOf<(Message.ProfileDisabled) -> Unit>()
+        val profileDetailsReplyReceived = mutableListOf<(Message.ProfileDetailsReply) -> Unit>()
         val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
         val propertyCapabilityReplyReceived = mutableListOf<(Message.PropertyGetCapabilitiesReply) -> Unit>()
         val getPropertyDataReplyReceived = mutableListOf<(msg: Message.GetPropertyDataReply) -> Unit>()
@@ -149,13 +150,24 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             setProfileOff(Message.SetProfileOff(address, muid, destinationMUID, profileId))
 
     fun setProfileOn(msg: Message.SetProfileOn) {
+        logger.setProfileOn(msg)
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIProfileSet(buf, msg.address, true, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.numChannelsRequested))
     }
 
     fun setProfileOff(msg: Message.SetProfileOff) {
+        logger.setProfileOff(msg)
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIProfileSet(buf, msg.address, false, msg.sourceMUID, msg.destinationMUID, msg.profile, 0))
+    }
+
+    fun sendProfileDetailsInquiry(address: Byte, muid: Int, profile: MidiCIProfileId, target: Byte) =
+        sendProfileDetailsInquiry(Message.ProfileDetailsInquiry(address, this.muid, muid, profile, target))
+
+    fun sendProfileDetailsInquiry(msg: Message.ProfileDetailsInquiry) {
+        logger.profileDetails(msg)
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIProfileDetails(buf, msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, 0))
     }
 
     // Property Exchange
@@ -329,11 +341,11 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         defaultProcessProfileRemovedReport(msg)
     }
 
-    val defaultProcessProfileEnabledReport: (msg: Message.ProfileEnabled) -> Unit = { msg ->
+    fun defaultProcessProfileEnabledReport(msg: Message.ProfileEnabled) {
         val conn = connections[msg.sourceMUID]
         conn?.profiles?.setEnabled(true, msg.address, msg.profile, msg.numChannelsRequested)
     }
-    val defaultProcessProfileDisabledReport: (msg: Message.ProfileDisabled) -> Unit = { msg ->
+    fun defaultProcessProfileDisabledReport(msg: Message.ProfileDisabled) {
         val conn = connections[msg.sourceMUID]
         conn?.profiles?.setEnabled(false, msg.address, msg.profile, msg.numChannelsRequested)
     }
@@ -346,6 +358,12 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         logger.profileDisabled(msg)
         events.profileDisabledReceived.forEach { it(msg) }
         defaultProcessProfileDisabledReport(msg)
+    }
+
+    var processProfileDetailsReply: (msg: Message.ProfileDetailsReply) -> Unit = { msg ->
+        logger.profileDetailsReply(msg)
+        events.profileDetailsReplyReceived.forEach { it(msg) }
+        // nothing to perform - use events if you need anything further
     }
 
     // Property Exchange
@@ -533,6 +551,15 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profile = CIRetrieval.midiCIGetProfileId(data)
                 processProfileRemovedReport(Message.ProfileRemoved(address, sourceMUID, profile))
+            }
+            CISubId2.PROFILE_DETAILS_REPLY -> {
+                val address = CIRetrieval.midiCIGetAddressing(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val profile = CIRetrieval.midiCIGetProfileId(data)
+                val target = data[18]
+                val dataSize = data[19] + (data[20] shl 7)
+                val data = data.drop(21).take(dataSize)
+                processProfileDetailsReply(Message.ProfileDetailsReply(address, sourceMUID, destinationMUID, profile, target, data))
             }
             // FIXME: support set profile details reply
 
