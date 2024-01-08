@@ -68,7 +68,7 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
 
         val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
         val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
-        return Message.GetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader ?: listOf(), 1, 1, replyBody ?: listOf())
+        return Message.GetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody)
     }
     override fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply {
         val jsonInquiryHeader =

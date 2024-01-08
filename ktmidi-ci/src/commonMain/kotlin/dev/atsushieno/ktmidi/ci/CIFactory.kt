@@ -334,8 +334,8 @@ object CIFactory {
         return dst.take(16 + header.size + 6 + data.size)
     }
 
-    fun midiCIPropertyChunks(dst: MutableList<Byte>, subId: Byte, sourceMUID: Int, destinationMUID: Int,
-        requestId: Byte, header: List<Byte>, data: List<Byte>, maxDataLengthInPacket: Int = data.size) : List<List<Byte>> {
+    fun midiCIPropertyChunks(dst: MutableList<Byte>, maxDataLengthInPacket: Int, subId: Byte, sourceMUID: Int, destinationMUID: Int,
+        requestId: Byte, header: List<Byte>, data: List<Byte>) : List<List<Byte>> {
         if (data.isEmpty())
             return listOf(midiCIPropertyPacketCommon(dst, subId, sourceMUID, destinationMUID, requestId, header,
                 1, 1, data))

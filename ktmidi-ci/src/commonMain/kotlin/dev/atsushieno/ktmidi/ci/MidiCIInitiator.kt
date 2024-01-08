@@ -2,6 +2,8 @@ package dev.atsushieno.ktmidi.ci
 
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.asTimeSource
 import kotlin.random.Random
 
 /*
@@ -24,24 +26,28 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                       val muid: Int = Random.nextInt() and 0x7F7F7F7F) {
 
     class Events {
+        val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
+
         val discoveryReplyReceived = mutableListOf<(Message.DiscoveryReply) -> Unit>()
         val endpointReplyReceived = mutableListOf<(Message.EndpointReply) -> Unit>()
+
         val profileInquiryReplyReceived = mutableListOf<(Message.ProfileReply) -> Unit>()
         val profileAddedReceived = mutableListOf<(Message.ProfileAdded) -> Unit>()
         val profileRemovedReceived = mutableListOf<(Message.ProfileRemoved) -> Unit>()
         val profileEnabledReceived = mutableListOf<(Message.ProfileEnabled) -> Unit>()
         val profileDisabledReceived = mutableListOf<(Message.ProfileDisabled) -> Unit>()
         val profileDetailsReplyReceived = mutableListOf<(Message.ProfileDetailsReply) -> Unit>()
-        val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
+
         val propertyCapabilityReplyReceived = mutableListOf<(Message.PropertyGetCapabilitiesReply) -> Unit>()
         val getPropertyDataReplyReceived = mutableListOf<(msg: Message.GetPropertyDataReply) -> Unit>()
         val setPropertyDataReplyReceived = mutableListOf<(msg: Message.SetPropertyDataReply) -> Unit>()
         val subscribePropertyReplyReceived = mutableListOf<(msg: Message.SubscribePropertyReply) -> Unit>()
         val subscribePropertyReceived = mutableListOf<(msg: Message.SubscribeProperty) -> Unit>()
+        val propertyNotifyReceived = mutableListOf<(msg: Message.PropertyNotify) -> Unit>()
+
         val processInquiryReplyReceived = mutableListOf<(msg: Message.ProcessInquiryReply) -> Unit>()
         val midiMessageReportReplyReceived = mutableListOf<(msg: Message.ProcessMidiMessageReportReply) -> Unit>()
         val endOfMidiMessageReportReceived = mutableListOf<(msg: Message.ProcessEndOfMidiMessageReport) -> Unit>()
-
     }
 
     val events = Events()
@@ -62,6 +68,8 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
         private val openRequests = mutableListOf<Message.GetPropertyData>()
         private val pendingSubscriptions = mutableMapOf<Byte,String>()
+
+        val pendingChunkManager = PropertyChunkManager()
 
         fun updateProperty(msg: Message.GetPropertyDataReply) {
             val req = openRequests.firstOrNull { it.requestId == msg.requestId } ?: return
@@ -99,6 +107,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     var receivableMaxSysExSize = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
     var productInstanceId: String? = null
     var maxSimultaneousPropertyRequests: Byte = 1
+    var maxPropertyChunkSize = MidiCIConstants.DEFAULT_MAX_PROPERTY_CHUNK_SIZE
 
     var autoSendEndpointInquiry = true
     var autoSendProfileInquiry = true
@@ -202,7 +211,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         val conn = connections[msg.destinationMUID]
         conn?.addPendingRequest(msg)
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIPropertyChunks(buf, CISubId2.PROPERTY_GET_DATA_INQUIRY,
+        CIFactory.midiCIPropertyChunks(buf, maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_INQUIRY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, listOf()).forEach {
             sendOutput(it)
         }
@@ -212,14 +221,13 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         val conn = connections[destinationMUID]
         if (conn != null) {
             val header = conn.propertyClient.createRequestHeader(resource, isPartial)
-            // FIXME: handle body data chunks
-            sendSetPropertyData(Message.SetPropertyData(muid, destinationMUID, requestIdSerial++, header, 1, 1, data))
+            sendSetPropertyData(Message.SetPropertyData(muid, destinationMUID, requestIdSerial++, header, data))
         }
     }
 
     fun sendSetPropertyData(msg: Message.SetPropertyData) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
-        CIFactory.midiCIPropertyChunks(buf, CISubId2.PROPERTY_SET_DATA_INQUIRY,
+        CIFactory.midiCIPropertyChunks(buf, maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_INQUIRY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body).forEach {
             sendOutput(it)
         }
@@ -237,7 +245,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     fun sendSubscribeProperty(msg: Message.SubscribeProperty) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(
-            dst, CISubId2.PROPERTY_SUBSCRIBE,
+            dst, maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
             sendOutput(it)
@@ -438,7 +446,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(
-            dst, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
+            dst, maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
             sendOutput(it)
@@ -477,6 +485,12 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         defaultProcessSubscribePropertyReply(msg)
     }
 
+    var processPropertyNotify: (propertyNotify: Message.PropertyNotify) -> Unit = { msg ->
+        logger.propertyNotify(msg)
+        events.propertyNotifyReceived.forEach { it(msg) }
+        // no particular things to do. Event handlers should be used if any.
+    }
+
     // Process Inquiry
     var processProcessInquiryReply: (msg: Message.ProcessInquiryReply) -> Unit = { msg ->
         logger.processInquiryReply(msg)
@@ -512,6 +526,19 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         sendNakForUnknownCIMessage(data)
     }
 
+    private fun handleChunk(sourceMUID: Int, requestId: Byte, chunkIndex: Short, numChunks: Short,
+                            header: List<Byte>, body: List<Byte>,
+                            onComplete: (header: List<Byte>, body: List<Byte>) -> Unit) {
+        val conn = connections[sourceMUID] ?: return
+        if (chunkIndex < numChunks) {
+            conn.pendingChunkManager.addPendingChunk(Clock.System.now().epochSeconds, requestId, header, body)
+        } else {
+            val existing = if (chunkIndex > 1) conn.pendingChunkManager.finishPendingChunk(requestId, body) else null
+            val msgHeader = existing?.first ?: header
+            val msgBody = existing?.second ?: body
+            onComplete(msgHeader, msgBody)
+        }
+    }
 
     fun processInput(data: List<Byte>) {
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
@@ -642,13 +669,14 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             CISubId2.PROPERTY_GET_DATA_REPLY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val header = CIRetrieval.midiCIGetPropertyHeader(data)
-                // FIXME: handle chunked body content
                 val requestId = data[13]
                 val numChunks = CIRetrieval.midiCIGetPropertyTotalChunks(data)
                 val chunkIndex = CIRetrieval.midiCIGetPropertyChunkIndex(data)
                 val body = CIRetrieval.midiCIGetPropertyBodyInThisChunk(data)
-                processGetDataReply(Message.GetPropertyDataReply(
-                    sourceMUID, destinationMUID, requestId, header, numChunks, chunkIndex, body))
+
+                handleChunk(sourceMUID, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
+                    processGetDataReply(Message.GetPropertyDataReply(sourceMUID, destinationMUID, requestId, wholeHeader, wholeBody))
+                }
             }
             CISubId2.PROPERTY_SET_DATA_REPLY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
@@ -662,7 +690,13 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
-                processSubscribeProperty(Message.SubscribeProperty(sourceMUID, destinationMUID, requestId, header, listOf()))
+                val numChunks = CIRetrieval.midiCIGetPropertyTotalChunks(data)
+                val chunkIndex = CIRetrieval.midiCIGetPropertyChunkIndex(data)
+                val body = CIRetrieval.midiCIGetPropertyBodyInThisChunk(data)
+
+                handleChunk(sourceMUID, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
+                    processSubscribeProperty(Message.SubscribeProperty(sourceMUID, destinationMUID, requestId, wholeHeader, wholeBody))
+                }
             }
             CISubId2.PROPERTY_SUBSCRIBE_REPLY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
@@ -670,6 +704,19 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
                 processSubscribePropertyReply(Message.SubscribePropertyReply(sourceMUID, destinationMUID, requestId, header, listOf()))
+            }
+            CISubId2.PROPERTY_NOTIFY -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val requestId = data[13]
+                val headerSize = data[14] + (data[15].toInt() shl 7)
+                val header = data.drop(16).take(headerSize)
+                val numChunks = CIRetrieval.midiCIGetPropertyTotalChunks(data)
+                val chunkIndex = CIRetrieval.midiCIGetPropertyChunkIndex(data)
+                val body = CIRetrieval.midiCIGetPropertyBodyInThisChunk(data)
+
+                handleChunk(sourceMUID, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
+                    processPropertyNotify(Message.PropertyNotify(sourceMUID, destinationMUID, requestId, wholeHeader, wholeBody))
+                }
             }
 
             // Process Inquiry
