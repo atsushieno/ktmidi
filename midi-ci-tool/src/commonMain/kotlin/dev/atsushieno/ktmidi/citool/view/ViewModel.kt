@@ -1,9 +1,6 @@
 package dev.atsushieno.ktmidi.citool.view
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
@@ -236,5 +233,14 @@ class DeviceConfigurationViewModel(deviceInfo: MidiCIDeviceInfo) {
 }
 
 class ApplicationSetingsViewModel {
-    var workaroundJUCEProfileNumChannelsIssue = mutableStateOf(false)
+    val workaroundJUCEProfileNumChannelsIssue = mutableStateOf(false)
+    fun workaroundJUCEProfileNumChannelsIssue(value: Boolean) {
+        ImplementationSettings.workaroundJUCEProfileNumChannelsIssue = value
+        workaroundJUCEProfileNumChannelsIssue.value = value
+    }
+    var workaroundJUCEPropertySubscriptionReplyIssue = mutableStateOf(false)
+    fun workaroundJUCEPropertySubscriptionReplyIssue(value: Boolean) {
+        ImplementationSettings.workaroundJUCEPropertySubscriptionReplyIssue = value
+        workaroundJUCEPropertySubscriptionReplyIssue.value = value
+    }
 }

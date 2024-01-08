@@ -398,7 +398,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         events.subscribePropertyReceived.forEach { it(msg) }
         val conn = connections[msg.sourceMUID]
         val reply = conn?.updateProperty(msg)
-        if (reply?.second != null) {
+        if (reply?.second != null && !ImplementationSettings.workaroundJUCEPropertySubscriptionReplyIssue) {
             logger.subscribePropertyReply(reply.second!!)
             sendPropertySubscribeReply(reply.second!!)
         } else {
