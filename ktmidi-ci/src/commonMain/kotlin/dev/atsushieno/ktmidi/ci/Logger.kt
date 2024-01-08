@@ -56,4 +56,10 @@ class Logger {
     fun subscribePropertyReply(msg: Message.SubscribePropertyReply) = logMessage(msg)
 
     fun propertyNotify(msg: Message.PropertyNotify) = logMessage(msg)
+
+    fun processInquiry(msg: Message.ProcessInquiry) = logMessage(msg)
+    fun processInquiryReply(msg: Message.ProcessInquiryReply) = logMessage(msg)
+    fun midiMessageReport(msg: Message.ProcessMidiMessageReport) = logMessage(msg)
+    fun midiMessageReportReply(msg: Message.ProcessMidiMessageReportReply) = logMessage(msg)
+    fun endOfMidiMessageReport(msg: Message.ProcessEndOfMidiMessageReport) = logMessage(msg)
 }

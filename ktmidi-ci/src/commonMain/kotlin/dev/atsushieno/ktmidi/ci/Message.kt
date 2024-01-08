@@ -79,4 +79,29 @@ class Message {
     data class PropertyNotify(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>) {
         override fun toString() = "PropertyNotify(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()}, body = ${body.toByteArray().decodeToString()})"
     }
+
+    // Process Inquiry
+    data class ProcessInquiry(val sourceMUID: Int, val destinationMUID: Int) {
+        override fun toString() = "ProcessInquiry(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)})"
+    }
+    data class ProcessInquiryReply(val sourceMUID: Int, val destinationMUID: Int, val supportedFeatures: Byte) {
+        override fun toString() = "ProcessInquiryReply(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, supportedFeatures = $supportedFeatures)"
+    }
+    data class ProcessMidiMessageReport(val address: Byte, val sourceMUID: Int, val destinationMUID: Int,
+                                        val messageDataControl: Byte,
+                                        val systemMessages: Byte,
+                                        val channelControllerMessages: Byte,
+                                        val noteDataMessages: Byte) {
+        override fun toString() = "ProcessMidiMessageReport(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, messageDataControl = $messageDataControl, systemMessages = $systemMessages, channelControllerMessages = $channelControllerMessages, noteDataMessages = $noteDataMessages)"
+    }
+    data class ProcessMidiMessageReportReply(val address: Byte, val sourceMUID: Int, val destinationMUID: Int,
+                                        val messageDataControl: Byte,
+                                        val systemMessages: Byte,
+                                        val channelControllerMessages: Byte,
+                                        val noteDataMessages: Byte) {
+        override fun toString() = "ProcessMidiMessageReportReply(sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)}, messageDataControl = $messageDataControl, systemMessages = $systemMessages, channelControllerMessages = $channelControllerMessages, noteDataMessages = $noteDataMessages)"
+    }
+    data class ProcessEndOfMidiMessageReport(val address: Byte, val sourceMUID: Int, val destinationMUID: Int) {
+        override fun toString() = "ProcessEndOfMidiMessageReport(address = $address, sourceMUID = ${sourceMUID.toString(16)}, destinationMUID = ${destinationMUID.toString(16)})"
+    }
 }

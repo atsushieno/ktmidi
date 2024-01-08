@@ -347,6 +347,56 @@ object CIFactory {
         }
     }
 
+    // Process Inquiry
+
+    fun midiCIProcessInquiryCapabilities(
+        dst: MutableList<Byte>, sourceMUID: Int, destinationMUID: Int
+    ) : List<Byte> {
+        midiCIMessageCommon(
+            dst, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, CISubId2.PROCESS_INQUIRY_CAPABILITIES,
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
+        )
+        return dst.take(13)
+    }
+
+    fun midiCIProcessInquiryCapabilitiesReply(
+        dst: MutableList<Byte>, sourceMUID: Int, destinationMUID: Int, features: Byte
+    ) : List<Byte> {
+        midiCIMessageCommon(
+            dst, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, CISubId2.PROCESS_INQUIRY_CAPABILITIES_REPLY,
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
+        )
+        dst[13] = features
+        return dst.take(14)
+    }
+
+    fun midiCIMidiMessageReport(
+        dst: MutableList<Byte>, isRequest: Boolean, address: Byte, sourceMUID: Int, destinationMUID: Int,
+        messageDataControl: Byte,
+        systemMessages: Byte,
+        channelControllerMessages: Byte,
+        noteDataMessages: Byte
+    ) : List<Byte> {
+        midiCIMessageCommon(
+            dst, address, if (isRequest) CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT else CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY,
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
+        )
+        dst[13] = messageDataControl
+        dst[14] = systemMessages
+        dst[15] = 0 // reserved for other System Messages
+        dst[16] = channelControllerMessages
+        dst[17] = noteDataMessages
+        return dst.take(18)
+    }
+
+    fun midiCIEndOfMidiMessage(
+        dst: MutableList<Byte>, address: Byte, sourceMUID: Int, destinationMUID: Int
+    ) : List<Byte> {
+        midiCIMessageCommon(dst, address, CISubId2.PROCESS_INQUIRY_END_OF_MIDI_MESSAGE,
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID)
+        return dst.take(13)
+    }
+
     // ACK/NAK
 
     fun midiCIAckNak(dst: MutableList<Byte>, isNak: Boolean, data: MidiCIAckNakData) =

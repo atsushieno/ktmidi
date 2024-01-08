@@ -48,6 +48,12 @@ object CISubId2 {
     const val PROPERTY_SUBSCRIBE: Byte = 0x38
     const val PROPERTY_SUBSCRIBE_REPLY: Byte = 0x39
     const val PROPERTY_NOTIFY: Byte = 0x3F
+
+    const val PROCESS_INQUIRY_CAPABILITIES: Byte = 0x40
+    const val PROCESS_INQUIRY_CAPABILITIES_REPLY: Byte = 0x41
+    const val PROCESS_INQUIRY_MIDI_MESSAGE_REPORT: Byte = 0x42
+    const val PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY: Byte = 0x43
+    const val PROCESS_INQUIRY_END_OF_MIDI_MESSAGE: Byte = 0x44
 }
 
 object CINakStatus {

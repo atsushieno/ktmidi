@@ -38,6 +38,10 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         val setPropertyDataReplyReceived = mutableListOf<(msg: Message.SetPropertyDataReply) -> Unit>()
         val subscribePropertyReplyReceived = mutableListOf<(msg: Message.SubscribePropertyReply) -> Unit>()
         val subscribePropertyReceived = mutableListOf<(msg: Message.SubscribeProperty) -> Unit>()
+        val processInquiryReplyReceived = mutableListOf<(msg: Message.ProcessInquiryReply) -> Unit>()
+        val midiMessageReportReplyReceived = mutableListOf<(msg: Message.ProcessMidiMessageReportReply) -> Unit>()
+        val endOfMidiMessageReportReceived = mutableListOf<(msg: Message.ProcessEndOfMidiMessageReport) -> Unit>()
+
     }
 
     val events = Events()
@@ -238,6 +242,35 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         ).forEach {
             sendOutput(it)
         }
+    }
+
+    // Process Inquiry
+    fun sendProcessInquiry(destinationMUID: Int) =
+        sendProcessInquiry(createProcessInquiry(destinationMUID))
+    fun createProcessInquiry(destinationMUID: Int) = Message.ProcessInquiry(muid, destinationMUID)
+    fun sendProcessInquiry(msg: Message.ProcessInquiry) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIProcessInquiryCapabilities(buf, msg.sourceMUID, msg.destinationMUID))
+    }
+
+    fun sendMidiMessageReportInquiry(address: Byte, destinationMUID: Int,
+                                     messageDataControl: Byte,
+                                     systemMessages: Byte,
+                                     channelControllerMessages: Byte,
+                                     noteDataMessages: Byte) =
+        sendMidiMessageReportInquiry(createMidiMessageReportInquiry(
+            address, destinationMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
+    fun createMidiMessageReportInquiry(address: Byte, destinationMUID: Int,
+                                       messageDataControl: Byte,
+                                       systemMessages: Byte,
+                                       channelControllerMessages: Byte,
+                                       noteDataMessages: Byte
+                                       ) = Message.ProcessMidiMessageReport(
+        address, muid, destinationMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
+    fun sendMidiMessageReportInquiry(msg: Message.ProcessMidiMessageReport) {
+        val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
+        sendOutput(CIFactory.midiCIMidiMessageReport(buf, true, msg.address, msg.sourceMUID, msg.destinationMUID,
+            msg.messageDataControl, msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
     }
 
     private var requestIdSerial: Byte = 1
@@ -444,6 +477,26 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         defaultProcessSubscribePropertyReply(msg)
     }
 
+    // Process Inquiry
+    var processProcessInquiryReply: (msg: Message.ProcessInquiryReply) -> Unit = { msg ->
+        logger.processInquiryReply(msg)
+        events.processInquiryReplyReceived.forEach { it(msg) }
+        // FIXME: implement the rest of event handler
+    }
+
+    var processMidiMessageReportReply: (msg: Message.ProcessMidiMessageReportReply) -> Unit = { msg ->
+        logger.midiMessageReportReply(msg)
+        events.midiMessageReportReplyReceived.forEach { it(msg) }
+        // FIXME: implement the rest of event handler
+    }
+
+    var processEndOfMidiMessageReport: (msg: Message.ProcessEndOfMidiMessageReport) -> Unit = { msg ->
+        logger.endOfMidiMessageReport(msg)
+        events.endOfMidiMessageReportReceived.forEach { it(msg) }
+        // FIXME: implement the rest of event handler
+    }
+
+    // Miscellaneous messages
     fun sendNakForUnknownCIMessage(data: List<Byte>) {
         val source = data[1]
         val originalSubId = data[3]
@@ -617,6 +670,29 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
                 processSubscribePropertyReply(Message.SubscribePropertyReply(sourceMUID, destinationMUID, requestId, header, listOf()))
+            }
+
+            // Process Inquiry
+            CISubId2.PROCESS_INQUIRY_CAPABILITIES_REPLY -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val supportedFeatures = data[13]
+                processProcessInquiryReply(Message.ProcessInquiryReply(sourceMUID, destinationMUID, supportedFeatures))
+            }
+            CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY -> {
+                val address = CIRetrieval.midiCIGetAddressing(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val messageDataControl = data[13]
+                val systemMessages = data[14]
+                val channelControllerMessages = data[16]
+                val noteDataMessages = data[17]
+                processMidiMessageReportReply(Message.ProcessMidiMessageReportReply(
+                    address, sourceMUID, destinationMUID,
+                    messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
+            }
+            CISubId2.PROCESS_INQUIRY_END_OF_MIDI_MESSAGE -> {
+                val address = CIRetrieval.midiCIGetAddressing(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                processEndOfMidiMessageReport(Message.ProcessEndOfMidiMessageReport(address, sourceMUID, destinationMUID))
             }
 
             else -> {

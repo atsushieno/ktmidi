@@ -2,6 +2,7 @@ package dev.atsushieno.ktmidi.ci
 
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlin.experimental.and
 import kotlin.random.Random
 
 /**
@@ -28,6 +29,8 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         val subscribePropertyReceived = mutableListOf<(msg: Message.SubscribeProperty) -> Unit>()
         val subscribePropertyReplyReceived = mutableListOf<(msg: Message.SubscribePropertyReply) -> Unit>()
         val propertyNotifyReceived = mutableListOf<(msg: Message.PropertyNotify) -> Unit>()
+        val processInquiryReceived = mutableListOf<(msg: Message.ProcessInquiry) -> Unit>()
+        val midiMessageReportReceived = mutableListOf<(msg: Message.ProcessMidiMessageReport) -> Unit>()
     }
 
     val events = Events()
@@ -52,6 +55,11 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
 
     val propertyService = CommonRulesPropertyService(muid, device)
     val properties = ServiceObservablePropertyList(propertyService)
+
+    var processInquirySupportedFeatures: Byte = 0
+    var midiMessageReportSystemMessages: Byte = 0
+    var midiMessageReportChannelControllerMessages: Byte = 0
+    var midiMessageReportNoteDataMessages: Byte = 0
 
     private var requestIdSerial: Byte = 0
 
@@ -344,6 +352,50 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         events.propertyNotifyReceived.forEach { it(msg) }
     }
 
+    // Process Inquiry
+
+    fun getProcessInquiryReplyFor(msg: Message.ProcessInquiry) =
+        Message.ProcessInquiryReply(muid, msg.sourceMUID, processInquirySupportedFeatures)
+    fun sendProcessProcessInquiryReply(msg: Message.ProcessInquiryReply) {
+        val dst = mutableListOf<Byte>()
+        sendOutput(CIFactory.midiCIProcessInquiryCapabilitiesReply(
+            dst, msg.sourceMUID, msg.destinationMUID, msg.supportedFeatures))
+    }
+    var processProcessInquiry: (msg: Message.ProcessInquiry) -> Unit = { msg ->
+        logger.processInquiry(msg)
+        events.processInquiryReceived.forEach { it(msg) }
+        sendProcessProcessInquiryReply(getProcessInquiryReplyFor(msg))
+    }
+
+    fun getMidiMessageReportReplyFor(msg: Message.ProcessMidiMessageReport) =
+        Message.ProcessMidiMessageReportReply(msg.address, muid, msg.sourceMUID,
+            msg.messageDataControl,
+            msg.systemMessages and midiMessageReportSystemMessages,
+            msg.channelControllerMessages and midiMessageReportChannelControllerMessages,
+            msg.noteDataMessages and midiMessageReportNoteDataMessages)
+    fun sendMidiMessageReportReply(msg: Message.ProcessMidiMessageReportReply) {
+        val dst = mutableListOf<Byte>()
+        sendOutput(CIFactory.midiCIMidiMessageReport(dst, false, msg.address,
+            msg.sourceMUID, msg.destinationMUID,
+            msg.messageDataControl, msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
+    }
+    fun getEndOfMidiMessageReportFor(msg: Message.ProcessMidiMessageReport) =
+        Message.ProcessEndOfMidiMessageReport(msg.address, muid, msg.sourceMUID)
+    fun sendEndOfMidiMessageReport(msg: Message.ProcessEndOfMidiMessageReport) {
+        val dst = mutableListOf<Byte>()
+        sendOutput(CIFactory.midiCIEndOfMidiMessage(dst, msg.address, msg.sourceMUID, msg.destinationMUID))
+    }
+    fun defaultProcessMidiMessageReport(msg: Message.ProcessMidiMessageReport) {
+        sendMidiMessageReportReply(getMidiMessageReportReplyFor(msg))
+        // FIXME: send specified MIDI messages
+        sendEndOfMidiMessageReport(getEndOfMidiMessageReportFor(msg))
+    }
+    var processMidiMessageReport: (msg: Message.ProcessMidiMessageReport) -> Unit = { msg ->
+        logger.midiMessageReport(msg)
+        events.midiMessageReportReceived.forEach { it(msg) }
+        defaultProcessMidiMessageReport(msg)
+    }
+
     fun processInput(data: List<Byte>) {
         if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
             return // not MIDI-CI sysex
@@ -463,6 +515,23 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
                 processPropertyNotify(Message.PropertyNotify(sourceMUID, destinationMUID, requestId, header, listOf()))
+            }
+
+            CISubId2.PROCESS_INQUIRY_CAPABILITIES -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                processProcessInquiry(Message.ProcessInquiry(sourceMUID, destinationMUID))
+            }
+
+            CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT -> {
+                val address = CIRetrieval.midiCIGetAddressing(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val messageDataControl = data[13]
+                val systemMessages = data[14]
+                val channelControllerMessages = data[16]
+                val noteDataMessages = data[17]
+                processMidiMessageReport(Message.ProcessMidiMessageReport(
+                    address, sourceMUID, destinationMUID,
+                    messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
             }
 
             else -> {
