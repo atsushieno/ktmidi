@@ -558,10 +558,9 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                 val profile = CIRetrieval.midiCIGetProfileId(data)
                 val target = data[18]
                 val dataSize = data[19] + (data[20] shl 7)
-                val data = data.drop(21).take(dataSize)
-                processProfileDetailsReply(Message.ProfileDetailsReply(address, sourceMUID, destinationMUID, profile, target, data))
+                val details = data.drop(21).take(dataSize)
+                processProfileDetailsReply(Message.ProfileDetailsReply(address, sourceMUID, destinationMUID, profile, target, details))
             }
-            // FIXME: support set profile details reply
 
             CISubId2.PROFILE_ENABLED_REPORT -> {
                 val address = CIRetrieval.midiCIGetAddressing(data)

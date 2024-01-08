@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
+import io.ktor.utils.io.core.*
+
 class JsonParserException(message: String = "JSON parser exception", innerException: Exception? = null) : Exception(message, innerException)
 
 object Json {

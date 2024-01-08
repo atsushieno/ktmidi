@@ -1,7 +1,5 @@
 package dev.atsushieno.ktmidi.ci
 
-import dev.atsushieno.ktmidi.MidiCC
-
 
 object CommonProfileDetailsStandardTarget {
     const val NUM_MIDI_CHANNELS: Byte = 0
@@ -27,17 +25,4 @@ object DefaultControlChangesProfile {
         0,
         1,
         1)
-
-    val recommendedCCDefaults by lazy {
-        mapOf(
-            Pair(MidiCC.PORTAMENTO_TIME, 0),
-            Pair(MidiCC.VOLUME, 100),
-            Pair(MidiCC.PAN, 0x40),
-            Pair(MidiCC.EXPRESSION, 127),
-            Pair(MidiCC.HOLD, 0),
-            Pair(MidiCC.PORTAMENTO_SWITCH, 0),
-            Pair(MidiCC.SOSTENUTO, 0),
-            Pair(MidiCC.LEGATO, 0),
-        )
-    }
 }
