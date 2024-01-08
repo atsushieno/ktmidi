@@ -171,6 +171,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         metadata: PropertyMetadata?,
                         body: List<Byte>,
                         refreshValueClicked: () -> Unit,
+                        subscribeClicked: () -> Unit,
                         commitChangeClicked: (List<Byte>, Boolean) -> Unit) {
     // It is saved to optionally reset cached state
     var prev by remember { mutableStateOf(metadata) }
@@ -182,11 +183,17 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         val isEditableByMetadata = metadata?.canSet != null && metadata.canSet != PropertySetAccess.NONE
         val isEditable = isLocalEditor || isEditableByMetadata
         val isTextRenderable = mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON
-        val showRefreshButton = @Composable {
-            if (!isLocalEditor)
+        val showRefreshAndSubscribeButtons = @Composable {
+            if (!isLocalEditor) {
                 Button(onClick = { refreshValueClicked() }) {
                     Text("Refresh")
                 }
+                if (metadata?.canSubscribe == true) {
+                    Button(onClick = { subscribeClicked() }) {
+                        Text("Subscribe")
+                    }
+                }
+            }
         }
         var showFilePicker by remember { mutableStateOf(false) }
         if (resetState)
@@ -233,7 +240,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                                     Text("Partial? RFC6901 Pointer here then:")
                                 })
                             }
-                            showRefreshButton()
+                            showRefreshAndSubscribeButtons()
                         }
                     }
                     TextField(text, { text = it })
@@ -250,17 +257,17 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                     Text("... or ...")
                     showUploadButton()
                 } else {
-                    showRefreshButton()
+                    showRefreshAndSubscribeButtons()
                     TextField(bodyText, {}, readOnly = true)
                 }
             } else {
                 Text("read-only")
-                showRefreshButton()
+                showRefreshAndSubscribeButtons()
                 TextField(bodyText, {}, readOnly = true)
             }
         } else {
             Text("MIME type '$mediaType' not supported for editing")
-            showRefreshButton()
+            showRefreshAndSubscribeButtons()
             if (isEditable)
                 showUploadButton()
         }

@@ -56,9 +56,31 @@ class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyCli
         val id = getPropertyIdFor(request.header)
         internalValues.removeAll { it.id == id }
         val mediaType = propertyClient.getMediaTypeFor(reply.header)
+        val isPartial = propertyClient.getIsPartialFor(reply.header)
+        if (isPartial)
+            TODO("FIXME: implement")
         val propertyValue = PropertyValue(id, mediaType, reply.body)
         internalValues.add(propertyValue)
         valueUpdated.forEach { it(propertyValue) }
+    }
+
+    fun updateValue(msg: Message.SubscribeProperty): String? {
+        val id = propertyClient.getSubscribedProperty(msg)
+            ?: return null // FIXME: log error?
+        val command = propertyClient.getCommandFieldFor(msg.header)
+        when (command) {
+            MidiCISubscriptionCommand.NOTIFY -> {}
+            MidiCISubscriptionCommand.PARTIAL ->
+                TODO("FIXME: implement")
+            MidiCISubscriptionCommand.FULL -> {
+                internalValues.removeAll { it.id == id }
+                val mediaType = propertyClient.getMediaTypeFor(msg.header)
+                val propertyValue = PropertyValue(id, mediaType, msg.body)
+                internalValues.add(propertyValue)
+                valueUpdated.forEach { it(propertyValue) }
+            }
+        }
+        return command
     }
 
     init {

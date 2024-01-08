@@ -35,7 +35,8 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         val propertyCapabilityReplyReceived = mutableListOf<(Message.PropertyGetCapabilitiesReply) -> Unit>()
         val getPropertyDataReplyReceived = mutableListOf<(msg: Message.GetPropertyDataReply) -> Unit>()
         val setPropertyDataReplyReceived = mutableListOf<(msg: Message.SetPropertyDataReply) -> Unit>()
-        val subscribePropertyReceived = mutableListOf<(msg: Message.SubscribePropertyReply) -> Unit>()
+        val subscribePropertyReplyReceived = mutableListOf<(msg: Message.SubscribePropertyReply) -> Unit>()
+        val subscribePropertyReceived = mutableListOf<(msg: Message.SubscribeProperty) -> Unit>()
     }
 
     val events = Events()
@@ -55,6 +56,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         val properties = ClientObservablePropertyList(propertyClient)
 
         private val openRequests = mutableListOf<Message.GetPropertyData>()
+        private val pendingSubscriptions = mutableMapOf<Byte,String>()
 
         fun updateProperty(msg: Message.GetPropertyDataReply) {
             val req = openRequests.firstOrNull { it.requestId == msg.requestId } ?: return
@@ -67,9 +69,25 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             }
         }
 
+        fun updateProperty(msg: Message.SubscribeProperty): Pair<String?,Message.SubscribePropertyReply?> {
+            val command = properties.updateValue(msg)
+            return Pair(
+                command,
+                Message.SubscribePropertyReply(muid, msg.sourceMUID, msg.requestId,
+                    propertyClient.createStatusHeader(PropertyExchangeStatus.OK), listOf()
+                )
+            )
+        }
+
         fun addPendingRequest(msg: Message.GetPropertyData) {
             openRequests.add(msg)
         }
+        fun addPendingSubscription(requestId: Byte, propertyId: String) {
+            pendingSubscriptions[requestId] = propertyId
+        }
+
+        fun removePendingSubscription(requestId: Byte): String? =
+            pendingSubscriptions.remove(requestId)
     }
 
     var midiCIBufferSize = 4096
@@ -158,7 +176,9 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         val conn = connections[destinationMUID]
         if (conn != null) {
             val header = conn.propertyClient.createRequestHeader(resource, false)
-            sendGetPropertyData(Message.GetPropertyData(muid, destinationMUID, requestIdSerial++, header))
+            val msg = Message.GetPropertyData(muid, destinationMUID, requestIdSerial++, header)
+            logger.getPropertyData(msg)
+            sendGetPropertyData(msg)
         }
     }
 
@@ -185,6 +205,25 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(buf, CISubId2.PROPERTY_SET_DATA_INQUIRY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body).forEach {
+            sendOutput(it)
+        }
+    }
+
+    fun sendSubscribeProperty(destinationMUID: Int, resource: String) {
+        val conn = connections[destinationMUID]
+        if (conn != null) {
+            val header = conn.propertyClient.createSubscribeHeader(resource)
+            val msg = Message.SubscribeProperty(muid, destinationMUID, requestIdSerial++, header, listOf())
+            conn.addPendingSubscription(msg.requestId, resource)
+            sendSubscribeProperty(msg)
+        }
+    }
+    fun sendSubscribeProperty(msg: Message.SubscribeProperty) {
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        CIFactory.midiCIPropertyChunks(
+            dst, CISubId2.PROPERTY_SUBSCRIBE,
+            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
+        ).forEach {
             sendOutput(it)
         }
     }
@@ -345,6 +384,48 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         // nothing to delegate further
     }
 
+    fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
+        val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
+        CIFactory.midiCIPropertyChunks(
+            dst, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
+            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
+        ).forEach {
+            sendOutput(it)
+        }
+    }
+    var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
+        logger.subscribeProperty(msg)
+        events.subscribePropertyReceived.forEach { it(msg) }
+        val conn = connections[msg.sourceMUID]
+        val reply = conn?.updateProperty(msg)
+        if (reply?.second != null) {
+            logger.subscribePropertyReply(reply.second!!)
+            sendPropertySubscribeReply(reply.second!!)
+        } else {
+            // FIXME: it should send back NAK
+        }
+        // If the update was NOTIFY, then it is supposed to send Get Data request.
+        if (reply?.first == MidiCISubscriptionCommand.NOTIFY)
+            sendGetPropertyData(msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header))
+    }
+
+    fun defaultProcessSubscribePropertyReply(msg: Message.SubscribePropertyReply) {
+        val conn = connections[msg.sourceMUID]
+        if (conn != null) {
+            if (conn.propertyClient.getReplyStatusFor(msg.header) == PropertyExchangeStatus.OK) {
+                val propertyId = conn.removePendingSubscription(msg.requestId)
+                if (propertyId != null)
+                    conn.propertyClient.processPropertySubscriptionResult(propertyId, msg)
+                // FIXME: log error otherwise
+            }
+        }
+    }
+    var processSubscribePropertyReply: (msg: Message.SubscribePropertyReply) -> Unit = { msg ->
+        logger.subscribePropertyReply(msg)
+        events.subscribePropertyReplyReceived.forEach { it(msg) }
+        defaultProcessSubscribePropertyReply(msg)
+    }
+
     fun sendNakForUnknownCIMessage(data: List<Byte>) {
         val source = data[1]
         val originalSubId = data[3]
@@ -497,9 +578,19 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
                 processSetDataReply(Message.SetPropertyDataReply(
                     sourceMUID, destinationMUID, requestId, header))
             }
+            CISubId2.PROPERTY_SUBSCRIBE -> {
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val requestId = data[13]
+                val headerSize = data[14] + (data[15].toInt() shl 7)
+                val header = data.drop(16).take(headerSize)
+                processSubscribeProperty(Message.SubscribeProperty(sourceMUID, destinationMUID, requestId, header, listOf()))
+            }
             CISubId2.PROPERTY_SUBSCRIBE_REPLY -> {
-                // Reply to Property Exchange Capabilities
-                TODO("Implement")
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val requestId = data[13]
+                val headerSize = data[14] + (data[15].toInt() shl 7)
+                val header = data.drop(16).take(headerSize)
+                processSubscribePropertyReply(Message.SubscribePropertyReply(sourceMUID, destinationMUID, requestId, header, listOf()))
             }
 
             else -> {

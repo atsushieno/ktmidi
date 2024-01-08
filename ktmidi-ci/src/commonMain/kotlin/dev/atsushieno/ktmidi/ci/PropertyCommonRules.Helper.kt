@@ -45,7 +45,25 @@ object CommonRulesPropertyHelper {
         return requestASCIIBytes
     }
 
-    private fun getReplyHeaderField(header: List<Byte>, field: String): Json.JsonValue? {
+    fun createSubscribeHeader(resourceIdentifier: String): Json.JsonValue {
+        val resource = Pair(
+            Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
+            Json.JsonValue(resourceIdentifier)
+        )
+        val command = Pair(
+            Json.JsonValue(PropertyCommonHeaderKeys.COMMAND),
+            Json.JsonValue(MidiCISubscriptionCommand.START)
+        )
+        return Json.JsonValue(mapOf(resource, command))
+    }
+
+    fun createSubscribeHeaderBytes(resourceIdentifier: String): List<Byte> {
+        val json = createSubscribeHeader(resourceIdentifier)
+        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
+        return requestASCIIBytes
+    }
+
+    fun getReplyHeaderField(header: List<Byte>, field: String): Json.JsonValue? {
         if (header.isEmpty())
             return null
         val replyString = PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString())

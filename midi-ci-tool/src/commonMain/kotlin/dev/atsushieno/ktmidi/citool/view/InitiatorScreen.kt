@@ -59,6 +59,7 @@ fun ClientConnection(vm: ConnectionViewModel) {
             if (sp != null)
                 ClientPropertyDetails(vm, sp,
                     refreshValueClicked = { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, sp) },
+                    subscribeClicked = { AppModel.ciDeviceManager.initiator.sendSubscribeProperty(vm.conn.muid, sp) },
                     commitChangeClicked = { id, bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, id, bytes, isPartial) }
                 )
         }
@@ -190,14 +191,15 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
 @Composable
 fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
                           refreshValueClicked: () -> Unit,
+                          subscribeClicked: () -> Unit,
                           commitChangeClicked: (id: String, bytes: List<Byte>, isPartial: Boolean) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         val entry = vm.properties.first { it.id == propertyId }
         val def = vm.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == entry.id }
-        ClientPropertyValueEditor(def, entry,
+        PropertyValueEditor(false, entry.mediaType, def, entry.body,
             refreshValueClicked,
-            commitChangeClicked = { bytes, isPartial -> commitChangeClicked(entry.id, bytes, isPartial) }
-        )
+            subscribeClicked,
+            commitChangeClicked = { bytes, isPartial -> commitChangeClicked(entry.id, bytes, isPartial) })
         if (def != null)
             PropertyMetadataEditor(def,
                 {}, // client does not support metadata editing
@@ -205,11 +207,4 @@ fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
         else
             Text("(Metadata not available - not in ResourceList)")
     }
-}
-
-@Composable
-fun ClientPropertyValueEditor(def: PropertyMetadata?, property: PropertyValue,
-                              refreshValueClicked: () -> Unit,
-                              commitChangeClicked: (bytes: List<Byte>, isPartial: Boolean) -> Unit) {
-    PropertyValueEditor(false, property.mediaType, def, property.body, refreshValueClicked, commitChangeClicked)
 }

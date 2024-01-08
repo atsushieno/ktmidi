@@ -226,3 +226,5 @@ class PropertyResourceColumn {
     )
 }
 
+data class SubscriptionEntry(val resource: String, val muid: Int, val subscribeId: String)
+

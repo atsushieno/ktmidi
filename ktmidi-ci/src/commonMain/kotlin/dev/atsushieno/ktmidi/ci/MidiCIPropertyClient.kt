@@ -12,6 +12,8 @@ package dev.atsushieno.ktmidi.ci
 interface MidiCIPropertyClient {
     fun createRequestHeader(resourceIdentifier: String, isPartialSet: Boolean): List<Byte>
 
+    fun createSubscribeHeader(resourceIdentifier: String): List<Byte>
+
     fun getPropertyIdForHeader(header: List<Byte>): String
 
     fun getMetadataList(): List<PropertyMetadata>?
@@ -23,6 +25,16 @@ interface MidiCIPropertyClient {
     fun getReplyStatusFor(header: List<Byte>): Int?
 
     fun getMediaTypeFor(replyHeader: List<Byte>): String
+
+    fun getIsPartialFor(header: List<Byte>): Boolean
+
+    fun getCommandFieldFor(header: List<Byte>): String?
+
+    fun getSubscribedProperty(msg: Message.SubscribeProperty): String?
+
+    fun processPropertySubscriptionResult(propertyId: String, reply: Message.SubscribePropertyReply)
+
+    fun createStatusHeader(status: Int): List<Byte>
 
     val propertyCatalogUpdated: MutableList<() -> Unit>
 }

@@ -117,7 +117,6 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
 
     val linkedResources = mutableMapOf<String, Json.JsonValue>()
     private val values = mutableMapOf<String, Json.JsonValue>()
-    data class SubscriptionEntry(val resource: String, val muid: Int, val subscribeId: String)
     val subscriptions = mutableListOf<SubscriptionEntry>()
 
     private fun bytesToJsonArray(list: List<Byte>) = list.map { Json.JsonValue(it.toDouble()) }

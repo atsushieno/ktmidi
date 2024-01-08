@@ -35,6 +35,8 @@ object Json {
             if (token.type == TokenType.Object)
                 token.map.firstNotNullOfOrNull { if (it.key.stringValue == key) it.value else null }
             else null
+
+        fun getSerializedBytes() = getEscapedString(serialize(this)).toByteArray().toList()
     }
 
     val NullValue = JsonValue("null", JsonToken(TokenType.Null, 0, 4))

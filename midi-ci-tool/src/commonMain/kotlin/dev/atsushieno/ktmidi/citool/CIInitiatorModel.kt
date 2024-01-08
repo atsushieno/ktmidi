@@ -61,6 +61,9 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, isPartial: Boolean) {
         initiator.sendSetPropertyData(destinationMUID, resource, data, isPartial)
     }
+    fun sendSubscribeProperty(destinationMUID: Int, resource: String) {
+        initiator.sendSubscribeProperty(destinationMUID, resource)
+    }
 
     init {
         initiator.logger.logEventReceived.add {
