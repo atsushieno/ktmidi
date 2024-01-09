@@ -52,34 +52,34 @@ class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyCli
     override val internalCatalogUpdated: MutableList<() -> Unit>
         get() = propertyClient.propertyCatalogUpdated
 
-    fun updateValue(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
-        val id = getPropertyIdFor(request.header)
-        internalValues.removeAll { it.id == id }
-        val mediaType = propertyClient.getMediaTypeFor(reply.header)
-        val isPartial = propertyClient.getIsPartialFor(reply.header)
-        if (isPartial)
-            TODO("FIXME: implement")
-        val propertyValue = PropertyValue(id, mediaType, reply.body)
+    private fun updateValue(propertyId: String, isPartial: Boolean, newValueMediaType: String, body: List<Byte>) {
+        val existing = internalValues.firstOrNull { it.id == propertyId }
+        if (existing != null)
+            internalValues.remove(existing)
+        val updateResult = propertyClient.getUpdatedValue(existing, isPartial, body)
+        if (!updateResult.first)
+            // FIXME: log error
+            return // applying partial updates failed
+        val propertyValue = PropertyValue(propertyId, newValueMediaType, updateResult.second)
         internalValues.add(propertyValue)
         valueUpdated.forEach { it(propertyValue) }
+    }
+
+    fun updateValue(propertyId: String, reply: Message.GetPropertyDataReply) {
+        val mediaType = propertyClient.getMediaTypeFor(reply.header)
+        // there is no partial updates in Reply to Get Property Data
+        updateValue(propertyId, false, mediaType, reply.body)
     }
 
     fun updateValue(msg: Message.SubscribeProperty): String? {
         val id = propertyClient.getSubscribedProperty(msg)
             ?: return null // FIXME: log error?
         val command = propertyClient.getCommandFieldFor(msg.header)
-        when (command) {
-            MidiCISubscriptionCommand.NOTIFY -> {}
-            MidiCISubscriptionCommand.PARTIAL ->
-                TODO("FIXME: implement")
-            MidiCISubscriptionCommand.FULL -> {
-                internalValues.removeAll { it.id == id }
-                val mediaType = propertyClient.getMediaTypeFor(msg.header)
-                val propertyValue = PropertyValue(id, mediaType, msg.body)
-                internalValues.add(propertyValue)
-                valueUpdated.forEach { it(propertyValue) }
-            }
-        }
+        if (command == MidiCISubscriptionCommand.NOTIFY)
+            return command
+        val isPartial = command == MidiCISubscriptionCommand.PARTIAL
+        val mediaType = propertyClient.getMediaTypeFor(msg.header)
+        updateValue(id, isPartial, mediaType, msg.body)
         return command
     }
 

@@ -22,6 +22,12 @@ object Json {
         constructor(map: Map<JsonValue, JsonValue>)
                 : this("", JsonToken(TokenType.Object, 0, 0, map = map))
 
+        val isBooleanTrue: Boolean
+            get() = token.type == TokenType.True
+        // note that it returns TRUE if the value is FALSE
+        val isBooleanFalse: Boolean
+            get() = token.type == TokenType.False
+
         val numberValue: Number
             get() = if (token.type == TokenType.Number) token.number else Double.NaN
         val stringValue: String
@@ -38,6 +44,7 @@ object Json {
                 token.map.firstNotNullOfOrNull { if (it.key.stringValue == key) it.value else null }
             else null
 
+        // FIXME: this should be used only when further conversion by mediaType is not required
         fun getSerializedBytes() = getEscapedString(serialize(this)).toByteArray().toList()
     }
 

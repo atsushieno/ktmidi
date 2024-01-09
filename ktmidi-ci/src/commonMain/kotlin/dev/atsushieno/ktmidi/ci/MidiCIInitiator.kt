@@ -77,7 +77,8 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
             if (status == PropertyExchangeStatus.OK) {
                 propertyClient.onGetPropertyDataReply(req, msg)
-                properties.updateValue(req, msg)
+                val propertyId = propertyClient.getPropertyIdForHeader(req.header)
+                properties.updateValue(propertyId, msg)
             }
         }
 

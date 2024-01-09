@@ -60,6 +60,33 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
         )))
             .getSerializedBytes()
 
+    override fun getUpdatedValue(existing: PropertyValue?, isPartial: Boolean, body: List<Byte>): Pair<Boolean, List<Byte>> {
+        if (!isPartial)
+            return Pair(true, body)
+
+        if (existing == null)
+            return Pair(false, listOf()) // it is partial update but there is no existing value
+
+        val failureReturn = Pair(false, existing.body)
+
+        // FIXME: apply conversion depending on mediaType
+        val existingBytes = existing.body
+        val existingJson = Json.parseOrNull(existingBytes.toByteArray().decodeToString())
+            ?: return failureReturn // existing body is not a valid JSON string
+
+        // FIXME: apply conversion depending on mediaType
+        val bytes = body
+        val jsonString = bytes.toByteArray().decodeToString()
+        val bodyJson = Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(jsonString))
+            ?: return failureReturn // reply body is not a valid JSON string
+
+        val result = PropertyPartialUpdater.applyPartialUpdates(existingJson, bodyJson)
+        return if (result.first)
+            Pair(true, result.second.getSerializedBytes())
+        else
+            Pair(false, existing.body)
+    }
+
     override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
 
     // implementation

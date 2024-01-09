@@ -192,7 +192,23 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
             PropertyResourceNames.JSON_SCHEMA -> throw PropertyExchangeException("Property is readonly: ${PropertyResourceNames.JSON_SCHEMA}")
             PropertyResourceNames.CHANNEL_LIST -> throw PropertyExchangeException("Property is readonly: ${PropertyResourceNames.CHANNEL_LIST}")
         }
-        values[header.resource] = bodyJson
+
+        // Perform partial updates, if applicable
+        if (headerJson.getObjectValue(PropertyCommonHeaderKeys.SET_PARTIAL)?.isBooleanTrue == true) {
+            val existing = values[header.resource]
+            if (existing == null) {
+                // FIXME: log error for missing existing value
+            } else {
+                val result = PropertyPartialUpdater.applyPartialUpdates(existing, bodyJson)
+                if (!result.first) {
+                    // FIXME: log error for partial update failure
+                }
+                else
+                    values[header.resource] = result.second
+            }
+        }
+        else
+            values[header.resource] = bodyJson
         return getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK))
     }
 
