@@ -104,9 +104,9 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
                     PropertyResourceFields.CAN_PAGINATE -> res.canPaginate = v.token.type == Json.TokenType.True
                     PropertyResourceFields.COLUMNS -> res.columns = v.token.seq.map { c ->
                         val col = PropertyResourceColumn()
-                        c.token.map.forEach {
-                            val cv = it.value
-                            when (it.key.stringValue) {
+                        c.token.map.forEach { prc ->
+                            val cv = prc.value
+                            when (prc.key.stringValue) {
                                 PropertyResourceColumnFields.PROPERTY -> col.property = cv.stringValue
                                 PropertyResourceColumnFields.LINK -> col.link = cv.stringValue
                                 PropertyResourceColumnFields.TITLE -> col.title = cv.stringValue

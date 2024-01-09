@@ -125,9 +125,9 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
             )
         )
     }
-    val getDiscoveryReplyForInquiry: (msg: Message.DiscoveryInquiry) -> Message.DiscoveryReply = { msg ->
+    val getDiscoveryReplyForInquiry: (request: Message.DiscoveryInquiry) -> Message.DiscoveryReply = { request ->
         val deviceDetails = DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId)
-        Message.DiscoveryReply(muid, msg.muid, deviceDetails, capabilityInquirySupported, receivableMaxSysExSize, msg.outputPathId, functionBlock)
+        Message.DiscoveryReply(muid, request.sourceMUID, deviceDetails, capabilityInquirySupported, receivableMaxSysExSize, request.outputPathId, functionBlock)
     }
     var processDiscovery: (msg: Message.DiscoveryInquiry) -> Unit = { msg ->
         logger.discovery(msg)
@@ -149,7 +149,7 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
         if (prodId.length > 16)
             throw IllegalStateException("productInstanceId shall not be any longer than 16 bytes in size")
         Message.EndpointReply(muid, msg.sourceMUID, msg.status,
-            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId != null) prodId.toByteArray(
+            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId.isNotBlank()) prodId.toByteArray(
                 Charsets.ISO_8859_1
             ).toList() else listOf() // FIXME: verify that it is only ASCII chars?
         )
@@ -278,14 +278,14 @@ class MidiCIResponder(private var midiCIDevice: MidiCIDeviceInfo,
     // Should this also delegate to property service...?
     fun sendPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
         val dst = MutableList<Byte>(midiCIBufferSize) { 0 }
-        sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, msg.destination, true,
+        sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, msg.address, true,
             msg.sourceMUID, msg.destinationMUID, msg.maxSimultaneousRequests))
     }
     val getPropertyCapabilitiesReplyFor: (msg: Message.PropertyGetCapabilities) -> Message.PropertyGetCapabilitiesReply = { msg ->
         val establishedMaxSimultaneousPropertyRequests =
             if (msg.maxSimultaneousRequests > maxSimultaneousPropertyRequests) maxSimultaneousPropertyRequests
             else msg.maxSimultaneousRequests
-        Message.PropertyGetCapabilitiesReply(msg.destination, muid, msg.sourceMUID, establishedMaxSimultaneousPropertyRequests)
+        Message.PropertyGetCapabilitiesReply(msg.address, muid, msg.sourceMUID, establishedMaxSimultaneousPropertyRequests)
     }
     var processPropertyCapabilitiesInquiry: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
         logger.propertyGetCapabilitiesInquiry(msg)

@@ -133,7 +133,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
     fun sendDiscovery(msg: Message.DiscoveryInquiry) {
         val buf = MutableList<Byte>(midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIDiscovery(
-            buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.muid, msg.device.manufacturer, msg.device.family, msg.device.modelNumber,
+            buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.device.manufacturer, msg.device.family, msg.device.modelNumber,
             msg.device.softwareRevisionLevel, msg.ciCategorySupported, msg.receivableMaxSysExSize, msg.outputPathId
         ))
     }

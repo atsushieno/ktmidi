@@ -1,117 +1,159 @@
 package dev.atsushieno.ktmidi.ci
 
-class Message {
+abstract class Message(protected val common: Common) {
+
+    val address: Byte
+        get() = common.address
+    val sourceMUID: Int
+        get() = common.sourceMUID
+    val destinationMUID: Int
+        get() = common.destinationMUID
 
     // FIXME: maybe we should implement serialize() and deserialize() in each class
 
     companion object {
-        const val MAX_TO_STRING_LENGTH = 1024
+        private const val MAX_TO_STRING_LENGTH = 1024
 
-        fun List<Byte>.formatBody() =
-            this.toByteArray().take(MAX_TO_STRING_LENGTH).toByteArray().decodeToString()
-
+        val List<Byte>.headerString: String
+            get() = toByteArray().decodeToString()
+        val List<Byte>.bodyString: String
+            get() = toByteArray().take(MAX_TO_STRING_LENGTH).toByteArray().decodeToString()
+        val List<Byte>.dataString: String
+            get() = "(string: ${this.toByteArray().decodeToString()}, bytes: ${this.joinToString { it.toString(16) }})"
         val Int.muidString: String
             get() = toString(16)
     }
 
-    // Discovery
-    data class DiscoveryInquiry(val muid: Int, val device: DeviceDetails, val ciCategorySupported: Byte, val receivableMaxSysExSize: Int, val outputPathId: Byte) {
-        override fun toString() = "DiscoveryInquiry(device = ${device}, ciCategorySupported = $ciCategorySupported, receivableMaxSysExSize = $receivableMaxSysExSize, outputPathId = $outputPathId"
-    }
-    data class DiscoveryReply(val sourceMUID: Int, val destinationMUID: Int, val device: DeviceDetails, val ciCategorySupported: Byte,  val receivableMaxSysExSize: Int, val outputPathId: Byte, val functionBlock: Byte) {
-        override fun toString() = "DiscoveryReply(device = ${device}, sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, ciCategorySupported = $ciCategorySupported, receivableMaxSysExSize = $receivableMaxSysExSize, outputPathId = $outputPathId, functionBlock = $functionBlock)"
+    data class Common(val sourceMUID: Int, val destinationMUID: Int = MidiCIConstants.BROADCAST_MUID_32, val address: Byte = MidiCIConstants.ADDRESS_FUNCTION_BLOCK) {
+        override fun toString() = "{address=$address, sourceMUID=${sourceMUID.muidString}, destinationMUID=${destinationMUID.muidString}}"
     }
 
-    data class EndpointInquiry(val sourceMUID: Int, val destinationMUID: Int, val status: Byte) {
-        override fun toString() = "EndpointInquiry(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, status = ${status})"
+    // Discovery
+    class DiscoveryInquiry(muid: Int, val device: DeviceDetails, val ciCategorySupported: Byte, val receivableMaxSysExSize: Int, val outputPathId: Byte)
+        : Message(Common(sourceMUID = muid)) {
+        override fun toString() = "DiscoveryInquiry($common, device = ${device}, ciCategorySupported = $ciCategorySupported, receivableMaxSysExSize = $receivableMaxSysExSize, outputPathId = $outputPathId"
     }
-    data class EndpointReply(val sourceMUID: Int, val destinationMUID: Int, val status: Byte, val data: List<Byte>) {
-        override fun toString() = "EndpointReply(status = ${status}, sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, data = (string: ${data.toByteArray().decodeToString()}, bytes: ${data.joinToString { it.toString(16) }}))"
+    class DiscoveryReply(sourceMUID: Int, destinationMUID: Int, val device: DeviceDetails, val ciCategorySupported: Byte,  val receivableMaxSysExSize: Int, val outputPathId: Byte, val functionBlock: Byte)
+        : Message(Common(sourceMUID, destinationMUID)){
+        override fun toString() = "DiscoveryReply($common, device=${device}, ciCategorySupported=$ciCategorySupported, receivableMaxSysExSize=$receivableMaxSysExSize, outputPathId=$outputPathId, functionBlock=$functionBlock)"
+    }
+
+    class EndpointInquiry(sourceMUID: Int, destinationMUID: Int, val status: Byte)
+        : Message(Common(sourceMUID, destinationMUID)) {
+        override fun toString() = "EndpointInquiry($common, status=${status})"
+    }
+    class EndpointReply(sourceMUID: Int, destinationMUID: Int, val status: Byte, val data: List<Byte>)
+        : Message(Common(sourceMUID, destinationMUID)) {
+        override fun toString() = "EndpointReply($common, status=${status}, data = ${data.dataString})"
     }
 
     // Profile Configuration
-    data class ProfileInquiry(val address: Byte, val sourceMUID: Int, val destinationMUID: Int) {
-        override fun toString() = "ProfileInquiry(address = $address, sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString})"
+    class ProfileInquiry(address: Byte, sourceMUID: Int, destinationMUID: Int)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override fun toString() = "ProfileInquiry($common)"
     }
-    data class ProfileReply(val address: Byte, val sourceMUID: Int, val destinationMUID: Int, val enabledProfiles: List<MidiCIProfileId>, val disabledProfiles: List<MidiCIProfileId>) {
-        override fun toString() = "ProfileReply(address = $address, sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, enabledProfiles=[${enabledProfiles.joinToString { it.toString() }}],  disabledProfiles=[${disabledProfiles.joinToString { it.toString() }}])"
+    class ProfileReply(address: Byte, sourceMUID: Int, destinationMUID: Int, val enabledProfiles: List<MidiCIProfileId>, val disabledProfiles: List<MidiCIProfileId>)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override fun toString() = "ProfileReply($common, enabledProfiles=[${enabledProfiles.joinToString { it.toString() }}],  disabledProfiles=[${disabledProfiles.joinToString { it.toString() }}])"
     }
-    data class ProfileAdded(val address: Byte, val sourceMUID: Int, val profile: MidiCIProfileId) {
-        override fun toString() = "ProfileAdded(address = $address, sourceMUID = ${sourceMUID.muidString}, profile=$profile)"
+    class ProfileAdded(address: Byte, sourceMUID: Int, val profile: MidiCIProfileId)
+        : Message(Common(sourceMUID, address = address)) {
+        override fun toString() = "ProfileAdded($common, profile=$profile)"
     }
-    data class ProfileRemoved(val address: Byte, val sourceMUID: Int, val profile: MidiCIProfileId) {
-        override fun toString() = "ProfileRemoved(address = $address, sourceMUID = ${sourceMUID.muidString}, profile=$profile)"
+    class ProfileRemoved(address: Byte, sourceMUID: Int, val profile: MidiCIProfileId)
+        : Message(Common(sourceMUID, address = address)) {
+        override fun toString() = "ProfileRemoved($common, profile=$profile)"
     }
-    data class SetProfileOn(val address: Byte, val sourceMUID: Int, val destinationMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short) {
-        override fun toString() = "SetProfileOn(address = $address, sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, profile=$profile, numChannelsRequested = $numChannelsRequested)"
+    class SetProfileOn(address: Byte, sourceMUID: Int, destinationMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override fun toString() = "SetProfileOn($common, profile=$profile, numChannelsRequested=$numChannelsRequested)"
     }
-    data class SetProfileOff(val address: Byte, val sourceMUID: Int, val destinationMUID: Int, val profile: MidiCIProfileId) {
-        override fun toString() = "SetProfileOff(address = $address, sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, profile=$profile)"
+    class SetProfileOff(address: Byte, sourceMUID: Int, destinationMUID: Int, val profile: MidiCIProfileId)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override fun toString() = "SetProfileOff($common, profile=$profile)"
     }
-    data class ProfileEnabled(val address: Byte, val sourceMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short) {
-        override fun toString() = "ProfileEnabled(address = $address, sourceMUID = ${sourceMUID.muidString}, profile = $profile, numChannelsRequested = $numChannelsRequested)"
+    class ProfileEnabled(address: Byte, sourceMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short)
+        : Message(Common(sourceMUID, address = address)) {
+            override fun toString() = "ProfileEnabled($common, profile=$profile, numChannelsRequested=$numChannelsRequested)"
     }
-    data class ProfileDisabled(val address: Byte, val sourceMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short) {
-        override fun toString() = "ProfileDisabled(address = $address, sourceMUID = ${sourceMUID.muidString}, profile = $profile, numChannelsRequested = $numChannelsRequested)"
+    class ProfileDisabled(address: Byte, sourceMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short)
+        : Message(Common(sourceMUID, address = address)) {
+        override fun toString() = "ProfileDisabled($common, profile=$profile, numChannelsRequested=$numChannelsRequested)"
     }
-    data class ProfileDetailsInquiry(val address: Byte, val sourceMUID: Int, val destinationMUID: Int, val profile: MidiCIProfileId, val target: Byte) {
-        override fun toString() = "ProfileDetailsInquiry(address = $address, sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString} profile = $profile, target = $target)"
+    class ProfileDetailsInquiry(address: Byte, sourceMUID: Int, destinationMUID: Int, val profile: MidiCIProfileId, val target: Byte)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override fun toString() = "ProfileDetailsInquiry($common, profile=$profile, target=$target)"
     }
-    data class ProfileDetailsReply(val address: Byte, val sourceMUID: Int, val destinationMUID: Int, val profile: MidiCIProfileId, val target: Byte, val data: List<Byte>) {
-        override fun toString() = "ProfileDetailsReply(address = $address, sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString} profile = $profile, target = $target, data = (string: ${data.toByteArray().decodeToString()}, bytes: ${data.joinToString { it.toString(16) }}))"
+    class ProfileDetailsReply(address: Byte, sourceMUID: Int, destinationMUID: Int, val profile: MidiCIProfileId, val target: Byte, val data: List<Byte>)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override fun toString() = "ProfileDetailsReply($common, profile=$profile, target=$target, data=${data.dataString}))"
     }
 
     // Property Exchange
-    data class PropertyGetCapabilities(val destination: Byte, val sourceMUID: Int, val destinationMUID: Int, val maxSimultaneousRequests: Byte) {
-        override fun toString() = "PropertyGetCapabilities(destination = ${destination}, sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, maxSimultaneousRequests = ${maxSimultaneousRequests})\n"
+    class PropertyGetCapabilities(address: Byte, sourceMUID: Int, destinationMUID: Int, val maxSimultaneousRequests: Byte)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override fun toString() = "PropertyGetCapabilities($common, maxSimultaneousRequests=${maxSimultaneousRequests})\n"
     }
-    data class PropertyGetCapabilitiesReply(val destination: Byte, val sourceMUID: Int, val destinationMUID: Int, val maxSimultaneousRequests: Byte) {
-        override fun toString() = "PropertyGetCapabilitiesReply(destination = ${destination}, sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, maxSimultaneousRequests = ${maxSimultaneousRequests})"
+    class PropertyGetCapabilitiesReply(address: Byte, sourceMUID: Int, destinationMUID: Int, val maxSimultaneousRequests: Byte)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override fun toString() = "PropertyGetCapabilitiesReply($common, maxSimultaneousRequests=${maxSimultaneousRequests})"
     }
-    data class GetPropertyData(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>) {
-        override fun toString() = "GetPropertyData(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()})"
+    class GetPropertyData(sourceMUID: Int, destinationMUID: Int, val requestId: Byte, val header: List<Byte>)
+        : Message(Common(sourceMUID, destinationMUID)) {
+        override fun toString() = "GetPropertyData($common, requestId=${requestId}, header=${header.headerString})"
     }
-    data class GetPropertyDataReply(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>) {
-        override fun toString() = "GetPropertyDataReply(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()}, body = ${body.formatBody()})"
+    class GetPropertyDataReply(sourceMUID: Int, destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>)
+        : Message(Common(sourceMUID, destinationMUID)) {
+        override fun toString() = "GetPropertyDataReply($common, requestId=${requestId}, header=${header.headerString}, body=${body.bodyString})"
     }
-    data class SetPropertyData(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>) {
-        override fun toString() = "SetPropertyData(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()}, body = ${body.formatBody()})"
+    class SetPropertyData(sourceMUID: Int, destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>)
+        : Message(Common(sourceMUID, destinationMUID)) {
+        override fun toString() = "SetPropertyData($common, requestId=${requestId}, header=${header.headerString}, body=${body.bodyString})"
     }
-    data class SetPropertyDataReply(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>) {
-        override fun toString() = "SetPropertyDataReply(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()})"
+    class SetPropertyDataReply(sourceMUID: Int, destinationMUID: Int, val requestId: Byte, val header: List<Byte>)
+        : Message(Common(sourceMUID, destinationMUID)) {
+        override fun toString() = "SetPropertyDataReply($common, requestId=${requestId}, header=${header.headerString})"
     }
-    data class SubscribeProperty(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>) {
-        override fun toString() = "SubscribeProperty(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()}, body = ${body.formatBody()})"
+    class SubscribeProperty(sourceMUID: Int, destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>)
+        : Message(Common(sourceMUID, destinationMUID)) {
+        override fun toString() = "SubscribeProperty($common, requestId=${requestId}, header=${header.headerString}, body=${body.bodyString})"
     }
-    data class SubscribePropertyReply(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>) {
-        override fun toString() = "SubscribePropertyReply(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()})"
+    class SubscribePropertyReply(sourceMUID: Int, destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>)
+        : Message(Common(sourceMUID, destinationMUID)) {
+        override fun toString() = "SubscribePropertyReply($common, requestId=${requestId}, header=${header.headerString}, body=${body.bodyString})"
     }
-    data class PropertyNotify(val sourceMUID: Int, val destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>) {
-        override fun toString() = "PropertyNotify(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, requestId =  ${requestId}, header = ${header.toByteArray().decodeToString()}, body = ${body.formatBody()})"
+    class PropertyNotify(sourceMUID: Int, destinationMUID: Int, val requestId: Byte, val header: List<Byte>, val body: List<Byte>)
+        : Message(Common(sourceMUID, destinationMUID)) {
+        override fun toString() = "PropertyNotify($common, requestId=${requestId}, header=${header.headerString}, body=${body.bodyString})"
     }
 
     // Process Inquiry
-    data class ProcessInquiry(val sourceMUID: Int, val destinationMUID: Int) {
-        override fun toString() = "ProcessInquiry(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString})"
+    class ProcessInquiry(sourceMUID: Int, destinationMUID: Int)
+        : Message(Common(sourceMUID, destinationMUID)) {
+        override fun toString() = "ProcessInquiry($common)"
     }
-    data class ProcessInquiryReply(val sourceMUID: Int, val destinationMUID: Int, val supportedFeatures: Byte) {
-        override fun toString() = "ProcessInquiryReply(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, supportedFeatures = $supportedFeatures)"
+    class ProcessInquiryReply(sourceMUID: Int, destinationMUID: Int, val supportedFeatures: Byte)
+        : Message(Common(sourceMUID, destinationMUID)) {
+        override fun toString() = "ProcessInquiryReply($common, supportedFeatures=$supportedFeatures)"
     }
-    data class ProcessMidiMessageReport(val address: Byte, val sourceMUID: Int, val destinationMUID: Int,
+    class ProcessMidiMessageReport(address: Byte, sourceMUID: Int, destinationMUID: Int,
+                                    val messageDataControl: Byte,
+                                    val systemMessages: Byte,
+                                    val channelControllerMessages: Byte,
+                                    val noteDataMessages: Byte)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override fun toString() = "ProcessMidiMessageReport($common, messageDataControl=$messageDataControl, systemMessages=$systemMessages, channelControllerMessages=$channelControllerMessages, noteDataMessages=$noteDataMessages)"
+    }
+    class ProcessMidiMessageReportReply(address: Byte, sourceMUID: Int, destinationMUID: Int,
                                         val messageDataControl: Byte,
                                         val systemMessages: Byte,
                                         val channelControllerMessages: Byte,
-                                        val noteDataMessages: Byte) {
-        override fun toString() = "ProcessMidiMessageReport(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, messageDataControl = $messageDataControl, systemMessages = $systemMessages, channelControllerMessages = $channelControllerMessages, noteDataMessages = $noteDataMessages)"
+                                        val noteDataMessages: Byte)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override fun toString() = "ProcessMidiMessageReportReply($common, messageDataControl = $messageDataControl, systemMessages = $systemMessages, channelControllerMessages = $channelControllerMessages, noteDataMessages = $noteDataMessages)"
     }
-    data class ProcessMidiMessageReportReply(val address: Byte, val sourceMUID: Int, val destinationMUID: Int,
-                                        val messageDataControl: Byte,
-                                        val systemMessages: Byte,
-                                        val channelControllerMessages: Byte,
-                                        val noteDataMessages: Byte) {
-        override fun toString() = "ProcessMidiMessageReportReply(sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString}, messageDataControl = $messageDataControl, systemMessages = $systemMessages, channelControllerMessages = $channelControllerMessages, noteDataMessages = $noteDataMessages)"
-    }
-    data class ProcessEndOfMidiMessageReport(val address: Byte, val sourceMUID: Int, val destinationMUID: Int) {
-        override fun toString() = "ProcessEndOfMidiMessageReport(address = $address, sourceMUID = ${sourceMUID.muidString}, destinationMUID = ${destinationMUID.muidString})"
+    class ProcessEndOfMidiMessageReport(address: Byte, sourceMUID: Int, destinationMUID: Int)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override fun toString() = "ProcessEndOfMidiMessageReport($common)"
     }
 }
