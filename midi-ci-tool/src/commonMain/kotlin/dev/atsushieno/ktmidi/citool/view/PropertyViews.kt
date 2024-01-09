@@ -49,16 +49,16 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
 
         var prev by remember { mutableStateOf(def) }
 
-        var resource by remember { mutableStateOf("") }
-        var canGet by remember { mutableStateOf(false) }
-        var canSet by remember { mutableStateOf("") }
-        var canSubscribe by remember { mutableStateOf(false) }
-        var requireResId by remember { mutableStateOf(false) }
-        var mediaTypes by remember { mutableStateOf("") }
-        var encodings by remember { mutableStateOf("") }
-        var schema by remember { mutableStateOf("") }
-        var canPaginate by remember { mutableStateOf(false) }
-        val columns = remember { mutableStateListOf<PropertyResourceColumn>() }
+        var resource by remember { mutableStateOf(def.resource) }
+        var canGet by remember { mutableStateOf(def.canGet) }
+        var canSet by remember { mutableStateOf(def.canSet) }
+        var canSubscribe by remember { mutableStateOf(def.canSubscribe) }
+        var requireResId by remember { mutableStateOf(def.requireResId) }
+        var mediaTypes by remember { mutableStateOf(def.mediaTypes.joinToString("\n")) }
+        var encodings by remember { mutableStateOf(def.encodings.joinToString("\n")) }
+        var schema by remember { mutableStateOf(if (def.schema == null) "" else Json.getUnescapedString(def.schema!!)) }
+        var canPaginate by remember { mutableStateOf(def.canPaginate) }
+        val columns = remember { mutableStateListOf<PropertyResourceColumn>().apply { addAll(def.columns) } }
 
         var schemaParserError by remember { mutableStateOf("") }
 

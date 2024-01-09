@@ -58,7 +58,7 @@ fun LocalPropertyConfiguration(vm: LocalConfigurationViewModel) {
         val sp = selectedProperty
         if (sp != null) {
             val value = vm.properties.first { it.id == sp }
-            val def = vm.responder.propertyService.getMetadataList()?.firstOrNull { it.resource == sp }
+            val def = vm.responder.propertyService.getMetadataList().firstOrNull { it.resource == sp }
             LocalPropertyDetails(def, value,
                 updatePropertyValue = { id, data -> vm.updatePropertyValue(id, data) },
                 metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) }
