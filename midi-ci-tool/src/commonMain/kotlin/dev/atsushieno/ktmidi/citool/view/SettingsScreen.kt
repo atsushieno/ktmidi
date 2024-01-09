@@ -26,16 +26,5 @@ fun SettingsScreen() {
                 )
             }
         }
-        Row {
-            Checkbox(ViewModel.settings.workaroundJUCEPropertySubscriptionReplyIssue.value,
-                { ViewModel.settings.workaroundJUCEPropertySubscriptionReplyIssue(it) })
-            Column {
-                Text("Workaround JUCE issue on Property Subscription Reply")
-                Text(
-                    "JUCE Responder has a bug that it does not expect Property Subscription Reply from Initiator and results in Invalidate MUID",
-                    fontSize = TextUnit(0.8f, TextUnitType.Em)
-                )
-            }
-        }
     }
 }

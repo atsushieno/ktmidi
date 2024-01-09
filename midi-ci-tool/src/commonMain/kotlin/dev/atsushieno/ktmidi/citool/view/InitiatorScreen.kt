@@ -58,9 +58,9 @@ fun ClientConnection(vm: ConnectionViewModel) {
             val sp = selectedProperty
             if (sp != null)
                 ClientPropertyDetails(vm, sp,
-                    refreshValueClicked = { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.muid, sp) },
-                    subscribeClicked = { AppModel.ciDeviceManager.initiator.sendSubscribeProperty(vm.conn.muid, sp) },
-                    commitChangeClicked = { id, bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.muid, id, bytes, isPartial) }
+                    refreshValueClicked = { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.targetMUID, sp) },
+                    subscribeClicked = { AppModel.ciDeviceManager.initiator.sendSubscribeProperty(vm.conn.targetMUID, sp) },
+                    commitChangeClicked = { id, bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.targetMUID, id, bytes, isPartial) }
                 )
         }
     }
@@ -186,7 +186,7 @@ fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
         entries.forEach {
             Row {
                 Switch(checked = it.enabled.value, onCheckedChange = { newEnabled ->
-                    AppModel.ciDeviceManager.initiator.setProfile(vm.conn.muid, it.address.value, it.profile, newEnabled)
+                    AppModel.ciDeviceManager.initiator.setProfile(vm.conn.targetMUID, it.address.value, it.profile, newEnabled)
                 })
                 Text(when (it.address.value.toInt()) {
                     0x7F -> "Function Block"

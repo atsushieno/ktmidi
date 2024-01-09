@@ -3,7 +3,6 @@ package dev.atsushieno.ktmidi.ci
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import kotlinx.datetime.asTimeSource
 import kotlin.random.Random
 
 /*
@@ -56,7 +55,7 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
 
     class Connection(
         private val parent: MidiCIInitiator,
-        val muid: Int,
+        val targetMUID: Int,
         val device: DeviceDetails,
         var maxSimultaneousPropertyRequests: Byte = 0,
         var productInstanceId: String = "",
@@ -82,11 +81,11 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
             }
         }
 
-        fun updateProperty(msg: Message.SubscribeProperty): Pair<String?,Message.SubscribePropertyReply?> {
+        fun updateProperty(ourMUID: Int, msg: Message.SubscribeProperty): Pair<String?,Message.SubscribePropertyReply?> {
             val command = properties.updateValue(msg)
             return Pair(
                 command,
-                Message.SubscribePropertyReply(muid, msg.sourceMUID, msg.requestId,
+                Message.SubscribePropertyReply(ourMUID, msg.sourceMUID, msg.requestId,
                     propertyClient.createStatusHeader(PropertyExchangeStatus.OK), listOf()
                 )
             )
@@ -456,8 +455,8 @@ class MidiCIInitiator(val device: MidiCIDeviceInfo,
         logger.subscribeProperty(msg)
         events.subscribePropertyReceived.forEach { it(msg) }
         val conn = connections[msg.sourceMUID]
-        val reply = conn?.updateProperty(msg)
-        if (reply?.second != null && !ImplementationSettings.workaroundJUCEPropertySubscriptionReplyIssue) {
+        val reply = conn?.updateProperty(muid, msg)
+        if (reply?.second != null) {
             logger.subscribePropertyReply(reply.second!!)
             sendPropertySubscribeReply(reply.second!!)
         } else {

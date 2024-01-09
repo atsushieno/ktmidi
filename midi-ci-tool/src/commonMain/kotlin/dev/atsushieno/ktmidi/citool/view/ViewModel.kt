@@ -45,13 +45,13 @@ object ViewModel {
 
     val localDeviceConfiguration = LocalConfigurationViewModel(AppModel.ciDeviceManager.responder.responder)
 
-    val settings = ApplicationSetingsViewModel()
+    val settings = ApplicationSettingsViewModel()
 
     init {
         // When a new entry is appeared and nothing was selected, move to the new entry.
         AppModel.ciDeviceManager.initiator.initiator.connectionsChanged.add { change, conn ->
             if (selectedRemoteDeviceMUID.value == 0 && change == MidiCIInitiator.ConnectionChange.Added)
-                Snapshot.withMutableSnapshot { selectedRemoteDeviceMUID.value = conn.muid }
+                Snapshot.withMutableSnapshot { selectedRemoteDeviceMUID.value = conn.targetMUID }
         }
     }
 }
@@ -71,12 +71,12 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     }
 
     fun sendProfileDetailsInquiry(profile: MidiCIProfileId, address: Byte, target: Byte) {
-        AppModel.ciDeviceManager.initiator.sendProfileDetailsInquiry(address, conn.muid, profile, target)
+        AppModel.ciDeviceManager.initiator.sendProfileDetailsInquiry(address, conn.targetMUID, profile, target)
     }
 
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
-        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.muid, propertyId)
+        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.targetMUID, propertyId)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
@@ -236,15 +236,10 @@ class DeviceConfigurationViewModel(deviceInfo: MidiCIDeviceInfo) {
     }
 }
 
-class ApplicationSetingsViewModel {
+class ApplicationSettingsViewModel {
     val workaroundJUCEProfileNumChannelsIssue = mutableStateOf(false)
     fun workaroundJUCEProfileNumChannelsIssue(value: Boolean) {
         ImplementationSettings.workaroundJUCEProfileNumChannelsIssue = value
         workaroundJUCEProfileNumChannelsIssue.value = value
-    }
-    var workaroundJUCEPropertySubscriptionReplyIssue = mutableStateOf(false)
-    fun workaroundJUCEPropertySubscriptionReplyIssue(value: Boolean) {
-        ImplementationSettings.workaroundJUCEPropertySubscriptionReplyIssue = value
-        workaroundJUCEPropertySubscriptionReplyIssue.value = value
     }
 }
