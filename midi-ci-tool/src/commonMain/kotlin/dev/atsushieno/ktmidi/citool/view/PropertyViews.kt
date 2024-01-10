@@ -14,9 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.atsushieno.ktmidi.ci.*
 import getPlatform
 
@@ -45,7 +44,7 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
                            readOnly: Boolean) {
 
     Column {
-        Text("Property Metadata", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
+        Text("Property Metadata", fontWeight = FontWeight.Bold, fontSize = 20.sp)
 
         var prev by remember { mutableStateOf(def) }
 
@@ -136,7 +135,7 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
                     var linkText by remember { mutableStateOf(it.link) }
                     var propertyText by remember { mutableStateOf(it.property) }
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Link?", fontSize = TextUnit(0.9f, TextUnitType.Em))
+                        Text("Link?", fontSize = 12.sp)
                         Checkbox(isLink, { isLink = it }, enabled = !readOnly)
                         TextField(
                             if (isLink) linkText ?: "" else propertyText ?: "",
@@ -178,7 +177,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
     val resetState = prev != metadata
 
     Column {
-        Text("Property Value", fontWeight = FontWeight.Bold, fontSize = TextUnit(1.2f, TextUnitType.Em))
+        Text("Property Value", fontWeight = FontWeight.Bold, fontSize = 20.sp)
 
         val isEditableByMetadata = metadata?.canSet != null && metadata.canSet != PropertySetAccess.NONE
         val isEditable = isLocalEditor || isEditableByMetadata
