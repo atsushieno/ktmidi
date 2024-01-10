@@ -107,6 +107,7 @@ object MidiCIConstants {
 
     const val DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE = 4096
     const val DEFAULT_MAX_PROPERTY_CHUNK_SIZE = 4096 - 256
+    const val DEFAULT_MAX_SIMULTANEOUS_PROPERTY_REQUESTS: Byte = 127
 
     const val ADDRESS_GROUP: Byte = 0x7E
     const val ADDRESS_FUNCTION_BLOCK: Byte = 0x7F
