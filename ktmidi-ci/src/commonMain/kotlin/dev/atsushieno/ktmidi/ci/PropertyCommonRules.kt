@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
+import io.ktor.utils.io.*
+
 class PropertyExchangeException(message: String = "Property Exchange exception", innerException: Exception? = null) : Exception(message, innerException)
 
 data class MidiCIDeviceInfo(
@@ -173,6 +175,14 @@ object PropertyCommonConverter {
             val head = eights[0].drop(1)
             eights.drop(1).flatMapIndexed { index, it -> listOf(head[index]) + it.drop(1) }
         }
+
+    /* FIXME: enable these once ktor-utils 3.0.0 is released to all our target platforms
+    fun decodeZlib(bytes: ByteArray): ByteArray =
+        DeflateEncoder.decode(ByteReadChannel(bytes)).toByteArray()
+
+    fun encodeZlib(bytes: ByteArray): ByteArray =
+        DeflateEncoder.encode(ByteReadChannel(bytes)).toByteArray()
+    */
 }
 
 object PropertySetAccess {
