@@ -8,9 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
 
@@ -40,7 +39,7 @@ fun InitiatorScreen() {
 @Composable
 fun ClientConnection(vm: ConnectionViewModel) {
     Column(Modifier.padding(12.dp, 0.dp)) {
-        Text("Profiles", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
+        Text("Profiles", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
         Row {
             ClientProfileList(vm)
@@ -50,7 +49,7 @@ fun ClientConnection(vm: ConnectionViewModel) {
                 ClientProfileDetails(vm, sp)
         }
 
-        Text("Properties", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
+        Text("Properties", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
         Row {
             ClientPropertyList(vm)
@@ -75,8 +74,8 @@ fun DeviceItemCard(label: String) {
 private fun ClientConnectionInfo(vm: ConnectionViewModel) {
     val conn = vm.conn
     Column {
-        Text("Device", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
-        val small = TextUnit(0.8f, TextUnitType.Em)
+        Text("Device", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        val small = 12.sp
         Row {
             DeviceItemCard("Manufacturer")
             Text(conn.device.manufacturer.toString(16), fontSize = small)

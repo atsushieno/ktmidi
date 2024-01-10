@@ -16,9 +16,8 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
 
@@ -29,7 +28,7 @@ fun ResponderScreen() {
     LocalDeviceConfiguration(vm)
 
     // Profile Configuration
-    Text("Profiles", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
+    Text("Profiles", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
     Row {
         LocalProfileList(vm)
@@ -43,7 +42,7 @@ fun ResponderScreen() {
 
 @Composable
 fun LocalPropertyConfiguration(vm: LocalConfigurationViewModel) {
-    Text("Properties", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
+    Text("Properties", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
     Row {
         LocalPropertyList(
@@ -100,8 +99,8 @@ private fun LocalDeviceConfiguration(vm: LocalConfigurationViewModel) {
         device.updateDeviceInfo(dev)
     }
     Column {
-        Text("Local Device Configuration", fontSize = TextUnit(1.5f, TextUnitType.Em), fontWeight = FontWeight.Bold)
-        Text("Note that each ID byte is in 7 bits. Hex more than 80h is invalid.", fontSize = TextUnit(0.9f, TextUnitType.Em))
+        Text("Local Device Configuration", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("Note that each ID byte is in 7 bits. Hex more than 80h is invalid.", fontSize = 12.sp)
         Row {
             Column(Modifier.border(1.dp, MaterialTheme.colorScheme.primaryContainer)) {
                 Row {
