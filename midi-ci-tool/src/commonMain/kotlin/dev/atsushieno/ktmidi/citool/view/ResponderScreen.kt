@@ -47,7 +47,7 @@ fun LocalPropertyConfiguration(vm: LocalConfigurationViewModel) {
 
     Row {
         LocalPropertyList(
-            vm.properties.map { it.id }.distinct(),
+            vm.properties.map { it.id.value }.distinct(),
             vm.selectedProperty.value,
             selectProperty = { vm.selectProperty(it) },
             createNewProperty = { vm.createNewProperty() },
@@ -57,7 +57,7 @@ fun LocalPropertyConfiguration(vm: LocalConfigurationViewModel) {
         val selectedProperty by remember { vm.selectedProperty }
         val sp = selectedProperty
         if (sp != null) {
-            val value = vm.properties.first { it.id == sp }
+            val value = vm.properties.first { it.id.value == sp }
             val def = vm.responder.propertyService.getMetadataList().firstOrNull { it.resource == sp }
             LocalPropertyDetails(def, value,
                 updatePropertyValue = { id, data -> vm.updatePropertyValue(id, data) },
@@ -339,15 +339,15 @@ fun LocalPropertyList(properties: List<String>,
 }
 
 @Composable
-fun LocalPropertyDetails(def: PropertyMetadata?, property: PropertyValue,
+fun LocalPropertyDetails(def: PropertyMetadata?, property: PropertyValueState,
                          updatePropertyValue: (propertyId: String, bytes: List<Byte>) -> Unit,
                          metadataUpdateCommitted: (property: PropertyMetadata) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         if (def != null) {
-            PropertyValueEditor(true, property.mediaType, def, property.body,
+            PropertyValueEditor(true, property.mediaType.value, def, property.data.value,
                 {}, // local editor does not support value refresh
                 {}, // local editor does not support value subscription
-                { bytes, _ -> updatePropertyValue(property.id, bytes) }
+                { bytes, _ -> updatePropertyValue(property.id.value, bytes) }
             )
             PropertyMetadataEditor(
                 def,

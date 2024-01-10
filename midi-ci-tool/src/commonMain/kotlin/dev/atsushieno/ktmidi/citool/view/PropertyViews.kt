@@ -198,6 +198,9 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         var showFilePicker by remember { mutableStateOf(false) }
         if (resetState)
             showFilePicker = false
+        var editing by remember { mutableStateOf(false) }
+        if (resetState)
+            editing = false
         val showUploadButton = @Composable {
             if (getPlatform().canReadLocalFile) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -209,6 +212,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         if (file != null) {
                             val bytes = getPlatform().loadFileContent(file)
                             commitChangeClicked(bytes, false)
+                            editing = false
                         }
                     }
                 }
@@ -218,9 +222,6 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         if (isTextRenderable) {
             val bodyText = PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString())
             if (isEditable) {
-                var editing by remember { mutableStateOf(false) }
-                if (resetState)
-                    editing = false
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(editing, { editing = !editing })
                     Text("edit")
@@ -250,6 +251,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                             val bytes =
                                 PropertyCommonConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
                             commitChangeClicked(bytes, partial.isNotBlank())
+                            editing = false
                         }) {
                             Text("Commit changes")
                         }

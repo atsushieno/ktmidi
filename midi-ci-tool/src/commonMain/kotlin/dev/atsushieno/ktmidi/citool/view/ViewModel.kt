@@ -116,6 +116,20 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     }
 }
 
+class PropertyValueState(val id: MutableState<String>, val mediaType: MutableState<String>, val data: MutableState<List<Byte>>) {
+    constructor(id: String, mediaType: String, data: List<Byte>) : this(
+        mutableStateOf(id),
+        mutableStateOf(mediaType),
+        mutableStateOf(data)
+    )
+
+    constructor(source: PropertyValue) : this(
+        mutableStateOf(source.id),
+        mutableStateOf(source.mediaType),
+        mutableStateOf(source.body)
+    )
+}
+
 class LocalConfigurationViewModel(val responder: MidiCIResponder) {
     val device = DeviceConfigurationViewModel(responder.device)
     val maxSimultaneousPropertyRequests =
@@ -147,22 +161,27 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
     }
 
     fun updatePropertyMetadata(oldPropertyId: String, property: PropertyMetadata) {
+        // With the current implementation, we reuse the same PropertyMetadata instance
+        // which means the id is already updated.
+        // Since it depends on the implementation, we try both `oldPropertyId` and new id here... (there must not be collision in older id)
+        val index = properties.indexOfFirst { it.id.value == property.resource || it.id.value == oldPropertyId }
+        val existing = properties[index]
+
         // update definition
         responder.properties.updateMetadata(oldPropertyId, property)
-        // then update property value storage
-        //
-        // With the current implementation, we reuse the same PropertyMetadata instance
-        // which means the id is already updated. So we do not use `oldPropertyId` here...
-        val index = properties.indexOfFirst { it.id == property.resource }
-        val existing = properties[index]
-        properties[index] = PropertyValue(property.resource, existing.mediaType, existing.body)
+
+        // We need to update the property value list state, as the property ID might have changed.
+        val existingList = properties.toList()
+        properties.clear()
+        properties.addAll(existingList.mapIndexed { idx, it ->
+            if (idx == index) PropertyValueState(property.resource, it.mediaType.value, existing.data.value) else it })
+
         selectedProperty.value = property.resource
     }
 
     fun updatePropertyValue(propertyId: String, data: List<Byte>) {
         responder.updatePropertyValue(propertyId, data)
-        // the assignee instance is most likely identical to above, but in case our logic has changed...
-        properties.first { it.id == propertyId }.body = data
+        properties.first { it.id.value == propertyId }.data.value = data
     }
 
     fun createNewProperty() {
@@ -178,7 +197,7 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
-    val properties by lazy { mutableStateListOf<PropertyValue>().apply { addAll(responder.properties.values) } }
+    val properties by lazy { mutableStateListOf<PropertyValueState>().apply { addAll(responder.properties.values.map { PropertyValueState(it) }) } }
 
     init {
         responder.profiles.profilesChanged.add { change, profile ->
@@ -205,7 +224,7 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
 
         responder.properties.propertiesCatalogUpdated.add {
             properties.clear()
-            properties.addAll(responder.properties.values)
+            properties.addAll(responder.properties.values.map { PropertyValueState(it) })
         }
     }
 }
