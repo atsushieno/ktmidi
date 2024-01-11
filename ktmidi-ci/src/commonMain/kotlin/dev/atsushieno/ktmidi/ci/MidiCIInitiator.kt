@@ -94,7 +94,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
     ) {
         val profiles = ObservableProfileList(parent.config.profiles)
 
-        val properties = ClientObservablePropertyList(propertyClient)
+        val properties = ClientObservablePropertyList(parent.logger, propertyClient)
 
         private val openRequests = mutableListOf<Message.GetPropertyData>()
         private val pendingSubscriptions = mutableMapOf<Byte,String>()
@@ -104,7 +104,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         fun updateProperty(msg: Message.GetPropertyDataReply) {
             val req = openRequests.firstOrNull { it.requestId == msg.requestId } ?: return
             openRequests.remove(req)
-            val status = properties.getReplyStatusFor(msg.header) ?: return
+            val status = propertyClient.getReplyStatusFor(msg.header) ?: return
 
             if (status == PropertyExchangeStatus.OK) {
                 propertyClient.onGetPropertyDataReply(req, msg)

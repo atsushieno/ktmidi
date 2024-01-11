@@ -80,6 +80,15 @@ class MidiCIResponder(
 
     private val pendingChunkManager = PropertyChunkManager()
 
+    var midiMessageReporter: MidiMessageReporter = object : MidiMessageReporter {
+        override fun reportMidiMessages(
+            processInquirySupportedFeatures: Byte,
+            midiMessageReportSystemMessages: Byte,
+            midiMessageReportChannelControllerMessages: Byte,
+            midiMessageReportNoteDataMessages: Byte
+        ): Sequence<List<Byte>> = sequenceOf()
+    }
+
     private var requestIdSerial: Byte = 0
 
     // update property value. It involves updates to subscribers
@@ -412,7 +421,17 @@ class MidiCIResponder(
     }
     fun defaultProcessMidiMessageReport(msg: Message.ProcessMidiMessageReport) {
         sendMidiMessageReportReply(getMidiMessageReportReplyFor(msg))
-        // FIXME: send specified MIDI messages
+
+        // send specified MIDI messages
+        midiMessageReporter.reportMidiMessages(
+            config.processInquirySupportedFeatures,
+            config.midiMessageReportSystemMessages,
+            config.midiMessageReportChannelControllerMessages,
+            config.midiMessageReportNoteDataMessages
+        ).forEach {
+            sendOutput(it)
+        }
+
         sendEndOfMidiMessageReport(getEndOfMidiMessageReportFor(msg))
     }
     var processMidiMessageReport: (msg: Message.ProcessMidiMessageReport) -> Unit = { msg ->

@@ -42,11 +42,8 @@ abstract class ObservablePropertyList {
     }
 }
 
-class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyClient)
+class ClientObservablePropertyList(private val logger: Logger, private val propertyClient: MidiCIPropertyClient)
     : ObservablePropertyList() {
-    fun getPropertyIdFor(header: List<Byte>) = propertyClient.getPropertyIdForHeader(header)
-    fun getReplyStatusFor(header: List<Byte>) = propertyClient.getReplyStatusFor(header)
-
     override fun getMetadataList(): List<PropertyMetadata>? = propertyClient.getMetadataList()
 
     override val internalCatalogUpdated: MutableList<() -> Unit>
@@ -56,10 +53,11 @@ class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyCli
         val existing = internalValues.firstOrNull { it.id == propertyId }
         if (existing != null)
             internalValues.remove(existing)
-        val updateResult = propertyClient.getUpdatedValue(existing, isPartial, body)
-        if (!updateResult.first)
-            // FIXME: log error
-            return // applying partial updates failed
+        val updateResult = propertyClient.getUpdatedValue(existing, isPartial, newValueMediaType, body)
+        if (!updateResult.first) {
+            logger.logError("Partial property update failed for $propertyId")
+            return
+        }
         val propertyValue = PropertyValue(propertyId, newValueMediaType, updateResult.second)
         internalValues.add(propertyValue)
         valueUpdated.forEach { it(propertyValue) }
@@ -73,7 +71,10 @@ class ClientObservablePropertyList(private val propertyClient: MidiCIPropertyCli
 
     fun updateValue(msg: Message.SubscribeProperty): String? {
         val id = propertyClient.getSubscribedProperty(msg)
-            ?: return null // FIXME: log error?
+        if (id == null) {
+            logger.logError("Updating property value failed as the specified subscription property is not found.")
+            return null
+        }
         val command = propertyClient.getCommandFieldFor(msg.header)
         if (command == MidiCISubscriptionCommand.NOTIFY)
             return command

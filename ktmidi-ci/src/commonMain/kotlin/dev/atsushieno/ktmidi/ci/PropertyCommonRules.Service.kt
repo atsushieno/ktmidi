@@ -45,15 +45,15 @@ fun PropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
     jsonValuePairs().toMap()
 )
 
-class CommonRulesPropertyService(private val logger: Logger, private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
+class CommonRulesPropertyService(logger: Logger, private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
                                  private val metadataList: MutableList<PropertyMetadata> = mutableListOf<PropertyMetadata>().apply { addAll(defaultPropertyList) })
-    : MidiCIPropertyService {
+    : CommonRulesPropertyHelper(logger), MidiCIPropertyService {
 
     // MidiCIPropertyService implementation
-    override fun getPropertyIdForHeader(header: List<Byte>) = CommonRulesPropertyHelper.getPropertyIdentifier(header)
+    override fun getPropertyIdForHeader(header: List<Byte>) = getPropertyIdentifierInternal(header)
 
     override fun createUpdateNotificationHeader(subscribeId: String, isUpdatePartial: Boolean) =
-        CommonRulesPropertyHelper.createUpdateNotificationHeaderBytes(subscribeId, if (isUpdatePartial) MidiCISubscriptionCommand.PARTIAL else MidiCISubscriptionCommand.FULL)
+        createUpdateNotificationHeaderBytes(subscribeId, if (isUpdatePartial) MidiCISubscriptionCommand.PARTIAL else MidiCISubscriptionCommand.FULL)
 
     override fun getMetadataList(): List<PropertyMetadata> {
         return metadataList
@@ -105,10 +105,10 @@ class CommonRulesPropertyService(private val logger: Logger, private val muid: I
         return Result.success(Message.SubscribePropertyReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody))
     }
 
-    override fun getReplyStatusFor(header: List<Byte>): Int? = CommonRulesPropertyHelper.getReplyStatusFor(header)
+    override fun getReplyStatusFor(header: List<Byte>): Int? = getReplyStatusFor(header)
 
     override fun getMediaTypeFor(replyHeader: List<Byte>): String =
-        CommonRulesPropertyHelper.getMediaTypeFor(replyHeader)
+        getMediaTypeFor(replyHeader)
 
     override fun addMetadata(property: PropertyMetadata) {
         metadataList.add(property)
@@ -233,5 +233,5 @@ class CommonRulesPropertyService(private val logger: Logger, private val muid: I
     }
 
     fun createTerminateNotificationHeader(subscribeId: String): List<Byte> =
-        CommonRulesPropertyHelper.createUpdateNotificationHeaderBytes(subscribeId, MidiCISubscriptionCommand.END)
+        createUpdateNotificationHeaderBytes(subscribeId, MidiCISubscriptionCommand.END)
 }

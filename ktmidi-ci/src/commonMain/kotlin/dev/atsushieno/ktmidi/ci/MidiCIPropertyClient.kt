@@ -35,7 +35,7 @@ interface MidiCIPropertyClient {
     fun processPropertySubscriptionResult(propertyId: String, reply: Message.SubscribePropertyReply)
 
     fun createStatusHeader(status: Int): List<Byte>
-    fun getUpdatedValue(existing: PropertyValue?, isPartial: Boolean, body: List<Byte>): Pair<Boolean, List<Byte>>
+    fun getUpdatedValue(existing: PropertyValue?, isPartial: Boolean, mediaType: String, body: List<Byte>): Pair<Boolean, List<Byte>>
 
     val propertyCatalogUpdated: MutableList<() -> Unit>
 }

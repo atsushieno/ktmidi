@@ -1,14 +1,14 @@
 package dev.atsushieno.ktmidi.ci
 
-class CommonRulesPropertyClient(private val logger: Logger, private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) :
-    MidiCIPropertyClient {
+class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) :
+    CommonRulesPropertyHelper(logger), MidiCIPropertyClient {
     override fun createRequestHeader(resourceIdentifier: String, isPartialSet: Boolean): List<Byte> =
-        CommonRulesPropertyHelper.createRequestHeaderBytes(resourceIdentifier, isPartialSet)
+        createRequestHeaderBytes(resourceIdentifier, isPartialSet)
 
     override fun createSubscribeHeader(resourceIdentifier: String): List<Byte> =
-        CommonRulesPropertyHelper.createSubscribeHeaderBytes(resourceIdentifier)
+        createSubscribeHeaderBytes(resourceIdentifier)
 
-    override fun getPropertyIdForHeader(header: List<Byte>) = CommonRulesPropertyHelper.getPropertyIdentifier(header)
+    override fun getPropertyIdForHeader(header: List<Byte>) = getPropertyIdentifierInternal(header)
 
     override fun getMetadataList(): List<PropertyMetadata> = resourceList
 
@@ -23,19 +23,19 @@ class CommonRulesPropertyClient(private val logger: Logger, private val muid: In
         propertyCatalogUpdated.forEach { it() }
     }
 
-    override fun getReplyStatusFor(header: List<Byte>): Int? = CommonRulesPropertyHelper.getReplyStatusFor(header)
+    override fun getReplyStatusFor(header: List<Byte>): Int? = getReplyStatusForInternal(header)
 
     override fun getMediaTypeFor(replyHeader: List<Byte>): String =
-        CommonRulesPropertyHelper.getMediaTypeFor(replyHeader)
+        getMediaTypeForInternal(replyHeader)
 
     override fun getIsPartialFor(header: List<Byte>): Boolean =
-        CommonRulesPropertyHelper.getReplyHeaderField(header, PropertyCommonHeaderKeys.SET_PARTIAL)?.token?.type == Json.TokenType.True
+        getReplyHeaderField(header, PropertyCommonHeaderKeys.SET_PARTIAL)?.token?.type == Json.TokenType.True
 
     override fun getCommandFieldFor(header: List<Byte>): String? =
-        CommonRulesPropertyHelper.getReplyHeaderField(header, PropertyCommonHeaderKeys.COMMAND)?.stringValue
+        getReplyHeaderField(header, PropertyCommonHeaderKeys.COMMAND)?.stringValue
 
     override fun getSubscribedProperty(msg: Message.SubscribeProperty): String? {
-        val subscribeId = CommonRulesPropertyHelper.getReplyHeaderField(msg.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID)?.stringValue
+        val subscribeId = getReplyHeaderField(msg.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID)?.stringValue
         if (subscribeId == null) {
             logger.logError("Subscribe Id is not found in the property header")
             return null
@@ -52,7 +52,7 @@ class CommonRulesPropertyClient(private val logger: Logger, private val muid: In
         val status = getReplyStatusFor(reply.header)
         if (status != PropertyExchangeStatus.OK)
             return
-        val subscribeId = CommonRulesPropertyHelper.getReplyHeaderField(reply.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID) ?: return
+        val subscribeId = getReplyHeaderField(reply.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID) ?: return
         // does this MUID matter...?
         subscriptions.add(SubscriptionEntry(propertyId, reply.destinationMUID, subscribeId.stringValue))
     }
@@ -64,21 +64,29 @@ class CommonRulesPropertyClient(private val logger: Logger, private val muid: In
         )))
             .getSerializedBytes()
 
-    override fun getUpdatedValue(existing: PropertyValue?, isPartial: Boolean, body: List<Byte>): Pair<Boolean, List<Byte>> {
+    override fun getUpdatedValue(existing: PropertyValue?, isPartial: Boolean, mediaType: String, body: List<Byte>): Pair<Boolean, List<Byte>> {
         if (!isPartial)
             return Pair(true, body)
 
-        if (existing == null)
-            return Pair(false, listOf()) // it is partial update but there is no existing value
+        if (existing == null) {
+            logger.logError("Partial property update is specified but there is no existing value")
+            return Pair(false, listOf())
+        }
+        if (existing.mediaType != CommonRulesKnownMimeTypes.APPLICATION_JSON) {
+            logger.logError("Partial property update is specified but the media type for the existing value is not 'application/json'")
+            return Pair(false, listOf())
+        }
+        if (mediaType != CommonRulesKnownMimeTypes.APPLICATION_JSON) {
+            logger.logError("Partial property update is specified but the media type for the new value is not 'application/json'")
+            return Pair(false, listOf())
+        }
 
         val failureReturn = Pair(false, existing.body)
 
-        // FIXME: apply conversion depending on mediaType
         val existingBytes = existing.body
         val existingJson = Json.parseOrNull(existingBytes.toByteArray().decodeToString())
             ?: return failureReturn // existing body is not a valid JSON string
 
-        // FIXME: apply conversion depending on mediaType
         val bytes = body
         val jsonString = bytes.toByteArray().decodeToString()
         val bodyJson = Json.parseOrNull(MidiCIConverter.decodeASCIIToString(jsonString))
@@ -99,7 +107,7 @@ class CommonRulesPropertyClient(private val logger: Logger, private val muid: In
     val subscriptions = mutableListOf<SubscriptionEntry>()
 
     private fun requestResourceList(destinationMUID: Int, requestId: Byte) {
-        val requestASCIIBytes = CommonRulesPropertyHelper.getResourceListRequestBytes()
+        val requestASCIIBytes = getResourceListRequestBytes()
         val msg = Message.GetPropertyData(muid, destinationMUID, requestId, requestASCIIBytes)
         sendGetPropertyData(msg)
     }
