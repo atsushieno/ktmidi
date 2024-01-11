@@ -9,7 +9,8 @@ class ObservableProfileList(private val pl: MutableList<MidiCIProfile>) {
         get() = pl
 
     fun add(profile: MidiCIProfile) {
-        pl.removeAll { it.profile == profile.profile }
+        if (pl.any { it.profile == profile.profile && it.address == profile.address })
+            return // duplicate entry
         pl.add(profile)
         profilesChanged.forEach { it(ProfilesChange.Added, profile) }
     }
