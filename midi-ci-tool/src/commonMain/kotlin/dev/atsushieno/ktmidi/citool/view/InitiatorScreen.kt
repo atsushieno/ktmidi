@@ -59,9 +59,9 @@ fun ClientConnection(vm: ConnectionViewModel) {
             val sp = selectedProperty
             if (sp != null)
                 ClientPropertyDetails(vm, sp,
-                    refreshValueClicked = { vm.refreshPropertyValue(vm.conn.targetMUID, sp) },
-                    subscribeClicked = { vm.sendSubscribeProperty(vm.conn.targetMUID, sp) },
-                    commitChangeClicked = { id, bytes, isPartial -> vm.sendSetPropertyDataRequest(vm.conn.targetMUID, id, bytes, isPartial) }
+                    refreshValueClicked = { encoding -> vm.refreshPropertyValue(vm.conn.targetMUID, sp, encoding) },
+                    subscribeClicked = { encoding -> vm.sendSubscribeProperty(vm.conn.targetMUID, sp, encoding) },
+                    commitChangeClicked = { id, bytes, encoding, isPartial -> vm.sendSetPropertyDataRequest(vm.conn.targetMUID, id, bytes, encoding, isPartial) }
                 )
         }
     }
@@ -217,16 +217,16 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
 
 @Composable
 fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
-                          refreshValueClicked: () -> Unit,
-                          subscribeClicked: () -> Unit,
-                          commitChangeClicked: (id: String, bytes: List<Byte>, isPartial: Boolean) -> Unit) {
+                          refreshValueClicked: (requestedEncoding: String?) -> Unit,
+                          subscribeClicked: (requestedEncoding: String?) -> Unit,
+                          commitChangeClicked: (id: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         val entry = vm.properties.first { it.id == propertyId }
         val def = vm.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == entry.id }
         PropertyValueEditor(false, entry.mediaType, def, entry.body,
             refreshValueClicked,
             subscribeClicked,
-            commitChangeClicked = { bytes, isPartial -> commitChangeClicked(entry.id, bytes, isPartial) })
+            commitChangeClicked = { bytes, encoding, isPartial -> commitChangeClicked(entry.id, bytes, encoding, isPartial) })
         if (def != null)
             PropertyMetadataEditor(def,
                 {}, // client does not support metadata editing

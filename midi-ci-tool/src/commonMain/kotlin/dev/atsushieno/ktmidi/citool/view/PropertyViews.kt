@@ -169,14 +169,51 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PropertyEncodingSelector(encodings: List<String>,
+                             selectedEncoding: String,
+                             onSelectionChange: (String)->Unit) {
+    var mutualEncodingsExposed by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(mutualEncodingsExposed, { mutualEncodingsExposed = !mutualEncodingsExposed }) {
+        TextField(
+            modifier = Modifier.menuAnchor(),
+            value = selectedEncoding, onValueChange = {},
+            label = { Text("With mutualEncoding?") },
+            readOnly = true,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = mutualEncodingsExposed) },
+            colors = ExposedDropdownMenuDefaults.textFieldColors()
+        )
+        ExposedDropdownMenu(
+            expanded = mutualEncodingsExposed,
+            onDismissRequest = {
+                mutualEncodingsExposed = false
+            },
+        ) {
+            // menu items
+            encodings.forEach { encoding ->
+                DropdownMenuItem(
+                    text = { Text(encoding) },
+                    onClick = {
+                        onSelectionChange(encoding)
+                        mutualEncodingsExposed = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
+        }
+    }
+
+}
+
 @Composable
 fun PropertyValueEditor(isLocalEditor: Boolean,
                         mediaType: String,
                         metadata: PropertyMetadata?,
                         body: List<Byte>,
-                        refreshValueClicked: () -> Unit,
-                        subscribeClicked: () -> Unit,
-                        commitChangeClicked: (List<Byte>, Boolean) -> Unit) {
+                        refreshValueClicked: (requestedEncoding: String?) -> Unit,
+                        subscribeClicked: (requestedEncoding: String?) -> Unit,
+                        commitChangeClicked: (List<Byte>, String?, Boolean) -> Unit) {
     // It is saved to optionally reset cached state
     var prev by remember { mutableStateOf(metadata) }
     val resetState = prev != metadata
@@ -187,27 +224,34 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         val isEditableByMetadata = metadata?.canSet != null && metadata.canSet != PropertySetAccess.NONE
         val isEditable = isLocalEditor || isEditableByMetadata
         val isTextRenderable = mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON
+        var editing by remember { mutableStateOf(false) }
         val showRefreshAndSubscribeButtons = @Composable {
-            if (!isLocalEditor) {
-                Button(onClick = { refreshValueClicked() }) {
-                    Text("Refresh")
-                }
-                if (metadata?.canSubscribe == true) {
-                    Button(onClick = { subscribeClicked() }) {
-                        Text("Subscribe")
+            if (!isLocalEditor && !editing) {
+                Row {
+                    var selectedEncoding by remember { mutableStateOf(metadata?.encodings?.firstOrNull() ?: "ASCII") }
+                    Button(onClick = { refreshValueClicked(selectedEncoding) }) {
+                        Text("Refresh")
                     }
+                    if (metadata?.canSubscribe == true) {
+                        Button(onClick = { subscribeClicked(selectedEncoding) }) {
+                            Text("Subscribe")
+                        }
+                    }
+                    // encoding selector
+                    PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding, { selectedEncoding = it })
                 }
             }
         }
         var showFilePicker by remember { mutableStateOf(false) }
         if (resetState)
             showFilePicker = false
-        var editing by remember { mutableStateOf(false) }
         if (resetState)
             editing = false
         val showUploadButton = @Composable {
             if (getPlatform().canReadLocalFile) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    var selectedEncoding by remember { mutableStateOf(metadata?.encodings?.firstOrNull() ?: "ASCII") }
+                    PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding, { selectedEncoding = it })
                     Button(onClick = { showFilePicker = !showFilePicker }) {
                         Text("Commit value via binary File")
                     }
@@ -215,7 +259,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         showFilePicker = false
                         if (file != null) {
                             val bytes = getPlatform().loadFileContent(file)
-                            commitChangeClicked(bytes, false)
+                            commitChangeClicked(bytes, selectedEncoding, false)
                             editing = false
                         }
                     }
@@ -241,20 +285,22 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         // There is no reason to support partial editor on Local property.
                         if (isEditable && !isLocalEditor) {
                             if (metadata?.canSet == PropertySetAccess.PARTIAL) {
-                                TextField(partial, { partial = it }, label = {
-                                    Text("Partial? RFC6901 Pointer here then:")
-                                })
+                                TextField(partial, { partial = it },
+                                    label = { Text("Partial? RFC6901 Pointer here then:") }
+                                )
                             }
                             showRefreshAndSubscribeButtons()
                         }
                     }
                     TextField(text, { text = it })
                     if (isEditable) {
+                        var selectedEncoding by remember { mutableStateOf(metadata?.encodings?.firstOrNull() ?: "ASCII") }
+                        PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding, { selectedEncoding = it })
                         Button(onClick = {
                             val jsonString = Json.getEscapedString(partial.ifEmpty { text })
                             val bytes =
                                 MidiCIConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
-                            commitChangeClicked(bytes, partial.isNotBlank())
+                            commitChangeClicked(bytes, selectedEncoding, partial.isNotBlank())
                             editing = false
                         }) {
                             Text("Commit changes")

@@ -196,10 +196,10 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         ))
     }
 
-    fun sendGetPropertyData(destinationMUID: Int, resource: String) {
+    fun sendGetPropertyData(destinationMUID: Int, resource: String, encoding: String?) {
         val conn = connections[destinationMUID]
         if (conn != null) {
-            val header = conn.propertyClient.createRequestHeader(resource, false)
+            val header = conn.propertyClient.createRequestHeader(resource, encoding, false)
             val msg = Message.GetPropertyData(muid, destinationMUID, requestIdSerial++, header)
             sendGetPropertyData(msg)
         }
@@ -216,11 +216,12 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         }
     }
 
-    fun sendSetPropertyData(destinationMUID: Int, resource: String, data: List<Byte>, isPartial: Boolean = false) {
+    fun sendSetPropertyData(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
         val conn = connections[destinationMUID]
         if (conn != null) {
-            val header = conn.propertyClient.createRequestHeader(resource, isPartial)
-            sendSetPropertyData(Message.SetPropertyData(muid, destinationMUID, requestIdSerial++, header, data))
+            val header = conn.propertyClient.createRequestHeader(resource, encoding, isPartial)
+            val encodedBody = conn.propertyClient.encodeBody(data, encoding)
+            sendSetPropertyData(Message.SetPropertyData(muid, destinationMUID, requestIdSerial++, header, encodedBody))
         }
     }
 
@@ -233,10 +234,10 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         }
     }
 
-    fun sendSubscribeProperty(destinationMUID: Int, resource: String) {
+    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
         val conn = connections[destinationMUID]
         if (conn != null) {
-            val header = conn.propertyClient.createSubscribeHeader(resource)
+            val header = conn.propertyClient.createSubscribeHeader(resource, mutualEncoding)
             val msg = Message.SubscribeProperty(muid, destinationMUID, requestIdSerial++, header, listOf())
             conn.addPendingSubscription(msg.requestId, resource)
             sendSubscribeProperty(msg)
@@ -498,7 +499,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
             }
             // If the update was NOTIFY, then it is supposed to send Get Data request.
             if (reply.first == MidiCISubscriptionCommand.NOTIFY)
-                sendGetPropertyData(msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header))
+                sendGetPropertyData(msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header), null) // is there mutualEncoding from SubscribeProperty?
         }
         else
             // Unknown MUID - send back NAK

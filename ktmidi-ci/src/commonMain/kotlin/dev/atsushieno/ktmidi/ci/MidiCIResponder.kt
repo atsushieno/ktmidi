@@ -76,12 +76,11 @@ class MidiCIResponder(
             notifyPropertyUpdatesToSubscribers(msg)
         }
     }
-    var createPropertyNotification: (propertyId: String, data: List<Byte>, isPartial: Boolean) -> Sequence<Message.SubscribeProperty> = { propertyId, data, isPartial ->
-        sequence {
-            subscriptions.filter { it.resource == propertyId }.forEach {
-                val header = propertyService.createUpdateNotificationHeader(it.subscribeId, isPartial)
-                yield(Message.SubscribeProperty(muid, MidiCIConstants.BROADCAST_MUID_32, requestIdSerial++, header, data))
-            }
+    private fun createPropertyNotification(propertyId: String, data: List<Byte>, isPartial: Boolean): Sequence<Message.SubscribeProperty> = sequence {
+        subscriptions.filter { it.resource == propertyId }.forEach {
+            // FIXME: implement encoding support (does Subscription message contain mutualEncoding?)
+            val header = propertyService.createUpdateNotificationHeader(it.subscribeId, isPartial)
+            yield(Message.SubscribeProperty(muid, MidiCIConstants.BROADCAST_MUID_32, requestIdSerial++, header, data))
         }
     }
 

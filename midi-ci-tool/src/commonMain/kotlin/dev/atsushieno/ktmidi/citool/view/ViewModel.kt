@@ -99,23 +99,23 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
 
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
-        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.targetMUID, propertyId)
+        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.targetMUID, propertyId, null)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
 
     val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.properties.values)}
 
-    fun refreshPropertyValue(targetMUID: Int, propertyId: String) {
-        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(targetMUID, propertyId)
+    fun refreshPropertyValue(targetMUID: Int, propertyId: String, encoding: String?) {
+        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(targetMUID, propertyId, encoding)
     }
 
-    fun sendSubscribeProperty(targetMUID: Int, propertyId: String) {
-        AppModel.ciDeviceManager.initiator.sendSubscribeProperty(targetMUID, propertyId)
+    fun sendSubscribeProperty(targetMUID: Int, propertyId: String, mutualEncoding: String?) {
+        AppModel.ciDeviceManager.initiator.sendSubscribeProperty(targetMUID, propertyId, mutualEncoding)
     }
 
-    fun sendSetPropertyDataRequest(targetMUID: Int, propertyId: String, bytes: List<Byte>, isPartial: Boolean) {
-        AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(targetMUID, propertyId, bytes, isPartial)
+    fun sendSetPropertyDataRequest(targetMUID: Int, propertyId: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) {
+        AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(targetMUID, propertyId, bytes, encoding, isPartial)
     }
 
     fun setProfile(targetMUID: Int, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean) {

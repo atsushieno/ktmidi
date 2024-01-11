@@ -10,9 +10,9 @@ package dev.atsushieno.ktmidi.ci
  *   - The list acquisition must be automatically detected.
  */
 interface MidiCIPropertyClient {
-    fun createRequestHeader(resourceIdentifier: String, isPartialSet: Boolean): List<Byte>
+    fun createRequestHeader(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): List<Byte>
 
-    fun createSubscribeHeader(resourceIdentifier: String): List<Byte>
+    fun createSubscribeHeader(resourceIdentifier: String, mutualEncoding: String?): List<Byte>
 
     fun getPropertyIdForHeader(header: List<Byte>): String
 
@@ -26,6 +26,8 @@ interface MidiCIPropertyClient {
 
     fun getMediaTypeFor(replyHeader: List<Byte>): String
 
+    fun getEncodingFor(header: List<Byte>): String
+
     fun getIsPartialFor(header: List<Byte>): Boolean
 
     fun getCommandFieldFor(header: List<Byte>): String?
@@ -36,6 +38,8 @@ interface MidiCIPropertyClient {
 
     fun createStatusHeader(status: Int): List<Byte>
     fun getUpdatedValue(existing: PropertyValue?, isPartial: Boolean, mediaType: String, body: List<Byte>): Pair<Boolean, List<Byte>>
+    fun encodeBody(data: List<Byte>, encoding: String?): List<Byte>
+    fun decodeBody(data: List<Byte>, encoding: String?): List<Byte>
 
     val propertyCatalogUpdated: MutableList<() -> Unit>
 }

@@ -6,11 +6,11 @@ import dev.atsushieno.ktmidi.ci.json.JsonParserException
 
 class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) :
     CommonRulesPropertyHelper(logger), MidiCIPropertyClient {
-    override fun createRequestHeader(resourceIdentifier: String, isPartialSet: Boolean): List<Byte> =
-        createRequestHeaderBytes(resourceIdentifier, isPartialSet)
+    override fun createRequestHeader(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): List<Byte> =
+        createRequestHeaderBytes(resourceIdentifier, encoding, isPartialSet)
 
-    override fun createSubscribeHeader(resourceIdentifier: String): List<Byte> =
-        createSubscribeHeaderBytes(resourceIdentifier)
+    override fun createSubscribeHeader(resourceIdentifier: String, mutualEncoding: String?): List<Byte> =
+        createSubscribeHeaderBytes(resourceIdentifier, mutualEncoding)
 
     override fun getPropertyIdForHeader(header: List<Byte>) = getPropertyIdentifierInternal(header)
 
@@ -31,6 +31,9 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
 
     override fun getMediaTypeFor(replyHeader: List<Byte>): String =
         getMediaTypeForInternal(replyHeader)
+
+    override fun getEncodingFor(header: List<Byte>): String =
+        getEncodingForInternal(header)
 
     override fun getIsPartialFor(header: List<Byte>): Boolean =
         getReplyHeaderField(header, PropertyCommonHeaderKeys.SET_PARTIAL)?.token?.type == Json.TokenType.True
@@ -58,7 +61,8 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
             return
         val subscribeId = getReplyHeaderField(reply.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID) ?: return
         // does this MUID matter...?
-        subscriptions.add(SubscriptionEntry(propertyId, reply.destinationMUID, subscribeId.stringValue))
+        // does encoding matter...? It could be explicitly specified by client itself, but responder should specify it anyway.
+        subscriptions.add(SubscriptionEntry(propertyId, reply.destinationMUID, null, subscribeId.stringValue))
     }
 
     override fun createStatusHeader(status: Int): List<Byte> =
@@ -101,6 +105,32 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
             Pair(true, result.second.getSerializedBytes())
         else
             Pair(false, existing.body)
+    }
+
+    override fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> {
+        return when (encoding) {
+            PropertyDataEncoding.ASCII -> data
+            PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.encodeToMcoded7(data)
+            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.encodeZlib(PropertyCommonConverter.encodeToMcoded7(data).toByteArray()).toList()
+            null -> data
+            else -> {
+                logger.logError("Unrecognized mutualEncoding is specified: $encoding")
+                data
+            }
+        }
+    }
+
+    override fun decodeBody(data: List<Byte>, encoding: String?): List<Byte> {
+        return when (encoding) {
+            PropertyDataEncoding.ASCII -> data
+            PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.decodeMcoded7(data)
+            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.decodeZlib(PropertyCommonConverter.decodeMcoded7(data).toByteArray()).toList()
+            null -> data
+            else -> {
+                logger.logError("Unrecognized mutualEncoding is specified: $encoding")
+                data
+            }
+        }
     }
 
     override val propertyCatalogUpdated = mutableListOf<() -> Unit>()

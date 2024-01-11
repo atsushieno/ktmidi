@@ -59,14 +59,14 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         initiator.requestProfileDetails(address, muid, profile, target)
     }
 
-    fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String) {
-        initiator.sendGetPropertyData(destinationMUID, resource)
+    fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?) {
+        initiator.sendGetPropertyData(destinationMUID, resource, encoding)
     }
-    fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, isPartial: Boolean) {
-        initiator.sendSetPropertyData(destinationMUID, resource, data, isPartial)
+    fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) {
+        initiator.sendSetPropertyData(destinationMUID, resource, data, encoding, isPartial)
     }
-    fun sendSubscribeProperty(destinationMUID: Int, resource: String) {
-        initiator.sendSubscribeProperty(destinationMUID, resource)
+    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
+        initiator.sendSubscribeProperty(destinationMUID, resource, mutualEncoding)
     }
 
     init {

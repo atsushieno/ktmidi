@@ -255,7 +255,7 @@ fun LocalPropertyDetails(def: PropertyMetadata?, property: PropertyValueState,
             PropertyValueEditor(true, property.mediaType.value, def, property.data.value,
                 {}, // local editor does not support value refresh
                 {}, // local editor does not support value subscription
-                { bytes, _ -> updatePropertyValue(property.id.value, bytes) }
+                { bytes, _, _ -> updatePropertyValue(property.id.value, bytes) } // local editor does not involve encoding and partial updates
             )
             PropertyMetadataEditor(
                 def,

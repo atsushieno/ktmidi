@@ -33,7 +33,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return result
     }
 
-    fun getResourceListRequestJson() = createRequestHeaderInternal(PropertyResourceNames.RESOURCE_LIST, false)
+    fun getResourceListRequestJson() = createRequestHeaderInternal(PropertyResourceNames.RESOURCE_LIST, null, false)
 
     fun getResourceListRequestBytes(): List<Byte> {
         val json = getResourceListRequestJson()
@@ -42,21 +42,26 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
     }
 
     private val partialSetPair = Pair(Json.JsonValue(PropertyCommonHeaderKeys.SET_PARTIAL), Json.TrueValue)
-    fun createRequestHeaderInternal(resourceIdentifier: String, isPartialSet: Boolean): Json.JsonValue {
-        val headerContent = Pair(
+    fun createRequestHeaderInternal(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): Json.JsonValue {
+        val list = mutableListOf<Pair<Json.JsonValue,Json.JsonValue>>()
+        list.add(Pair(
             Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
             Json.JsonValue(resourceIdentifier)
-        )
-        return Json.JsonValue(if (isPartialSet) mapOf(headerContent, partialSetPair) else mapOf(headerContent))
+        ))
+        if (encoding != null)
+            list.add(Pair(Json.JsonValue(PropertyCommonHeaderKeys.MUTUAL_ENCODING), Json.JsonValue(encoding)))
+        if (isPartialSet)
+            list.add(partialSetPair)
+        return Json.JsonValue(list.toMap())
     }
 
-    fun createRequestHeaderBytes(resourceIdentifier: String, isPartialSet: Boolean): List<Byte> {
-        val json = createRequestHeaderInternal(resourceIdentifier, isPartialSet)
+    fun createRequestHeaderBytes(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): List<Byte> {
+        val json = createRequestHeaderInternal(resourceIdentifier, encoding, isPartialSet)
         val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
         return requestASCIIBytes
     }
 
-    fun createSubscribeHeaderInternal(resourceIdentifier: String): Json.JsonValue {
+    fun createSubscribeHeaderInternal(resourceIdentifier: String, mutualEncoding: String?): Json.JsonValue {
         val resource = Pair(
             Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
             Json.JsonValue(resourceIdentifier)
@@ -65,11 +70,17 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
             Json.JsonValue(PropertyCommonHeaderKeys.COMMAND),
             Json.JsonValue(MidiCISubscriptionCommand.START)
         )
-        return Json.JsonValue(mapOf(resource, command))
+        val list = mutableListOf(resource, command)
+        if (mutualEncoding != null)
+            list.add(Pair(
+                Json.JsonValue(PropertyCommonHeaderKeys.MUTUAL_ENCODING),
+                Json.JsonValue(mutualEncoding)
+            ))
+        return Json.JsonValue(list.toMap())
     }
 
-    fun createSubscribeHeaderBytes(resourceIdentifier: String): List<Byte> {
-        val json = createSubscribeHeaderInternal(resourceIdentifier)
+    fun createSubscribeHeaderBytes(resourceIdentifier: String, mutualEncoding: String?): List<Byte> {
+        val json = createSubscribeHeaderInternal(resourceIdentifier, mutualEncoding)
         val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
         return requestASCIIBytes
     }
@@ -99,6 +110,14 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return if (json == null) defaultMimeType
         else if (json.token.type == Json.TokenType.String) json.stringValue
         else defaultMimeType
+    }
+
+    fun getEncodingForInternal(header: List<Byte>): String {
+        val defaultEncoding = PropertyDataEncoding.ASCII
+        val json = getReplyHeaderField(header, PropertyCommonHeaderKeys.MUTUAL_ENCODING)
+        return if (json == null) defaultEncoding
+        else if (json.token.type == Json.TokenType.String) json.stringValue
+        else defaultEncoding
     }
 
     fun createUpdateNotificationHeader(subscribeId: String, command: String): Json.JsonValue {

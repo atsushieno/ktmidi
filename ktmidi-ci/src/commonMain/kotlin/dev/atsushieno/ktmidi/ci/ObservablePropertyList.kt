@@ -65,8 +65,10 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
 
     fun updateValue(propertyId: String, reply: Message.GetPropertyDataReply) {
         val mediaType = propertyClient.getMediaTypeFor(reply.header)
+        val mutualEncoding = propertyClient.getEncodingFor(reply.header)
+        val decodedBody = propertyClient.decodeBody(reply.body, mutualEncoding)
         // there is no partial updates in Reply to Get Property Data
-        updateValue(propertyId, false, mediaType, reply.body)
+        updateValue(propertyId, false, mediaType, decodedBody)
     }
 
     fun updateValue(msg: Message.SubscribeProperty): String? {
@@ -80,7 +82,9 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
             return command
         val isPartial = command == MidiCISubscriptionCommand.PARTIAL
         val mediaType = propertyClient.getMediaTypeFor(msg.header)
-        updateValue(id, isPartial, mediaType, msg.body)
+        val encoding = propertyClient.getEncodingFor(msg.header)
+        val decodedBody = propertyClient.decodeBody(msg.body, encoding)
+        updateValue(id, isPartial, mediaType, decodedBody)
         return command
     }
 

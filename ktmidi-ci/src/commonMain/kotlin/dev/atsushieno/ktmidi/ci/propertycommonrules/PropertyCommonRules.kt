@@ -87,7 +87,8 @@ object DeviceInfoPropertyNames {
 data class PropertyCommonRequestHeader(
     val resource: String,
     val resId: String? = null,
-    val mutualEncoding: String? = PropertyDataEncoding.ASCII
+    val mutualEncoding: String? = PropertyDataEncoding.ASCII,
+    val mediaType: String? = CommonRulesKnownMimeTypes.APPLICATION_JSON
 )
 
 data class PropertyCommonReplyHeader(
@@ -116,6 +117,9 @@ object PropertyCommonConverter {
     fun areBytesStatus(data: List<Byte>) = areBytesEquivalentTo(data, PropertyCommonHeaderKeys.STATUS)
 
     private fun padTo8Bytes(list: List<Byte>): List<Byte> = listOf(0.toByte()) + list + if (list.size % 7 != 0) List(7 - list.size) { 0.toByte() } else listOf()
+
+    // FIXME: there seems some interoperability problem w/ juce_midi_ci.
+    //  Needs processing verification.
     fun encodeToMcoded7(bytes: List<Byte>): List<Byte> =
         bytes.chunked(56).map { part ->
             part.chunked(8)
@@ -125,6 +129,8 @@ object PropertyCommonConverter {
             }
         }
 
+    // FIXME: there seems some interoperability problem w/ juce_midi_ci.
+    //  Needs processing verification.
     fun decodeMcoded7(bytes: List<Byte>): List<Byte> =
         bytes.chunked(64).map { part ->
             part.chunked(8)
@@ -133,14 +139,13 @@ object PropertyCommonConverter {
             eights.drop(1).flatMapIndexed { index, it -> listOf(head[index]) + it.drop(1) }
         }
 
-    /* FIXME: implement zlib+Mcoded7 conversions
-        enable these once ktor-utils 3.0.0 is released to all our target platforms
+    // FIXME: implement zlib+Mcoded7 conversions
+    //    enable these once ktor-utils 3.0.0 is released to all our target platforms
     fun decodeZlib(bytes: ByteArray): ByteArray =
-        DeflateEncoder.decode(ByteReadChannel(bytes)).toByteArray()
+        TODO("FIXME: enable implementation once ktor-utils 3.0.0 is released") //DeflateEncoder.decode(ByteReadChannel(bytes)).toByteArray()
 
     fun encodeZlib(bytes: ByteArray): ByteArray =
-        DeflateEncoder.encode(ByteReadChannel(bytes)).toByteArray()
-    */
+        TODO("FIXME: enable implementation once ktor-utils 3.0.0 is released") //DeflateEncoder.encode(ByteReadChannel(bytes)).toByteArray()
 }
 
 object PropertySetAccess {
@@ -194,5 +199,5 @@ class PropertyResourceColumn {
     )
 }
 
-data class SubscriptionEntry(val resource: String, val muid: Int, val subscribeId: String)
+data class SubscriptionEntry(val resource: String, val muid: Int, val encoding: String?, val subscribeId: String)
 
