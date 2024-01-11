@@ -1,33 +1,9 @@
 package dev.atsushieno.ktmidi.ci
 
-import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.datetime.Clock
 import kotlin.experimental.and
 import kotlin.random.Random
-
-data class MidiCIResponderConfiguration(
-    var device: MidiCIDeviceInfo,
-    val muid: Int = Random.nextInt() and 0x7F7F7F7F,
-
-    var capabilityInquirySupported: Byte = MidiCISupportedCategories.THREE_P,
-    var receivableMaxSysExSize: Int = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE,
-    var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK,
-    var productInstanceId: String = "ktmidi-ci" + (Random.nextInt() % 65536),
-
-    // Profile Configuration
-    val profiles: MutableList<MidiCIProfile> = mutableListOf(),
-
-    // Property Exchange
-    var maxSimultaneousPropertyRequests: Byte = MidiCIConstants.DEFAULT_MAX_SIMULTANEOUS_PROPERTY_REQUESTS,
-    var maxPropertyChunkSize: Int = MidiCIConstants.DEFAULT_MAX_PROPERTY_CHUNK_SIZE,
-
-    // Process Inquiry
-    var processInquirySupportedFeatures: Byte = 0,
-    var midiMessageReportSystemMessages: Byte = 0,
-    var midiMessageReportChannelControllerMessages: Byte = 0,
-    var midiMessageReportNoteDataMessages: Byte = 0
-)
 
 /**
  * This class is responsible only for one input/output connection pair
@@ -40,15 +16,11 @@ data class MidiCIResponderConfiguration(
 class MidiCIResponder(
     val config: MidiCIResponderConfiguration,
     private val sendOutput: (data: List<Byte>) -> Unit) {
-    var device: MidiCIDeviceInfo
-        get() = config.device
-        set(value) {
-            propertyService.deviceInfo = value
-            config.device = value
-
-            // FIXME: we should probably send InvalidateMUID for this device by own.
-        }
-    val muid by config::muid
+    
+    val device: MidiCIDeviceInfo
+        get() = config.common.device
+    val muid: Int
+        get() = config.common.muid
 
     class Events {
         val discoveryReceived = mutableListOf<(msg: Message.DiscoveryInquiry) -> Unit>()
@@ -116,9 +88,9 @@ class MidiCIResponder(
 
     // Notify end of subscription updates
     fun sendPropertySubscription(msg: Message.SubscribeProperty) {
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         CIFactory.midiCIPropertyChunks(
-            dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE,
+            dst, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
             sendOutput(it)
@@ -136,20 +108,20 @@ class MidiCIResponder(
     // Message handlers
 
     val sendDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(
             CIFactory.midiCIDiscoveryReply(
                 dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID,
                 msg.device.manufacturer, msg.device.family, msg.device.modelNumber, msg.device.softwareRevisionLevel,
-                config.capabilityInquirySupported, config.receivableMaxSysExSize,
+                config.common.capabilityInquirySupported, config.common.receivableMaxSysExSize,
                 msg.outputPathId, msg.functionBlock
             )
         )
     }
     val getDiscoveryReplyForInquiry: (request: Message.DiscoveryInquiry) -> Message.DiscoveryReply = { request ->
         val deviceDetails = DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId)
-        Message.DiscoveryReply(muid, request.sourceMUID, deviceDetails, config.capabilityInquirySupported,
-            config.receivableMaxSysExSize, request.outputPathId, config.functionBlock)
+        Message.DiscoveryReply(muid, request.sourceMUID, deviceDetails, config.common.capabilityInquirySupported,
+            config.common.receivableMaxSysExSize, request.outputPathId, config.functionBlock)
     }
     var processDiscovery: (msg: Message.DiscoveryInquiry) -> Unit = { msg ->
         logger.logMessage(msg)
@@ -160,7 +132,7 @@ class MidiCIResponder(
     }
 
     val sendEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(
             CIFactory.midiCIEndpointMessageReply(
                 dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID, msg.status, msg.data)
@@ -183,7 +155,7 @@ class MidiCIResponder(
     }
 
     val sendAckForInvalidateMUID: (sourceMUID: Int) -> Unit = { sourceMUID ->
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIAckNak(dst, false, MidiCIConstants.ADDRESS_FUNCTION_BLOCK,
             MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID, CISubId2.INVALIDATE_MUID, 0, 0, listOf(), listOf()))
     }
@@ -192,7 +164,7 @@ class MidiCIResponder(
     // Profile Configuration
 
     val sendProfileReply: (msg: Message.ProfileReply) -> Unit = { msg ->
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIProfileInquiryReply(dst, msg.address, msg.sourceMUID, msg.destinationMUID,
             msg.enabledProfiles,
             msg.disabledProfiles)
@@ -236,17 +208,17 @@ class MidiCIResponder(
     }
 
     private fun sendSetProfileReport(address: Byte, profile: MidiCIProfileId, enabled: Boolean) {
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIProfileReport(dst, address, enabled, muid, profile))
     }
 
     fun sendProfileAddedReport(profile: MidiCIProfile) {
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIProfileAddedRemoved(dst, profile.address, false, muid, profile.profile))
     }
 
     fun sendProfileRemovedReport(profile: MidiCIProfile) {
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIProfileAddedRemoved(dst, profile.address, true, muid, profile.profile))
     }
 
@@ -283,7 +255,7 @@ class MidiCIResponder(
         val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
         val nak = MidiCIAckNakData(source, sourceMUID, destinationMUID, originalSubId,
             CINakStatus.MessageNotSupported, 0, listOf(), listOf())
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIAckNak(dst, true, nak))
     }
     var processUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
@@ -297,13 +269,13 @@ class MidiCIResponder(
     // Should this also delegate to property service...?
     fun sendPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
         logger.logMessage(msg)
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, msg.address, true,
             msg.sourceMUID, msg.destinationMUID, msg.maxSimultaneousRequests))
     }
     val getPropertyCapabilitiesReplyFor: (msg: Message.PropertyGetCapabilities) -> Message.PropertyGetCapabilitiesReply = { msg ->
         val establishedMaxSimultaneousPropertyRequests =
-            if (msg.maxSimultaneousRequests > config.maxSimultaneousPropertyRequests) config.maxSimultaneousPropertyRequests
+            if (msg.maxSimultaneousRequests > config.common.maxSimultaneousPropertyRequests) config.common.maxSimultaneousPropertyRequests
             else msg.maxSimultaneousRequests
         Message.PropertyGetCapabilitiesReply(msg.address, muid, msg.sourceMUID, establishedMaxSimultaneousPropertyRequests)
     }
@@ -316,9 +288,9 @@ class MidiCIResponder(
 
     fun sendPropertyGetDataReply(msg: Message.GetPropertyDataReply) {
         logger.logMessage(msg)
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         CIFactory.midiCIPropertyChunks(
-            dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_REPLY,
+            dst, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
             sendOutput(it)
@@ -337,9 +309,9 @@ class MidiCIResponder(
 
     fun sendPropertySetDataReply(msg: Message.SetPropertyDataReply) {
         logger.logMessage(msg)
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         CIFactory.midiCIPropertyChunks(
-            dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_REPLY,
+            dst, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, listOf()
         ).forEach {
             sendOutput(it)
@@ -357,9 +329,9 @@ class MidiCIResponder(
 
     fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
         logger.logMessage(msg)
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         CIFactory.midiCIPropertyChunks(
-            dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
+            dst, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
             sendOutput(it)

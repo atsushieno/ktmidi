@@ -5,18 +5,6 @@ import dev.atsushieno.ktmidi.citool.view.ViewModel
 import kotlin.random.Random
 
 class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
-    fun processCIMessage(data: List<Byte>) {
-        AppModel.log("[Initiator received SYSEX] " + data.joinToString { it.toString(16) })
-        initiator.processInput(data)
-    }
-
-    var device: MidiCIDeviceInfo
-        get() = AppModel.savedSettings.initiator.device
-        set(value) {
-            AppModel.savedSettings.initiator.device = value
-            initiator.device = value
-        }
-
     val initiator by lazy {
         MidiCIInitiator(AppModel.savedSettings.initiator) { data ->
             AppModel.log("[Initiator sent SYSEX] " + data.joinToString { it.toString(16) } + "\n")
@@ -25,6 +13,20 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
             config.productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
         }
     }
+
+    fun processCIMessage(data: List<Byte>) {
+        AppModel.log("[Initiator received SYSEX] " + data.joinToString { it.toString(16) })
+        initiator.processInput(data)
+    }
+
+    /*
+    var device: MidiCIDeviceInfo
+        get() = AppModel.savedSettings.initiator.common.device
+        set(value) {
+            AppModel.savedSettings.initiator.common.device = value
+            initiator.device = value
+        }
+    */
 
     fun sendDiscovery() {
         initiator.sendDiscovery()

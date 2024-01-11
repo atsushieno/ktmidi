@@ -5,7 +5,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
-import kotlin.random.Random
 
 /*
     Typical MIDI-CI processing flow
@@ -20,40 +19,15 @@ import kotlin.random.Random
  Same goes for `processInput()` function.
 
 */
-data class MidiCIInitiatorConfiguration(
-    // When setting this value, make sure that it is also synchronized with MidiCIInitiatorConfiguration::device
-    // It does not perform any synchronization because it avoids referencing other objects (by saved state nature).
-    var device: MidiCIDeviceInfo,
-
-    var outputPathId: Byte = 0,
-
-    var muid: Int = Random.nextInt() and 0x7F7F7F7F,
-
-    var midiCIBufferSize: Int = 4096,
-    var receivableMaxSysExSize: Int = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE,
-    var productInstanceId: String? = null,
-    var maxSimultaneousPropertyRequests: Byte = 1,
-    var maxPropertyChunkSize: Int = MidiCIConstants.DEFAULT_MAX_PROPERTY_CHUNK_SIZE,
-
-    var autoSendEndpointInquiry: Boolean = true,
-    var autoSendProfileInquiry: Boolean = true,
-    var autoSendPropertyExchangeCapabilitiesInquiry: Boolean = true,
-    var autoSendGetResourceList: Boolean = true,
-    val profiles: MutableList<MidiCIProfile> = mutableListOf()
-)
 
 class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
                       private val sendOutput: (data: List<Byte>) -> Unit
                       ) {
 
-    var device: MidiCIDeviceInfo
-        get() = config.device
-        set(value) {
-            config.device = value
-
-            // FIXME: we should probably send InvalidateMUID for this device by own.
-        }
-    val muid by config::muid
+    val device: MidiCIDeviceInfo
+        get() = config.common.device
+    val muid: Int
+        get() = config.common.muid
 
     class Events {
         val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
@@ -148,7 +122,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
     fun sendDiscovery(ciCategorySupported: Byte = MidiCISupportedCategories.THREE_P) =
         sendDiscovery(Message.DiscoveryInquiry(muid,
             DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId),
-            ciCategorySupported, config.receivableMaxSysExSize, config.outputPathId))
+            ciCategorySupported, config.common.receivableMaxSysExSize, config.outputPathId))
 
     fun sendDiscovery(msg: Message.DiscoveryInquiry) {
         logger.logMessage(msg)
@@ -234,7 +208,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         val conn = connections[msg.destinationMUID]
         conn?.addPendingRequest(msg)
         val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
-        CIFactory.midiCIPropertyChunks(buf, config.maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_INQUIRY,
+        CIFactory.midiCIPropertyChunks(buf, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_INQUIRY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, listOf()).forEach {
             sendOutput(it)
         }
@@ -251,7 +225,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
     fun sendSetPropertyData(msg: Message.SetPropertyData) {
         logger.logMessage(msg)
         val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
-        CIFactory.midiCIPropertyChunks(buf, config.maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_INQUIRY,
+        CIFactory.midiCIPropertyChunks(buf, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_INQUIRY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body).forEach {
             sendOutput(it)
         }
@@ -271,7 +245,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         logger.logMessage(msg)
         val dst = MutableList<Byte>(config.midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(
-            dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE,
+            dst, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
             sendOutput(it)
@@ -355,7 +329,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         if (config.autoSendProfileInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROFILE_CONFIGURATION.toInt()) != 0)
             requestProfiles(0x7F, msg.sourceMUID)
         if (config.autoSendPropertyExchangeCapabilitiesInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROPERTY_EXCHANGE.toInt()) != 0)
-            requestPropertyExchangeCapabilities(0x7F, msg.sourceMUID, config.maxSimultaneousPropertyRequests)
+            requestPropertyExchangeCapabilities(0x7F, msg.sourceMUID, config.common.maxSimultaneousPropertyRequests)
     }
     var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
         logger.logMessage(msg)
@@ -504,7 +478,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
     fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
         val dst = MutableList<Byte>(config.midiCIBufferSize) { 0 }
         CIFactory.midiCIPropertyChunks(
-            dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
+            dst, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
             sendOutput(it)

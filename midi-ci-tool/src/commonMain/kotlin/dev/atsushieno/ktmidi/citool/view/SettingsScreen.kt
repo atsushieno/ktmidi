@@ -8,11 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(vm: ApplicationSettingsViewModel) {
     Column {
+        LocalDeviceConfiguration(vm.device)
         Row {
-            Checkbox(ViewModel.settings.workaroundJUCEProfileNumChannelsIssue.value,
-                { ViewModel.settings.workaroundJUCEProfileNumChannelsIssue(it) })
+            Checkbox(vm.workaroundJUCEProfileNumChannelsIssue.value,
+                { vm.workaroundJUCEProfileNumChannelsIssue(it) })
             Column {
                 Text("Workaround JUCE issue on Profile Configuration Addressing")
                 Text(

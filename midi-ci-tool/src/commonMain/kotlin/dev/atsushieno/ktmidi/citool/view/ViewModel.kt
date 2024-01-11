@@ -44,7 +44,7 @@ object ViewModel {
 
     val responder = ResponderViewModel(AppModel.ciDeviceManager.responder.responder)
 
-    val settings = ApplicationSettingsViewModel()
+    val settings = ApplicationSettingsViewModel(AppModel.savedSettings.common)
 
     init {
         AppModel.logRecorded += { logs.add(it) }
@@ -163,15 +163,8 @@ class PropertyValueState(val id: MutableState<String>, val mediaType: MutableSta
     )
 }
 
-class ResponderViewModel(val responder: MidiCIResponder) {
-    val device = DeviceConfigurationViewModel(responder.device)
-    val maxSimultaneousPropertyRequests =
-        mutableStateOf(responder.config.maxSimultaneousPropertyRequests)
-
-    fun updateMaxSimultaneousPropertyRequests(newValue: Byte) {
-        responder.config.maxSimultaneousPropertyRequests = newValue
-    }
-
+// FIXME: remove reference to responder here, it should be accessed via some repository
+class ResponderViewModel(private val responder: MidiCIResponder) {
     // Profile Configuration
     fun selectProfile(profile: MidiCIProfileId) {
         Snapshot.withMutableSnapshot { selectedProfile.value = profile }
@@ -294,7 +287,15 @@ class ResponderViewModel(val responder: MidiCIResponder) {
     }
 }
 
-class DeviceConfigurationViewModel(deviceInfo: MidiCIDeviceInfo) {
+class DeviceConfigurationViewModel(private val config: MidiCIDeviceConfiguration) {
+    private val deviceInfo: MidiCIDeviceInfo = config.device
+
+    val maxSimultaneousPropertyRequests =
+        mutableStateOf(config.maxSimultaneousPropertyRequests)
+
+    fun updateMaxSimultaneousPropertyRequests(newValue: Byte) {
+        config.maxSimultaneousPropertyRequests = newValue
+    }
 
     var manufacturerId = mutableStateOf(deviceInfo.manufacturerId)
     var familyId = mutableStateOf(deviceInfo.familyId)
@@ -307,7 +308,8 @@ class DeviceConfigurationViewModel(deviceInfo: MidiCIDeviceInfo) {
     var serialNumber = mutableStateOf(deviceInfo.serialNumber)
 
     fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
-        AppModel.ciDeviceManager.responder.responder.device = deviceInfo
+        config.device = deviceInfo
+        AppModel.ciDeviceManager.responder.responder.propertyService.deviceInfo = deviceInfo
         this.manufacturerId.value = deviceInfo.manufacturerId
         this.familyId.value = deviceInfo.familyId
         this.modelId.value = deviceInfo.modelId
@@ -320,7 +322,9 @@ class DeviceConfigurationViewModel(deviceInfo: MidiCIDeviceInfo) {
     }
 }
 
-class ApplicationSettingsViewModel {
+class ApplicationSettingsViewModel(config: MidiCIDeviceConfiguration) {
+    val device = DeviceConfigurationViewModel(config)
+
     val workaroundJUCEProfileNumChannelsIssue = mutableStateOf(false)
     fun workaroundJUCEProfileNumChannelsIssue(value: Boolean) {
         ImplementationSettings.workaroundJUCEProfileNumChannelsIssue = value
