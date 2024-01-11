@@ -3,9 +3,7 @@ package dev.atsushieno.ktmidi.citool
 import dev.atsushieno.ktmidi.Midi1Status
 import dev.atsushieno.ktmidi.MidiInput
 import dev.atsushieno.ktmidi.ci.MidiCIConstants
-import dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo
 import dev.atsushieno.ktmidi.citool.view.ViewHelper
-import dev.atsushieno.ktmidi.citool.view.ViewModel
 
 class CIDeviceManager(private val midiDeviceManager: MidiDeviceManager) {
     var isResponder = false

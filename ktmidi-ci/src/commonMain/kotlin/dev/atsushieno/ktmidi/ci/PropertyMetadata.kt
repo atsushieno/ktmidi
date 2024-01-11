@@ -1,6 +1,8 @@
 package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.json.Json
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceColumn
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertySetAccess
 
 class PropertyMetadata() {
     var resource: String = ""

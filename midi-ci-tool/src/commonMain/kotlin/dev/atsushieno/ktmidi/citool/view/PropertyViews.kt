@@ -19,6 +19,9 @@ import androidx.compose.ui.unit.sp
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
+import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesKnownMimeTypes
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceColumn
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertySetAccess
 import getPlatform
 
 @Composable

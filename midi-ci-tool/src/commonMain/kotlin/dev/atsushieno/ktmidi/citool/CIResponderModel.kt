@@ -1,12 +1,8 @@
 package dev.atsushieno.ktmidi.citool
 
 import dev.atsushieno.ktmidi.ci.*
+import dev.atsushieno.ktmidi.ci.profilecommonrules.DefaultControlChangesProfile
 import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
-import dev.atsushieno.ktmidi.citool.view.ViewModel
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlin.random.Random
 
 class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     fun processCIMessage(data: List<Byte>) {

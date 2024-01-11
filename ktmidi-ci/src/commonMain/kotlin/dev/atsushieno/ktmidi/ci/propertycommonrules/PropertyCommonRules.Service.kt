@@ -1,5 +1,6 @@
-package dev.atsushieno.ktmidi.ci
+package dev.atsushieno.ktmidi.ci.propertycommonrules
 
+import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
 import io.ktor.utils.io.core.*
@@ -48,7 +49,9 @@ fun PropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
 )
 
 class CommonRulesPropertyService(logger: Logger, private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
-                                 private val metadataList: MutableList<PropertyMetadata> = mutableListOf<PropertyMetadata>().apply { addAll(defaultPropertyList) })
+                                 private val metadataList: MutableList<PropertyMetadata> = mutableListOf<PropertyMetadata>().apply { addAll(
+                                     defaultPropertyList
+                                 ) })
     : CommonRulesPropertyHelper(logger), MidiCIPropertyService {
 
     // MidiCIPropertyService implementation
@@ -104,7 +107,15 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
         val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
         val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
-        return Result.success(Message.SubscribePropertyReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody))
+        return Result.success(
+            Message.SubscribePropertyReply(
+                muid,
+                msg.sourceMUID,
+                msg.requestId,
+                replyHeader,
+                replyBody
+            )
+        )
     }
 
     override fun getReplyStatusFor(header: List<Byte>): Int? = getReplyStatusFor(header)

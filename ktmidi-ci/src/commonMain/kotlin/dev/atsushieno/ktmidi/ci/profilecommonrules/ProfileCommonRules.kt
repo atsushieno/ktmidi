@@ -1,4 +1,7 @@
-package dev.atsushieno.ktmidi.ci
+package dev.atsushieno.ktmidi.ci.profilecommonrules
+
+import dev.atsushieno.ktmidi.ci.MidiCIConstants
+import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 
 
 object CommonProfileDetailsStandardTarget {
