@@ -75,12 +75,12 @@ class MidiCIResponder(
 
     val propertyService = CommonRulesPropertyService(logger, muid, device)
     val properties = ServiceObservablePropertyList(propertyService)
-    val subscriptions: List<SubscriptionEntry>
-        get() = propertyService.subscriptions
+    val subscriptions: List<SubscriptionEntry> by propertyService::subscriptions
 
     private val pendingChunkManager = PropertyChunkManager()
 
     var midiMessageReporter: MidiMessageReporter = object : MidiMessageReporter {
+        // stub implementation
         override fun reportMidiMessages(
             processInquirySupportedFeatures: Byte,
             midiMessageReportSystemMessages: Byte,

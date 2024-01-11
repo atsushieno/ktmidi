@@ -17,6 +17,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.atsushieno.ktmidi.ci.*
+import dev.atsushieno.ktmidi.ci.json.Json
+import dev.atsushieno.ktmidi.ci.json.JsonParserException
 import getPlatform
 
 @Composable

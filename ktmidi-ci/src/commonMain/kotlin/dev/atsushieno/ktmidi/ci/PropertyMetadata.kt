@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
+import dev.atsushieno.ktmidi.ci.json.Json
+
 class PropertyMetadata() {
     var resource: String = ""
     var canGet: Boolean = true

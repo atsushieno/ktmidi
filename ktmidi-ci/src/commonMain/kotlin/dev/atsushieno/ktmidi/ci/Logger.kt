@@ -11,6 +11,5 @@ class Logger {
         logMessage("- NAK(${data.joinToString { it.toString(16) }}")
     }
 
-    fun getPropertyData(msg: Message.GetPropertyData) = logMessage(msg)
     fun logError(message: String) = logMessage("Error: $message")
 }

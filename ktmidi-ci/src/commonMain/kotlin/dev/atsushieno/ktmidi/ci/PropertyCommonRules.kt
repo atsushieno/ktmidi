@@ -1,6 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
-import io.ktor.utils.io.*
+import dev.atsushieno.ktmidi.ci.json.Json
 
 class PropertyExchangeException(message: String = "Property Exchange exception", innerException: Exception? = null) : Exception(message, innerException)
 

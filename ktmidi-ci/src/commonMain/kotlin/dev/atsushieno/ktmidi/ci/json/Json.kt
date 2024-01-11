@@ -1,5 +1,6 @@
-package dev.atsushieno.ktmidi.ci
+package dev.atsushieno.ktmidi.ci.json
 
+import dev.atsushieno.ktmidi.ci.MidiCIConverter
 import io.ktor.utils.io.core.*
 
 class JsonParserException(message: String = "JSON parser exception", innerException: Exception? = null) : Exception(message, innerException)
@@ -8,8 +9,8 @@ object Json {
     enum class TokenType { Null, False, True, Number, String, Array, Object }
 
     val emptySequence = sequenceOf<JsonValue>()
-    val emptyMap = mapOf<JsonValue,JsonValue>()
-    data class JsonToken(val type: TokenType, val offset: Int, val length: Int, val number: Double = 0.0, val seq: Sequence<JsonValue> = emptySequence, val map: Map<JsonValue,JsonValue> = emptyMap)
+    val emptyMap = mapOf<JsonValue, JsonValue>()
+    data class JsonToken(val type: TokenType, val offset: Int, val length: Int, val number: Double = 0.0, val seq: Sequence<JsonValue> = emptySequence, val map: Map<JsonValue, JsonValue> = emptyMap)
     class JsonValue(val source: String, val token: JsonToken) {
         constructor(value: String) : this('"' + getEscapedString(value) + '"', "")
         private constructor(s: String, source: String)
@@ -34,7 +35,7 @@ object Json {
             get() = if (token.type == TokenType.String) getUnescapedString(this) else ""
         val arrayValue: Sequence<JsonValue>
             get() = if (token.type == TokenType.Array) token.seq else sequenceOf()
-        val objectValue: Map<JsonValue,JsonValue>
+        val objectValue: Map<JsonValue, JsonValue>
             get() = if (token.type == TokenType.Object) token.map else mapOf()
 
         val allObjectKeys: List<String>
@@ -176,7 +177,7 @@ object Json {
                 val start = skipWhitespace(source, pos + 1)
                 val end = findLastMatching(source, '}', start, length - (start - offset))
                 checkRange(source, offset, length, start, end, "Incomplete JSON object token")
-                JsonValue(source, JsonToken(TokenType.Object, pos, end - pos + 1, map = splitEntries<Pair<JsonValue,JsonValue>>(source, start, end - start, true).toMap()))
+                JsonValue(source, JsonToken(TokenType.Object, pos, end - pos + 1, map = splitEntries<Pair<JsonValue, JsonValue>>(source, start, end - start, true).toMap()))
             }
             '[' -> {
                 val start = skipWhitespace(source, pos + 1)
