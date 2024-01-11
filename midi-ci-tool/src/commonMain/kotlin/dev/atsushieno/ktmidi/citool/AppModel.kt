@@ -6,9 +6,9 @@ import com.arkivanov.essenty.instancekeeper.getOrCreate
 expect fun initializeAppModel(context: Any)
 
 // initializeAppModel() is supposed to initialize this
-lateinit var AppModel: AppModelClass
+lateinit var AppModel: CIToolRepository
 
-class AppModelClass(instanceKeeper: InstanceKeeper) {
+class CIToolRepository(instanceKeeper: InstanceKeeper) {
     val savedSettings = instanceKeeper.getOrCreate { SavedSettings() }
     val midiDeviceManager = MidiDeviceManager()
     val ciDeviceManager  = CIDeviceManager(midiDeviceManager)

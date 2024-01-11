@@ -3,6 +3,7 @@ package dev.atsushieno.ktmidi.citool
 import dev.atsushieno.ktmidi.Midi1Status
 import dev.atsushieno.ktmidi.MidiInput
 import dev.atsushieno.ktmidi.ci.MidiCIConstants
+import dev.atsushieno.ktmidi.citool.view.ViewHelper
 import dev.atsushieno.ktmidi.citool.view.ViewModel
 
 class CIDeviceManager(private val midiDeviceManager: MidiDeviceManager) {
@@ -24,7 +25,7 @@ class CIDeviceManager(private val midiDeviceManager: MidiDeviceManager) {
 
     private fun setupInputEventListener(input: MidiInput) {
         input.setMessageReceivedListener { data, start, length, _ ->
-            ViewModel.runInUIContext {
+            ViewHelper.runInUIContext {
                 if (data.size > 3 &&
                     data[start] == Midi1Status.SYSEX.toByte() &&
                     data[start + 1] == MidiCIConstants.UNIVERSAL_SYSEX &&

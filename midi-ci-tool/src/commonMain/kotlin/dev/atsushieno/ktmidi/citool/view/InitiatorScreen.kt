@@ -10,23 +10,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.atsushieno.ktmidi.ci.*
-import dev.atsushieno.ktmidi.citool.AppModel
+import dev.atsushieno.ktmidi.ci.MidiCIInitiator
+import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 
 @Composable
-fun InitiatorScreen() {
+fun InitiatorScreen(vm: InitiatorViewModel) {
     Column {
         Row {
-            Button(onClick = { AppModel.ciDeviceManager.initiator.sendDiscovery() }) {
+            Button(onClick = { vm.sendDiscovery() }) {
                 Text("Send Discovery")
             }
             MidiDeviceSelector()
         }
-        val conn = ViewModel.selectedRemoteDevice.value
+        val conn = vm.selectedRemoteDevice.value
         Row {
-            val destinationMUID by remember { ViewModel.selectedRemoteDeviceMUID }
-            InitiatorDestinationSelector(destinationMUID,
-                onChange = { Snapshot.withMutableSnapshot { ViewModel.selectedRemoteDeviceMUID.value = it } })
+            val destinationMUID by remember { vm.selectedRemoteDeviceMUID }
+            InitiatorDestinationSelector(
+                vm.connections,
+                destinationMUID,
+                onChange = { Snapshot.withMutableSnapshot { vm.selectedRemoteDeviceMUID.value = it } })
 
             if (conn != null)
                 ClientConnectionInfo(conn)
@@ -57,9 +59,9 @@ fun ClientConnection(vm: ConnectionViewModel) {
             val sp = selectedProperty
             if (sp != null)
                 ClientPropertyDetails(vm, sp,
-                    refreshValueClicked = { AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(vm.conn.targetMUID, sp) },
-                    subscribeClicked = { AppModel.ciDeviceManager.initiator.sendSubscribeProperty(vm.conn.targetMUID, sp) },
-                    commitChangeClicked = { id, bytes, isPartial -> AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(vm.conn.targetMUID, id, bytes, isPartial) }
+                    refreshValueClicked = { vm.refreshPropertyValue(vm.conn.targetMUID, sp) },
+                    subscribeClicked = { vm.sendSubscribeProperty(vm.conn.targetMUID, sp) },
+                    commitChangeClicked = { id, bytes, isPartial -> vm.sendSetPropertyDataRequest(vm.conn.targetMUID, id, bytes, isPartial) }
                 )
         }
     }
@@ -96,7 +98,8 @@ private fun ClientConnectionInfo(vm: ConnectionViewModel) {
 }
 
 @Composable
-private fun InitiatorDestinationSelector(destinationMUID: Int,
+private fun InitiatorDestinationSelector(connections: MutableMap<Int, MidiCIInitiator.Connection>,
+                                         destinationMUID: Int,
                                          onChange: (Int) -> Unit) {
     var dialogState by remember { mutableStateOf(false) }
 
@@ -106,8 +109,8 @@ private fun InitiatorDestinationSelector(destinationMUID: Int,
                 onChange(muid)
             dialogState = false
         }
-        if (AppModel.ciDeviceManager.initiator.initiator.connections.any())
-            AppModel.ciDeviceManager.initiator.initiator.connections.toList().forEachIndexed { index, conn ->
+        if (connections.any())
+            connections.toList().forEach { conn ->
                 DropdownMenuItem(onClick = { onClick(conn.first) }, text = {
                     Text(modifier = Modifier.padding(12.dp, 0.dp), text = conn.first.toString())
                 })
@@ -185,7 +188,7 @@ fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
         entries.forEach {
             Row {
                 Switch(checked = it.enabled.value, onCheckedChange = { newEnabled ->
-                    AppModel.ciDeviceManager.initiator.setProfile(vm.conn.targetMUID, it.address.value, it.profile, newEnabled)
+                    vm.setProfile(vm.conn.targetMUID, it.address.value, it.profile, newEnabled)
                 })
                 Text(when (it.address.value.toInt()) {
                     0x7F -> "Function Block"

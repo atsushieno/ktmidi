@@ -58,8 +58,8 @@ fun MainContent() {
                 }
             }
             when (tabIndex) {
-                0 -> InitiatorScreen()
-                1 -> ResponderScreen()
+                0 -> InitiatorScreen(ViewModel.initiator)
+                1 -> ResponderScreen(ViewModel.responder)
                 2 -> LogScreen()
                 3 -> SettingsScreen()
             }

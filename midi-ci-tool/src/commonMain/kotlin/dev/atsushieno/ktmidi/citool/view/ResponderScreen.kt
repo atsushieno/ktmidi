@@ -18,12 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.atsushieno.ktmidi.ci.*
-import dev.atsushieno.ktmidi.citool.AppModel
+import dev.atsushieno.ktmidi.ci.MidiCIConstants
+import dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo
+import dev.atsushieno.ktmidi.ci.MidiCIProfile
+import dev.atsushieno.ktmidi.ci.MidiCIProfileId
+import dev.atsushieno.ktmidi.ci.PropertyMetadata
 
 @Composable
-fun ResponderScreen() {
-    val vm = ViewModel.localDeviceConfiguration
+fun ResponderScreen(vm: ResponderViewModel) {
     Text(FeatureDescription.responderScreen)
     LocalDeviceConfiguration(vm)
 
@@ -41,7 +43,7 @@ fun ResponderScreen() {
 }
 
 @Composable
-fun LocalPropertyConfiguration(vm: LocalConfigurationViewModel) {
+fun LocalPropertyConfiguration(vm: ResponderViewModel) {
     Text("Properties", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
     Row {
@@ -57,7 +59,7 @@ fun LocalPropertyConfiguration(vm: LocalConfigurationViewModel) {
         val sp = selectedProperty
         if (sp != null) {
             val value = vm.properties.first { it.id.value == sp }
-            val def = vm.responder.propertyService.getMetadataList().firstOrNull { it.resource == sp }
+            val def = vm.getPropertyMetadata(sp)
             LocalPropertyDetails(def, value,
                 updatePropertyValue = { id, data -> vm.updatePropertyValue(id, data) },
                 metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) }
@@ -80,7 +82,7 @@ private fun NumericTextField(num: Int, onUpdate: (Int) -> Unit) {
 }
 
 @Composable
-private fun LocalDeviceConfiguration(vm: LocalConfigurationViewModel) {
+private fun LocalDeviceConfiguration(vm: ResponderViewModel) {
     val device = vm.device
     val manufacturerId by remember { device.manufacturerId }
     val familyId by remember { device.familyId }
@@ -161,7 +163,7 @@ private fun LocalDeviceConfiguration(vm: LocalConfigurationViewModel) {
 // Profile Configuration
 
 @Composable
-fun LocalProfileList(vm: LocalConfigurationViewModel) {
+fun LocalProfileList(vm: ResponderViewModel) {
     Column {
         var isSelectedProfileEditable by remember { vm.isSelectedProfileIdEditing }
         val profileIds = vm.profiles.map { it.profile }.distinct()
@@ -177,13 +179,12 @@ fun LocalProfileList(vm: LocalConfigurationViewModel) {
         }
         Row {
             val b0 = 0.toByte()
+            val emptyId = MidiCIProfileId(b0, b0, b0, b0, b0)
             Button(onClick = {
-                val state = MidiCIProfile(MidiCIProfileId(b0, b0, b0, b0, b0), MidiCIConstants.ADDRESS_FUNCTION_BLOCK, false)
-                AppModel.ciDeviceManager.responder.addProfile(state)
-                vm.selectedProfile.value = state.profile
-                vm.isSelectedProfileIdEditing.value = true
+                val state = MidiCIProfile(emptyId, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, false)
+                vm.addNewProfile(state)
                 editedProfileName = state.profile.toString()
-            }) {
+            }, enabled = !vm.isSelectedProfileIdEditing.value && profileIds.all { it != emptyId }) {
                 Image(Icons.Default.Add, "Add")
             }
             if (vm.isSelectedProfileIdEditing.value) {
@@ -192,8 +193,7 @@ fun LocalProfileList(vm: LocalConfigurationViewModel) {
                     if (splitN.size == 5 && splitN.all { it != null }) {
                         val split = splitN.map { it!! }
                         val newProfileId = MidiCIProfileId(split[0], split[1], split[2], split[3], split[4])
-                        AppModel.ciDeviceManager.responder.updateProfileName(vm.selectedProfile.value!!, newProfileId)
-                        vm.isSelectedProfileIdEditing.value = false
+                        vm.updateProfileName(vm.selectedProfile.value!!, newProfileId)
                     }
                 }) {
                     Image(Icons.Default.Done, "Commit changes")
@@ -236,7 +236,7 @@ fun LocalProfileListEntry(profileId: MidiCIProfileId, currentProfileNameEdit: St
 }
 
 @Composable
-fun LocalProfileDetails(vm: LocalConfigurationViewModel, profile: MidiCIProfileId) {
+fun LocalProfileDetails(vm: ResponderViewModel, profile: MidiCIProfileId) {
     Column {
         val entries = vm.profiles.filter { it.profile.toString() == profile.toString() }
 
@@ -251,16 +251,17 @@ fun LocalProfileDetails(vm: LocalConfigurationViewModel, profile: MidiCIProfileI
             Row {
                 Switch(checked = it.enabled.value, onCheckedChange = {}, Modifier.width(80.dp), enabled = false)
                 AddressSelector(it.address.value) { newAddress ->
-                    AppModel.ciDeviceManager.responder.updateProfileTarget(it, newAddress, it.enabled.value, numChannelsRequested)
+                    vm.updateProfileTarget(it, newAddress, numChannelsRequested)
                 }
                 TextField(numChannelsRequested.toString(), { s:String ->
                     val v = s.toShortOrNull()
                     if (v != null)
                         numChannelsRequested = v
                 }, Modifier.width(80.dp))
-                Button(onClick = {
-                    AppModel.ciDeviceManager.responder.removeProfile(it.address.value, it.profile)
-                }, Modifier.padding(12.dp, 0.dp)) {
+                Button(
+                    onClick = { vm.removeProfileTarget(it.address.value, it.profile) },
+                    enabled = !vm.isSelectedProfileIdEditing.value,
+                    modifier = Modifier.padding(12.dp, 0.dp)) {
                     Image(Icons.Default.Delete, "Delete")
                 }
             }
@@ -268,9 +269,9 @@ fun LocalProfileDetails(vm: LocalConfigurationViewModel, profile: MidiCIProfileI
         Row {
             Button(onClick = {
                 val state = MidiCIProfile(profile, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, false)
-                AppModel.ciDeviceManager.responder.addProfile(state)
+                vm.addNewProfileTarget(state)
                 vm.selectedProfile.value = state.profile
-            }) {
+            }, enabled = vm.selectedProfile.value != null && vm.profiles.all { it.profile != profile || it.address.value != MidiCIConstants.ADDRESS_FUNCTION_BLOCK }) {
                 Image(Icons.Default.Add, "Add")
             }
         }

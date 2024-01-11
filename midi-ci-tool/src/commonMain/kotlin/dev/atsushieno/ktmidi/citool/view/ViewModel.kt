@@ -12,7 +12,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.random.Random
 
-object ViewModel {
+object ViewHelper {
     private val uiScope = CoroutineScope(Dispatchers.Main)
 
     fun runInUIContext(function: () -> Unit) {
@@ -31,6 +31,9 @@ object ViewModel {
             throw ex
         }
     }
+}
+
+object ViewModel {
 
     private var logText = mutableStateOf("")
 
@@ -41,15 +44,28 @@ object ViewModel {
         logText.value += "[${time.time.toString().substring(0, 8)}] $msg ${if (!msg.endsWith('\n')) "\n" else ""}"
     }
 
+    val initiator = InitiatorViewModel()
+
+    val responder = ResponderViewModel(AppModel.ciDeviceManager.responder.responder)
+
+    val settings = ApplicationSettingsViewModel()
+}
+
+class MidiCIProfileState(
+    var address: MutableState<Byte>, val profile: MidiCIProfileId, val enabled: MutableState<Boolean> = mutableStateOf(false))
+
+class InitiatorViewModel {
+    fun sendDiscovery() {
+        AppModel.ciDeviceManager.initiator.sendDiscovery()
+    }
+
+    val connections by AppModel.ciDeviceManager.initiator.initiator::connections
+
     var selectedRemoteDeviceMUID = mutableStateOf(0)
     val selectedRemoteDevice = derivedStateOf {
         val conn = AppModel.ciDeviceManager.initiator.initiator.connections[selectedRemoteDeviceMUID.value]
         if (conn != null) ConnectionViewModel(conn) else null
     }
-
-    val localDeviceConfiguration = LocalConfigurationViewModel(AppModel.ciDeviceManager.responder.responder)
-
-    val settings = ApplicationSettingsViewModel()
 
     init {
         // When a new entry is appeared and nothing was selected, move to the new entry.
@@ -59,9 +75,6 @@ object ViewModel {
         }
     }
 }
-
-class MidiCIProfileState(
-    var address: MutableState<Byte>, val profile: MidiCIProfileId, val enabled: MutableState<Boolean> = mutableStateOf(false))
 
 class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     fun selectProfile(profile: MidiCIProfileId) {
@@ -86,6 +99,22 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
     var selectedProperty = mutableStateOf<String?>(null)
 
     val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.properties.values)}
+
+    fun refreshPropertyValue(targetMUID: Int, propertyId: String) {
+        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(targetMUID, propertyId)
+    }
+
+    fun sendSubscribeProperty(targetMUID: Int, propertyId: String) {
+        AppModel.ciDeviceManager.initiator.sendSubscribeProperty(targetMUID, propertyId)
+    }
+
+    fun sendSetPropertyDataRequest(targetMUID: Int, propertyId: String, bytes: List<Byte>, isPartial: Boolean) {
+        AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(targetMUID, propertyId, bytes, isPartial)
+    }
+
+    fun setProfile(targetMUID: Int, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean) {
+        AppModel.ciDeviceManager.initiator.setProfile(targetMUID, address, profile, newEnabled)
+    }
 
     init {
         conn.profiles.profilesChanged.add { change, profile ->
@@ -134,7 +163,7 @@ class PropertyValueState(val id: MutableState<String>, val mediaType: MutableSta
     )
 }
 
-class LocalConfigurationViewModel(val responder: MidiCIResponder) {
+class ResponderViewModel(val responder: MidiCIResponder) {
     val device = DeviceConfigurationViewModel(responder.device)
     val maxSimultaneousPropertyRequests =
         mutableStateOf(responder.config.maxSimultaneousPropertyRequests)
@@ -202,6 +231,35 @@ class LocalConfigurationViewModel(val responder: MidiCIResponder) {
 
     var selectedProperty = mutableStateOf<String?>(null)
     val properties by lazy { mutableStateListOf<PropertyValueState>().apply { addAll(responder.properties.values.map { PropertyValueState(it) }) } }
+    fun getPropertyMetadata(propertyId: String) =
+        responder.propertyService.getMetadataList().firstOrNull { it.resource == propertyId }
+
+    fun addNewProfile(state: MidiCIProfile) {
+        AppModel.ciDeviceManager.responder.addProfile(state)
+        selectedProfile.value = state.profile
+        isSelectedProfileIdEditing.value = true
+    }
+
+    fun updateProfileName(oldProfileId: MidiCIProfileId, newProfileId: MidiCIProfileId) {
+        AppModel.ciDeviceManager.responder.updateProfileName(oldProfileId, newProfileId)
+        isSelectedProfileIdEditing.value = false
+        selectedProfile.value = newProfileId
+    }
+
+    fun updateProfileTarget(profile: MidiCIProfileState, newAddress: Byte, numChannelsRequested: Short) {
+        AppModel.ciDeviceManager.responder.updateProfileTarget(profile, newAddress, profile.enabled.value, numChannelsRequested)
+    }
+
+    fun removeProfileTarget(address: Byte, profile: MidiCIProfileId) {
+        AppModel.ciDeviceManager.responder.removeProfile(address, profile)
+        // if the profile ID is gone, then deselect it
+        if (profiles.all { it.profile != profile })
+            selectedProfile.value = null
+    }
+
+    fun addNewProfileTarget(state: MidiCIProfile) {
+        AppModel.ciDeviceManager.responder.addProfile(state)
+    }
 
     init {
         responder.profiles.profilesChanged.add { change, profile ->
