@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
+import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -23,7 +24,6 @@ data class MidiCIInitiatorConfiguration(
     // It does not perform any synchronization because it avoids referencing other objects (by saved state nature).
     var device: MidiCIDeviceInfo,
 
-    // FIXME: make use of it somehow
     var outputPathId: Byte = 0,
 
     var muid: Int = Random.nextInt() and 0x7F7F7F7F,
@@ -182,13 +182,13 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
             setProfileOff(Message.SetProfileOff(address, muid, destinationMUID, profileId))
 
     fun setProfileOn(msg: Message.SetProfileOn) {
-        logger.setProfileOn(msg)
+        logger.logMessage(msg)
         val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIProfileSet(buf, msg.address, true, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.numChannelsRequested))
     }
 
     fun setProfileOff(msg: Message.SetProfileOff) {
-        logger.setProfileOff(msg)
+        logger.logMessage(msg)
         val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIProfileSet(buf, msg.address, false, msg.sourceMUID, msg.destinationMUID, msg.profile, 0))
     }
@@ -197,7 +197,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         sendProfileDetailsInquiry(Message.ProfileDetailsInquiry(address, this.muid, muid, profile, target))
 
     fun sendProfileDetailsInquiry(msg: Message.ProfileDetailsInquiry) {
-        logger.profileDetails(msg)
+        logger.logMessage(msg)
         val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
         sendOutput(CIFactory.midiCIProfileDetails(buf, msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, 0))
     }
@@ -300,6 +300,23 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
             msg.messageDataControl, msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
     }
 
+    // Miscellaneous
+
+    fun invalidateMUID(targetMUID: Int, message: String) {
+        logger.logError(message)
+        val msg = Message.InvalidateMUID(muid, targetMUID)
+        logger.logMessage(msg)
+    }
+
+    private fun sendNakForUnknownMUID(address: Byte, destinationMUID: Int) {
+        sendNakForError(address, destinationMUID, CINakStatus.Nak, 0, "CI Device ${destinationMUID.muidString} is not connected.")
+    }
+
+    fun sendNakForError(address: Byte, destinationMUID: Int, statusCode: Byte, statusData: Byte, message: String) {
+        Message.Nak(address, muid, destinationMUID, statusCode, statusData, message)
+    }
+
+
     private var requestIdSerial: Byte = 1
 
     // Reply handler
@@ -309,9 +326,8 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         val connection = Connection(this, msg.sourceMUID, msg.device)
         val existing = connections[msg.sourceMUID]
         if (existing != null) {
-            // FIXME: should this involve "releasing" existing connection if any?
-            connectionsChanged.forEach { it(ConnectionChange.Removed, existing) }
             connections.remove(msg.sourceMUID)
+            connectionsChanged.forEach { it(ConnectionChange.Removed, existing) }
         }
         connections[msg.sourceMUID]= connection
         connectionsChanged.forEach { it(ConnectionChange.Added, connection) }
@@ -325,7 +341,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
             requestPropertyExchangeCapabilities(0x7F, msg.sourceMUID, config.maxSimultaneousPropertyRequests)
     }
     var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
-        logger.discoveryReply(msg)
+        logger.logMessage(msg)
         events.discoveryReplyReceived.forEach { it(msg) }
         handleNewEndpoint(msg)
     }
@@ -357,12 +373,17 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
     val defaultProcessEndpointReply = { msg: Message.EndpointReply ->
         val conn = connections[msg.sourceMUID]
         if (conn != null) {
-            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
-                conn.productInstanceId = msg.data.toByteArray().decodeToString() // FIXME: verify that it is only ASCII chars?
+            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID) {
+                val s = msg.data.toByteArray().decodeToString()
+                if (s.all { it.code in 32..126 } && s.length <= 16)
+                    conn.productInstanceId = s
+                else
+                    invalidateMUID(msg.sourceMUID, "Invalid product instance ID")
+            }
         }
     }
     var processEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
-        logger.endpointReply(msg)
+        logger.logMessage(msg)
         events.endpointReplyReceived.forEach { it(msg) }
         defaultProcessEndpointReply(msg)
     }
@@ -376,7 +397,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         msg.disabledProfiles.forEach { conn?.profiles?.add(MidiCIProfile(it, msg.address, false)) }
     }
     var processProfileReply = { msg: Message.ProfileReply ->
-        logger.profileReply(msg)
+        logger.logMessage(msg)
         events.profileInquiryReplyReceived.forEach { it(msg) }
         defaultProcessProfileReply(msg)
     }
@@ -386,7 +407,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         conn?.profiles?.add(MidiCIProfile(msg.profile, msg.address, false))
     }
     var processProfileAddedReport = { msg: Message.ProfileAdded ->
-        logger.profileAdded(msg)
+        logger.logMessage(msg)
         events.profileAddedReceived.forEach { it(msg) }
         defaultProcessProfileAddedReport(msg)
     }
@@ -396,7 +417,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         conn?.profiles?.remove(MidiCIProfile(msg.profile, msg.address, false))
     }
     var processProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
-        logger.profileRemoved(msg)
+        logger.logMessage(msg)
         events.profileRemovedReceived.forEach { it(msg) }
         defaultProcessProfileRemovedReport(msg)
     }
@@ -410,18 +431,18 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         conn?.profiles?.setEnabled(false, msg.address, msg.profile, msg.numChannelsRequested)
     }
     var processProfileEnabledReport: (msg: Message.ProfileEnabled) -> Unit = { msg ->
-        logger.profileEnabled(msg)
+        logger.logMessage(msg)
         events.profileEnabledReceived.forEach { it(msg) }
         defaultProcessProfileEnabledReport(msg)
     }
     var processProfileDisabledReport: (msg: Message.ProfileDisabled) -> Unit = { msg ->
-        logger.profileDisabled(msg)
+        logger.logMessage(msg)
         events.profileDisabledReceived.forEach { it(msg) }
         defaultProcessProfileDisabledReport(msg)
     }
 
     var processProfileDetailsReply: (msg: Message.ProfileDetailsReply) -> Unit = { msg ->
-        logger.profileDetailsReply(msg)
+        logger.logMessage(msg)
         events.profileDetailsReplyReceived.forEach { it(msg) }
         // nothing to perform - use events if you need anything further
     }
@@ -438,10 +459,11 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
                     conn.propertyClient.requestPropertyList(msg.sourceMUID, requestIdSerial++)
                 }
         }
-        // FIXME: else -> error reporting
+        else
+            sendNakForUnknownMUID(msg.address, msg.sourceMUID)
     }
     var processPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
-        logger.propertyGetCapabilitiesReply(msg)
+        logger.logMessage(msg)
         events.propertyCapabilityReplyReceived.forEach { it(msg) }
         defaultProcessPropertyCapabilitiesReply(msg)
     }
@@ -451,13 +473,13 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
     }
 
     var processGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->
-        logger.getPropertyDataReply(msg)
+        logger.logMessage(msg)
         events.getPropertyDataReplyReceived.forEach { it(msg) }
         defaultProcessGetDataReply(msg)
     }
 
     var processSetDataReply: (msg: Message.SetPropertyDataReply) -> Unit = { msg ->
-        logger.setPropertyDataReply(msg)
+        logger.logMessage(msg)
         events.setPropertyDataReplyReceived.forEach { it(msg) }
         // nothing to delegate further
     }
@@ -472,19 +494,22 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         }
     }
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
-        logger.subscribeProperty(msg)
+        logger.logMessage(msg)
         events.subscribePropertyReceived.forEach { it(msg) }
         val conn = connections[msg.sourceMUID]
-        val reply = conn?.updateProperty(muid, msg)
-        if (reply?.second != null) {
-            logger.subscribePropertyReply(reply.second!!)
-            sendPropertySubscribeReply(reply.second!!)
-        } else {
-            // FIXME: it should send back NAK
+        if (conn != null) {
+            val reply = conn.updateProperty(muid, msg)
+            if (reply.second != null) {
+                logger.logMessage(reply.second!!)
+                sendPropertySubscribeReply(reply.second!!)
+            }
+            // If the update was NOTIFY, then it is supposed to send Get Data request.
+            if (reply.first == MidiCISubscriptionCommand.NOTIFY)
+                sendGetPropertyData(msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header))
         }
-        // If the update was NOTIFY, then it is supposed to send Get Data request.
-        if (reply?.first == MidiCISubscriptionCommand.NOTIFY)
-            sendGetPropertyData(msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header))
+        else
+            // Unknown MUID - send back NAK
+            sendNakForUnknownMUID(msg.address, msg.sourceMUID)
     }
 
     fun defaultProcessSubscribePropertyReply(msg: Message.SubscribePropertyReply) {
@@ -494,37 +519,38 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
                 val propertyId = conn.removePendingSubscription(msg.requestId)
                 if (propertyId != null)
                     conn.propertyClient.processPropertySubscriptionResult(propertyId, msg)
-                // FIXME: log error otherwise
+                else
+                    logger.logError("There was no pending subscription for requestId ${msg.requestId}")
             }
         }
     }
     var processSubscribePropertyReply: (msg: Message.SubscribePropertyReply) -> Unit = { msg ->
-        logger.subscribePropertyReply(msg)
+        logger.logMessage(msg)
         events.subscribePropertyReplyReceived.forEach { it(msg) }
         defaultProcessSubscribePropertyReply(msg)
     }
 
     var processPropertyNotify: (propertyNotify: Message.PropertyNotify) -> Unit = { msg ->
-        logger.propertyNotify(msg)
+        logger.logMessage(msg)
         events.propertyNotifyReceived.forEach { it(msg) }
         // no particular things to do. Event handlers should be used if any.
     }
 
     // Process Inquiry
     var processProcessInquiryReply: (msg: Message.ProcessInquiryReply) -> Unit = { msg ->
-        logger.processInquiryReply(msg)
+        logger.logMessage(msg)
         events.processInquiryReplyReceived.forEach { it(msg) }
         // FIXME: implement the rest of event handler
     }
 
     var processMidiMessageReportReply: (msg: Message.ProcessMidiMessageReportReply) -> Unit = { msg ->
-        logger.midiMessageReportReply(msg)
+        logger.logMessage(msg)
         events.midiMessageReportReplyReceived.forEach { it(msg) }
         // FIXME: implement the rest of event handler
     }
 
     var processEndOfMidiMessageReport: (msg: Message.ProcessEndOfMidiMessageReport) -> Unit = { msg ->
-        logger.endOfMidiMessageReport(msg)
+        logger.logMessage(msg)
         events.endOfMidiMessageReportReceived.forEach { it(msg) }
         // FIXME: implement the rest of event handler
     }

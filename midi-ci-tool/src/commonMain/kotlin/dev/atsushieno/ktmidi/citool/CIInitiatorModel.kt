@@ -31,14 +31,14 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
 
     fun sendDiscovery() {
         val msg = initiator.createDiscoveryInquiry()
-        initiator.logger.discovery(msg)
+        initiator.logger.logMessage(msg)
         initiator.sendDiscovery(msg)
     }
 
     // FIXME: we need to make MidiCIInitiator EndpointInquiry hook-able.
     fun sendEndpointMessage(targetMUID: Int) {
         val msg = initiator.createEndpointMessage(targetMUID)
-        initiator.logger.endpointInquiry(msg)
+        initiator.logger.logMessage(msg)
         initiator.sendEndpointMessage(msg)
     }
 
@@ -51,11 +51,11 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
                 //    by the width of the Group or Function Block. Set the Number of Channels Requested field to a value of 0x0000."
                 if (address < 0x10 || ViewModel.settings.workaroundJUCEProfileNumChannelsIssue.value) 1
                 else 0)
-            initiator.logger.setProfileOn(msg)
+            initiator.logger.logMessage(msg)
             initiator.setProfileOn(msg)
         } else {
             val msg = Message.SetProfileOff(address, initiator.muid, destinationMUID, profile)
-            initiator.logger.setProfileOff(msg)
+            initiator.logger.logMessage(msg)
             initiator.setProfileOff(msg)
         }
     }

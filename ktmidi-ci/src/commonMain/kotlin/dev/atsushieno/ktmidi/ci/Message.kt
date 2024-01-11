@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
+import dev.atsushieno.ktmidi.ci.Message.Companion.dataString
+
 abstract class Message(protected val common: Common) {
 
     val address: Byte
@@ -59,6 +61,18 @@ abstract class Message(protected val common: Common) {
         : Message(Common(sourceMUID, destinationMUID)) {
         override val label = "EndpointReply"
         override val bodyString = "status=${status}, data = ${data.dataString})"
+    }
+
+    class InvalidateMUID(sourceMUID: Int, targetMUID: Int)
+        : Message(Common(sourceMUID, MidiCIConstants.BROADCAST_MUID_32)) {
+        override val label = "InvalidateMUID"
+        override val bodyString = "targetMUID=${targetMUID.muidString})"
+    }
+
+    class Nak(address: Byte, sourceMUID: Int, destinationMUID: Int, statusCode: Byte, statusData: Byte, message: String)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override val label = "Nak"
+        override val bodyString = "statusCode=$statusCode, statusData=$statusData, message=$message"
     }
 
     // Profile Configuration

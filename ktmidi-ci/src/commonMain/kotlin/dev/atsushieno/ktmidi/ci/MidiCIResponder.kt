@@ -75,30 +75,29 @@ class MidiCIResponder(
 
     val propertyService = CommonRulesPropertyService(muid, device)
     val properties = ServiceObservablePropertyList(propertyService)
+    val subscriptions: List<SubscriptionEntry>
+        get() = propertyService.subscriptions
 
     private val pendingChunkManager = PropertyChunkManager()
 
     private var requestIdSerial: Byte = 0
 
-    // updating property value involves updates to subscribers
-    // FIXME: property update notifications should also be sent when it is triggered by
-    //  client-side updates. Thus, it should be handled at CommonRulesPropertyService.
-    fun updatePropertyValue(propertyId: String, data: List<Byte>) {
+    // update property value. It involves updates to subscribers
+    fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
         properties.values.first { it.id == propertyId }.body = data
-        notifyPropertyUpdatesToSubscribers(propertyId, data)
+        notifyPropertyUpdatesToSubscribers(propertyId, data, isPartial)
     }
 
-    var notifyPropertyUpdatesToSubscribers: (propertyId: String, data: List<Byte>) -> Unit = { propertyId, data ->
-        createPropertyNotification(propertyId, data).forEach { msg ->
-            logger.subscribeProperty(msg)
+    var notifyPropertyUpdatesToSubscribers: (propertyId: String, data: List<Byte>, isPartial: Boolean) -> Unit = { propertyId, data, isPartial ->
+        createPropertyNotification(propertyId, data, isPartial).forEach { msg ->
+            logger.logMessage(msg)
             notifyPropertyUpdatesToSubscribers(msg)
         }
     }
-    var createPropertyNotification: (propertyId: String, data: List<Byte>) -> Sequence<Message.SubscribeProperty> = { propertyId, data ->
+    var createPropertyNotification: (propertyId: String, data: List<Byte>, isPartial: Boolean) -> Sequence<Message.SubscribeProperty> = { propertyId, data, isPartial ->
         sequence {
-            propertyService.subscriptions.filter { it.resource == propertyId }.forEach {
-                // FIXME: maybe we should support partial notifications?
-                val header = propertyService.createUpdateNotificationHeader(it.subscribeId, false)
+            subscriptions.filter { it.resource == propertyId }.forEach {
+                val header = propertyService.createUpdateNotificationHeader(it.subscribeId, isPartial)
                 yield(Message.SubscribeProperty(muid, MidiCIConstants.BROADCAST_MUID_32, requestIdSerial++, header, data))
             }
         }
@@ -144,10 +143,10 @@ class MidiCIResponder(
             config.receivableMaxSysExSize, request.outputPathId, config.functionBlock)
     }
     var processDiscovery: (msg: Message.DiscoveryInquiry) -> Unit = { msg ->
-        logger.discovery(msg)
+        logger.logMessage(msg)
         events.discoveryReceived.forEach { it(msg) }
         val reply = getDiscoveryReplyForInquiry(msg)
-        logger.discoveryReply(reply)
+        logger.logMessage(reply)
         sendDiscoveryReply(reply)
     }
 
@@ -160,24 +159,21 @@ class MidiCIResponder(
     }
     val getEndpointReplyForInquiry: (msg: Message.EndpointInquiry) -> Message.EndpointReply = { msg ->
         val prodId = config.productInstanceId
-        if (prodId.length > 16)
-            throw IllegalStateException("productInstanceId shall not be any longer than 16 bytes in size")
+        if (prodId.length > 16 || prodId.any { it.code < 0x20 || it.code > 0x7E })
+            throw IllegalStateException("productInstanceId shall not be any longer than 16 bytes in size and must be all in ASCII code between 32 and 126")
         Message.EndpointReply(muid, msg.sourceMUID, msg.status,
-            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId.isNotBlank()) prodId.toByteArray(
-                Charsets.ISO_8859_1
-            ).toList() else listOf() // FIXME: verify that it is only ASCII chars?
+            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId.isNotBlank()) prodId.toByteArray().toList() else listOf()
         )
     }
     var processEndpointMessage: (msg: Message.EndpointInquiry) -> Unit = { msg ->
-        logger.endpointInquiry(msg)
+        logger.logMessage(msg)
         events.endpointInquiryReceived.forEach { it(msg) }
         val reply = getEndpointReplyForInquiry(msg)
-        logger.endpointReply(reply)
+        logger.logMessage(reply)
         sendEndpointReply(reply)
     }
 
     val sendAckForInvalidateMUID: (sourceMUID: Int) -> Unit = { sourceMUID ->
-        // FIXME: we need to implement some sort of state management for each initiator
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIAckNak(dst, false, MidiCIConstants.ADDRESS_FUNCTION_BLOCK,
             MidiCIConstants.CI_VERSION_AND_FORMAT, muid, sourceMUID, CISubId2.INVALIDATE_MUID, 0, 0, listOf(), listOf()))
@@ -210,10 +206,10 @@ class MidiCIResponder(
         }
     }
     var processProfileInquiry: (msg: Message.ProfileInquiry) -> Unit = { msg ->
-        logger.profileInquiry(msg)
+        logger.logMessage(msg)
         events.profileInquiryReceived.forEach { it(msg) }
         getProfileRepliesForInquiry(msg).forEach { reply ->
-            logger.profileReply(reply)
+            logger.logMessage(reply)
             sendProfileReply(reply)
         }
     }
@@ -257,12 +253,12 @@ class MidiCIResponder(
     }
 
     var processSetProfileOn = { msg: Message.SetProfileOn ->
-        logger.setProfileOn(msg)
+        logger.logMessage(msg)
         events.setProfileOnReceived.forEach { it(msg) }
         defaultProcessSetProfileOn(msg)
     }
     var processSetProfileOff = { msg: Message.SetProfileOff ->
-        logger.setProfileOff(msg)
+        logger.logMessage(msg)
         events.setProfileOffReceived.forEach { it(msg) }
         defaultProcessSetProfileOff(msg)
     }
@@ -302,10 +298,10 @@ class MidiCIResponder(
         Message.PropertyGetCapabilitiesReply(msg.address, muid, msg.sourceMUID, establishedMaxSimultaneousPropertyRequests)
     }
     var processPropertyCapabilitiesInquiry: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
-        logger.propertyGetCapabilitiesInquiry(msg)
+        logger.logMessage(msg)
         events.propertyCapabilityInquiryReceived.forEach { it(msg) }
         val reply = getPropertyCapabilitiesReplyFor(msg)
-        logger.propertyGetCapabilitiesReply(reply)
+        logger.logMessage(reply)
         sendPropertyCapabilitiesReply(reply)
     }
 
@@ -319,10 +315,10 @@ class MidiCIResponder(
         }
     }
     var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
-        logger.getPropertyData(msg)
+        logger.logMessage(msg)
         events.getPropertyDataReceived.forEach { it(msg) }
         val reply = propertyService.getPropertyData(msg)
-        logger.getPropertyDataReply(reply)
+        logger.logMessage(reply)
         sendPropertyGetDataReply(reply)
     }
 
@@ -336,7 +332,7 @@ class MidiCIResponder(
         }
     }
     var processSetPropertyData: (msg: Message.SetPropertyData) -> Unit = { msg ->
-        logger.setPropertyData(msg)
+        logger.logMessage(msg)
         events.setPropertyDataReceived.forEach { it(msg) }
         val reply = propertyService.setPropertyData(msg)
         sendPropertySetDataReply(reply)
@@ -352,21 +348,21 @@ class MidiCIResponder(
         }
     }
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
-        logger.subscribeProperty(msg)
+        logger.logMessage(msg)
         events.subscribePropertyReceived.forEach { it(msg) }
         val reply = propertyService.subscribeProperty(msg)
-        logger.subscribePropertyReply(reply)
+        logger.logMessage(reply)
         sendPropertySubscribeReply(reply)
     }
 
     // It receives reply to property notifications
     var processSubscribePropertyReply: (msg: Message.SubscribePropertyReply) -> Unit = { msg ->
-        logger.subscribePropertyReply(msg)
+        logger.logMessage(msg)
         events.subscribePropertyReplyReceived.forEach { it(msg) }
     }
 
     var processPropertyNotify: (msg: Message.PropertyNotify) -> Unit = { msg ->
-        logger.propertyNotify(msg)
+        logger.logMessage(msg)
         events.propertyNotifyReceived.forEach { it(msg) }
     }
 
@@ -380,7 +376,7 @@ class MidiCIResponder(
             dst, msg.sourceMUID, msg.destinationMUID, msg.supportedFeatures))
     }
     var processProcessInquiry: (msg: Message.ProcessInquiry) -> Unit = { msg ->
-        logger.processInquiry(msg)
+        logger.logMessage(msg)
         events.processInquiryReceived.forEach { it(msg) }
         sendProcessProcessInquiryReply(getProcessInquiryReplyFor(msg))
     }
@@ -409,7 +405,7 @@ class MidiCIResponder(
         sendEndOfMidiMessageReport(getEndOfMidiMessageReportFor(msg))
     }
     var processMidiMessageReport: (msg: Message.ProcessMidiMessageReport) -> Unit = { msg ->
-        logger.midiMessageReport(msg)
+        logger.logMessage(msg)
         events.midiMessageReportReceived.forEach { it(msg) }
         defaultProcessMidiMessageReport(msg)
     }

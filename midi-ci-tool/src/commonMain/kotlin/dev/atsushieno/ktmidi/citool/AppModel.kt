@@ -1,9 +1,7 @@
 package dev.atsushieno.ktmidi.citool
 
-import androidx.compose.runtime.MutableState
 import com.arkivanov.essenty.instancekeeper.InstanceKeeper
 import com.arkivanov.essenty.instancekeeper.getOrCreate
-import dev.atsushieno.ktmidi.citool.view.ViewModel
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone

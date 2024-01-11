@@ -212,9 +212,12 @@ class ResponderViewModel(val responder: MidiCIResponder) {
         selectedProperty.value = property.resource
     }
 
-    fun updatePropertyValue(propertyId: String, data: List<Byte>) {
-        responder.updatePropertyValue(propertyId, data)
-        properties.first { it.id.value == propertyId }.data.value = data
+    fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
+        responder.updatePropertyValue(propertyId, data, isPartial)
+        // It might be partial update, in that case we have to retrieve
+        // the partial application result from MidiCIPropertyService processing.
+        properties.first { it.id.value == propertyId }.data.value =
+            responder.properties.values.first { it.id == propertyId }.body
     }
 
     fun createNewProperty() {

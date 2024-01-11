@@ -55,13 +55,14 @@ fun LocalPropertyConfiguration(vm: ResponderViewModel) {
             removeSelectedProperty = { vm.removeSelectedProperty() }
         )
 
+        // So far we only support full updates...
         val selectedProperty by remember { vm.selectedProperty }
         val sp = selectedProperty
         if (sp != null) {
             val value = vm.properties.first { it.id.value == sp }
             val def = vm.getPropertyMetadata(sp)
             LocalPropertyDetails(def, value,
-                updatePropertyValue = { id, data -> vm.updatePropertyValue(id, data) },
+                updatePropertyValue = { id, data -> vm.updatePropertyValue(id, data, false) },
                 metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) }
             )
         }
