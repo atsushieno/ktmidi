@@ -61,38 +61,38 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
 
     override fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply {
         val jsonInquiry =
-            Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+            Json.parseOrNull(MidiCIConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
         // FIXME: log error if JSON parser failed
 
         val result = getPropertyData(jsonInquiry ?: Json.EmptyObject)
 
-        val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
-        val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
+        val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
+        val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
         return Message.GetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody)
     }
     override fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply {
         val jsonInquiryHeader =
-            Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+            Json.parseOrNull(MidiCIConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
         val jsonInquiryBody =
-            Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(msg.body.toByteArray().decodeToString()))
+            Json.parseOrNull(MidiCIConverter.decodeASCIIToString(msg.body.toByteArray().decodeToString()))
         // FIXME: log error if JSON parser failed
 
         val result = setPropertyData(jsonInquiryHeader ?: Json.EmptyObject, jsonInquiryBody ?: Json.EmptyObject)
 
-        val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result)).toByteArray().toList()
+        val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result)).toByteArray().toList()
         return Message.SetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader ?: listOf())
     }
 
     override fun subscribeProperty(msg: Message.SubscribeProperty): Message.SubscribePropertyReply {
         val jsonHeader =
-            Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+            Json.parseOrNull(MidiCIConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
         // FIXME: log error if JSON parser failed
         // body is ignored in PropertyCommonRules.
 
         val result = subscribe(msg.sourceMUID, jsonHeader ?: Json.EmptyObject)
 
-        val replyHeader = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
-        val replyBody = PropertyCommonConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
+        val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
+        val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
         return Message.SubscribePropertyReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody)
     }
 

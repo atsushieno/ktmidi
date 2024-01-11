@@ -77,7 +77,7 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
         // FIXME: apply conversion depending on mediaType
         val bytes = body
         val jsonString = bytes.toByteArray().decodeToString()
-        val bodyJson = Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(jsonString))
+        val bodyJson = Json.parseOrNull(MidiCIConverter.decodeASCIIToString(jsonString))
             ?: return failureReturn // reply body is not a valid JSON string
 
         val result = PropertyPartialUpdater.applyPartialUpdates(existingJson, bodyJson)
@@ -107,7 +107,7 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
 
     private fun getMetadataListForBody(body: List<Byte>): List<PropertyMetadata> {
         // FIXME: log error if JSON parser failed
-        val json = Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
+        val json = Json.parseOrNull(MidiCIConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
             ?: return listOf()
         return getMetadataListForBody(json)
     }

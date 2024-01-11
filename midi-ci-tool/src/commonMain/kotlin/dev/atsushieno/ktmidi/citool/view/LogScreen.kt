@@ -31,7 +31,7 @@ fun LogScreen() {
                         Text(msg.sourceMUID.muidString, Modifier.width(150.dp).padding(10.dp, 0.dp), fontSize = 14.sp)
                         Text("->" + msg.destinationMUID.muidString, Modifier.width(150.dp).padding(10.dp, 0.dp), fontSize = 14.sp)
                     }
-                    TextField(msg.bodyString, {}, readOnly = true)
+                    TextField(msg.label + ": " + msg.bodyString, {}, readOnly = true)
                 }
                 else {
                     Text("", Modifier.width(150.dp))

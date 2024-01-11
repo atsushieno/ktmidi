@@ -2,9 +2,6 @@ package dev.atsushieno.ktmidi.citool
 
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.view.ViewModel
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import kotlin.random.Random
 
 class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
@@ -30,16 +27,12 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     }
 
     fun sendDiscovery() {
-        val msg = initiator.createDiscoveryInquiry()
-        initiator.logger.logMessage(msg)
-        initiator.sendDiscovery(msg)
+        initiator.sendDiscovery()
     }
 
     // FIXME: we need to make MidiCIInitiator EndpointInquiry hook-able.
     fun sendEndpointMessage(targetMUID: Int) {
-        val msg = initiator.createEndpointMessage(targetMUID)
-        initiator.logger.logMessage(msg)
-        initiator.sendEndpointMessage(msg)
+        initiator.sendEndpointMessage(targetMUID)
     }
 
     fun setProfile(destinationMUID: Int, address: Byte, profile: MidiCIProfileId, nextEnabled: Boolean) {
@@ -61,7 +54,7 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     }
 
     fun sendProfileDetailsInquiry(address: Byte, muid: Int, profile: MidiCIProfileId, target: Byte) {
-        initiator.sendProfileDetailsInquiry(address, muid, profile, target)
+        initiator.requestProfileDetails(address, muid, profile, target)
     }
 
     fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String) {

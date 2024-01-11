@@ -263,7 +263,7 @@ object Json {
             }
         }.joinToString("")
 
-    fun getEscapedString(source: String) = PropertyCommonConverter.encodeStringToASCII(source).replace("\\", "\\\\")
+    fun getEscapedString(source: String) = MidiCIConverter.encodeStringToASCII(source).replace("\\", "\\\\")
 
     private fun skipWhitespace(source: String, offset: Int) : Int {
         var ret = offset

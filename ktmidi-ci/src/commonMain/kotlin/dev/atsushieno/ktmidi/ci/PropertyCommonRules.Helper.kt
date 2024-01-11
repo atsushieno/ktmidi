@@ -5,7 +5,7 @@ import io.ktor.utils.io.core.*
 object CommonRulesPropertyHelper {
     fun getPropertyIdentifier(header: List<Byte>): String {
         // FIXME: log error if JSON parser failed
-        val json = Json.parseOrNull(PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
+        val json = Json.parseOrNull(MidiCIConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
             ?: return ""
         val resId =
             json.token.map.firstNotNullOfOrNull {
@@ -66,7 +66,7 @@ object CommonRulesPropertyHelper {
     fun getReplyHeaderField(header: List<Byte>, field: String): Json.JsonValue? {
         if (header.isEmpty())
             return null
-        val replyString = PropertyCommonConverter.decodeASCIIToString(header.toByteArray().decodeToString())
+        val replyString = MidiCIConverter.decodeASCIIToString(header.toByteArray().decodeToString())
         // FIXME: log error if JSON parser failed
         val replyJson = Json.parseOrNull(replyString) ?: return null
         val valuePair = replyJson.token.map.toList().firstOrNull { it.first.stringValue == field } ?: return null

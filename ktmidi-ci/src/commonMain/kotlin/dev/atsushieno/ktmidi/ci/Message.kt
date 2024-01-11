@@ -55,7 +55,7 @@ abstract class Message(protected val common: Common) {
     class EndpointInquiry(sourceMUID: Int, destinationMUID: Int, val status: Byte)
         : Message(Common(sourceMUID, destinationMUID)) {
         override val label = "EndpointInquiry"
-        override val bodyString = "status=${status})"
+        override val bodyString = "status=${status}"
     }
     class EndpointReply(sourceMUID: Int, destinationMUID: Int, val status: Byte, val data: List<Byte>)
         : Message(Common(sourceMUID, destinationMUID)) {
@@ -63,16 +63,17 @@ abstract class Message(protected val common: Common) {
         override val bodyString = "status=${status}, data = ${data.dataString})"
     }
 
-    class InvalidateMUID(sourceMUID: Int, targetMUID: Int)
+    class InvalidateMUID(sourceMUID: Int, val targetMUID: Int)
         : Message(Common(sourceMUID, MidiCIConstants.BROADCAST_MUID_32)) {
         override val label = "InvalidateMUID"
         override val bodyString = "targetMUID=${targetMUID.muidString})"
     }
 
-    class Nak(address: Byte, sourceMUID: Int, destinationMUID: Int, statusCode: Byte, statusData: Byte, message: String)
+    class Nak(address: Byte, sourceMUID: Int, destinationMUID: Int,
+              val originalSubId: Byte, val statusCode: Byte, val statusData: Byte, val details: List<Byte>, val message: List<Byte>)
         : Message(Common(sourceMUID, destinationMUID, address)) {
         override val label = "Nak"
-        override val bodyString = "statusCode=$statusCode, statusData=$statusData, message=$message"
+        override val bodyString = "originalSubId=$originalSubId, statusCode=$statusCode, statusData=$statusData, details=${details.dataString}, message=$message"
     }
 
     // Profile Configuration
@@ -84,59 +85,59 @@ abstract class Message(protected val common: Common) {
     class ProfileReply(address: Byte, sourceMUID: Int, destinationMUID: Int, val enabledProfiles: List<MidiCIProfileId>, val disabledProfiles: List<MidiCIProfileId>)
         : Message(Common(sourceMUID, destinationMUID, address)) {
         override val label = "ProfileReply"
-        override val bodyString = "enabledProfiles=[${enabledProfiles.joinToString { it.toString() }}],  disabledProfiles=[${disabledProfiles.joinToString { it.toString() }}])"
+        override val bodyString = "enabledProfiles=[${enabledProfiles.joinToString { it.toString() }}],  disabledProfiles=[${disabledProfiles.joinToString { it.toString() }}]"
     }
     class ProfileAdded(address: Byte, sourceMUID: Int, val profile: MidiCIProfileId)
         : Message(Common(sourceMUID, address = address)) {
         override val label = "ProfileAdded"
-        override val bodyString = "profile=$profile)"
+        override val bodyString = "profile=$profile"
     }
     class ProfileRemoved(address: Byte, sourceMUID: Int, val profile: MidiCIProfileId)
         : Message(Common(sourceMUID, address = address)) {
         override val label = "ProfileRemoved"
-        override val bodyString = "profile=$profile)"
+        override val bodyString = "profile=$profile"
     }
     class SetProfileOn(address: Byte, sourceMUID: Int, destinationMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short)
         : Message(Common(sourceMUID, destinationMUID, address)) {
         override val label = "SetProfileOn"
-        override val bodyString = "profile=$profile, numChannelsRequested=$numChannelsRequested)"
+        override val bodyString = "profile=$profile, numChannelsRequested=$numChannelsRequested"
     }
     class SetProfileOff(address: Byte, sourceMUID: Int, destinationMUID: Int, val profile: MidiCIProfileId)
         : Message(Common(sourceMUID, destinationMUID, address)) {
         override val label = "SetProfileOff"
-        override val bodyString = "profile=$profile)"
+        override val bodyString = "profile=$profile"
     }
     class ProfileEnabled(address: Byte, sourceMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short)
         : Message(Common(sourceMUID, address = address)) {
         override val label = "ProfileEnabled"
-        override val bodyString = "profile=$profile, numChannelsRequested=$numChannelsRequested)"
+        override val bodyString = "profile=$profile, numChannelsRequested=$numChannelsRequested"
     }
     class ProfileDisabled(address: Byte, sourceMUID: Int, val profile: MidiCIProfileId, val numChannelsRequested: Short)
         : Message(Common(sourceMUID, address = address)) {
         override val label = "ProfileDisabled"
-        override val bodyString = "profile=$profile, numChannelsRequested=$numChannelsRequested)"
+        override val bodyString = "profile=$profile, numChannelsRequested=$numChannelsRequested"
     }
     class ProfileDetailsInquiry(address: Byte, sourceMUID: Int, destinationMUID: Int, val profile: MidiCIProfileId, val target: Byte)
         : Message(Common(sourceMUID, destinationMUID, address)) {
         override val label = "ProfileDetailsInquiry"
-        override val bodyString = "profile=$profile, target=$target)"
+        override val bodyString = "profile=$profile, target=$target"
     }
     class ProfileDetailsReply(address: Byte, sourceMUID: Int, destinationMUID: Int, val profile: MidiCIProfileId, val target: Byte, val data: List<Byte>)
         : Message(Common(sourceMUID, destinationMUID, address)) {
         override val label = "ProfileDetailsReply"
-        override val bodyString = "profile=$profile, target=$target, data=${data.dataString}))"
+        override val bodyString = "profile=$profile, target=$target, data=${data.dataString}"
     }
 
     // Property Exchange
     class PropertyGetCapabilities(address: Byte, sourceMUID: Int, destinationMUID: Int, val maxSimultaneousRequests: Byte)
         : Message(Common(sourceMUID, destinationMUID, address)) {
         override val label = "PropertyGetCapabilities"
-        override val bodyString = "maxSimultaneousRequests=${maxSimultaneousRequests})\n"
+        override val bodyString = "maxSimultaneousRequests=${maxSimultaneousRequests}"
     }
     class PropertyGetCapabilitiesReply(address: Byte, sourceMUID: Int, destinationMUID: Int, val maxSimultaneousRequests: Byte)
         : Message(Common(sourceMUID, destinationMUID, address)) {
         override val label = "PropertyGetCapabilitiesReply"
-        override val bodyString = "maxSimultaneousRequests=${maxSimultaneousRequests})"
+        override val bodyString = "maxSimultaneousRequests=${maxSimultaneousRequests}"
     }
     abstract class PropertyMessage(common: Common, val requestId: Byte, val header: List<Byte>, val body: List<Byte>)
         : Message(common) {
@@ -180,7 +181,7 @@ abstract class Message(protected val common: Common) {
     class ProcessInquiryReply(sourceMUID: Int, destinationMUID: Int, val supportedFeatures: Byte)
         : Message(Common(sourceMUID, destinationMUID)) {
         override val label = "ProcessInquiryReply"
-        override val bodyString = "supportedFeatures=$supportedFeatures)"
+        override val bodyString = "supportedFeatures=$supportedFeatures"
     }
     class ProcessMidiMessageReport(address: Byte, sourceMUID: Int, destinationMUID: Int,
                                     val messageDataControl: Byte,
@@ -189,7 +190,7 @@ abstract class Message(protected val common: Common) {
                                     val noteDataMessages: Byte)
         : Message(Common(sourceMUID, destinationMUID, address)) {
         override val label = "ProcessMidiMessageReport"
-        override val bodyString = "messageDataControl=$messageDataControl, systemMessages=$systemMessages, channelControllerMessages=$channelControllerMessages, noteDataMessages=$noteDataMessages)"
+        override val bodyString = "messageDataControl=$messageDataControl, systemMessages=$systemMessages, channelControllerMessages=$channelControllerMessages, noteDataMessages=$noteDataMessages"
     }
     class ProcessMidiMessageReportReply(address: Byte, sourceMUID: Int, destinationMUID: Int,
                                         val messageDataControl: Byte,
@@ -198,7 +199,7 @@ abstract class Message(protected val common: Common) {
                                         val noteDataMessages: Byte)
         : Message(Common(sourceMUID, destinationMUID, address)) {
         override val label = "ProcessMidiMessageReportReply"
-        override val bodyString = "messageDataControl = $messageDataControl, systemMessages = $systemMessages, channelControllerMessages = $channelControllerMessages, noteDataMessages = $noteDataMessages)"
+        override val bodyString = "messageDataControl = $messageDataControl, systemMessages = $systemMessages, channelControllerMessages = $channelControllerMessages, noteDataMessages = $noteDataMessages"
     }
     class ProcessEndOfMidiMessageReport(address: Byte, sourceMUID: Int, destinationMUID: Int)
         : Message(Common(sourceMUID, destinationMUID, address)) {

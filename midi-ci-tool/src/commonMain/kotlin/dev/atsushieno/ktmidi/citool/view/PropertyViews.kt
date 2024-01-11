@@ -219,7 +219,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         }
 
         if (isTextRenderable) {
-            val bodyText = PropertyCommonConverter.decodeASCIIToString(body.toByteArray().decodeToString())
+            val bodyText = MidiCIConverter.decodeASCIIToString(body.toByteArray().decodeToString())
             if (isEditable) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(editing, { editing = !editing })
@@ -248,7 +248,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         Button(onClick = {
                             val jsonString = Json.getEscapedString(partial.ifEmpty { text })
                             val bytes =
-                                PropertyCommonConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
+                                MidiCIConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
                             commitChangeClicked(bytes, partial.isNotBlank())
                             editing = false
                         }) {

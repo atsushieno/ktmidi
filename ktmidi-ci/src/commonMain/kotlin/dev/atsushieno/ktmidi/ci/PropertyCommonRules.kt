@@ -142,22 +142,6 @@ object PropertyCommonConverter {
     fun areBytesResource(data: List<Byte>) = areBytesEquivalentTo(data, PropertyCommonHeaderKeys.RESOURCE)
     fun areBytesStatus(data: List<Byte>) = areBytesEquivalentTo(data, PropertyCommonHeaderKeys.STATUS)
 
-    fun encodeStringToASCII(s: String): String {
-        return if (s.all { it.code < 0x80 && !it.isISOControl() })
-            s
-        else
-            s.map { if (it.code < 0x80) it.toString() else "\\u${it.code.toString(16)}" }.joinToString("")
-    }
-    fun decodeASCIIToString(s: String): String =
-        s.split("\\u").mapIndexed { index, e ->
-            if (index == 0)
-                e
-            else
-                e.substring(0, 4).toInt(16).toChar() + s.substring(4)
-        }.joinToString("")
-
-    // FIXME: implement Mcoded7 and zlib+Mcoded7 conversions
-
     private fun padTo8Bytes(list: List<Byte>): List<Byte> = listOf(0.toByte()) + list + if (list.size % 7 != 0) List(7 - list.size) { 0.toByte() } else listOf()
     fun encodeToMcoded7(bytes: List<Byte>): List<Byte> =
         bytes.chunked(56).map { part ->
@@ -176,7 +160,8 @@ object PropertyCommonConverter {
             eights.drop(1).flatMapIndexed { index, it -> listOf(head[index]) + it.drop(1) }
         }
 
-    /* FIXME: enable these once ktor-utils 3.0.0 is released to all our target platforms
+    /* FIXME: implement zlib+Mcoded7 conversions
+        enable these once ktor-utils 3.0.0 is released to all our target platforms
     fun decodeZlib(bytes: ByteArray): ByteArray =
         DeflateEncoder.decode(ByteReadChannel(bytes)).toByteArray()
 
