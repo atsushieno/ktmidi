@@ -1,6 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
-class CommonRulesPropertyClient(private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) :
+class CommonRulesPropertyClient(private val logger: Logger, private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) :
     MidiCIPropertyClient {
     override fun createRequestHeader(resourceIdentifier: String, isPartialSet: Boolean): List<Byte> =
         CommonRulesPropertyHelper.createRequestHeaderBytes(resourceIdentifier, isPartialSet)
@@ -36,11 +36,15 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
 
     override fun getSubscribedProperty(msg: Message.SubscribeProperty): String? {
         val subscribeId = CommonRulesPropertyHelper.getReplyHeaderField(msg.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID)?.stringValue
-            ?: // FIXME: log error?
+        if (subscribeId == null) {
+            logger.logError("Subscribe Id is not found in the property header")
             return null
+        }
         val subscription = subscriptions.firstOrNull { it.subscribeId == subscribeId }
-            ?: // FIXME: log error?
+        if (subscription == null) {
+            logger.logError("Property is not mapped to subscribeId $subscribeId")
             return null
+        }
         return subscription.resource
     }
 
@@ -106,10 +110,13 @@ class CommonRulesPropertyClient(private val muid: Int, private val sendGetProper
     }
 
     private fun getMetadataListForBody(body: List<Byte>): List<PropertyMetadata> {
-        // FIXME: log error if JSON parser failed
-        val json = Json.parseOrNull(MidiCIConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
-            ?: return listOf()
-        return getMetadataListForBody(json)
+        try {
+            val json = Json.parse(MidiCIConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
+            return getMetadataListForBody(json)
+        } catch(ex: JsonParserException) {
+            logger.logError(ex.message!!)
+            return listOf()
+        }
     }
 
     private fun getMetadataListForBody(body: Json.JsonValue): List<PropertyMetadata> {

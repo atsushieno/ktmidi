@@ -45,7 +45,7 @@ fun PropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
     jsonValuePairs().toMap()
 )
 
-class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
+class CommonRulesPropertyService(private val logger: Logger, private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
                                  private val metadataList: MutableList<PropertyMetadata> = mutableListOf<PropertyMetadata>().apply { addAll(defaultPropertyList) })
     : MidiCIPropertyService {
 
@@ -59,41 +59,50 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
         return metadataList
     }
 
-    override fun getPropertyData(msg: Message.GetPropertyData) : Message.GetPropertyDataReply {
-        val jsonInquiry =
-            Json.parseOrNull(MidiCIConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
-        // FIXME: log error if JSON parser failed
+    override fun getPropertyData(msg: Message.GetPropertyData) : Result<Message.GetPropertyDataReply> {
+        val jsonInquiry = try {
+            Json.parse(MidiCIConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+        } catch(ex: JsonParserException) {
+            return Result.failure(ex)
+        }
 
-        val result = getPropertyData(jsonInquiry ?: Json.EmptyObject)
+        val result = getPropertyData(jsonInquiry)
 
         val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
         val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
-        return Message.GetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody)
+        return Result.success(Message.GetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody))
     }
-    override fun setPropertyData(msg: Message.SetPropertyData) : Message.SetPropertyDataReply {
-        val jsonInquiryHeader =
-            Json.parseOrNull(MidiCIConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
-        val jsonInquiryBody =
-            Json.parseOrNull(MidiCIConverter.decodeASCIIToString(msg.body.toByteArray().decodeToString()))
-        // FIXME: log error if JSON parser failed
+    override fun setPropertyData(msg: Message.SetPropertyData) : Result<Message.SetPropertyDataReply> {
+        val jsonInquiryHeader = try {
+            Json.parse(MidiCIConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+        } catch(ex: JsonParserException) {
+            return Result.failure(ex)
+        }
+        val jsonInquiryBody = try {
+            Json.parse(MidiCIConverter.decodeASCIIToString(msg.body.toByteArray().decodeToString()))
+        } catch(ex: JsonParserException) {
+            return Result.failure(ex)
+        }
 
-        val result = setPropertyData(jsonInquiryHeader ?: Json.EmptyObject, jsonInquiryBody ?: Json.EmptyObject)
+        val result = setPropertyData(jsonInquiryHeader, jsonInquiryBody)
 
         val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result)).toByteArray().toList()
-        return Message.SetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader ?: listOf())
+        return Result.success(Message.SetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader))
     }
 
-    override fun subscribeProperty(msg: Message.SubscribeProperty): Message.SubscribePropertyReply {
-        val jsonHeader =
-            Json.parseOrNull(MidiCIConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
-        // FIXME: log error if JSON parser failed
+    override fun subscribeProperty(msg: Message.SubscribeProperty): Result<Message.SubscribePropertyReply> {
+        val jsonHeader = try {
+            Json.parse(MidiCIConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
+        } catch(ex: JsonParserException) {
+            return Result.failure(ex)
+        }
         // body is ignored in PropertyCommonRules.
 
-        val result = subscribe(msg.sourceMUID, jsonHeader ?: Json.EmptyObject)
+        val result = subscribe(msg.sourceMUID, jsonHeader)
 
         val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
         val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
-        return Message.SubscribePropertyReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody)
+        return Result.success(Message.SubscribePropertyReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody))
     }
 
     override fun getReplyStatusFor(header: List<Byte>): Int? = CommonRulesPropertyHelper.getReplyStatusFor(header)
@@ -197,11 +206,11 @@ class CommonRulesPropertyService(private val muid: Int, var deviceInfo: MidiCIDe
         if (headerJson.getObjectValue(PropertyCommonHeaderKeys.SET_PARTIAL)?.isBooleanTrue == true) {
             val existing = values[header.resource]
             if (existing == null) {
-                // FIXME: log error for missing existing value
+                logger.logError("Partial update is specified but there is no existing value for property ${header.resource}")
             } else {
                 val result = PropertyPartialUpdater.applyPartialUpdates(existing, bodyJson)
                 if (!result.first) {
-                    // FIXME: log error for partial update failure
+                    logger.logError("Failed partial update for property ${header.resource}")
                 }
                 else
                     values[header.resource] = result.second

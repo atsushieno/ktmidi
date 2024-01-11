@@ -90,7 +90,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         val device: DeviceDetails,
         var maxSimultaneousPropertyRequests: Byte = 0,
         var productInstanceId: String = "",
-        val propertyClient: MidiCIPropertyClient = CommonRulesPropertyClient(parent.muid) { msg -> parent.sendGetPropertyData(msg) }
+        val propertyClient: MidiCIPropertyClient = CommonRulesPropertyClient(parent.logger, parent.muid) { msg -> parent.sendGetPropertyData(msg) }
     ) {
         val profiles = ObservableProfileList(parent.config.profiles)
 

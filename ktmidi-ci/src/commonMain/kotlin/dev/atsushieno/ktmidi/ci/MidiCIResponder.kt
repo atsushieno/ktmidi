@@ -73,7 +73,7 @@ class MidiCIResponder(
 
     val profiles = ObservableProfileList(config.profiles)
 
-    val propertyService = CommonRulesPropertyService(muid, device)
+    val propertyService = CommonRulesPropertyService(logger, muid, device)
     val properties = ServiceObservablePropertyList(propertyService)
     val subscriptions: List<SubscriptionEntry>
         get() = propertyService.subscriptions
@@ -287,6 +287,7 @@ class MidiCIResponder(
 
     // Should this also delegate to property service...?
     fun sendPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
+        logger.logMessage(msg)
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, msg.address, true,
             msg.sourceMUID, msg.destinationMUID, msg.maxSimultaneousRequests))
@@ -301,11 +302,11 @@ class MidiCIResponder(
         logger.logMessage(msg)
         events.propertyCapabilityInquiryReceived.forEach { it(msg) }
         val reply = getPropertyCapabilitiesReplyFor(msg)
-        logger.logMessage(reply)
         sendPropertyCapabilitiesReply(reply)
     }
 
     fun sendPropertyGetDataReply(msg: Message.GetPropertyDataReply) {
+        logger.logMessage(msg)
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
         CIFactory.midiCIPropertyChunks(
             dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_REPLY,
@@ -318,11 +319,15 @@ class MidiCIResponder(
         logger.logMessage(msg)
         events.getPropertyDataReceived.forEach { it(msg) }
         val reply = propertyService.getPropertyData(msg)
-        logger.logMessage(reply)
-        sendPropertyGetDataReply(reply)
+        if (reply.isSuccess) {
+            sendPropertyGetDataReply(reply.getOrNull()!!)
+        }
+        else
+            logger.logError(reply.exceptionOrNull()?.message ?: "Incoming GetPropertyData message resulted in an error")
     }
 
     fun sendPropertySetDataReply(msg: Message.SetPropertyDataReply) {
+        logger.logMessage(msg)
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
         CIFactory.midiCIPropertyChunks(
             dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_REPLY,
@@ -335,10 +340,14 @@ class MidiCIResponder(
         logger.logMessage(msg)
         events.setPropertyDataReceived.forEach { it(msg) }
         val reply = propertyService.setPropertyData(msg)
-        sendPropertySetDataReply(reply)
+        if (reply.isSuccess)
+            sendPropertySetDataReply(reply.getOrNull()!!)
+        else
+            logger.logError(reply.exceptionOrNull()?.message ?: "Incoming SetPropertyData message resulted in an error")
     }
 
     fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
+        logger.logMessage(msg)
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
         CIFactory.midiCIPropertyChunks(
             dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
@@ -351,8 +360,10 @@ class MidiCIResponder(
         logger.logMessage(msg)
         events.subscribePropertyReceived.forEach { it(msg) }
         val reply = propertyService.subscribeProperty(msg)
-        logger.logMessage(reply)
-        sendPropertySubscribeReply(reply)
+        if (reply.isSuccess)
+            sendPropertySubscribeReply(reply.getOrNull()!!)
+        else
+            logger.logError(reply.exceptionOrNull()?.message ?: "Incoming SubscribeProperty message resulted in an error")
     }
 
     // It receives reply to property notifications
