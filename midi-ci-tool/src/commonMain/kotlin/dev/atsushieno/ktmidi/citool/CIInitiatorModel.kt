@@ -14,14 +14,20 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         initiator.processInput(data)
     }
 
-    private val device = MidiCIDeviceInfo(1,2,1,1,
-        "atsushieno", "KtMidi", "KtMidi-CI-Tool Initiator", "0.1")
+    var device: MidiCIDeviceInfo
+        get() = AppModel.savedSettings.initiator.device
+        set(value) {
+            AppModel.savedSettings.initiator.device = value
+            initiator.device = value
+        }
 
-    val initiator = MidiCIInitiator(device, { data ->
-        ViewModel.log("[I] REQUEST SYSEX: " + data.joinToString { it.toString(16) } + "\n")
-        outputSender(data)
-    }).apply {
-        productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
+    val initiator by lazy {
+        MidiCIInitiator(AppModel.savedSettings.initiator) { data ->
+            ViewModel.log("[Initiator sent SYSEX] " + data.joinToString { it.toString(16) } + "\n")
+            outputSender(data)
+        }.apply {
+            config.productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
+        }
     }
 
     fun sendDiscovery() {

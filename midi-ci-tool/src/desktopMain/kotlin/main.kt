@@ -7,9 +7,11 @@ import dev.atsushieno.ktmidi.JvmMidiAccess
 import dev.atsushieno.ktmidi.RtMidiAccess
 import dev.atsushieno.ktmidi.citool.view.App
 import dev.atsushieno.ktmidi.citool.AppModel
+import dev.atsushieno.ktmidi.citool.initializeAppModel
 import java.io.File
 
 fun main(args: Array<String>) = application {
+    initializeAppModel(this)
     AppModel.midiDeviceManager.midiAccess =
         if (File("/dev/snd/seq").exists()) AlsaMidiAccess()
         else if (args.contains("jvm")) JvmMidiAccess()

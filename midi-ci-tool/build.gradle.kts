@@ -61,6 +61,8 @@ kotlin {
             implementation(libs.mpfilepicker)
             implementation(project(":ktmidi"))
             implementation(project(":ktmidi-ci"))
+            implementation(libs.essenty.state.keeper)
+            implementation(libs.essenty.instance.keeper)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

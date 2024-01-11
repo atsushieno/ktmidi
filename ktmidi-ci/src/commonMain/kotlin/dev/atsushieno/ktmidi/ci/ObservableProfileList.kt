@@ -3,9 +3,8 @@ package dev.atsushieno.ktmidi.ci
 /**
  * Observable list of MIDI-CI Profiles
  */
-class ObservableProfileList {
+class ObservableProfileList(private val pl: MutableList<MidiCIProfile>) {
     enum class ProfilesChange { Added, Removed }
-    private val pl = mutableListOf<MidiCIProfile>()
     val profiles: List<MidiCIProfile>
         get() = pl
 

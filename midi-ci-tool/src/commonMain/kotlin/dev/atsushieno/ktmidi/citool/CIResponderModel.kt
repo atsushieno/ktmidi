@@ -10,13 +10,9 @@ import kotlin.random.Random
 
 class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     fun processCIMessage(data: List<Byte>) {
-        val time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        ViewModel.log("[${time.time.toString().substring(0, 8)}] SYSEX: " + data.joinToString { it.toString(16) } + "\n")
+        ViewModel.log("[Responder sent SYSEX] " + data.joinToString { it.toString(16) } + "\n")
         responder.processInput(data)
     }
-
-    private val device = MidiCIDeviceInfo(0x123456,0x1234,0x5678,0x00000001,
-        "atsushieno", "KtMidi", "KtMidi-CI-Tool Responder", "0.1")
 
     fun updateProfileTarget(profileState: MidiCIProfileState, address: Byte, enabled: Boolean, numChannelsRequested: Short) {
         val profile = responder.profiles.profiles.first { it.address == profileState.address.value && it.profile == profileState.profile }
@@ -50,13 +46,10 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         responder.properties.removeMetadata(propertyId)
     }
 
-    val responder = MidiCIResponder(device, { data ->
+    val responder = MidiCIResponder(AppModel.savedSettings.recipient) { data ->
         ViewModel.log("[R] REPLY SYSEX: " + data.joinToString { it.toString(16) })
         outputSender(data)
-    }).apply {
-        productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
-        maxSimultaneousPropertyRequests = 127
-
+    }.apply {
         // Profile
         onProfileSet.add { profile, numChannelsRequested ->
             profiles.profileEnabledChanged.forEach { it(profile, numChannelsRequested) }

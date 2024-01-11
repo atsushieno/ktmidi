@@ -7,6 +7,9 @@ import dev.atsushieno.ktmidi.citool.AppModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlin.random.Random
 
 object ViewModel {
@@ -34,7 +37,8 @@ object ViewModel {
     val log: MutableState<String>
         get() = logText
     fun log(msg: String) {
-        Snapshot.withMutableSnapshot { logText.value += msg + (if (msg.endsWith('\n')) "" else "\n") }
+        val time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        logText.value += "[${time.time.toString().substring(0, 8)}] $msg ${if (!msg.endsWith('\n')) "\n" else ""}"
     }
 
     var selectedRemoteDeviceMUID = mutableStateOf(0)
@@ -133,10 +137,10 @@ class PropertyValueState(val id: MutableState<String>, val mediaType: MutableSta
 class LocalConfigurationViewModel(val responder: MidiCIResponder) {
     val device = DeviceConfigurationViewModel(responder.device)
     val maxSimultaneousPropertyRequests =
-        mutableStateOf(responder.maxSimultaneousPropertyRequests)
+        mutableStateOf(responder.config.maxSimultaneousPropertyRequests)
 
     fun updateMaxSimultaneousPropertyRequests(newValue: Byte) {
-        responder.maxSimultaneousPropertyRequests = newValue
+        responder.config.maxSimultaneousPropertyRequests = newValue
     }
 
     // Profile Configuration

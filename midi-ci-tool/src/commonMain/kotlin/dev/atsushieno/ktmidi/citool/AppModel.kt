@@ -1,14 +1,17 @@
 package dev.atsushieno.ktmidi.citool
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.launch
-import kotlin.coroutines.CoroutineContext
+import com.arkivanov.essenty.instancekeeper.InstanceKeeper
+import com.arkivanov.essenty.instancekeeper.getOrCreate
 
-object AppModel {
+expect fun initializeAppModel(context: Any)
+
+// initializeAppModel() is supposed to initialize this
+lateinit var AppModel: AppModelClass
+
+class AppModelClass(instanceKeeper: InstanceKeeper) {
+    val savedSettings = instanceKeeper.getOrCreate { SavedSettings() }
     val midiDeviceManager = MidiDeviceManager()
-    val ciDeviceManager = CIDeviceManager(midiDeviceManager)
+    val ciDeviceManager  = CIDeviceManager(midiDeviceManager)
 
     fun setInputDevice(id: String) {
         midiDeviceManager.midiInputDeviceId = id

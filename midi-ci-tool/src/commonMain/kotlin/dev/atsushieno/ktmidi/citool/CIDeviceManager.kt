@@ -8,13 +8,17 @@ import dev.atsushieno.ktmidi.citool.view.ViewModel
 class CIDeviceManager(private val midiDeviceManager: MidiDeviceManager) {
     var isResponder = false
 
-    val initiator = CIInitiatorModel { data ->
-        val midi1Bytes = listOf(Midi1Status.SYSEX.toByte()) + data + listOf(Midi1Status.SYSEX_END.toByte())
-        midiDeviceManager.sendToAll(midi1Bytes.toByteArray(), 0)
+    val initiator by lazy {
+        CIInitiatorModel { data ->
+            val midi1Bytes = listOf(Midi1Status.SYSEX.toByte()) + data + listOf(Midi1Status.SYSEX_END.toByte())
+            midiDeviceManager.sendToAll(midi1Bytes.toByteArray(), 0)
+        }
     }
-    val responder = CIResponderModel { data ->
-        val midi1Bytes = listOf(Midi1Status.SYSEX.toByte()) + data + listOf(Midi1Status.SYSEX_END.toByte())
-        midiDeviceManager.sendToAll(midi1Bytes.toByteArray(), 0)
+    val responder by lazy {
+        CIResponderModel { data ->
+            val midi1Bytes = listOf(Midi1Status.SYSEX.toByte()) + data + listOf(Midi1Status.SYSEX_END.toByte())
+            midiDeviceManager.sendToAll(midi1Bytes.toByteArray(), 0)
+        }
     }
 
 
@@ -38,6 +42,8 @@ class CIDeviceManager(private val midiDeviceManager: MidiDeviceManager) {
     }
 
     init {
-        midiDeviceManager.midiInputOpened.add { setupInputEventListener(it) }
+        midiDeviceManager.midiInputOpened.add {
+            setupInputEventListener(it)
+        }
     }
 }
