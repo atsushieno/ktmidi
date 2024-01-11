@@ -67,10 +67,3 @@ fun MainContent() {
     }
 }
 
-@Composable
-fun LogScreen() {
-    val logText = remember { ViewModel.log }
-
-    TextField(logText.value, onValueChange = { _: String -> }, readOnly = true)
-}
-

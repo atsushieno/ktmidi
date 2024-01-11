@@ -4,6 +4,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
+import dev.atsushieno.ktmidi.citool.LogEntry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,14 +35,9 @@ object ViewHelper {
 }
 
 object ViewModel {
-
-    private var logText = mutableStateOf("")
-
-    val log: MutableState<String>
-        get() = logText
-    fun log(msg: String) {
-        val time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        logText.value += "[${time.time.toString().substring(0, 8)}] $msg ${if (!msg.endsWith('\n')) "\n" else ""}"
+    val logs = mutableStateListOf<LogEntry>()
+    fun clearLogs() {
+        logs.clear()
     }
 
     val initiator = InitiatorViewModel()
@@ -49,6 +45,10 @@ object ViewModel {
     val responder = ResponderViewModel(AppModel.ciDeviceManager.responder.responder)
 
     val settings = ApplicationSettingsViewModel()
+
+    init {
+        AppModel.logRecorded += { logs.add(it) }
+    }
 }
 
 class MidiCIProfileState(

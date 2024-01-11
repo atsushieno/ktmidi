@@ -10,7 +10,7 @@ import kotlin.random.Random
 
 class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     fun processCIMessage(data: List<Byte>) {
-        ViewModel.log("[Responder sent SYSEX] " + data.joinToString { it.toString(16) } + "\n")
+        AppModel.log("[Responder received SYSEX] " + data.joinToString { it.toString(16) })
         responder.processInput(data)
     }
 
@@ -47,7 +47,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     }
 
     val responder = MidiCIResponder(AppModel.savedSettings.recipient) { data ->
-        ViewModel.log("[R] REPLY SYSEX: " + data.joinToString { it.toString(16) })
+        AppModel.log("[Responder sent SYSEX] " + data.joinToString { it.toString(16) })
         outputSender(data)
     }.apply {
         // Profile
@@ -64,7 +64,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
 
     init {
         responder.logger.logEventReceived.add {
-            ViewModel.log("- $it")
+            AppModel.log(it)
         }
     }
 }

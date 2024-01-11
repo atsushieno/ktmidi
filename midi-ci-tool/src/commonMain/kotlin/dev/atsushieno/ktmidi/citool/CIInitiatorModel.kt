@@ -9,8 +9,7 @@ import kotlin.random.Random
 
 class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     fun processCIMessage(data: List<Byte>) {
-        val time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        ViewModel.log("[${time.time.toString().substring(0, 8)}] SYSEX: " + data.joinToString { it.toString(16) })
+        AppModel.log("[Initiator received SYSEX] " + data.joinToString { it.toString(16) })
         initiator.processInput(data)
     }
 
@@ -23,7 +22,7 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
 
     val initiator by lazy {
         MidiCIInitiator(AppModel.savedSettings.initiator) { data ->
-            ViewModel.log("[Initiator sent SYSEX] " + data.joinToString { it.toString(16) } + "\n")
+            AppModel.log("[Initiator sent SYSEX] " + data.joinToString { it.toString(16) } + "\n")
             outputSender(data)
         }.apply {
             config.productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
@@ -77,7 +76,7 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
 
     init {
         initiator.logger.logEventReceived.add {
-            ViewModel.log("- $it")
+            AppModel.log(it)
         }
     }
 }
