@@ -1081,10 +1081,10 @@ jsonfile@^4.0.0:
   optionalDependencies:
     graceful-fs "^4.1.6"
 
-jzz@1.7.6:
-  version "1.7.6"
-  resolved "https://registry.yarnpkg.com/jzz/-/jzz-1.7.6.tgz#aaacb73aeced4078c3ec69f54f350248da2dc1c0"
-  integrity sha512-a2Z+ZMV4yIW82sbE/d+z8fnhc/83C5lpgVAz+NHhUAUlgdT0IUBxQOb6JyCrZ4WIMZnugeKMDFL314FoFrd51Q==
+jzz@1.7.7:
+  version "1.7.7"
+  resolved "https://registry.yarnpkg.com/jzz/-/jzz-1.7.7.tgz#6f1d08542c1c68df651b5711643bfe838404e13d"
+  integrity sha512-fh7Qxb7G4q+7XqmayINHtGj2WpXtQTm+crFK0kg/s7JDhXLKg97MV0MXpADWNFJrNNVb9mkwNzW9sQlkRlfyug==
   dependencies:
     "@types/webmidi" "^2.0.10"
     jazz-midi "^1.7.9"
