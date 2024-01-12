@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun SettingsScreen(vm: ApplicationSettingsViewModel) {
     Column {
+        MidiDeviceSelector()
         LocalDeviceConfiguration(vm.device)
         Row {
             Checkbox(vm.workaroundJUCEProfileNumChannelsIssue.value,

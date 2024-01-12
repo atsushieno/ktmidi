@@ -2,20 +2,28 @@ package dev.atsushieno.ktmidi.citool.view
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.atsushieno.ktmidi.MidiPortDetails
 import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
 fun MidiDeviceSelector() {
-    Row {
-        MidiDeviceSelector(true, AppModel.midiDeviceManager.midiInput.details, AppModel.midiDeviceManager.midiAccess.inputs.toList())
-        MidiDeviceSelector(false, AppModel.midiDeviceManager.midiOutput.details, AppModel.midiDeviceManager.midiAccess.outputs.toList())
+    Column {
+        Text("MIDI Transport Settings", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("By default, it receives MIDI-CI requests on the Virtual In port and sends replies back from the Virtual Out port.")
+        Text("But you can also use system MIDI devices as the transports too. Select them here then.")
+        Row {
+            MidiDeviceSelector(true, AppModel.midiDeviceManager.midiInput.details, AppModel.midiDeviceManager.midiAccess.inputs.toList())
+            MidiDeviceSelector(false, AppModel.midiDeviceManager.midiOutput.details, AppModel.midiDeviceManager.midiAccess.outputs.toList())
+        }
     }
 }
 

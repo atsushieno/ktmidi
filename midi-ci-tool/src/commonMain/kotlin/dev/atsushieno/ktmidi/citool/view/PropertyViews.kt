@@ -221,7 +221,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         Text("Property Value", fontWeight = FontWeight.Bold, fontSize = 20.sp)
 
         val isEditableByMetadata = metadata?.canSet != null && metadata.canSet != PropertySetAccess.NONE
-        val isEditable = isLocalEditor || isEditableByMetadata
+        val isEditable = metadata?.originator == PropertyMetadata.Originator.USER && (isLocalEditor || isEditableByMetadata)
         val isTextRenderable = mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON
         var editing by remember { mutableStateOf(false) }
         val showRefreshAndSubscribeButtons = @Composable {

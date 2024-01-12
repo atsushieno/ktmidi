@@ -25,8 +25,6 @@ import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
 fun ResponderScreen(vm: ResponderViewModel) {
-    Text(FeatureDescription.responderScreen)
-
     // Profile Configuration
     Text("Profiles", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
@@ -260,7 +258,7 @@ fun LocalPropertyDetails(def: PropertyMetadata?, property: PropertyValueState,
             PropertyMetadataEditor(
                 def,
                 metadataUpdateCommitted,
-                false
+                def.originator == PropertyMetadata.Originator.SYSTEM
             )
         }
         else

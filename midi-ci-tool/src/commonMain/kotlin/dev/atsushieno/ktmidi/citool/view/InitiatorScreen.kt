@@ -20,7 +20,6 @@ fun InitiatorScreen(vm: InitiatorViewModel) {
             Button(onClick = { vm.sendDiscovery() }) {
                 Text("Send Discovery")
             }
-            MidiDeviceSelector()
         }
         val conn = vm.selectedRemoteDevice.value
         Row {

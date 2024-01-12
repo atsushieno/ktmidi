@@ -5,6 +5,11 @@ import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceColumn
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertySetAccess
 
 class PropertyMetadata() {
+    enum class Originator {
+        SYSTEM,
+        USER
+    }
+
     var resource: String = ""
     var canGet: Boolean = true
     var canSet: String = PropertySetAccess.NONE
@@ -16,6 +21,7 @@ class PropertyMetadata() {
     // additional properties for List resources
     var canPaginate: Boolean = false
     var columns: List<PropertyResourceColumn> = listOf()
+    var originator: Originator = Originator.USER
 
     constructor(resource: String) : this() { this.resource = resource }
 }

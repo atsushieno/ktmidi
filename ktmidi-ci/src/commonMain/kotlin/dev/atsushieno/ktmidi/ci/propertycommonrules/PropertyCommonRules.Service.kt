@@ -7,7 +7,7 @@ import io.ktor.utils.io.core.*
 import kotlin.random.Random
 
 private val defaultPropertyList = listOf(
-    PropertyMetadata(PropertyResourceNames.DEVICE_INFO),
+    PropertyMetadata(PropertyResourceNames.DEVICE_INFO).apply { originator = PropertyMetadata.Originator.SYSTEM },
     //PropertyResource(PropertyResourceNames.CHANNEL_LIST),
     //PropertyResource(PropertyResourceNames.JSON_SCHEMA)
 )
@@ -23,12 +23,12 @@ private fun PropertyMetadata.jsonValuePairs() = sequence {
         yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_SUBSCRIBE), if (canSubscribe) Json.TrueValue else Json.FalseValue))
     if (requireResId)
         yield(Pair(Json.JsonValue(PropertyResourceFields.REQUIRE_RES_ID), if (requireResId) Json.TrueValue else Json.FalseValue))
-    if (mediaTypes.size != 1 || mediaTypes[0] != "application/json")
+    if (mediaTypes.size != 1 || mediaTypes[0] != CommonRulesKnownMimeTypes.APPLICATION_JSON)
         yield(Pair(
             Json.JsonValue(PropertyResourceFields.MEDIA_TYPE),
             Json.JsonValue(mediaTypes.map { s -> Json.JsonValue(s) })
         ))
-    if (encodings.size != 1 || encodings[0] != "ASCII")
+    if (encodings.size != 1 || encodings[0] != PropertyDataEncoding.ASCII)
         yield(Pair(
             Json.JsonValue(PropertyResourceFields.ENCODINGS),
             Json.JsonValue(encodings.map { s -> Json.JsonValue(s) })
