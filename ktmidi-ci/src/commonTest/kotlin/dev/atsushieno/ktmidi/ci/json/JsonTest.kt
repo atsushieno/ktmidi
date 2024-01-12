@@ -1,4 +1,4 @@
-package dev.atsushieno.ktmidi.ci
+package dev.atsushieno.ktmidi.ci.json
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

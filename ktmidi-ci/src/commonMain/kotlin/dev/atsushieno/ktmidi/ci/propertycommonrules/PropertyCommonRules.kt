@@ -1,6 +1,10 @@
 package dev.atsushieno.ktmidi.ci.propertycommonrules
 
 import dev.atsushieno.ktmidi.ci.json.Json
+import dev.atsushieno.ktmidi.ci.shl
+import dev.atsushieno.ktmidi.ci.shr
+import kotlin.experimental.and
+import kotlin.math.min
 
 class PropertyExchangeException(message: String = "Property Exchange exception", innerException: Exception? = null) : Exception(message, innerException)
 
@@ -116,37 +120,39 @@ object PropertyCommonConverter {
     fun areBytesResource(data: List<Byte>) = areBytesEquivalentTo(data, PropertyCommonHeaderKeys.RESOURCE)
     fun areBytesStatus(data: List<Byte>) = areBytesEquivalentTo(data, PropertyCommonHeaderKeys.STATUS)
 
-    private fun padTo8Bytes(list: List<Byte>): List<Byte> = listOf(0.toByte()) + list + if (list.size % 7 != 0) List(7 - list.size) { 0.toByte() } else listOf()
-
-    // FIXME: there seems some interoperability problem w/ juce_midi_ci.
-    //  Needs processing verification.
-    fun encodeToMcoded7(bytes: List<Byte>): List<Byte> =
-        bytes.chunked(56).map { part ->
-            part.chunked(8)
-        }.flatMap { eights ->
-            padTo8Bytes(eights.map { it[0] }) + eights.flatMap {
-                listOf(0.toByte()) + it.drop(1)
-            }
+    fun encodeToMcoded7(bytes: List<Byte>): List<Byte> {
+        val result = mutableListOf<Byte>()
+        bytes.chunked(7).forEach { part ->
+            result.add(part.mapIndexed { index, it -> ((it shr 7) shl index).toByte() }.sum().toByte())
+            result.addAll(part.map { it and 0x7F })
         }
+        return result
+    }
 
-    // FIXME: there seems some interoperability problem w/ juce_midi_ci.
-    //  Needs processing verification.
     fun decodeMcoded7(bytes: List<Byte>): List<Byte> =
-        bytes.chunked(64).map { part ->
-            part.chunked(8)
-        }.flatMap { eights ->
-            val head = eights[0].drop(1)
-            eights.drop(1).flatMapIndexed { index, it -> listOf(head[index]) + it.drop(1) }
-        }
+        bytes.chunked(8).flatMap { part ->
+            (0 until part.size - 1).map {
+                (part[it + 1] + ((part[0] and (1 shl (it)).toByte()) shl 7)).toByte()
+            }
+        }.toList()
 
-    // FIXME: implement zlib+Mcoded7 conversions
-    //    enable these once ktor-utils 3.0.0 is released to all our target platforms
-    fun decodeZlib(bytes: ByteArray): ByteArray =
-        TODO("FIXME: enable implementation once ktor-utils 3.0.0 is released") //DeflateEncoder.decode(ByteReadChannel(bytes)).toByteArray()
+    // FIXME: it is not implemented in ALL platforms yet
+    //    replace it with these once ktor-utils 3.0.0 is released to all our target platforms
+    fun decodeZlib(bytes: ByteArray): List<Byte> =
+        //DeflateEncoder.decode(ByteReadChannel(bytes)).toByteArray()
+        decodeZlibWorkaround(bytes).toList()
 
-    fun encodeZlib(bytes: ByteArray): ByteArray =
-        TODO("FIXME: enable implementation once ktor-utils 3.0.0 is released") //DeflateEncoder.encode(ByteReadChannel(bytes)).toByteArray()
+    fun encodeZlib(bytes: ByteArray): List<Byte> =
+        //DeflateEncoder.encode(ByteReadChannel(bytes)).toByteArray()
+        encodeZlibWorkaround(bytes).toList()
+
+    fun decodeZlibMcoded7(body: List<Byte>) = decodeZlib(decodeMcoded7(body).toByteArray())
+    fun encodeToZlibMcoded7(data: List<Byte>) = encodeToMcoded7(encodeZlib(data.toByteArray()).toList())
 }
+
+expect fun decodeZlibWorkaround(bytes: ByteArray): ByteArray
+expect fun encodeZlibWorkaround(bytes: ByteArray): ByteArray
+
 
 object PropertySetAccess {
     const val NONE = "none"

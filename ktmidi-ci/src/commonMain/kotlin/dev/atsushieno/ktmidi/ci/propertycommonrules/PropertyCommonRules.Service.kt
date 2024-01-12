@@ -218,7 +218,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
         val decodedBody = when (header.mutualEncoding) {
             PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.decodeMcoded7(body)
-            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.decodeZlib(PropertyCommonConverter.decodeMcoded7(body).toByteArray()).toList()
+            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.decodeZlibMcoded7(body)
             PropertyDataEncoding.ASCII -> body
             null -> body
             else -> return Result.failure(PropertyExchangeException("Unknown mutualEncoding was specified: ${header.mutualEncoding}"))

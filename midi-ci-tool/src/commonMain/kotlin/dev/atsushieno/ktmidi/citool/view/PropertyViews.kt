@@ -228,7 +228,9 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         val showRefreshAndSubscribeButtons = @Composable {
             if (!isLocalEditor && !editing) {
                 Row {
-                    var selectedEncoding by remember { mutableStateOf(metadata?.encodings?.firstOrNull() ?: "ASCII") }
+                    var selectedEncoding by remember { mutableStateOf<String?>(null) }
+                    if (resetState)
+                        selectedEncoding = null
                     Button(onClick = { refreshValueClicked(selectedEncoding) }) {
                         Text("Refresh")
                     }
@@ -238,7 +240,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         }
                     }
                     // encoding selector
-                    PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding, { selectedEncoding = it })
+                    PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding ?: "", onSelectionChange = { selectedEncoding = it.ifEmpty { null } })
                 }
             }
         }
@@ -247,11 +249,12 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
             showFilePicker = false
         if (resetState)
             editing = false
+        var selectedEncoding by remember { mutableStateOf<String?>(null) }
+        if (resetState)
+            selectedEncoding = null
         val showUploadButton = @Composable {
             if (getPlatform().canReadLocalFile) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    var selectedEncoding by remember { mutableStateOf(metadata?.encodings?.firstOrNull() ?: "ASCII") }
-                    PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding, { selectedEncoding = it })
                     Button(onClick = { showFilePicker = !showFilePicker }) {
                         Text("Commit value via binary File")
                     }
@@ -294,8 +297,6 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                     }
                     TextField(text, { text = it })
                     if (isEditable) {
-                        var selectedEncoding by remember { mutableStateOf(metadata?.encodings?.firstOrNull() ?: "ASCII") }
-                        PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding, { selectedEncoding = it })
                         Button(onClick = {
                             val jsonString = Json.getEscapedString(partial.ifEmpty { text })
                             val bytes =
@@ -308,6 +309,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                     }
                     Text("... or ...")
                     showUploadButton()
+                    PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding ?: "", onSelectionChange = { selectedEncoding = it.ifEmpty { null } })
                 } else {
                     showRefreshAndSubscribeButtons()
                     TextField(bodyText, {}, readOnly = true)
@@ -322,6 +324,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
             showRefreshAndSubscribeButtons()
             if (isEditable)
                 showUploadButton()
+            PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding ?: "", onSelectionChange = { selectedEncoding = it.ifEmpty { null } })
         }
 
         prev = metadata

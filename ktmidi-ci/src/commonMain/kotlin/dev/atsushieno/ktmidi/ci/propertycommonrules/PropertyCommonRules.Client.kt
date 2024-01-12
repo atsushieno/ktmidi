@@ -111,7 +111,7 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
         return when (encoding) {
             PropertyDataEncoding.ASCII -> data
             PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.encodeToMcoded7(data)
-            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.encodeZlib(PropertyCommonConverter.encodeToMcoded7(data).toByteArray()).toList()
+            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.encodeToZlibMcoded7(data)
             null -> data
             else -> {
                 logger.logError("Unrecognized mutualEncoding is specified: $encoding")
@@ -124,7 +124,7 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
         return when (encoding) {
             PropertyDataEncoding.ASCII -> data
             PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.decodeMcoded7(data)
-            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.decodeZlib(PropertyCommonConverter.decodeMcoded7(data).toByteArray()).toList()
+            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.decodeZlibMcoded7(data)
             null -> data
             else -> {
                 logger.logError("Unrecognized mutualEncoding is specified: $encoding")

@@ -77,7 +77,7 @@ data class DeviceDetails(val manufacturer: Int = 0, val family: Short = 0, val m
 }
 
 object MidiCISupportedCategories {
-    const val None: Byte = 0
+    const val NONE: Byte = 0
     const val PROTOCOL_NEGOTIATION: Byte = 1 // Deprecated in MIDI-CI 1.2
     const val PROFILE_CONFIGURATION: Byte = 4
     const val PROPERTY_EXCHANGE: Byte = 8
