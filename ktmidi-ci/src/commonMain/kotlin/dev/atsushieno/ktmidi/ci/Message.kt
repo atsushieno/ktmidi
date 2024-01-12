@@ -14,6 +14,7 @@ abstract class Message(protected val common: Common) {
     // FIXME: maybe we should implement serialize() and deserialize() in each class
 
     companion object {
+        const val COMMON_HEADER_SIZE = 13
         private const val MAX_TO_STRING_LENGTH = 1024
 
         val List<Byte>.headerString: String
@@ -30,6 +31,55 @@ abstract class Message(protected val common: Common) {
                 0x7F -> "FunctionBlock"
                 else -> "Ch. $this"
             }
+
+        val messageSizes = mapOf(
+            Pair(CISubId2.DISCOVERY_INQUIRY, 30),
+            Pair(CISubId2.DISCOVERY_REPLY, 31),
+            Pair(CISubId2.ENDPOINT_MESSAGE_INQUIRY, 14),
+            Pair(CISubId2.ENDPOINT_MESSAGE_REPLY, 16),
+            Pair(CISubId2.INVALIDATE_MUID, 17),
+            Pair(CISubId2.ACK, 13),
+            Pair(CISubId2.NAK, 13),
+            Pair(CISubId2.PROFILE_INQUIRY, 13),
+            Pair(CISubId2.PROFILE_INQUIRY_REPLY, 15),
+            Pair(CISubId2.PROFILE_ADDED_REPORT, 18),
+            Pair(CISubId2.PROFILE_REMOVED_REPORT, 18),
+            Pair(CISubId2.SET_PROFILE_ON, 20),
+            Pair(CISubId2.SET_PROFILE_OFF, 20),
+            Pair(CISubId2.PROFILE_ENABLED_REPORT, 20),
+            Pair(CISubId2.PROFILE_DISABLED_REPORT, 20),
+            Pair(CISubId2.PROFILE_DETAILS_INQUIRY, 19),
+            Pair(CISubId2.PROFILE_DETAILS_REPLY, 22),
+            Pair(CISubId2.PROPERTY_CAPABILITIES_INQUIRY, 13),
+            Pair(CISubId2.PROPERTY_CAPABILITIES_REPLY, 14),
+            Pair(CISubId2.PROPERTY_GET_DATA_INQUIRY, 22),
+            Pair(CISubId2.PROPERTY_GET_DATA_REPLY, 22),
+            Pair(CISubId2.PROPERTY_SET_DATA_INQUIRY, 22),
+            Pair(CISubId2.PROPERTY_SET_DATA_REPLY, 22),
+            Pair(CISubId2.PROPERTY_SUBSCRIBE, 22),
+            Pair(CISubId2.PROPERTY_SUBSCRIBE_REPLY, 22),
+            Pair(CISubId2.PROPERTY_NOTIFY, 22),
+            Pair(CISubId2.PROCESS_INQUIRY_CAPABILITIES, 13),
+            Pair(CISubId2.PROCESS_INQUIRY_CAPABILITIES_REPLY, 14),
+            Pair(CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT, 18),
+            Pair(CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY, 18),
+            Pair(CISubId2.PROCESS_INQUIRY_END_OF_MIDI_MESSAGE, 13),
+        )
+
+        val dynamicallySizedMessageSubId2s = listOf(
+            CISubId2.ACK,
+            CISubId2.NAK,
+            CISubId2.ENDPOINT_MESSAGE_REPLY,
+            CISubId2.PROFILE_INQUIRY_REPLY,
+            CISubId2.PROFILE_SPECIFIC_DATA,
+            CISubId2.PROPERTY_GET_DATA_INQUIRY,
+            CISubId2.PROPERTY_GET_DATA_REPLY,
+            CISubId2.PROPERTY_SET_DATA_INQUIRY,
+            CISubId2.PROPERTY_SET_DATA_REPLY,
+            CISubId2.PROPERTY_SUBSCRIBE,
+            CISubId2.PROPERTY_SUBSCRIBE_REPLY,
+            CISubId2.PROPERTY_NOTIFY,
+        )
     }
 
     data class Common(val sourceMUID: Int, val destinationMUID: Int = MidiCIConstants.BROADCAST_MUID_32, val address: Byte = MidiCIConstants.ADDRESS_FUNCTION_BLOCK) {

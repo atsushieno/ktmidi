@@ -17,7 +17,6 @@ class MidiCIInitiatorConfiguration(
     val common: MidiCIDeviceConfiguration,
 
     var outputPathId: Byte = 0,
-    var midiCIBufferSize: Int = 4096,
     var productInstanceId: String? = null,
 
     var autoSendEndpointInquiry: Boolean = true,

@@ -128,7 +128,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
 
     fun sendDiscovery(msg: Message.DiscoveryInquiry) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIDiscovery(
             buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.device.manufacturer, msg.device.family, msg.device.modelNumber,
             msg.device.softwareRevisionLevel, msg.ciCategorySupported, msg.receivableMaxSysExSize, msg.outputPathId
@@ -140,7 +140,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
 
     fun sendEndpointMessage(msg: Message.EndpointInquiry) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIEndpointMessage(buf, MidiCIConstants.CI_VERSION_AND_FORMAT,
             msg.sourceMUID, msg.destinationMUID, msg.status))
     }
@@ -152,19 +152,19 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
 
     fun requestProfiles(msg: Message.ProfileInquiry) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIProfileInquiry(buf, msg.address, msg.sourceMUID, msg.destinationMUID))
     }
 
     fun setProfileOn(msg: Message.SetProfileOn) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIProfileSet(buf, msg.address, true, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.numChannelsRequested))
     }
 
     fun setProfileOff(msg: Message.SetProfileOff) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIProfileSet(buf, msg.address, false, msg.sourceMUID, msg.destinationMUID, msg.profile, 0))
     }
 
@@ -173,7 +173,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
 
     fun requestProfileDetails(msg: Message.ProfileDetailsInquiry) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIProfileDetails(buf, msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, 0))
     }
 
@@ -185,7 +185,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
 
     fun requestPropertyExchangeCapabilities(msg: Message.PropertyGetCapabilities) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIPropertyGetCapabilities(
             buf,
             msg.address,
@@ -209,7 +209,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         logger.logMessage(msg)
         val conn = connections[msg.destinationMUID]
         conn?.addPendingRequest(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         CIFactory.midiCIPropertyChunks(buf, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_INQUIRY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, listOf()).forEach {
             sendOutput(it)
@@ -227,7 +227,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
 
     fun sendSetPropertyData(msg: Message.SetPropertyData) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         CIFactory.midiCIPropertyChunks(buf, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_INQUIRY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body).forEach {
             sendOutput(it)
@@ -246,7 +246,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
 
     fun sendSubscribeProperty(msg: Message.SubscribeProperty) {
         logger.logMessage(msg)
-        val dst = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         CIFactory.midiCIPropertyChunks(
             dst, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
@@ -261,7 +261,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
 
     fun sendProcessInquiry(msg: Message.ProcessInquiry) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIProcessInquiryCapabilities(buf, msg.sourceMUID, msg.destinationMUID))
     }
 
@@ -275,7 +275,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
 
     fun sendMidiMessageReportInquiry(msg: Message.ProcessMidiMessageReport) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIMidiMessageReport(buf, true, msg.address, msg.sourceMUID, msg.destinationMUID,
             msg.messageDataControl, msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
     }
@@ -290,7 +290,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
 
     fun invalidateMUID(msg: Message.InvalidateMUID) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIDiscoveryInvalidateMuid(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.targetMUID))
     }
 
@@ -305,7 +305,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
 
     fun sendNakForError(msg: Message.Nak) {
         logger.logMessage(msg)
-        val buf = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIAckNak(buf, true, msg.address, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID,
             msg.originalSubId, msg.statusCode, msg.statusData, msg.details, msg.message))
     }
@@ -479,7 +479,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
     }
 
     fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
-        val dst = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         CIFactory.midiCIPropertyChunks(
             dst, config.common.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
@@ -556,7 +556,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
         val nak = MidiCIAckNakData(source, muid, sourceMUID, originalSubId,
             CINakStatus.MessageNotSupported, 0, listOf(), listOf())
-        val dst = MutableList<Byte>(config.midiCIBufferSize) { 0 }
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIAckNak(dst, true, nak))
     }
     var processUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
@@ -580,13 +580,30 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
     }
 
     fun processInput(data: List<Byte>) {
-        if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
+        if (data[0] != MidiCIConstants.UNIVERSAL_SYSEX || data[2] != MidiCIConstants.SYSEX_SUB_ID_MIDI_CI)
             return // not MIDI-CI sysex
+        if (data.size < Message.COMMON_HEADER_SIZE)
+            return // insufficient buffer size in any case
+        if (data.size < (Message.messageSizes[data[3]] ?: Int.MAX_VALUE)) {
+            logger.logMessage("Insufficient message size for ${data[3]}: ${data.size}")
+            return // insufficient buffer size for the message
+        }
 
         val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
         if (destinationMUID != muid && destinationMUID != MidiCIConstants.BROADCAST_MUID_32)
             return // we are not the target
 
+        // catch errors for (potentially) insufficient buffer sizes
+        try {
+            processInputUnchecked(data, destinationMUID)
+        } catch(ex: IndexOutOfBoundsException) {
+            val address = CIRetrieval.midiCIGetAddressing(data)
+            val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+            sendNakForError(address, sourceMUID, data[3], CINakStatus.MalformedMessage, 0, List(5) { 0 }, ex.message ?: ex.toString())
+        }
+    }
+
+    private fun processInputUnchecked(data: List<Byte>, destinationMUID: Int) {
         when (data[3]) {
             // Protocol Negotiation - we ignore them. Falls back to NAK
 

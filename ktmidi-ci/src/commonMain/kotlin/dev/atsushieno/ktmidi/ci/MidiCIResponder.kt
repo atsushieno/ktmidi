@@ -62,6 +62,18 @@ class MidiCIResponder(
         ): Sequence<List<Byte>> = sequenceOf()
     }
 
+    fun sendNakForError(address: Byte, destinationMUID: Int, originalSubId2: Byte, statusCode: Byte, statusData: Byte, details: List<Byte> = List(5) {0}, message: String) {
+        sendNakForError(Message.Nak(address, muid, destinationMUID, originalSubId2, statusCode, statusData, details,
+            MidiCIConverter.encodeStringToASCII(message).toByteArray().toList()))
+    }
+
+    fun sendNakForError(msg: Message.Nak) {
+        logger.logMessage(msg)
+        val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
+        sendOutput(CIFactory.midiCIAckNak(buf, true, msg.address, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID,
+            msg.originalSubId, msg.statusCode, msg.statusData, msg.details, msg.message))
+    }
+
     private var requestIdSerial: Byte = 0
 
     // update property value. It involves updates to subscribers
@@ -428,11 +440,27 @@ class MidiCIResponder(
     fun processInput(data: List<Byte>) {
         if (data[0] != MidiCIConstants.UNIVERSAL_SYSEX || data[2] != MidiCIConstants.SYSEX_SUB_ID_MIDI_CI)
             return // not MIDI-CI sysex
+        if (data.size < Message.COMMON_HEADER_SIZE)
+            return // insufficient buffer size in any case
+        if (data.size < (Message.messageSizes[data[3]] ?: Int.MAX_VALUE)) {
+            logger.logMessage("Insufficient message size for ${data[3]}: ${data.size}")
+            return // insufficient buffer size for the message
+        }
 
         val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
         if (destinationMUID != muid && destinationMUID != MidiCIConstants.BROADCAST_MUID_32)
             return // we are not the target
+        // catch errors for (potentially) insufficient buffer sizes
+        try {
+            processInputUnchecked(data, destinationMUID)
+        } catch(ex: IndexOutOfBoundsException) {
+            val address = CIRetrieval.midiCIGetAddressing(data)
+            val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+            sendNakForError(address, sourceMUID, data[3], CINakStatus.MalformedMessage, 0, List(5) { 0 }, ex.message ?: ex.toString())
+        }
+    }
 
+    private fun processInputUnchecked(data: List<Byte>, destinationMUID: Int) {
         when (data[3]) {
             // Discovery
             CISubId2.DISCOVERY_INQUIRY -> {
