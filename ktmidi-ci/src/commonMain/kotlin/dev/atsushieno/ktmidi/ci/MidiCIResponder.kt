@@ -426,7 +426,7 @@ class MidiCIResponder(
     }
 
     fun processInput(data: List<Byte>) {
-        if (data[0] != 0x7E.toByte() || data[2] != 0xD.toByte())
+        if (data[0] != MidiCIConstants.UNIVERSAL_SYSEX || data[2] != MidiCIConstants.SYSEX_SUB_ID_MIDI_CI)
             return // not MIDI-CI sysex
 
         val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)

@@ -110,7 +110,7 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
         updateButton()
         PropertyColumn("resource") { TextField(resource, { resource = it }, readOnly = readOnly) }
         PropertyColumn("canGet") { Checkbox(canGet, { canGet = it }, enabled = !readOnly) }
-        PropertyColumn("canSet") { TextField(canSet, { canSet = it }, readOnly = readOnly) }
+        PropertyColumn("canSet") { PropertySetAccessSelector(canSet, { canSet = it }, readOnly = readOnly) }
         PropertyColumn("canSubscribe") { Checkbox(canSubscribe, { canSubscribe = it }, enabled = !readOnly) }
         PropertyColumn("requireResId") { Checkbox(requireResId, { requireResId = it }, enabled = !readOnly) }
         PropertyColumn("mediaTypes") { TextField(mediaTypes, { mediaTypes = it }, readOnly = readOnly, minLines = 2) }
@@ -202,7 +202,42 @@ fun PropertyEncodingSelector(encodings: List<String>,
             }
         }
     }
+}
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PropertySetAccessSelector(canSet: String,
+                              onSelectionChange: (String)->Unit,
+                              readOnly: Boolean) {
+    var exposed by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(exposed, { if (!readOnly) exposed = !exposed }) {
+        TextField(
+            modifier = Modifier.menuAnchor(),
+            value = canSet, onValueChange = {},
+            readOnly = true,
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = exposed) },
+            colors = ExposedDropdownMenuDefaults.textFieldColors()
+        )
+        ExposedDropdownMenu(
+            expanded = exposed,
+            onDismissRequest = {
+                exposed = false
+            },
+        ) {
+            // menu items
+            listOf("none", "full", "partial").forEach { canSet ->
+                DropdownMenuItem(
+                    text = { Text(canSet) },
+                    onClick = {
+                        onSelectionChange(canSet)
+                        exposed = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -255,7 +290,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
             if (getPlatform().canReadLocalFile) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Button(onClick = { showFilePicker = !showFilePicker }) {
-                        Text("Commit value via binary File")
+                        Text("Set value by file (choose)")
                     }
                     getPlatform().BinaryFilePicker(showFilePicker) { file ->
                         showFilePicker = false

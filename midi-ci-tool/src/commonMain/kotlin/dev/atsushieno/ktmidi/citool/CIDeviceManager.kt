@@ -28,7 +28,7 @@ class CIDeviceManager(private val midiDeviceManager: MidiDeviceManager) {
                 if (data.size > 3 &&
                     data[start] == Midi1Status.SYSEX.toByte() &&
                     data[start + 1] == MidiCIConstants.UNIVERSAL_SYSEX &&
-                    data[start + 3] == MidiCIConstants.UNIVERSAL_SYSEX_SUB_ID_MIDI_CI
+                    data[start + 3] == MidiCIConstants.SYSEX_SUB_ID_MIDI_CI
                 ) {
                     // it is a MIDI-CI message
                     // FIXME: maybe make it exclusive?

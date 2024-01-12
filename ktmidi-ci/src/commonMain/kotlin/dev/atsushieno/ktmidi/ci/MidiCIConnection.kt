@@ -97,7 +97,7 @@ object MidiCISubscriptionCommand {
 
 object MidiCIConstants {
     const val UNIVERSAL_SYSEX: Byte = 0x7E
-    const val UNIVERSAL_SYSEX_SUB_ID_MIDI_CI: Byte = 0x0D
+    const val SYSEX_SUB_ID_MIDI_CI: Byte = 0x0D
 
     const val CI_VERSION_AND_FORMAT: Byte = 0x2
     const val PROPERTY_EXCHANGE_MAJOR_VERSION: Byte = 0

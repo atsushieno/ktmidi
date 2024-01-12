@@ -66,7 +66,7 @@ object CIFactory {
     ) {
         dst[0] = MidiCIConstants.UNIVERSAL_SYSEX
         dst[1] = address
-        dst[2] = MidiCIConstants.UNIVERSAL_SYSEX_SUB_ID_MIDI_CI
+        dst[2] = MidiCIConstants.SYSEX_SUB_ID_MIDI_CI
         dst[3] = sysexSubId2
         dst[4] = versionAndFormat
         midiCiDirectUint32At(dst, 5, sourceMUID)
