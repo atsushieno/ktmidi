@@ -49,9 +49,12 @@ fun PropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
 )
 
 class CommonRulesPropertyService(logger: Logger, private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
-                                 private val metadataList: MutableList<PropertyMetadata> = mutableListOf<PropertyMetadata>().apply { addAll(
-                                     defaultPropertyList
-                                 ) })
+                                 private val metadataList: MutableList<PropertyMetadata> = mutableListOf<PropertyMetadata>().apply {
+                                     addAll(defaultPropertyList)
+                                 },
+                                 private val channelList: Json.JsonValue? = null,
+                                 private val jsonSchema: Json.JsonValue? = null
+    )
     : CommonRulesPropertyHelper(logger), MidiCIPropertyService {
 
     // MidiCIPropertyService implementation
@@ -195,14 +198,14 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
         val body = when(header.resource) {
             PropertyResourceNames.RESOURCE_LIST -> Json.JsonValue(metadataList.map { it.toJsonValue() })
             PropertyResourceNames.DEVICE_INFO -> getDeviceInfoJson()
-            PropertyResourceNames.CHANNEL_LIST -> Json.JsonValue(mapOf()) // FIXME: implement
-            PropertyResourceNames.JSON_SCHEMA -> Json.JsonValue(mapOf()) // FIXME: implement
+            PropertyResourceNames.CHANNEL_LIST -> channelList
+            PropertyResourceNames.JSON_SCHEMA -> jsonSchema
             else -> {
                 linkedResources[header.resId] ?: values[header.resource]
                     ?: throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")
             }
         }
-        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)), body)
+        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)), body ?: Json.EmptyObject)
     }
 
     fun setPropertyData(headerJson: Json.JsonValue, body: List<Byte>): Result<Json.JsonValue> {

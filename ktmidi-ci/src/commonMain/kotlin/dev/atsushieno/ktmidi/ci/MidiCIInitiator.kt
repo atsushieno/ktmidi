@@ -534,19 +534,19 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
     var processProcessInquiryReply: (msg: Message.ProcessInquiryReply) -> Unit = { msg ->
         logger.logMessage(msg)
         events.processInquiryReplyReceived.forEach { it(msg) }
-        // FIXME: implement the rest of event handler
+        // no particular things to do. Event handlers should be used if any.
     }
 
     var processMidiMessageReportReply: (msg: Message.ProcessMidiMessageReportReply) -> Unit = { msg ->
         logger.logMessage(msg)
         events.midiMessageReportReplyReceived.forEach { it(msg) }
-        // FIXME: implement the rest of event handler
+        // no particular things to do. Event handlers should be used if any.
     }
 
     var processEndOfMidiMessageReport: (msg: Message.ProcessEndOfMidiMessageReport) -> Unit = { msg ->
         logger.logMessage(msg)
         events.endOfMidiMessageReportReceived.forEach { it(msg) }
-        // FIXME: implement the rest of event handler
+        // no particular things to do. Event handlers should be used if any.
     }
 
     // Miscellaneous messages

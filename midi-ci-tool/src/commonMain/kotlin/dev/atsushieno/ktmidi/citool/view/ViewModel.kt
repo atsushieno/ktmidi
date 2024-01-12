@@ -169,7 +169,7 @@ class PropertyValueState(val id: MutableState<String>, val mediaType: MutableSta
     )
 }
 
-// FIXME: remove reference to responder here, it should be accessed via some repository
+// FIXME: replace responder with CIResponderModel. MidiCIResponder should be accessed only via the model in this module.
 class ResponderViewModel(private val responder: MidiCIResponder) {
     // Profile Configuration
     fun selectProfile(profile: MidiCIProfileId) {

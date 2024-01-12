@@ -79,7 +79,6 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
             canPaginate = def.canPaginate
             columns.clear()
             columns.addAll(def.columns)
-            // FIXME: columns too
             prev = def
         }
 
