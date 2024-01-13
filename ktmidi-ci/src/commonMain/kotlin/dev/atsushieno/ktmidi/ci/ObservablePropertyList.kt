@@ -43,8 +43,8 @@ abstract class ObservablePropertyList(protected val internalValues: MutableList<
     }
 }
 
-class ClientObservablePropertyList(values: MutableList<PropertyValue>, private val logger: Logger, private val propertyClient: MidiCIPropertyClient)
-    : ObservablePropertyList(values) {
+class ClientObservablePropertyList(private val logger: Logger, private val propertyClient: MidiCIPropertyClient)
+    : ObservablePropertyList(mutableListOf()) {
     override fun getMetadataList(): List<PropertyMetadata>? = propertyClient.getMetadataList()
 
     override val internalCatalogUpdated: MutableList<() -> Unit>

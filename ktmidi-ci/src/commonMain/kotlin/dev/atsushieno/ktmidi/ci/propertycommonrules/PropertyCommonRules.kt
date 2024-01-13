@@ -3,6 +3,7 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.shl
 import dev.atsushieno.ktmidi.ci.shr
+import kotlinx.serialization.Serializable
 import kotlin.experimental.and
 import kotlin.math.min
 
@@ -180,6 +181,7 @@ object PropertyResourceColumnFields {
     const val TITLE = "title"
 }
 
+@Serializable
 class PropertyResourceColumn {
     var title: String = ""
     var property: String? = null

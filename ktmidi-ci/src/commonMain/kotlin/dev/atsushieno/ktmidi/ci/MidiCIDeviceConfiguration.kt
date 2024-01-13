@@ -26,10 +26,7 @@ class MidiCIInitiatorConfiguration(
     var autoSendProfileInquiry: Boolean = true,
     var autoSendPropertyExchangeCapabilitiesInquiry: Boolean = true,
     var autoSendGetResourceList: Boolean = true,
-    val profiles: MutableList<MidiCIProfile> = mutableListOf()
-) {
-    val properties: MutableList<PropertyValue> = mutableListOf()
-}
+)
 
 @Serializable
 class MidiCIResponderConfiguration(
@@ -42,6 +39,8 @@ class MidiCIResponderConfiguration(
     val profiles: MutableList<MidiCIProfile> = mutableListOf(),
 
     // Property Exchange
+    val propertyValues: MutableList<PropertyValue> = mutableListOf(),
+    val propertyMetadataList: MutableList<PropertyMetadata> = mutableListOf(),
 
     // Process Inquiry
     var processInquirySupportedFeatures: Byte = 0,
@@ -49,5 +48,4 @@ class MidiCIResponderConfiguration(
     var midiMessageReportChannelControllerMessages: Byte = 0,
     var midiMessageReportNoteDataMessages: Byte = 0
 ) {
-    val properties: MutableList<PropertyValue> = mutableListOf()
 }

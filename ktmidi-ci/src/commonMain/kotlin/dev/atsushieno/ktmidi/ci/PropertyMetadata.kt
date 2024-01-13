@@ -1,9 +1,10 @@
 package dev.atsushieno.ktmidi.ci
 
-import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceColumn
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertySetAccess
+import kotlinx.serialization.Serializable
 
+@Serializable
 class PropertyMetadata() {
     enum class Originator {
         SYSTEM,
@@ -17,7 +18,7 @@ class PropertyMetadata() {
     var requireResId: Boolean = false
     var mediaTypes: List<String> = listOf("application/json")
     var encodings: List<String> = listOf("ASCII")
-    var schema: Json.JsonValue? = null
+    var schema: String? = null
     // additional properties for List resources
     var canPaginate: Boolean = false
     var columns: List<PropertyResourceColumn> = listOf()

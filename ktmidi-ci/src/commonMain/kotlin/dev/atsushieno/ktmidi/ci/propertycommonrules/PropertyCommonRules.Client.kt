@@ -176,7 +176,7 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
                     PropertyResourceFields.REQUIRE_RES_ID -> res.requireResId = v.token.type == Json.TokenType.True
                     PropertyResourceFields.ENCODINGS -> res.encodings = v.token.seq.map { e -> e.stringValue }.toList()
                     PropertyResourceFields.MEDIA_TYPE -> res.mediaTypes = v.token.seq.map { e -> e.stringValue }.toList()
-                    PropertyResourceFields.SCHEMA -> res.schema = v
+                    PropertyResourceFields.SCHEMA -> res.schema = Json.getUnescapedString(v)
                     PropertyResourceFields.CAN_PAGINATE -> res.canPaginate = v.token.type == Json.TokenType.True
                     PropertyResourceFields.COLUMNS -> res.columns = v.token.seq.map { c ->
                         val col = PropertyResourceColumn()

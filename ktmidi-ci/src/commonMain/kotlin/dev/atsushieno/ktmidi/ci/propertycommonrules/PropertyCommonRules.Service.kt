@@ -34,7 +34,7 @@ private fun PropertyMetadata.jsonValuePairs() = sequence {
             Json.JsonValue(encodings.map { s -> Json.JsonValue(s) })
         ))
     if (schema != null)
-        yield(Pair(Json.JsonValue(PropertyResourceFields.SCHEMA), schema!!))
+        yield(Pair(Json.JsonValue(PropertyResourceFields.SCHEMA), Json.parse(schema!!)))
     if (canPaginate)
         yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_PAGINATE), if (canPaginate) Json.TrueValue else Json.FalseValue))
     if (columns.any())
@@ -49,9 +49,7 @@ fun PropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
 )
 
 class CommonRulesPropertyService(logger: Logger, private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
-                                 private val metadataList: MutableList<PropertyMetadata> = mutableListOf<PropertyMetadata>().apply {
-                                     addAll(defaultPropertyList)
-                                 },
+                                 private val metadataList: MutableList<PropertyMetadata> = mutableListOf(),
                                  private val channelList: Json.JsonValue? = null,
                                  private val jsonSchema: Json.JsonValue? = null
     )
@@ -64,7 +62,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
         createUpdateNotificationHeaderBytes(subscribeId, if (isUpdatePartial) MidiCISubscriptionCommand.PARTIAL else MidiCISubscriptionCommand.FULL)
 
     override fun getMetadataList(): List<PropertyMetadata> {
-        return metadataList
+        return defaultPropertyList + metadataList
     }
 
     override fun getPropertyData(msg: Message.GetPropertyData) : Result<Message.GetPropertyDataReply> {

@@ -36,14 +36,14 @@ class CIToolRepository(private val lifecycle: Lifecycle, private val stateKeeper
     }
     val logRecorded = mutableListOf<(LogEntry) -> Unit>()
 
-    private var savedSettings = stateKeeper.consume("SavedSettings", SavedSettings.serializer()) ?: SavedSettings()
+    private var savedSettings: SavedSettings = SavedSettings()
     private val savedSettingsInstance: SavedSettings
     val midiDeviceManager = MidiDeviceManager()
     val ciDeviceManager  = CIDeviceManager(midiDeviceManager)
 
-    val common by savedSettings::common
-    val initiator by savedSettings::initiator
-    val recipient by savedSettings::recipient
+    val common by lazy { savedSettings.common }
+    val initiator by lazy { savedSettings.initiator }
+    val recipient by lazy { savedSettings.recipient }
 
     fun setInputDevice(id: String) {
         midiDeviceManager.midiInputDeviceId = id
@@ -53,17 +53,22 @@ class CIToolRepository(private val lifecycle: Lifecycle, private val stateKeeper
         midiDeviceManager.midiOutputDeviceId = id
     }
 
-    fun loadConfig(file: String) {
+    private fun getConfigFromFile(file: String): SavedSettings {
         val bytes = getPlatform().loadFileContent(file)
-        savedSettings = Json.decodeFromString(SavedSettings.serializer(), bytes.decodeToString())
+        return Json.decodeFromString(SavedSettings.serializer(), bytes.decodeToString())
+    }
+    fun loadConfig(file: String) {
+        savedSettings = getConfigFromFile(file)
     }
 
     fun saveConfig(file: String) {
         getPlatform().saveFileContent(file, Json.encodeToString(savedSettings).toByteArray())
     }
 
-    fun loadConfigDefault() = loadConfig("midi-ci-tool.settings.json")
-    fun saveConfigDefault() = saveConfig("midi-ci-tool.settings.json")
+    private val defaultConfigFile = "midi-ci-tool.settings.json"
+    private fun getConfigDefault() = getConfigFromFile((defaultConfigFile))
+    fun loadConfigDefault() = loadConfig(defaultConfigFile)
+    fun saveConfigDefault() = saveConfig(defaultConfigFile)
 
     init {
         lifecycle.subscribe(object : Lifecycle.Callbacks {
@@ -75,7 +80,12 @@ class CIToolRepository(private val lifecycle: Lifecycle, private val stateKeeper
                 println("!!!! Lifecycle onDestroy")
             }
         })
-        stateKeeper.register("SavedSettings", strategy = SavedSettings.serializer()) { savedSettings }
+
+        savedSettings = stateKeeper.consume("SavedSettings", SavedSettings.serializer())
+            ?: try { getConfigDefault() } catch(ex: Exception) { SavedSettings() }
+        stateKeeper.register("SavedSettings", strategy = SavedSettings.serializer()) {
+            try { getConfigDefault() } catch(ex: Exception) { SavedSettings() }
+        }
 
         savedSettingsInstance = instanceKeeper.getOrCreate { savedSettings }
     }

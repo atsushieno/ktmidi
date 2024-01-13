@@ -68,9 +68,9 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
         var productInstanceId: String = "",
         val propertyClient: MidiCIPropertyClient = CommonRulesPropertyClient(parent.logger, parent.muid) { msg -> parent.sendGetPropertyData(msg) }
     ) {
-        val profiles = ObservableProfileList(parent.config.profiles)
+        val profiles = ObservableProfileList(mutableListOf())
 
-        val properties = ClientObservablePropertyList(parent.config.properties, parent.logger, propertyClient)
+        val properties = ClientObservablePropertyList(parent.logger, propertyClient)
 
         private val openRequests = mutableListOf<Message.GetPropertyData>()
         private val pendingSubscriptions = mutableMapOf<Byte,String>()

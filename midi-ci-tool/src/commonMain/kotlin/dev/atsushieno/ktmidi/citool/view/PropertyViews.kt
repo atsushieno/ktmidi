@@ -84,14 +84,6 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
 
         val updateButton = @Composable { if (!readOnly) Button(onClick = {
             schemaParserError = ""
-            val schemaJson = if (schema.isNotBlank()) {
-                try {
-                    Json.parse(schema)
-                } catch(ex: JsonParserException) {
-                    schemaParserError = ex.message ?: "JSON Schema parser error"
-                    return@Button
-                }
-            } else null
             metadataUpdateCommitted(PropertyMetadata().also {
                 it.resource = resource
                 it.canGet = canGet
@@ -100,7 +92,7 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
                 it.requireResId = requireResId
                 it.mediaTypes = mediaTypes.split('\n')
                 it.encodings = encodings.split('\n')
-                it.schema = schemaJson
+                it.schema = schema.ifEmpty { null }
                 it.canPaginate = canPaginate
                 it.columns = columns.toList()
             })

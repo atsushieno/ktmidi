@@ -46,8 +46,8 @@ class MidiCIResponder(
 
     val profiles = ObservableProfileList(config.profiles)
 
-    val propertyService = CommonRulesPropertyService(logger, muid, device)
-    val properties = ServiceObservablePropertyList(config.properties, propertyService)
+    val propertyService = CommonRulesPropertyService(logger, muid, device, config.propertyMetadataList)
+    val properties = ServiceObservablePropertyList(config.propertyValues, propertyService)
     val subscriptions: List<SubscriptionEntry> by propertyService::subscriptions
 
     private val pendingChunkManager = PropertyChunkManager()
