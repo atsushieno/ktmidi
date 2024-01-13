@@ -5,11 +5,15 @@ import com.arkivanov.essenty.instancekeeper.getOrCreate
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.statekeeper.StateKeeper
+import dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration
+import getPlatform
+import io.ktor.utils.io.core.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 expect fun initializeAppModel(context: Any)
 
@@ -32,10 +36,14 @@ class CIToolRepository(private val lifecycle: Lifecycle, private val stateKeeper
     }
     val logRecorded = mutableListOf<(LogEntry) -> Unit>()
 
-    val savedSettings = stateKeeper.consume("SavedSettings", SavedSettings.serializer()) ?: SavedSettings()
+    private var savedSettings = stateKeeper.consume("SavedSettings", SavedSettings.serializer()) ?: SavedSettings()
     private val savedSettingsInstance: SavedSettings
     val midiDeviceManager = MidiDeviceManager()
     val ciDeviceManager  = CIDeviceManager(midiDeviceManager)
+
+    val common by savedSettings::common
+    val initiator by savedSettings::initiator
+    val recipient by savedSettings::recipient
 
     fun setInputDevice(id: String) {
         midiDeviceManager.midiInputDeviceId = id
@@ -44,6 +52,18 @@ class CIToolRepository(private val lifecycle: Lifecycle, private val stateKeeper
     fun setOutputDevice(id: String) {
         midiDeviceManager.midiOutputDeviceId = id
     }
+
+    fun loadConfig(file: String) {
+        val bytes = getPlatform().loadFileContent(file)
+        savedSettings = Json.decodeFromString(SavedSettings.serializer(), bytes.decodeToString())
+    }
+
+    fun saveConfig(file: String) {
+        getPlatform().saveFileContent(file, Json.encodeToString(savedSettings).toByteArray())
+    }
+
+    fun loadConfigDefault() = loadConfig("midi-ci-tool.settings.json")
+    fun saveConfigDefault() = saveConfig("midi-ci-tool.settings.json")
 
     init {
         lifecycle.subscribe(object : Lifecycle.Callbacks {

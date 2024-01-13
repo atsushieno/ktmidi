@@ -70,7 +70,7 @@ class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
     ) {
         val profiles = ObservableProfileList(parent.config.profiles)
 
-        val properties = ClientObservablePropertyList(parent.logger, propertyClient)
+        val properties = ClientObservablePropertyList(parent.config.properties, parent.logger, propertyClient)
 
         private val openRequests = mutableListOf<Message.GetPropertyData>()
         private val pendingSubscriptions = mutableMapOf<Byte,String>()

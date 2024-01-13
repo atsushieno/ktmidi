@@ -6,8 +6,12 @@ import java.nio.file.Path
 class JVMPlatform : Platform {
     override val name: String = "Java ${System.getProperty("java.version")}"
     override val canReadLocalFile = true
-    override fun loadFileContent(path: String): List<Byte> =
-        Files.readAllBytes(Path.of(path)).toList()
+    override fun loadFileContent(path: String): ByteArray =
+        Files.readAllBytes(Path.of(path))
+
+    override fun saveFileContent(path: String, bytes: ByteArray) {
+        Files.write(Path.of(path), bytes)
+    }
 
     @Composable
     override fun BinaryFilePicker(show: Boolean, fileChosen: (String?) -> Unit) =

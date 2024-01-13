@@ -1,14 +1,15 @@
 package dev.atsushieno.ktmidi.ci
 
+import kotlinx.serialization.Serializable
+
 /**
  * Observable list of MIDI-CI Properties. Note that each entry is NOT observable.
  */
 
+@Serializable
 data class PropertyValue(val id: String, val mediaType: String, var body: List<Byte>)
 
-abstract class ObservablePropertyList {
-
-    protected val internalValues = mutableListOf<PropertyValue>()
+abstract class ObservablePropertyList(protected val internalValues: MutableList<PropertyValue>) {
 
     val values: List<PropertyValue>
         get() = internalValues
@@ -42,8 +43,8 @@ abstract class ObservablePropertyList {
     }
 }
 
-class ClientObservablePropertyList(private val logger: Logger, private val propertyClient: MidiCIPropertyClient)
-    : ObservablePropertyList() {
+class ClientObservablePropertyList(values: MutableList<PropertyValue>, private val logger: Logger, private val propertyClient: MidiCIPropertyClient)
+    : ObservablePropertyList(values) {
     override fun getMetadataList(): List<PropertyMetadata>? = propertyClient.getMetadataList()
 
     override val internalCatalogUpdated: MutableList<() -> Unit>
@@ -93,8 +94,8 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
     }
 }
 
-class ServiceObservablePropertyList(private val propertyService: MidiCIPropertyService)
-    : ObservablePropertyList() {
+class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private val propertyService: MidiCIPropertyService)
+    : ObservablePropertyList(values) {
 
     override fun getMetadataList(): List<PropertyMetadata>? = propertyService.getMetadataList()
 

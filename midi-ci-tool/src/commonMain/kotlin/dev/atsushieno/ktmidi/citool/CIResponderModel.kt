@@ -42,7 +42,7 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         responder.properties.removeMetadata(propertyId)
     }
 
-    val responder = MidiCIResponder(AppModel.savedSettings.recipient) { data ->
+    val responder = MidiCIResponder(AppModel.recipient) { data ->
         AppModel.log("[Responder sent SYSEX] " + data.joinToString { it.toString(16) })
         outputSender(data)
     }.apply {

@@ -295,7 +295,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                     getPlatform().BinaryFilePicker(showFilePicker) { file ->
                         showFilePicker = false
                         if (file != null) {
-                            val bytes = getPlatform().loadFileContent(file)
+                            val bytes = getPlatform().loadFileContent(file).toList()
                             commitChangeClicked(bytes, selectedEncoding, false)
                             editing = false
                         }

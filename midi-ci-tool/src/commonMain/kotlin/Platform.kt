@@ -5,7 +5,8 @@ interface Platform {
 
     val canReadLocalFile: Boolean
 
-    fun loadFileContent(path: String): List<Byte>
+    fun loadFileContent(path: String): ByteArray
+    fun saveFileContent(path: String, bytes: ByteArray)
 
     @Composable
     fun BinaryFilePicker(show: Boolean, fileChosen: (String?) -> Unit)

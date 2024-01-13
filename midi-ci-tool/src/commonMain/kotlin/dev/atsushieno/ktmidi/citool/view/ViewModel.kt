@@ -50,7 +50,7 @@ object ViewModel {
 
     val responder = ResponderViewModel(AppModel.ciDeviceManager.responder.responder)
 
-    val settings = ApplicationSettingsViewModel(AppModel.savedSettings.common)
+    val settings = ApplicationSettingsViewModel(AppModel.common)
 
     init {
         AppModel.logRecorded += { logs.add(it) }
@@ -335,5 +335,21 @@ class ApplicationSettingsViewModel(config: MidiCIDeviceConfiguration) {
     fun workaroundJUCEProfileNumChannelsIssue(value: Boolean) {
         ImplementationSettings.workaroundJUCEProfileNumChannelsIssue = value
         workaroundJUCEProfileNumChannelsIssue.value = value
+    }
+
+    fun loadSettingsFile(file: String) {
+        AppModel.loadConfig(file)
+    }
+
+    fun saveSettingsFile(file: String) {
+        AppModel.saveConfig(file)
+    }
+
+    fun loadSettingsFromDefaultFile() {
+        AppModel.loadConfigDefault()
+    }
+
+    fun saveSettingsFromDefaultFile() {
+        AppModel.saveConfigDefault()
     }
 }
