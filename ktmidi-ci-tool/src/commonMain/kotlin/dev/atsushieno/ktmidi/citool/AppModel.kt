@@ -61,7 +61,7 @@ class CIToolRepository {
         getPlatform().saveFileContent(file, Json.encodeToString(savedSettings).toByteArray())
     }
 
-    val defaultConfigFile = "midi-ci-tool.settings.json"
+    val defaultConfigFile = "ktmidi-ci-tool.settings.json"
     private fun getConfigDefault() = getConfigFromFile((defaultConfigFile))
     fun loadConfigDefault() = loadConfig(defaultConfigFile)
     fun saveConfigDefault() = saveConfig(defaultConfigFile)
