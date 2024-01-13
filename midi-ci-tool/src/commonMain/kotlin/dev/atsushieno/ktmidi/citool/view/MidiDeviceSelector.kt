@@ -21,24 +21,29 @@ fun MidiDeviceSelector() {
         Text("By default, it receives MIDI-CI requests on the Virtual In port and sends replies back from the Virtual Out port.")
         Text("But you can also use system MIDI devices as the transports too. Select them here then.")
         Row {
-            MidiDeviceSelector(true, AppModel.midiDeviceManager.midiInput.details, AppModel.midiDeviceManager.midiAccess.inputs.toList())
-            MidiDeviceSelector(false, AppModel.midiDeviceManager.midiOutput.details, AppModel.midiDeviceManager.midiAccess.outputs.toList())
+            var inputDevice by remember { mutableStateOf(AppModel.midiDeviceManager.midiInput.details) }
+            var outputDevice by remember { mutableStateOf(AppModel.midiDeviceManager.midiOutput.details) }
+            MidiDeviceSelector(true, AppModel.midiDeviceManager.midiAccess.inputs.toList(), inputDevice, portChanged = { id ->
+                val newDevice = AppModel.midiDeviceManager.midiAccess.inputs.first { it.id == id }
+                AppModel.setInputDevice(id)
+                inputDevice = newDevice
+            })
+            MidiDeviceSelector(false, AppModel.midiDeviceManager.midiAccess.outputs.toList(), outputDevice, portChanged = { id ->
+                val newDevice = AppModel.midiDeviceManager.midiAccess.outputs.first { it.id == id }
+                AppModel.setOutputDevice(id)
+                outputDevice = newDevice
+            })
         }
     }
 }
 
 @Composable
-private fun MidiDeviceSelector(isInput: Boolean, currentPort: MidiPortDetails?, ports: List<MidiPortDetails>) {
+private fun MidiDeviceSelector(isInput: Boolean, ports: List<MidiPortDetails>, currentPort: MidiPortDetails?, portChanged: (id: String) -> Unit) {
     var dialogState by remember { mutableStateOf(false) }
 
     DropdownMenu(expanded = dialogState, onDismissRequest = { dialogState = false}) {
         val onClick: (String) -> Unit = { id ->
-            if (id.isNotEmpty()) {
-                if (isInput)
-                    AppModel.setInputDevice(id)
-                else
-                    AppModel.setOutputDevice(id)
-            }
+            portChanged(id)
             dialogState = false
         }
         if (ports.any())
