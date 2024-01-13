@@ -23,7 +23,8 @@ import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
 fun ResponderScreen(vm: ResponderViewModel) {
-    Column(Modifier.verticalScroll(rememberScrollState())) {
+    Column(Modifier.verticalScroll(rememberScrollState())
+        .padding(10.dp)) {
         // Profile Configuration
         Text("Profiles", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 

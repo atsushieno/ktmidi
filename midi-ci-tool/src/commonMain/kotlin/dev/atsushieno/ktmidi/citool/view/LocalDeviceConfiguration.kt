@@ -47,7 +47,7 @@ fun LocalDeviceConfiguration(vm: DeviceConfigurationViewModel) {
         it(dev)
         vm.updateDeviceInfo(dev)
     }
-    Column {
+    Column(Modifier.padding(10.dp)) {
         Text("Local Device Configuration", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Text("Note that each ID byte is in 7 bits. Hex more than 80h is invalid.", fontSize = 12.sp)
         Row {

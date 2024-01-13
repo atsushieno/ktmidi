@@ -16,7 +16,7 @@ import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
 fun MidiDeviceSelector() {
-    Column {
+    Column(Modifier.padding(10.dp)) {
         Text("MIDI Transport Settings", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Text("By default, it receives MIDI-CI requests on the Virtual In port and sends replies back from the Virtual Out port.")
         Text("But you can also use system MIDI devices as the transports too. Select them here then.")

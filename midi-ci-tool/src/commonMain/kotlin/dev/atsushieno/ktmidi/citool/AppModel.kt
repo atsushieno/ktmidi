@@ -65,7 +65,7 @@ class CIToolRepository(private val lifecycle: Lifecycle, private val stateKeeper
         getPlatform().saveFileContent(file, Json.encodeToString(savedSettings).toByteArray())
     }
 
-    private val defaultConfigFile = "midi-ci-tool.settings.json"
+    val defaultConfigFile = "midi-ci-tool.settings.json"
     private fun getConfigDefault() = getConfigFromFile((defaultConfigFile))
     fun loadConfigDefault() = loadConfig(defaultConfigFile)
     fun saveConfigDefault() = saveConfig(defaultConfigFile)

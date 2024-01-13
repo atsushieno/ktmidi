@@ -20,7 +20,7 @@ import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 
 @Composable
 fun LogScreen() {
-    Column {
+    Column(Modifier.padding(10.dp)) {
         Button(onClick = { ViewModel.clearLogs() }) {
             Text("Clear")
         }

@@ -329,6 +329,7 @@ class DeviceConfigurationViewModel(private val config: MidiCIDeviceConfiguration
 }
 
 class ApplicationSettingsViewModel(config: MidiCIDeviceConfiguration) {
+    val defaultConfigFile = AppModel.defaultConfigFile
     val device = DeviceConfigurationViewModel(config)
 
     val workaroundJUCEProfileNumChannelsIssue = mutableStateOf(false)

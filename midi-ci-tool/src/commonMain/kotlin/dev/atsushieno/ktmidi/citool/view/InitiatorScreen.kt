@@ -17,7 +17,8 @@ import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 
 @Composable
 fun InitiatorScreen(vm: InitiatorViewModel) {
-    Column(Modifier.verticalScroll(rememberScrollState())) {
+    Column(Modifier.verticalScroll(rememberScrollState())
+        .padding(10.dp)) {
         Row {
             Button(onClick = { vm.sendDiscovery() }) {
                 Text("Send Discovery")
