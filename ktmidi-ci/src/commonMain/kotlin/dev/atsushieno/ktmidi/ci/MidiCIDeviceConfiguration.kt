@@ -1,7 +1,9 @@
 package dev.atsushieno.ktmidi.ci
 
+import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
+@Serializable
 class MidiCIDeviceConfiguration(
     var device: MidiCIDeviceInfo,
     var muid: Int = Random.nextInt() and 0x7F7F7F7F
@@ -13,6 +15,7 @@ class MidiCIDeviceConfiguration(
 }
 
 
+@Serializable
 class MidiCIInitiatorConfiguration(
     val common: MidiCIDeviceConfiguration,
 
@@ -26,7 +29,7 @@ class MidiCIInitiatorConfiguration(
     val profiles: MutableList<MidiCIProfile> = mutableListOf()
 )
 
-
+@Serializable
 class MidiCIResponderConfiguration(
     val common: MidiCIDeviceConfiguration,
 

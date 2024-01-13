@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
+import kotlinx.serialization.Serializable
+
 data class MidiCIProtocolTypeInfo(
     val type: Byte,
     val version: Byte,
@@ -20,11 +22,13 @@ data class MidiCIAckNakData(
 )
 
 // manufacture ID1,2,3 + manufacturer specific 1,2 ... or ... 0x7E, bank, number, version, level.
+@Serializable
 data class MidiCIProfileId(val manuId1OrStandard: Byte = 0x7E, val manuId2OrBank: Byte, val manuId3OrNumber: Byte, val specificInfoOrVersion: Byte, val specificInfoOrLevel: Byte) {
     override fun toString() =
         "${manuId1OrStandard.toString(16)}:${manuId2OrBank.toString(16)}:${manuId3OrNumber.toString(16)}:${specificInfoOrVersion.toString(16)}:${specificInfoOrLevel.toString(16)}"
 }
 
+@Serializable
 data class MidiCIProfile(val profile: MidiCIProfileId, var address: Byte, var enabled: Boolean)
 
 object CIFactory {

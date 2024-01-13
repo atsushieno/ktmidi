@@ -15,6 +15,7 @@ fun SettingsScreen(vm: ApplicationSettingsViewModel) {
     Column(Modifier.verticalScroll(rememberScrollState())) {
         MidiDeviceSelector()
         LocalDeviceConfiguration(vm.device)
+
         Row {
             Checkbox(vm.workaroundJUCEProfileNumChannelsIssue.value,
                 { vm.workaroundJUCEProfileNumChannelsIssue(it) })

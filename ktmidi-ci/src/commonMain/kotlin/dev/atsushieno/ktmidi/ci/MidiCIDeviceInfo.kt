@@ -1,5 +1,8 @@
 package dev.atsushieno.ktmidi.ci
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class MidiCIDeviceInfo(
     var manufacturerId: Int,
     var familyId: Short,

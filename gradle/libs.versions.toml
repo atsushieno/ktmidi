@@ -1,5 +1,5 @@
 [versions]
-agp = "8.2.0"
+agp = "8.2.1"
 android-compileSdk = "34"
 android-minSdk = "23"
 android-targetSdk = "34"
@@ -8,8 +8,7 @@ androidx-appcompat = "1.6.1"
 androidx-core-ktx = "1.12.0"
 androidx-espresso-core = "3.5.1"
 androidx-test-junit = "1.1.5"
-compose = "1.5.4"
-compose-compiler = "1.5.6"
+compose = "1.6.0-rc01"
 compose-plugin = "1.6.0-alpha01"
 junit = "4.13.2"
 kotlin = "1.9.21"
@@ -19,13 +18,14 @@ junit-jupiter-api = "5.9.1"
 kotlin-test-junit = "1.9.0"
 kotlinx-coroutines-core = "1.7.3"
 kotlinx-datetime = "0.5.0"
+kotlinxSerialization = "1.6.2"
 ktor-io = "2.3.7"
 metalava-gradle = "0.2.3"
 mpfilepicker = "3.1.0"
 rtmidi-javacpp = "0.1.3"
 dokka = "1.9.10"
 gradle-javacpp = "1.5.9"
-essenty-stateKeeper = "2.0.0-alpha02"
+essenty = "2.0.0-alpha02"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -50,16 +50,17 @@ kotlinx-coroutines-core-js = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-coroutines-core-wasmjs = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-wasmjs", version.ref = "kotlinx-coroutines-core" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-core" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 ktor-io = { module = "io.ktor:ktor-io", version.ref = "ktor-io" }
 ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor-io" }
 metalava-gradle = { module = "me.tylerbwong.gradle:metalava-gradle", version.ref = "metalava-gradle" }
 mpfilepicker = { module = "com.darkrockstudios:mpfilepicker", version.ref = "mpfilepicker" }
 rtmidi-javacpp = { module = "dev.atsushieno:rtmidi-javacpp", version.ref = "rtmidi-javacpp" }
 rtmidi-javacpp-platform = { module = "dev.atsushieno:rtmidi-javacpp-platform", version.ref = "rtmidi-javacpp" }
-essenty-state-keeper = { module = "com.arkivanov.essenty:state-keeper", version.ref = "essenty-stateKeeper" }
-essenty-instance-keeper = { module = "com.arkivanov.essenty:instance-keeper", version.ref = "essenty-stateKeeper" }
-essenty-instance-keeper-jvm = { module = "com.arkivanov.essenty:instance-keeper-jvm", version.ref = "essenty-stateKeeper" }
-essenty-instance-keeper-android = { module = "com.arkivanov.essenty:instance-keeper-jvm", version.ref = "essenty-stateKeeper" }
+essenty-lifecycle = { module = "com.arkivanov.essenty:lifecycle", version.ref = "essenty" }
+essenty-state-keeper = { module = "com.arkivanov.essenty:state-keeper", version.ref = "essenty" }
+essenty-instance-keeper = { module = "com.arkivanov.essenty:instance-keeper", version.ref = "essenty" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -70,6 +71,7 @@ kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 gradleJavacppBuild = { id = "org.bytedeco.gradle-javacpp-build", version.ref = "gradle-javacpp" }
 gradleJavacppPlatform = { id = "org.bytedeco.gradle-javacpp-platform", version.ref = "gradle-javacpp" }
+kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
 [bundles]
 

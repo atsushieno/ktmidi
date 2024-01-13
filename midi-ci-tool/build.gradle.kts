@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -57,10 +58,13 @@ kotlin {
             implementation(compose.ui)
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
+            implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
             implementation(libs.mpfilepicker)
+            implementation(libs.ktor.io)
             implementation(project(":ktmidi"))
             implementation(project(":ktmidi-ci"))
+            implementation(libs.essenty.lifecycle)
             implementation(libs.essenty.state.keeper)
             implementation(libs.essenty.instance.keeper)
         }

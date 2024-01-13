@@ -7,6 +7,7 @@ plugins {
     id("org.jetbrains.dokka")
     id("maven-publish")
     id("signing")
+    alias(libs.plugins.kotlinSerialization)
     // FIXME: re-enable metalava when we could migrate to Gradle 8.x
     //id("me.tylerbwong.gradle.metalava")
 }
@@ -65,6 +66,8 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.ktor.io)
                 implementation(libs.ktor.utils)
+                implementation(libs.kotlinx.serialization.core)
+                implementation(libs.kotlinx.serialization.json)
             }
         }
         val commonTest by getting {
