@@ -22,14 +22,12 @@ import kotlinx.datetime.Clock
 
 */
 
-class MidiCIInitiator(val config: MidiCIInitiatorConfiguration,
+class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
                       private val sendOutput: (data: List<Byte>) -> Unit
                       ) {
 
     val device: MidiCIDeviceInfo
         get() = config.common.device
-    val muid: Int
-        get() = config.common.muid
 
     class Events {
         val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()

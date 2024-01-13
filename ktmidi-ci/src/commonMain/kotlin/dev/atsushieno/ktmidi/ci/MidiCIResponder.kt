@@ -15,13 +15,12 @@ import kotlin.experimental.and
  *
  */
 class MidiCIResponder(
+    val muid: Int,
     val config: MidiCIResponderConfiguration,
     private val sendOutput: (data: List<Byte>) -> Unit) {
     
     val device: MidiCIDeviceInfo
         get() = config.common.device
-    val muid: Int
-        get() = config.common.muid
 
     class Events {
         val discoveryReceived = mutableListOf<(msg: Message.DiscoveryInquiry) -> Unit>()

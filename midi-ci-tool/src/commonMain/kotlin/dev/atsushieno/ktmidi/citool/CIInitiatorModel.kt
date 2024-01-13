@@ -6,7 +6,7 @@ import kotlin.random.Random
 
 class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     val initiator by lazy {
-        MidiCIInitiator(AppModel.initiator) { data ->
+        MidiCIInitiator(AppModel.muid, AppModel.initiator) { data ->
             AppModel.log("[Initiator sent SYSEX] " + data.joinToString { it.toString(16) } + "\n")
             outputSender(data)
         }.apply {

@@ -4,10 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
 @Serializable
-class MidiCIDeviceConfiguration(
-    var device: MidiCIDeviceInfo,
-    var muid: Int = Random.nextInt() and 0x7F7F7F7F
-    ) {
+class MidiCIDeviceConfiguration(var device: MidiCIDeviceInfo) {
     var capabilityInquirySupported: Byte = MidiCISupportedCategories.THREE_P
     var receivableMaxSysExSize: Int = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
     var maxSimultaneousPropertyRequests: Byte = MidiCIConstants.DEFAULT_MAX_SIMULTANEOUS_PROPERTY_REQUESTS

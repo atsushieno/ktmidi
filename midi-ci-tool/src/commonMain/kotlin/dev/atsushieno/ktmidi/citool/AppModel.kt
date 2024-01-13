@@ -14,6 +14,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlin.random.Random
 
 expect fun initializeAppModel(context: Any)
 
@@ -35,6 +36,8 @@ class CIToolRepository(private val lifecycle: Lifecycle, private val stateKeeper
         logRecorded.forEach { it(entry) }
     }
     val logRecorded = mutableListOf<(LogEntry) -> Unit>()
+
+    val muid: Int = Random.nextInt() and 0x7F7F7F7F
 
     private var savedSettings: SavedSettings = SavedSettings()
     private val savedSettingsInstance: SavedSettings
@@ -73,11 +76,11 @@ class CIToolRepository(private val lifecycle: Lifecycle, private val stateKeeper
     init {
         lifecycle.subscribe(object : Lifecycle.Callbacks {
             override fun onCreate() {
-                println("!!!! Lifecycle onCreate")
+                // FIXME: get this working (it does not now)
             }
 
             override fun onDestroy() {
-                println("!!!! Lifecycle onDestroy")
+                // FIXME: get this working (it does not now)
             }
         })
 

@@ -6,10 +6,9 @@ class TestCIMediator {
 
     private val device = MidiCIDeviceInfo(0, 0, 0, 0,
         "TestDevice", "TestInitiatorFamily", "TestInitiatorModel", "0.0")
-    private val common = MidiCIDeviceConfiguration(device, 19474 and 0x7F7F7F7F)
+    private val common = MidiCIDeviceConfiguration(device)
     private val configI = MidiCIInitiatorConfiguration(common)
     private val configR = MidiCIResponderConfiguration(common)
-    val initiator: MidiCIInitiator = MidiCIInitiator(configI, initiatorSender)
-    val responder: MidiCIResponder =
-        MidiCIResponder(configR, responderSender)
+    val initiator: MidiCIInitiator = MidiCIInitiator(19474 and 0x7F7F7F7F, configI, initiatorSender)
+    val responder: MidiCIResponder = MidiCIResponder(19474 and 0x7F7F7F7F, configR, responderSender)
 }
