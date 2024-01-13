@@ -10,7 +10,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
-fun initializeAppModel(context: Any) { AppModel = CIToolRepository() }
+fun initializeAppModel(context: Any?) { AppModel = CIToolRepository() }
 
 // initializeAppModel() is supposed to initialize this
 lateinit var AppModel: CIToolRepository

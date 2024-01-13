@@ -38,7 +38,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "midi-ci-tool-ios"
+            baseName = "KtMidiCITool"
             isStatic = true
         }
     }

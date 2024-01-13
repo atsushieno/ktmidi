@@ -6,10 +6,10 @@ class IOSPlatform: Platform {
     override val name: String = UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
     override val canReadLocalFile = false
     override fun loadFileContent(path: String): ByteArray =
-        TODO("FIXME: implement")
+        throw IllegalStateException("FIXME: implement")
 
     override fun saveFileContent(path: String, bytes: ByteArray) {
-        TODO("Not yet implemented")
+        throw IllegalStateException("FIXME: implement")
     }
 
     @Composable
