@@ -3,6 +3,8 @@ package dev.atsushieno.ktmidi.citool.view
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
@@ -15,7 +17,7 @@ import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 
 @Composable
 fun InitiatorScreen(vm: InitiatorViewModel) {
-    Column {
+    Column(Modifier.verticalScroll(rememberScrollState())) {
         Row {
             Button(onClick = { vm.sendDiscovery() }) {
                 Text("Send Discovery")

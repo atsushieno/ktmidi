@@ -29,7 +29,7 @@ object FeatureDescription {
 
 @Composable
 fun MainContent() {
-    Column(Modifier.verticalScroll(rememberScrollState())) {
+    Column {
         var tabIndex by remember { mutableStateOf(0) }
 
         val tabs = listOf("Initiator", "Responder", "Logs", "Settings")

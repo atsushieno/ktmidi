@@ -1,8 +1,6 @@
 package dev.atsushieno.ktmidi.citool.view
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -25,17 +23,19 @@ import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
 fun ResponderScreen(vm: ResponderViewModel) {
-    // Profile Configuration
-    Text("Profiles", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    Column(Modifier.verticalScroll(rememberScrollState())) {
+        // Profile Configuration
+        Text("Profiles", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
-    Row {
-        LocalProfileList(vm)
-        val selectedProfile by remember { vm.selectedProfile }
-        val sp = selectedProfile
-        if (sp != null)
-            LocalProfileDetails(vm, sp)
+        Row {
+            LocalProfileList(vm)
+            val selectedProfile by remember { vm.selectedProfile }
+            val sp = selectedProfile
+            if (sp != null)
+                LocalProfileDetails(vm, sp)
+        }
+        LocalPropertyConfiguration(vm)
     }
-    LocalPropertyConfiguration(vm)
 }
 
 @Composable
