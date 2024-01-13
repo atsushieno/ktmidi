@@ -64,9 +64,6 @@ kotlin {
             implementation(libs.ktor.io)
             implementation(project(":ktmidi"))
             implementation(project(":ktmidi-ci"))
-            implementation(libs.essenty.lifecycle)
-            implementation(libs.essenty.state.keeper)
-            implementation(libs.essenty.instance.keeper)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

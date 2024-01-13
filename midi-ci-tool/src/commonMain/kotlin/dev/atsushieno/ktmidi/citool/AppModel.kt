@@ -1,11 +1,5 @@
 package dev.atsushieno.ktmidi.citool
 
-import com.arkivanov.essenty.instancekeeper.InstanceKeeper
-import com.arkivanov.essenty.instancekeeper.getOrCreate
-import com.arkivanov.essenty.lifecycle.Lifecycle
-import com.arkivanov.essenty.lifecycle.LifecycleRegistry
-import com.arkivanov.essenty.statekeeper.StateKeeper
-import dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration
 import getPlatform
 import io.ktor.utils.io.core.*
 import kotlinx.datetime.Clock
@@ -16,7 +10,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.random.Random
 
-expect fun initializeAppModel(context: Any)
+fun initializeAppModel(context: Any) { AppModel = CIToolRepository() }
 
 // initializeAppModel() is supposed to initialize this
 lateinit var AppModel: CIToolRepository
@@ -25,7 +19,7 @@ data class LogEntry(val timestamp: LocalDateTime, val data: Any) {
     override fun toString() = "[${timestamp.time.toString().substring(0, 8)}] $data}"
 }
 
-class CIToolRepository(private val lifecycle: Lifecycle, private val stateKeeper: StateKeeper, instanceKeeper: InstanceKeeper) {
+class CIToolRepository {
 
     private val logs = mutableListOf<LogEntry>()
 
@@ -40,7 +34,6 @@ class CIToolRepository(private val lifecycle: Lifecycle, private val stateKeeper
     val muid: Int = Random.nextInt() and 0x7F7F7F7F
 
     private var savedSettings: SavedSettings = SavedSettings()
-    private val savedSettingsInstance: SavedSettings
     val midiDeviceManager = MidiDeviceManager()
     val ciDeviceManager  = CIDeviceManager(midiDeviceManager)
 
@@ -74,22 +67,6 @@ class CIToolRepository(private val lifecycle: Lifecycle, private val stateKeeper
     fun saveConfigDefault() = saveConfig(defaultConfigFile)
 
     init {
-        lifecycle.subscribe(object : Lifecycle.Callbacks {
-            override fun onCreate() {
-                // FIXME: get this working (it does not now)
-            }
-
-            override fun onDestroy() {
-                // FIXME: get this working (it does not now)
-            }
-        })
-
-        savedSettings = stateKeeper.consume("SavedSettings", SavedSettings.serializer())
-            ?: try { getConfigDefault() } catch(ex: Exception) { SavedSettings() }
-        stateKeeper.register("SavedSettings", strategy = SavedSettings.serializer()) {
-            try { getConfigDefault() } catch(ex: Exception) { SavedSettings() }
-        }
-
-        savedSettingsInstance = instanceKeeper.getOrCreate { savedSettings }
+        savedSettings = try { getConfigDefault() } catch(ex: Exception) { SavedSettings() }
     }
 }
