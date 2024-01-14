@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.util.libsDirectory
 
 plugins {
     kotlin("multiplatform")
@@ -8,19 +9,19 @@ plugins {
 }
 
 kotlin {
-    val hostOs = System.getProperty("os.name")
-    val isArm64 = System.getProperty("os.arch") == "aarch64"
-    val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" && isArm64 -> macosArm64("native")
-        hostOs == "Mac OS X" && !isArm64 -> macosX64("native")
-        hostOs == "Linux" && isArm64 -> linuxArm64("native")
-        hostOs == "Linux" && !isArm64 -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
-    nativeTarget.apply {
-        compilations.getByName("main") {
+    listOf(
+        macosArm64(),
+        macosX64(),
+        /*
+        iosArm64(),
+        iosX64(),
+        iosSimulatorArm64(),
+         */
+        linuxX64(),
+        linuxArm64(),
+        mingwX64(),
+    ).onEach {
+        it.compilations.getByName("main") {
             cinterops {
                 val rtmidi by creating {
                     packageName("dev.atsushieno.rtmidicinterop")
@@ -46,8 +47,6 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
-        val nativeMain by getting
-        val nativeTest by getting
     }
 }
 

@@ -8,4 +8,4 @@ headers = rtmidi/rtmidi_c.h
 #staticLibraries = librtmidi.a
 #libraryPaths = external/rtmidi/dist-shared/lib external/rtmidi/dist-static/lib
 # It seems the relative paths could be resolved as from the top-level build.gradle(.kts).
-linkerOpts = -Lexternal/rtmidi/dist-shared/lib -Lexternal/rtmidi/dist-static/lib -lrtmidi
+linkerOpts = -L../external/rtmidi/dist-shared/lib -L../external/rtmidi/dist-static/lib -lrtmidi

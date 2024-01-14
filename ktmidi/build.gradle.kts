@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
@@ -48,15 +49,35 @@ kotlin {
         }
     }
 
-    iosArm64 { binaries { framework { baseName = "ktmidi" } } }
-    iosX64 { binaries { framework { baseName = "ktmidi" } } }
-    iosSimulatorArm64 { binaries {framework { baseName = "ktmidi" } } }
+    val iosTargets = listOf(
+        iosArm64(),
+        iosX64(),
+        iosSimulatorArm64()
+    ).onEach {
+        it.binaries {
+            framework { baseName = "ktmidi" }
+        }
+    }
 
-    macosArm64()
-    macosX64()
+    val appleTargets = listOf(
+        macosArm64(),
+        macosX64()
+    ) + iosTargets
     linuxArm64()
     linuxX64()
     mingwX64()
+
+    appleTargets.onEach {
+        it.compilations.getByName("main") {
+            cinterops {
+                val coremidi by creating {
+                    defFile = File(project.projectDir, "src/appleMain/coremidi.def")
+                    packageName("dev.atsushieno.ktmidi.coremidi")
+                    compilerOpts("-FCoreMIDI")
+                }
+            }
+        }
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -101,19 +122,25 @@ kotlin {
                 implementation(kotlin("test-js"))
             }
         }
-        val nativeMain by creating
+        val nativeMain by creating { dependsOn(commonMain) }
         val nativeTest by creating
-        val macosArm64Main by getting
-        val macosX64Main by getting
         val linuxArm64Main by getting
         val linuxX64Main by getting
         val mingwX64Main by getting
-        val iosArm64Main by getting
-        val iosArm64Test by getting
-        val iosSimulatorArm64Main by getting
-        val iosSimulatorArm64Test by getting
-        val iosX64Main by getting
-        val iosX64Test by getting
+        val appleMain by creating {
+            dependsOn(nativeMain)
+        }
+        val appleTest by creating { dependsOn(nativeTest) }
+        val macosArm64Main by getting { dependsOn(appleMain) }
+        val macosX64Main by getting { dependsOn(appleMain) }
+        val iosMain by creating { dependsOn(appleMain) }
+        val iosTest by creating { dependsOn(appleTest) }
+        val iosArm64Main by getting { dependsOn(iosMain) }
+        val iosArm64Test by getting { dependsOn(iosTest) }
+        val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
+        val iosSimulatorArm64Test by getting { dependsOn(iosTest) }
+        val iosX64Main by getting { dependsOn(iosMain) }
+        val iosX64Test by getting { dependsOn(iosTest) }
     }
 }
 
