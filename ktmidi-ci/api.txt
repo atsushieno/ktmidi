@@ -16,7 +16,8 @@ package dev.atsushieno.ktmidi.ci {
     method public java.util.List<java.lang.Byte> midiCIEndpointMessage(java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int destinationMUID, byte status);
     method public java.util.List<java.lang.Byte> midiCIEndpointMessageReply(java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int destinationMUID, byte status, java.util.List<java.lang.Byte> informationData);
     method public void midiCIMessageCommon(java.util.List<java.lang.Byte> dst, byte address, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID);
-    method public java.util.List<java.lang.Byte> midiCIMidiMessageReport(java.util.List<java.lang.Byte> dst, boolean isRequest, byte address, int sourceMUID, int destinationMUID, byte messageDataControl, byte systemMessages, byte channelControllerMessages, byte noteDataMessages);
+    method public java.util.List<java.lang.Byte> midiCIMidiMessageReport(java.util.List<java.lang.Byte> dst, byte address, int sourceMUID, int destinationMUID, byte messageDataControl, byte systemMessages, byte channelControllerMessages, byte noteDataMessages);
+    method public java.util.List<java.lang.Byte> midiCIMidiMessageReportReply(java.util.List<java.lang.Byte> dst, byte address, int sourceMUID, int destinationMUID, byte systemMessages, byte channelControllerMessages, byte noteDataMessages);
     method public java.util.List<java.lang.Byte> midiCIProcessInquiryCapabilities(java.util.List<java.lang.Byte> dst, int sourceMUID, int destinationMUID);
     method public java.util.List<java.lang.Byte> midiCIProcessInquiryCapabilitiesReply(java.util.List<java.lang.Byte> dst, int sourceMUID, int destinationMUID, byte features);
     method public void midiCIProfile(java.util.List<java.lang.Byte> dst, int offset, dev.atsushieno.ktmidi.ci.MidiCIProfileId info);
@@ -366,17 +367,15 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   public static final class Message.ProcessMidiMessageReportReply extends dev.atsushieno.ktmidi.ci.Message {
-    ctor public Message.ProcessMidiMessageReportReply(byte address, int sourceMUID, int destinationMUID, byte messageDataControl, byte systemMessages, byte channelControllerMessages, byte noteDataMessages);
+    ctor public Message.ProcessMidiMessageReportReply(byte address, int sourceMUID, int destinationMUID, byte systemMessages, byte channelControllerMessages, byte noteDataMessages);
     method public String getBodyString();
     method public byte getChannelControllerMessages();
     method public String getLabel();
-    method public byte getMessageDataControl();
     method public byte getNoteDataMessages();
     method public byte getSystemMessages();
     property public String bodyString;
     property public final byte channelControllerMessages;
     property public String label;
-    property public final byte messageDataControl;
     property public final byte noteDataMessages;
     property public final byte systemMessages;
   }

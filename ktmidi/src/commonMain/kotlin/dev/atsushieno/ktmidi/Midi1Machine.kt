@@ -14,11 +14,18 @@ class Midi1Machine {
 
     fun processMessage(evt: Midi1Message) {
         when (evt.statusCode.toUnsigned()) {
-            MidiChannelStatus.NOTE_ON ->
-                channels[evt.channel.toUnsigned()].noteVelocity[evt.msb.toUnsigned()] = evt.lsb
-
-            MidiChannelStatus.NOTE_OFF ->
-                channels[evt.channel.toUnsigned()].noteVelocity[evt.msb.toUnsigned()] = 0
+            MidiChannelStatus.NOTE_ON -> {
+                with (channels[evt.channel.toUnsigned()]) {
+                    noteVelocity[evt.msb.toUnsigned()] = evt.lsb
+                    noteOnStatus[evt.msb.toUnsigned()] = true
+                }
+            }
+            MidiChannelStatus.NOTE_OFF -> {
+                with (channels[evt.channel.toUnsigned()]) {
+                    noteVelocity[evt.msb.toUnsigned()] = evt.lsb
+                    noteOnStatus[evt.msb.toUnsigned()] = false
+                }
+            }
             MidiChannelStatus.PAF ->
                 channels[evt.channel.toUnsigned()].pafVelocity[evt.msb.toUnsigned()] = evt.lsb
             MidiChannelStatus.CC -> {
@@ -55,6 +62,7 @@ class Midi1Machine {
 }
 
 class Midi1MachineChannel {
+    val noteOnStatus = BooleanArray(128)
     val noteVelocity = ByteArray(128)
     val pafVelocity = ByteArray(128)
     val controls = ByteArray(128)

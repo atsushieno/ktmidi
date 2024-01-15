@@ -375,14 +375,14 @@ object CIFactory {
     }
 
     fun midiCIMidiMessageReport(
-        dst: MutableList<Byte>, isRequest: Boolean, address: Byte, sourceMUID: Int, destinationMUID: Int,
+        dst: MutableList<Byte>, address: Byte, sourceMUID: Int, destinationMUID: Int,
         messageDataControl: Byte,
         systemMessages: Byte,
         channelControllerMessages: Byte,
         noteDataMessages: Byte
     ) : List<Byte> {
         midiCIMessageCommon(
-            dst, address, if (isRequest) CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT else CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY,
+            dst, address, CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
         dst[13] = messageDataControl
@@ -390,6 +390,23 @@ object CIFactory {
         dst[15] = 0 // reserved for other System Messages
         dst[16] = channelControllerMessages
         dst[17] = noteDataMessages
+        return dst.take(18)
+    }
+
+    fun midiCIMidiMessageReportReply(
+        dst: MutableList<Byte>, address: Byte, sourceMUID: Int, destinationMUID: Int,
+        systemMessages: Byte,
+        channelControllerMessages: Byte,
+        noteDataMessages: Byte
+    ) : List<Byte> {
+        midiCIMessageCommon(
+            dst, address, CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY,
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
+        )
+        dst[13] = systemMessages
+        dst[14] = 0 // reserved for other System Messages
+        dst[15] = channelControllerMessages
+        dst[16] = noteDataMessages
         return dst.take(18)
     }
 

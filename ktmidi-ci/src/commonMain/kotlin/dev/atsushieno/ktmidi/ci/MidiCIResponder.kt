@@ -387,16 +387,15 @@ class MidiCIResponder(
 
     fun getMidiMessageReportReplyFor(msg: Message.ProcessMidiMessageReport) =
         Message.ProcessMidiMessageReportReply(msg.address, muid, msg.sourceMUID,
-            msg.messageDataControl,
             msg.systemMessages and config.midiMessageReportSystemMessages,
             msg.channelControllerMessages and config.midiMessageReportChannelControllerMessages,
             msg.noteDataMessages and config.midiMessageReportNoteDataMessages)
     fun sendMidiMessageReportReply(msg: Message.ProcessMidiMessageReportReply) {
         logger.logMessage(msg, MessageDirection.Out)
         val dst = mutableListOf<Byte>()
-        sendOutput(CIFactory.midiCIMidiMessageReport(dst, false, msg.address,
+        sendOutput(CIFactory.midiCIMidiMessageReportReply(dst, msg.address,
             msg.sourceMUID, msg.destinationMUID,
-            msg.messageDataControl, msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
+            msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
     }
     fun getEndOfMidiMessageReportFor(msg: Message.ProcessMidiMessageReport) =
         Message.ProcessEndOfMidiMessageReport(msg.address, muid, msg.sourceMUID)
@@ -583,6 +582,7 @@ class MidiCIResponder(
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val messageDataControl = data[13]
                 val systemMessages = data[14]
+                // data[15] is reserved
                 val channelControllerMessages = data[16]
                 val noteDataMessages = data[17]
                 processMidiMessageReport(Message.ProcessMidiMessageReport(

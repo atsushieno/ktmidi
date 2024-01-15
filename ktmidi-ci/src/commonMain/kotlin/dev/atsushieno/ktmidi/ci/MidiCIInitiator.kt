@@ -274,7 +274,7 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
     fun sendMidiMessageReportInquiry(msg: Message.ProcessMidiMessageReport) {
         logger.logMessage(msg, MessageDirection.Out)
         val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
-        sendOutput(CIFactory.midiCIMidiMessageReport(buf, true, msg.address, msg.sourceMUID, msg.destinationMUID,
+        sendOutput(CIFactory.midiCIMidiMessageReport(buf, msg.address, msg.sourceMUID, msg.destinationMUID,
             msg.messageDataControl, msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
     }
 
@@ -781,13 +781,13 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
             CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY -> {
                 val address = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                val messageDataControl = data[13]
-                val systemMessages = data[14]
-                val channelControllerMessages = data[16]
-                val noteDataMessages = data[17]
+                val systemMessages = data[13]
+                // data[14] is reserved
+                val channelControllerMessages = data[15]
+                val noteDataMessages = data[16]
                 processMidiMessageReportReply(Message.ProcessMidiMessageReportReply(
                     address, sourceMUID, destinationMUID,
-                    messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
+                    systemMessages, channelControllerMessages, noteDataMessages))
             }
             CISubId2.PROCESS_INQUIRY_END_OF_MIDI_MESSAGE -> {
                 val address = CIRetrieval.midiCIGetAddressing(data)

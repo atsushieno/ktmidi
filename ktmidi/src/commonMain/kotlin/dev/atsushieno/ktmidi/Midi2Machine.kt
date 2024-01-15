@@ -42,11 +42,17 @@ class Midi2Machine {
                 when (evt.statusCode) {
                     MidiChannelStatus.NOTE_ON ->
                         withNoteRangeCheckV1(evt) {
-                            channel(evt.groupAndChannel).noteVelocity[evt.midi1Msb] = (evt.midi1Lsb shl 9).toUShort()
+                            with(channel(evt.groupAndChannel)) {
+                                noteVelocity[evt.midi1Msb] = (evt.midi1Lsb shl 9).toUShort()
+                                noteOnStatus[evt.midi1Msb] = true
+                            }
                         }
                     MidiChannelStatus.NOTE_OFF ->
                         withNoteRangeCheckV1(evt) {
-                            channel(evt.groupAndChannel).noteVelocity[evt.midi1Msb] = 0u
+                            with(channel(evt.groupAndChannel)) {
+                                noteVelocity[evt.midi1Msb] = (evt.midi1Lsb shl 9).toUShort()
+                                noteOnStatus[evt.midi1Msb] = false
+                            }
                         }
                     MidiChannelStatus.PAF ->
                         withNoteRangeCheckV1(evt) {
@@ -85,15 +91,19 @@ class Midi2Machine {
                 when (evt.statusCode) {
                     MidiChannelStatus.NOTE_ON ->
                         withNoteRangeCheckV2(evt) {
-                            channel(evt.groupAndChannel).noteVelocity[evt.midi2Note] = evt.midi2Velocity16.toUShort()
-                            channel(evt.groupAndChannel).noteAttribute[evt.midi2Note] =
-                                evt.midi2NoteAttributeData.toUShort()
-                            channel(evt.groupAndChannel).noteAttributeType[evt.midi2Note] =
-                                evt.midi2NoteAttributeType.toUShort()
+                            with(channel(evt.groupAndChannel)) {
+                                noteOnStatus[evt.midi2Note] = true
+                                noteVelocity[evt.midi2Note] = evt.midi2Velocity16.toUShort()
+                                noteAttribute[evt.midi2Note] = evt.midi2NoteAttributeData.toUShort()
+                                noteAttributeType[evt.midi2Note] = evt.midi2NoteAttributeType.toUShort()
+                            }
                         }
                     MidiChannelStatus.NOTE_OFF ->
                         withNoteRangeCheckV2(evt) {
-                            channel(evt.groupAndChannel).noteVelocity[evt.midi2Note] = 0u
+                            with(channel(evt.groupAndChannel)) {
+                                noteOnStatus[evt.midi2Note] = false
+                                noteVelocity[evt.midi2Note] = 0u
+                            }
                         }
                     MidiChannelStatus.PAF ->
                         withNoteRangeCheckV2(evt) {
@@ -148,6 +158,7 @@ class Midi2Machine {
 
 @OptIn(ExperimentalUnsignedTypes::class)
 class Midi2MachineChannel {
+    val noteOnStatus = Array<Boolean>(128) { false }
     val noteVelocity = Array<UShort>(128) { 0u }
     val noteAttribute = Array<UShort>(128) { 0u }
     val noteAttributeType = Array<UShort>(128) { 0u }

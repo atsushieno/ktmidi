@@ -673,6 +673,7 @@ package dev.atsushieno.ktmidi {
     method public int getCurrentNRPN();
     method public int getCurrentRPN();
     method public dev.atsushieno.ktmidi.DteTarget getDteTarget();
+    method public boolean[] getNoteOnStatus();
     method public byte[] getNoteVelocity();
     method public short[] getNrpns();
     method public byte[] getPafVelocity();
@@ -692,6 +693,7 @@ package dev.atsushieno.ktmidi {
     property public final int currentNRPN;
     property public final int currentRPN;
     property public final dev.atsushieno.ktmidi.DteTarget dteTarget;
+    property public final boolean[] noteOnStatus;
     property public final byte[] noteVelocity;
     property public final short[] nrpns;
     property public final byte[] pafVelocity;

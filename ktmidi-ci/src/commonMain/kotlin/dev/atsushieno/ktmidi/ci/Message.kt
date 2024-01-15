@@ -243,13 +243,12 @@ abstract class Message(protected val common: Common) {
         override val bodyString = "messageDataControl=$messageDataControl, systemMessages=$systemMessages, channelControllerMessages=$channelControllerMessages, noteDataMessages=$noteDataMessages"
     }
     class ProcessMidiMessageReportReply(address: Byte, sourceMUID: Int, destinationMUID: Int,
-                                        val messageDataControl: Byte,
                                         val systemMessages: Byte,
                                         val channelControllerMessages: Byte,
                                         val noteDataMessages: Byte)
         : Message(Common(sourceMUID, destinationMUID, address)) {
         override val label = "ProcessMidiMessageReportReply"
-        override val bodyString = "messageDataControl = $messageDataControl, systemMessages = $systemMessages, channelControllerMessages = $channelControllerMessages, noteDataMessages = $noteDataMessages"
+        override val bodyString = "systemMessages = $systemMessages, channelControllerMessages = $channelControllerMessages, noteDataMessages = $noteDataMessages"
     }
     class ProcessEndOfMidiMessageReport(address: Byte, sourceMUID: Int, destinationMUID: Int)
         : Message(Common(sourceMUID, destinationMUID, address)) {
