@@ -8,8 +8,7 @@ plugins {
     id("maven-publish")
     id("signing")
     alias(libs.plugins.kotlinSerialization)
-    // FIXME: re-enable metalava when we could migrate to Gradle 8.x
-    //id("me.tylerbwong.gradle.metalava")
+    alias(libs.plugins.metalavaPlugin)
 }
 
 kotlin {

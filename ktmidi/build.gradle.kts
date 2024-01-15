@@ -8,8 +8,7 @@ plugins {
     id("org.jetbrains.dokka")
     id("maven-publish")
     id("signing")
-    // FIXME: re-enable metalava when we could migrate to Gradle 8.x
-    //id("me.tylerbwong.gradle.metalava")
+    id("me.tylerbwong.gradle.metalava")
 }
 
 kotlin {
@@ -144,8 +143,7 @@ kotlin {
     }
 }
 
-// FIXME: re-enable metalava when we could migrate to Gradle 8.x
-//metalava {}
+metalava {}
 
 android {
     namespace = "dev.atsushieno.ktmidi"
