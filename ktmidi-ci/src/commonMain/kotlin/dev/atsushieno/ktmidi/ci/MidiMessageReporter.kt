@@ -12,6 +12,8 @@ interface MidiMessageReporter {
      * Return a sequence of MIDI messages (can be split in any number of lists)
      */
     fun reportMidiMessages(
+        groupAddress: Byte,
+        channelAddress: Byte,
         processInquirySupportedFeatures: Byte,
         midiMessageReportSystemMessages: Byte,
         midiMessageReportChannelControllerMessages: Byte,

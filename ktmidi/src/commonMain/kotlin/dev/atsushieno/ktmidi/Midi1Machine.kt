@@ -10,6 +10,8 @@ class Midi1Machine {
     val eventListeners : MutableList<OnMidi1MessageListener>
         get() = messageListeners
 
+    var systemCommon = Midi1SystemCommon()
+
     var channels = Array(16) { Midi1MachineChannel() }
 
     fun processMessage(evt: Midi1Message) {
@@ -59,6 +61,12 @@ class Midi1Machine {
 
         messageListeners.forEach { it.onMessage(evt) }
     }
+}
+
+class Midi1SystemCommon {
+    var mtcQuarterFrame: Byte = 0
+    var songPositionPointer: Short = 0
+    var songSelect: Byte = 0
 }
 
 class Midi1MachineChannel {

@@ -54,6 +54,8 @@ class MidiCIResponder(
     var midiMessageReporter: MidiMessageReporter = object : MidiMessageReporter {
         // stub implementation
         override fun reportMidiMessages(
+            groupAddress: Byte,
+            channelAddress: Byte,
             processInquirySupportedFeatures: Byte,
             midiMessageReportSystemMessages: Byte,
             midiMessageReportChannelControllerMessages: Byte,
@@ -409,6 +411,9 @@ class MidiCIResponder(
 
         // send specified MIDI messages
         midiMessageReporter.reportMidiMessages(
+            // FIXME: Message should come up with group
+            0,
+            msg.address,
             config.processInquirySupportedFeatures,
             config.midiMessageReportSystemMessages,
             config.midiMessageReportChannelControllerMessages,
