@@ -1,7 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import io.ktor.utils.io.core.*
-
 // We store UMP in Big Endian this time.
 data class Ump(val int1: Int, val int2: Int = 0, val int3: Int = 0, val int4: Int = 0) {
     constructor(long1: Long, long2: Long = 0) : this(

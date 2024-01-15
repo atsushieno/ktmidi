@@ -6,8 +6,8 @@ import kotlin.js.JsExport
 class Midi2Track(val messages: MutableList<Ump> = mutableListOf())
 
 @OptIn(ExperimentalJsExport::class)
-@JsExport
 class Midi2Music {
+    @OptIn(ExperimentalJsExport::class)
     @JsExport.Ignore
     internal class UmpDeltaTimeComputer: DeltaTimeComputer<Ump>() {
         // Note that this does not mention any "unit".

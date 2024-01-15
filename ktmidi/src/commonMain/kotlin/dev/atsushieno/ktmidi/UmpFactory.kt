@@ -2,7 +2,6 @@
 
 package dev.atsushieno.ktmidi
 
-import io.ktor.utils.io.core.*
 import kotlin.experimental.and
 
 internal infix fun Byte.shl(n: Int): Int = this.toInt() shl n
@@ -730,10 +729,10 @@ object UmpFactory {
             ((family.toInt() shl 16) + modelNumber),
             softwareRevisionLevel)
 
-    fun endpointNameNotification(name: String) = endpointNameNotification(name.toByteArray())
+    fun endpointNameNotification(name: String) = endpointNameNotification(name.toUtf8ByteArray())
     fun endpointNameNotification(name: ByteArray) = umpStreamTextCommon(3, name)
 
-    fun productInstanceNotification(id: String) = productInstanceNotification(id.toByteArray())
+    fun productInstanceNotification(id: String) = productInstanceNotification(id.toUtf8ByteArray())
     fun productInstanceNotification(id: ByteArray) = umpStreamTextCommon(4, id)
 
     fun streamConfigRequest(protocol: Byte, rxJRTimestamp: Boolean, txJRTimestamp: Boolean) =
@@ -760,7 +759,7 @@ object UmpFactory {
 
     fun functionBlockNameNotification(blockNumber: Byte, name: String): List<Ump> {
         val ret = mutableListOf<Ump>()
-        umpStreamTextProcessCommon(0x12, name.toByteArray(), capacity = 13, dataPrefix = blockNumber) { ump, _ -> ret.add(ump) }
+        umpStreamTextProcessCommon(0x12, name.toUtf8ByteArray(), capacity = 13, dataPrefix = blockNumber) { ump, _ -> ret.add(ump) }
         return ret
     }
 
@@ -797,7 +796,7 @@ object UmpFactory {
     }
 
     fun flexDataText(group: Byte, address: Byte, channel: Byte, statusBank: Byte, status: Byte, text: String) =
-        flexDataText(group, address, channel, statusBank, status, text.toByteArray())
+        flexDataText(group, address, channel, statusBank, status, text.toUtf8ByteArray())
 
     fun flexDataText(group: Byte, address: Byte, channel: Byte, statusBank: Byte, status: Byte, text: ByteArray) : List<Ump> {
         val ret = mutableListOf<Ump>()

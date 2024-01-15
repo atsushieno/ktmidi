@@ -2,7 +2,6 @@ package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyService
 import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
-import io.ktor.utils.io.core.*
 import kotlinx.datetime.Clock
 import kotlin.experimental.and
 
@@ -65,7 +64,7 @@ class MidiCIResponder(
 
     fun sendNakForError(address: Byte, destinationMUID: Int, originalSubId2: Byte, statusCode: Byte, statusData: Byte, details: List<Byte> = List(5) {0}, message: String) {
         sendNakForError(Message.Nak(address, muid, destinationMUID, originalSubId2, statusCode, statusData, details,
-            MidiCIConverter.encodeStringToASCII(message).toByteArray().toList()))
+            MidiCIConverter.encodeStringToASCII(message).toASCIIByteArray().toList()))
     }
 
     fun sendNakForError(msg: Message.Nak) {
@@ -157,7 +156,7 @@ class MidiCIResponder(
         if (prodId.length > 16 || prodId.any { it.code < 0x20 || it.code > 0x7E })
             throw IllegalStateException("productInstanceId shall not be any longer than 16 bytes in size and must be all in ASCII code between 32 and 126")
         Message.EndpointReply(muid, msg.sourceMUID, msg.status,
-            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId.isNotBlank()) prodId.toByteArray().toList() else listOf()
+            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId.isNotBlank()) prodId.toASCIIByteArray().toList() else listOf()
         )
     }
     var processEndpointMessage: (msg: Message.EndpointInquiry) -> Unit = { msg ->

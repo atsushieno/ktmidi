@@ -13,6 +13,18 @@ package dev.atsushieno.ktmidi {
     property public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
   }
 
+  public enum ByteOrder {
+    method public static dev.atsushieno.ktmidi.ByteOrder valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
+    method public static dev.atsushieno.ktmidi.ByteOrder[] values();
+    enum_constant public static final dev.atsushieno.ktmidi.ByteOrder BIG_ENDIAN;
+    enum_constant public static final dev.atsushieno.ktmidi.ByteOrder LITTLE_ENDIAN;
+    field public static final dev.atsushieno.ktmidi.ByteOrder.Companion Companion;
+  }
+
+  public static final class ByteOrder.Companion {
+    method public dev.atsushieno.ktmidi.ByteOrder nativeOrder();
+  }
+
   public final class ChordAlterationType {
     field public static final byte ADD_DEGREE = 16; // 0x10
     field public static final dev.atsushieno.ktmidi.ChordAlterationType INSTANCE;
@@ -1907,12 +1919,12 @@ package dev.atsushieno.ktmidi {
     method public dev.atsushieno.ktmidi.Ump endpointDiscovery(byte umpVersionMajor, byte umpVersionMinor, byte filterBitmap);
     method public dev.atsushieno.ktmidi.Ump endpointInfoNotification(byte umpVersionMajor, byte umpVersionMinor, boolean isStaticFunctionBlock, byte functionBlockCount, boolean midi2Capable, boolean midi1Capable, boolean supportsRxJR, boolean supportsTxJR);
     method public java.util.List<dev.atsushieno.ktmidi.Ump> endpointNameNotification(byte[] name);
-    method public java.util.List<dev.atsushieno.ktmidi.Ump> endpointNameNotification(String name);
+    method public error.NonExistentClass! endpointNameNotification(String name);
     method public dev.atsushieno.ktmidi.Ump flexDataCompleteBinary(byte group, byte address, byte channel, byte statusByte, int int2, optional int int3, optional int int4);
     method public void flexDataProcess(byte group, byte address, byte channel, byte statusBank, byte status, byte[] text, optional Object? context, optional kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.Ump,java.lang.Object,kotlin.Unit> sendUMP128);
     method public java.util.List<dev.atsushieno.ktmidi.Ump> flexDataText(byte group, byte address, byte channel, byte statusBank, byte status, byte[] text);
-    method public java.util.List<dev.atsushieno.ktmidi.Ump> flexDataText(byte group, byte address, byte channel, byte statusBank, byte status, String text);
-    method public Iterable<dev.atsushieno.ktmidi.Ump> fromPlatformBytes(io.ktor.utils.io.core.ByteOrder byteOrder, java.util.List<java.lang.Byte> bytes);
+    method public error.NonExistentClass! flexDataText(byte group, byte address, byte channel, byte statusBank, byte status, String text);
+    method public Iterable<dev.atsushieno.ktmidi.Ump> fromPlatformBytes(dev.atsushieno.ktmidi.ByteOrder byteOrder, java.util.List<java.lang.Byte> bytes);
     method public Iterable<dev.atsushieno.ktmidi.Ump> fromPlatformNativeBytes(java.util.List<java.lang.Byte> bytes);
     method public dev.atsushieno.ktmidi.Ump functionBlockDiscovery(byte fbNumber, byte filter);
     method public dev.atsushieno.ktmidi.Ump functionBlockInfoNotification(boolean isFbActive, byte fbNumber, byte uiHint, byte midi1, byte direction, byte firstGroup, byte numberOfGroupsSpanned, byte midiCIMessageVersionFormat, int maxSysEx8Streams);
@@ -1938,7 +1950,7 @@ package dev.atsushieno.ktmidi {
     method public kotlin.Pair<java.lang.Long,java.lang.Long> mdsGetPayloadOf(byte group, byte mdsId, int numBytes16, java.util.List<java.lang.Byte> srcData, int offset);
     method public void mdsProcess(byte group, byte mdsId, java.util.List<java.lang.Byte> data, optional Object? context, kotlin.jvm.functions.Function5<? super java.lang.Long,? super java.lang.Long,? super java.lang.Integer,? super java.lang.Integer,java.lang.Object,kotlin.Unit> sendUmp);
     method public java.util.List<dev.atsushieno.ktmidi.Ump> metadataText(byte group, byte address, byte channel, byte status, byte[] text);
-    method public java.util.List<dev.atsushieno.ktmidi.Ump> metadataText(byte group, byte address, byte channel, byte status, String text);
+    method public error.NonExistentClass! metadataText(byte group, byte address, byte channel, byte status, String text);
     method public dev.atsushieno.ktmidi.Ump metronome(byte group, byte channel, byte numClocksPerPrimeryClick, byte barAccent1, byte barAccent2, byte barAccent3, byte numSubdivisionClick1, byte numSubdivisionClick2);
     method public int midi1CAf(int group, int channel, byte data);
     method public int midi1CC(int group, int channel, byte index, byte data);
@@ -1972,11 +1984,11 @@ package dev.atsushieno.ktmidi {
     method public int noop();
     method @Deprecated public int noop(int group);
     method public java.util.List<dev.atsushieno.ktmidi.Ump> performanceText(byte group, byte address, byte channel, byte status, byte[] text);
-    method public java.util.List<dev.atsushieno.ktmidi.Ump> performanceText(byte group, byte address, byte channel, byte status, String text);
+    method public error.NonExistentClass! performanceText(byte group, byte address, byte channel, byte status, String text);
     method public int pitch7_9(double pitch);
     method public int pitch7_9Split(byte semitone, double microtone0To1);
     method public java.util.List<dev.atsushieno.ktmidi.Ump> productInstanceNotification(byte[] id);
-    method public java.util.List<dev.atsushieno.ktmidi.Ump> productInstanceNotification(String id);
+    method public error.NonExistentClass! productInstanceNotification(String id);
     method public dev.atsushieno.ktmidi.Ump startOfClip();
     method public dev.atsushieno.ktmidi.Ump streamConfigNotification(byte protocol, boolean rxJRTimestamp, boolean txJRTimestamp);
     method public dev.atsushieno.ktmidi.Ump streamConfigRequest(byte protocol, boolean rxJRTimestamp, boolean txJRTimestamp);
@@ -2163,8 +2175,8 @@ package dev.atsushieno.ktmidi {
     method public static boolean isUmpStream(dev.atsushieno.ktmidi.Ump);
     method public static java.util.List<java.lang.Integer> toInts(dev.atsushieno.ktmidi.Ump);
     method public static void toPlatformBytes(dev.atsushieno.ktmidi.Ump, byte[] bytes, int offset);
-    method public static void toPlatformBytes(dev.atsushieno.ktmidi.Ump, byte[] bytes, int offset, io.ktor.utils.io.core.ByteOrder byteOrder);
-    method public static byte[] toPlatformBytes(dev.atsushieno.ktmidi.Ump, io.ktor.utils.io.core.ByteOrder byteOrder);
+    method public static void toPlatformBytes(dev.atsushieno.ktmidi.Ump, byte[] bytes, int offset, dev.atsushieno.ktmidi.ByteOrder byteOrder);
+    method public static byte[] toPlatformBytes(dev.atsushieno.ktmidi.Ump, dev.atsushieno.ktmidi.ByteOrder byteOrder);
     method public static byte[] toPlatformNativeBytes(dev.atsushieno.ktmidi.Ump);
   }
 
@@ -2279,6 +2291,10 @@ package dev.atsushieno.ktmidi {
     method public void testConvertSingleUmpToMidi1();
     method public void testConvertUmpToMidi1Bytes1();
     method public void testConvertUmpToMidi1Bytes2();
+  }
+
+  public final class UtilityKt {
+    method public static error.NonExistentClass! toUtf8ByteArray(String);
   }
 
   public class VirtualMidiPlayerTimer implements dev.atsushieno.ktmidi.MidiPlayerTimer {

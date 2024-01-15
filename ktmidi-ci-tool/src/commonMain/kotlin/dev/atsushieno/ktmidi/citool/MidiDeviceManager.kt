@@ -5,12 +5,12 @@ import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+//import kotlinx.coroutines.runBlocking
 
 class MidiDeviceManager {
     private val emptyMidiAccess = EmptyMidiAccess()
-    private val emptyMidiInput: MidiInput
-    private val emptyMidiOutput: MidiOutput
+    private lateinit var emptyMidiInput: MidiInput
+    private lateinit var emptyMidiOutput: MidiOutput
     private var midiAccessValue: MidiAccess = emptyMidiAccess
 
     var midiAccess: MidiAccess
@@ -50,7 +50,7 @@ class MidiDeviceManager {
     var midiInputDeviceId: String?
         get() = midiInput.details.id
         set(id) {
-            runBlocking {
+            GlobalScope.launch {
                 midiInput.close()
                 midiInput = if (id != null) midiAccessValue.openInput(id) else emptyMidiInput
                 midiInputOpened.forEach { it(midiInput) }
@@ -60,7 +60,9 @@ class MidiDeviceManager {
     var midiOutputDeviceId: String?
         get() = midiOutput.details.id
         set(id) {
-            runBlocking {
+            // FIXME: it used to be runBlocking(), but replaced for wasmJs support.
+            //  We would probably depend on GUI coroutine context
+            GlobalScope.launch {
                 midiOutput.close()
                 midiOutput = if (id != null) midiAccessValue.openOutput(id) else emptyMidiOutput
                 Snapshot.withMutableSnapshot {
@@ -74,8 +76,8 @@ class MidiDeviceManager {
     var midiInputOpened = mutableListOf<(input: MidiInput) -> Unit>()
     var midiOutputOpened = mutableListOf<(output: MidiOutput) -> Unit>()
 
-    var midiInput: MidiInput
-    var midiOutput: MidiOutput
+    lateinit var midiInput: MidiInput
+    lateinit var midiOutput: MidiOutput
 
     // Ideally, there should be distinct pair of virtual ports for Initiator
     // and Responder, but on some MidiAccess backends (namely RtMidi) creating
@@ -106,13 +108,15 @@ class MidiDeviceManager {
         // suppress warnings (for lack of initialization; runBlocking{} is not regarded as completing synchronously)
         var i: MidiInput? = null
         var o: MidiOutput? = null
-        runBlocking {
+        // FIXME: it used to be runBlocking(), but replaced for wasmJs support.
+        //  We would probably depend on GUI coroutine context
+        GlobalScope.launch {
             i = emptyMidiAccess.openInput(emptyMidiAccess.inputs.first().id)
             o = emptyMidiAccess.openOutput(emptyMidiAccess.outputs.first().id)
+            emptyMidiInput = i!!
+            emptyMidiOutput = o!!
+            midiInput = emptyMidiInput
+            midiOutput = emptyMidiOutput
         }
-        emptyMidiInput = i!!
-        emptyMidiOutput = o!!
-        midiInput = emptyMidiInput
-        midiOutput = emptyMidiOutput
     }
 }

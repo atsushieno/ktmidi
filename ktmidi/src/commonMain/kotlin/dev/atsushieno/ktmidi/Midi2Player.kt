@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.Runnable
 
 internal val Ump.metaEventType : Int

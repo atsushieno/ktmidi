@@ -10,17 +10,17 @@ plugins {
 }
 
 kotlin {
-    /* ktmidi cannot support wasm target yet
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "midi-ci-tool"
+        moduleName = "ktmidi-ci-tool"
         browser {
             commonWebpackConfig {
-                outputFileName = "midi-ci-tool.js"
+                outputFileName = "ktmidi-ci-tool.js"
             }
         }
+        //nodejs {}
         binaries.executable()
-    }*/
+    }
     
     androidTarget {
         compilations.all {
@@ -45,11 +45,12 @@ kotlin {
     
     sourceSets {
         val desktopMain by getting
-        
+
         androidMain.dependencies {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.kotlinx.coroutines.android)
+            implementation(libs.mpfilepicker)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -60,8 +61,7 @@ kotlin {
             implementation(compose.components.resources)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
-            implementation(libs.mpfilepicker)
-            implementation(libs.ktor.io)
+            //implementation(libs.ktor.io)
             implementation(project(":ktmidi"))
             implementation(project(":ktmidi-ci"))
         }
@@ -69,7 +69,18 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(project(":ktmidi-jvm-desktop"))
             implementation(libs.kotlinx.coroutines.swing)
+            implementation(libs.mpfilepicker)
         }
+
+        val iosMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.mpfilepicker)
+            }
+        }
+        val iosX64Main by getting { dependsOn(iosMain) }
+        val iosArm64Main by getting { dependsOn(iosMain) }
+        val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
     }
 }
 

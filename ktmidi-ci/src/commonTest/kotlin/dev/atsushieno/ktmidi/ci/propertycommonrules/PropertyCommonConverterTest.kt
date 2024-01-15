@@ -1,13 +1,13 @@
 package dev.atsushieno.ktmidi.ci.propertycommonrules
 
-import io.ktor.utils.io.core.*
+import dev.atsushieno.ktmidi.ci.toASCIIByteArray
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
 class PropertyCommonConverterTest {
     @Test
     fun encodeToMcoded7() {
-        val input = "{\"foo\": [1,2,3,4,5], \"bar\": [6,7,8,9,0]}\n".toByteArray().toList()
+        val input = "{\"foo\": [1,2,3,4,5], \"bar\": [6,7,8,9,0]}\n".toASCIIByteArray().toList()
         val expected = listOf(
             0x00, 0x7b, 0x22, 0x66, 0x6f, 0x6f, 0x22, 0x3a,
             0x00, 0x20, 0x5b, 0x31, 0x2c, 0x32, 0x2c, 0x33,
@@ -21,7 +21,7 @@ class PropertyCommonConverterTest {
 
     @Test
     fun decodeMcoded7() {
-        val expected = "{\"foo\": [1,2,3,4,5], \"bar\": [6,7,8,9,0]}\n".toByteArray().toList()
+        val expected = "{\"foo\": [1,2,3,4,5], \"bar\": [6,7,8,9,0]}\n".toASCIIByteArray().toList()
         val input = listOf(
             0x00, 0x7b, 0x22, 0x66, 0x6f, 0x6f, 0x22, 0x3a,
             0x00, 0x20, 0x5b, 0x31, 0x2c, 0x32, 0x2c, 0x33,
@@ -59,7 +59,7 @@ class PropertyCommonConverterTest {
     // FIXME: not working
     //@Test
     fun decodeZlib() {
-        val expected = "{\"foo\": [1,2,3,4,5], \"bar\": [6,7,8,9,0]}\n".toByteArray().toList()
+        val expected = "{\"foo\": [1,2,3,4,5], \"bar\": [6,7,8,9,0]}\n".toASCIIByteArray().toList()
         val input = zlibTestVector1
         val actual = PropertyCommonConverter.decodeZlib(input.toByteArray())
         assertContentEquals(expected, actual)
@@ -68,7 +68,7 @@ class PropertyCommonConverterTest {
     // FIXME: not working
     //@Test
     fun encodeZlib() {
-        val input = "{\"foo\": [1,2,3,4,5], \"bar\": [6,7,8,9,0]}\n".toByteArray().toList()
+        val input = "{\"foo\": [1,2,3,4,5], \"bar\": [6,7,8,9,0]}\n".toASCIIByteArray().toList()
         val expected = zlibTestVector1
         val actual = PropertyCommonConverter.encodeZlib(input.toByteArray())
         assertContentEquals(expected, actual)

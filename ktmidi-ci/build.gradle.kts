@@ -12,16 +12,20 @@ plugins {
 }
 
 kotlin {
-    /* we need more deps to support wasm target (in coroutines, ktor-io, datetime, etc.)
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "midi-ci-tool"
+        moduleName = "ktmidi-ci"
         browser {
+            testTask {
+                enabled = false
+                useKarma {
+                    useChromeHeadless()
+                    webpackConfig.cssSupport {}
+                }
+            }
         }
-        nodejs {
-        }
+        //nodejs {}
     }
-    */
 
     jvm {
         compilations.all {
@@ -35,7 +39,7 @@ kotlin {
         publishLibraryVariantsGroupedByFlavor = true
         publishLibraryVariants("debug", "release")
     }
-    js(IR) {
+    js {
         browser {
             testTask {
                 useKarma {
@@ -63,15 +67,15 @@ kotlin {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.ktor.io)
-                implementation(libs.ktor.utils)
+                //implementation(libs.ktor.io)
+                //implementation(libs.ktor.utils)
                 implementation(libs.kotlinx.serialization.core)
                 implementation(libs.kotlinx.serialization.json)
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
+                implementation(kotlin("test"))
                 implementation(kotlin("test-annotations-common"))
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.coroutines.test)
@@ -91,11 +95,7 @@ kotlin {
             }
         }
         val jsMain by getting
-        val jsTest by getting {
-            dependencies {
-                implementation(kotlin("test-js"))
-            }
-        }
+        val jsTest by getting
         val nativeMain by creating
         val nativeTest by creating
         val macosArm64Main by getting
@@ -109,11 +109,12 @@ kotlin {
         val iosSimulatorArm64Test by getting
         val iosX64Main by getting
         val iosX64Test by getting
+        val wasmJsMain by getting
+        val wasmJsTest by getting
     }
 }
 
-// FIXME: re-enable metalava when we could migrate to Gradle 8.x
-//metalava {}
+metalava {}
 
 android {
     namespace = "dev.atsushieno.ktmidi.ci"

@@ -1,7 +1,7 @@
 package dev.atsushieno.ktmidi.ci.json
 
 import dev.atsushieno.ktmidi.ci.MidiCIConverter
-import io.ktor.utils.io.core.*
+import dev.atsushieno.ktmidi.ci.toASCIIByteArray
 
 class JsonParserException(message: String = "JSON parser exception", innerException: Exception? = null) : Exception(message, innerException)
 
@@ -45,7 +45,7 @@ object Json {
                 token.map.firstNotNullOfOrNull { if (it.key.stringValue == key) it.value else null }
             else null
 
-        fun getSerializedBytes() = getEscapedString(serialize(this)).toByteArray().toList()
+        fun getSerializedBytes() = getEscapedString(serialize(this)).toASCIIByteArray().toList()
     }
 
     val NullValue = JsonValue("null", JsonToken(TokenType.Null, 0, 4))

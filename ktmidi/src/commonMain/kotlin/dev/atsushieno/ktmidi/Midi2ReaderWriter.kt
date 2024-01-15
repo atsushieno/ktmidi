@@ -1,7 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import io.ktor.utils.io.core.*
-
 // See docs/MIDI2_FORMATS.md for the normative format reference.
 
 fun Midi2Music.write(stream: MutableList<Byte>) {

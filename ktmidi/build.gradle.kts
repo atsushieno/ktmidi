@@ -12,16 +12,12 @@ plugins {
 }
 
 kotlin {
-    /* we need more deps to support wasm target (in coroutines, ktor-io, datetime, etc.)
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "midi-ci-tool"
-        browser {
-        }
-        nodejs {
-        }
+        moduleName = "ktmidi"
+        browser {}
+        //nodejs {}
     }
-    */
 
     jvm {
         compilations.all {
@@ -83,21 +79,25 @@ kotlin {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.datetime)
-                implementation(libs.ktor.io)
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation(kotlin("test-common"))
+                implementation(kotlin("test"))
                 implementation(kotlin("test-annotations-common"))
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.coroutines.test)
             }
         }
-        val jvmMain by getting
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.ktor.io)
+            }
+        }
         val androidMain by getting {
             dependencies {
                 implementation(libs.androidx.core.ktx)
+                implementation(libs.ktor.io)
             }
         }
         val androidUnitTest by getting {
@@ -114,18 +114,32 @@ kotlin {
         val jsMain by getting {
             dependencies {
                 implementation(npm("jzz", "1.7.7"))
+                implementation(libs.ktor.io)
             }
         }
-        val jsTest by getting {
+        val jsTest by getting
+        val wasmJsMain by getting {
             dependencies {
-                implementation(kotlin("test-js"))
+                implementation(npm("jzz", "1.7.7"))
             }
         }
-        val nativeMain by creating { dependsOn(commonMain) }
+        val wasmJsTest by getting
+        val nativeMain by creating {
+            dependsOn(commonMain)
+            dependencies {
+                implementation(libs.ktor.io)
+            }
+        }
         val nativeTest by creating
-        val linuxArm64Main by getting
-        val linuxX64Main by getting
-        val mingwX64Main by getting
+        val linuxArm64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val linuxX64Main by getting {
+            dependsOn(nativeMain)
+        }
+        val mingwX64Main by getting {
+            dependsOn(nativeMain)
+        }
         val appleMain by creating {
             dependsOn(nativeMain)
         }

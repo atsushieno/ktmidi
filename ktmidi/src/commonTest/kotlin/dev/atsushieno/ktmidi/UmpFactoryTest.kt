@@ -1,6 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import io.ktor.utils.io.core.*
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals

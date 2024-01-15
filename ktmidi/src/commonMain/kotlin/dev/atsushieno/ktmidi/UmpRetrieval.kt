@@ -1,7 +1,5 @@
 package dev.atsushieno.ktmidi
 
-import io.ktor.utils.io.core.*
-
 val Ump.groupByte: Int
     get() = int1 shr 24
 

@@ -3,7 +3,6 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
-import io.ktor.utils.io.core.*
 import kotlin.random.Random
 
 private val defaultPropertyList = listOf(
@@ -74,8 +73,8 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
         val result = getPropertyData(jsonInquiry)
 
-        val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
-        val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
+        val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toASCIIByteArray().toList()
+        val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toASCIIByteArray().toList()
         return Result.success(Message.GetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody))
     }
     override fun setPropertyData(msg: Message.SetPropertyData) : Result<Message.SetPropertyDataReply> {
@@ -89,7 +88,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
         if (result.isFailure)
             return Result.failure(result.exceptionOrNull()!!)
 
-        val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.getOrNull()!!)).toByteArray().toList()
+        val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.getOrNull()!!)).toASCIIByteArray().toList()
         return Result.success(Message.SetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader))
     }
 
@@ -103,8 +102,8 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
         val result = subscribe(msg.sourceMUID, jsonHeader)
 
-        val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toByteArray().toList()
-        val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toByteArray().toList()
+        val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toASCIIByteArray().toList()
+        val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toASCIIByteArray().toList()
         return Result.success(
             Message.SubscribePropertyReply(
                 muid,

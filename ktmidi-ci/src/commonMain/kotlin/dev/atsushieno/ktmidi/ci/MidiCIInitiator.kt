@@ -3,7 +3,6 @@ package dev.atsushieno.ktmidi.ci
 import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyClient
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyExchangeStatus
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
@@ -298,7 +297,7 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
 
     fun sendNakForError(address: Byte, destinationMUID: Int, originalSubId2: Byte, statusCode: Byte, statusData: Byte, details: List<Byte> = List(5) {0}, message: String) {
         sendNakForError(Message.Nak(address, muid, destinationMUID, originalSubId2, statusCode, statusData, details,
-            MidiCIConverter.encodeStringToASCII(message).toByteArray().toList()))
+            MidiCIConverter.encodeStringToASCII(message).toASCIIByteArray().toList()))
     }
 
     fun sendNakForError(msg: Message.Nak) {

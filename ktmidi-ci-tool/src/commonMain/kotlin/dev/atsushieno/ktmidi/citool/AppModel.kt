@@ -2,8 +2,8 @@ package dev.atsushieno.ktmidi.citool
 
 import dev.atsushieno.ktmidi.ci.LogEntry
 import dev.atsushieno.ktmidi.ci.MessageDirection
+import dev.atsushieno.ktmidi.toUtf8ByteArray
 import getPlatform
-import io.ktor.utils.io.core.*
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -56,7 +56,7 @@ class CIToolRepository {
     }
 
     fun saveConfig(file: String) {
-        getPlatform().saveFileContent(file, Json.encodeToString(savedSettings).toByteArray())
+        getPlatform().saveFileContent(file, Json.encodeToString(savedSettings).toUtf8ByteArray())
     }
 
     val defaultConfigFile = "ktmidi-ci-tool.settings.json"

@@ -5,7 +5,7 @@ import dev.atsushieno.ktmidi.ci.MidiCIConverter
 import dev.atsushieno.ktmidi.ci.MidiCISubscriptionCommand
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
-import io.ktor.utils.io.core.*
+import dev.atsushieno.ktmidi.ci.toASCIIByteArray
 
 abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
     fun getPropertyIdentifierInternal(header: List<Byte>): String {
@@ -37,7 +37,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
 
     fun getResourceListRequestBytes(): List<Byte> {
         val json = getResourceListRequestJson()
-        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
+        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toASCIIByteArray().toList()
         return requestASCIIBytes
     }
 
@@ -57,7 +57,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
 
     fun createRequestHeaderBytes(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): List<Byte> {
         val json = createRequestHeaderInternal(resourceIdentifier, encoding, isPartialSet)
-        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
+        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toASCIIByteArray().toList()
         return requestASCIIBytes
     }
 
@@ -81,7 +81,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
 
     fun createSubscribeHeaderBytes(resourceIdentifier: String, mutualEncoding: String?): List<Byte> {
         val json = createSubscribeHeaderInternal(resourceIdentifier, mutualEncoding)
-        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
+        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toASCIIByteArray().toList()
         return requestASCIIBytes
     }
 
@@ -134,7 +134,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
     }
     fun createUpdateNotificationHeaderBytes(subscribeId: String, command: String): List<Byte> {
         val json = createUpdateNotificationHeader(subscribeId, command)
-        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toByteArray().toList()
+        val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toASCIIByteArray().toList()
         return requestASCIIBytes
     }
 }
