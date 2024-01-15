@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.citool
 
+import dev.atsushieno.ktmidi.ci.LogEntry
+import dev.atsushieno.ktmidi.ci.MessageDirection
 import getPlatform
 import io.ktor.utils.io.core.*
 import kotlinx.datetime.Clock
@@ -15,17 +17,13 @@ fun initializeAppModel(context: Any?) { AppModel = CIToolRepository() }
 // initializeAppModel() is supposed to initialize this
 lateinit var AppModel: CIToolRepository
 
-data class LogEntry(val timestamp: LocalDateTime, val data: Any) {
-    override fun toString() = "[${timestamp.time.toString().substring(0, 8)}] $data}"
-}
-
 class CIToolRepository {
 
     private val logs = mutableListOf<LogEntry>()
 
-    fun log(msg: Any, explicitTimestamp: LocalDateTime? = null) {
+    fun log(msg: Any, direction: MessageDirection, explicitTimestamp: LocalDateTime? = null) {
         val time = explicitTimestamp ?: Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-        val entry = LogEntry(time, msg)
+        val entry = LogEntry(time, direction, msg)
         logs.add(entry)
         logRecorded.forEach { it(entry) }
     }

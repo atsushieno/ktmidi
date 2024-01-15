@@ -6,7 +6,8 @@ import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
 
 class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     fun processCIMessage(data: List<Byte>) {
-        AppModel.log("[Responder received SYSEX] " + data.joinToString { it.toString(16) })
+        AppModel.log("[Responder received SYSEX] " + data.joinToString { it.toString(16) },
+            MessageDirection.In)
         responder.processInput(data)
     }
 
@@ -43,7 +44,8 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     }
 
     val responder = MidiCIResponder(AppModel.muid, AppModel.recipient) { data ->
-        AppModel.log("[Responder sent SYSEX] " + data.joinToString { it.toString(16) })
+        AppModel.log("[Responder sent SYSEX] " + data.joinToString { it.toString(16) },
+            MessageDirection.Out)
         outputSender(data)
     }.apply {
         // Profile
@@ -59,8 +61,8 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     }
 
     init {
-        responder.logger.logEventReceived.add {
-            AppModel.log(it)
+        responder.logger.logEventReceived.add { msg, direction ->
+            AppModel.log(msg, direction)
         }
     }
 }

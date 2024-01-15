@@ -7,7 +7,8 @@ import kotlin.random.Random
 class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     val initiator by lazy {
         MidiCIInitiator(AppModel.muid, AppModel.initiator) { data ->
-            AppModel.log("[Initiator sent SYSEX] " + data.joinToString { it.toString(16) } + "\n")
+            AppModel.log("[Initiator sent SYSEX] " + data.joinToString { it.toString(16) },
+                MessageDirection.Out)
             outputSender(data)
         }.apply {
             config.productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
@@ -15,7 +16,8 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     }
 
     fun processCIMessage(data: List<Byte>) {
-        AppModel.log("[Initiator received SYSEX] " + data.joinToString { it.toString(16) })
+        AppModel.log("[Initiator received SYSEX] " + data.joinToString { it.toString(16) },
+            MessageDirection.In)
         initiator.processInput(data)
     }
 
@@ -46,11 +48,9 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
                 //    by the width of the Group or Function Block. Set the Number of Channels Requested field to a value of 0x0000."
                 if (address < 0x10 || ViewModel.settings.workaroundJUCEProfileNumChannelsIssue.value) 1
                 else 0)
-            initiator.logger.logMessage(msg)
             initiator.setProfileOn(msg)
         } else {
             val msg = Message.SetProfileOff(address, initiator.muid, destinationMUID, profile)
-            initiator.logger.logMessage(msg)
             initiator.setProfileOff(msg)
         }
     }
@@ -70,8 +70,8 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     }
 
     init {
-        initiator.logger.logEventReceived.add {
-            AppModel.log(it)
+        initiator.logger.logEventReceived.add { msg, direction ->
+            AppModel.log(msg, direction)
         }
     }
 }

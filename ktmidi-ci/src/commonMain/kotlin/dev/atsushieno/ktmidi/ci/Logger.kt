@@ -1,15 +1,27 @@
 package dev.atsushieno.ktmidi.ci
 
+import kotlinx.datetime.LocalDateTime
+
+enum class MessageDirection {
+    None,
+    In,
+    Out
+}
+
+data class LogEntry(val timestamp: LocalDateTime, val direction: MessageDirection, val data: Any) {
+    override fun toString() = "[${timestamp.time.toString().substring(0, 8)}] $data}"
+}
+
 class Logger {
-    val logEventReceived = mutableListOf<(msg: Any)->Unit>()
+    val logEventReceived = mutableListOf<(msg: Any, direction: MessageDirection)->Unit>()
 
-    fun logMessage(msg: Any) {
-        logEventReceived.forEach { it(msg) }
+    fun logMessage(msg: Any, direction: MessageDirection) {
+        logEventReceived.forEach { it(msg, direction) }
     }
 
-    fun nak(data: List<Byte>) {
-        logMessage("- NAK(${data.joinToString { it.toString(16) }}")
+    fun nak(data: List<Byte>, direction: MessageDirection) {
+        logMessage("- NAK(${data.joinToString { it.toString(16) }}", direction)
     }
 
-    fun logError(message: String) = logMessage("Error: $message")
+    fun logError(message: String) = logMessage("Error: $message", MessageDirection.None)
 }
