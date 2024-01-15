@@ -2,6 +2,7 @@ package dev.atsushieno.ktmidi.citool
 
 import dev.atsushieno.ktmidi.Midi1Status
 import dev.atsushieno.ktmidi.MidiInput
+import dev.atsushieno.ktmidi.ci.MessageDirection
 import dev.atsushieno.ktmidi.ci.MidiCIConstants
 import dev.atsushieno.ktmidi.citool.view.ViewHelper
 
@@ -30,13 +31,17 @@ class CIDeviceManager(private val midiDeviceManager: MidiDeviceManager) {
                     data[start + 1] == MidiCIConstants.UNIVERSAL_SYSEX &&
                     data[start + 3] == MidiCIConstants.SYSEX_SUB_ID_MIDI_CI
                 ) {
+                    val ciMessage = data.drop(start + 1).take(length - 2)
                     // it is a MIDI-CI message
                     // FIXME: maybe make it exclusive?
                     if (isResponder)
-                        responder.processCIMessage(data.drop(start + 1).take(length - 2))
+                        responder.processCIMessage(ciMessage)
                     else
-                        initiator.processCIMessage(data.drop(start + 1).take(length - 2))
+                        initiator.processCIMessage(ciMessage)
                 }
+                else
+                    // it may be part of MIDI Message Report. Log them here.
+                    AppModel.log(data.drop(start).take(length), MessageDirection.In)
             }
         }
     }

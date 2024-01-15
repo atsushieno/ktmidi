@@ -20,6 +20,8 @@ class Midi2Machine {
         eventListeners.remove(listener)
     }
 
+    var systemCommon = Midi1SystemCommon() // They are compatible with MIDI2 protocol
+
     private val channels = mutableMapOf<Int,Midi2MachineChannel>()
     val usedChannels : Iterable<Midi2MachineChannel>
         get() = channels.values
@@ -35,7 +37,6 @@ class Midi2Machine {
     private fun withNoteRangeCheckV1(u: Ump, action: () -> Unit) = if (u.midi1Msb in 0..127) action() else diagnosticsHandler("Note is out of range", u)
     private fun withNoteRangeCheckV2(u: Ump, action: () -> Unit) = if (u.midi2Note in 0..127) action() else diagnosticsHandler("Note is out of range", u)
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     fun processEvent(evt: Ump) {
         when (evt.messageType) {
             MidiMessageType.MIDI1 -> {
@@ -60,24 +61,32 @@ class Midi2Machine {
                         }
                     MidiChannelStatus.CC -> {
                         // FIXME: handle RPNs and NRPNs by DTE
-                        when (evt.midi1Msb) {
-                            MidiCC.NRPN_MSB,
-                            MidiCC.NRPN_LSB ->
-                                channel(evt.groupAndChannel).dteTarget = DteTarget.NRPN
-                            MidiCC.RPN_MSB,
-                            MidiCC.RPN_LSB ->
-                                channel(evt.groupAndChannel).dteTarget = DteTarget.RPN
+                        with(channel(evt.groupAndChannel)) {
+                            when (evt.midi1Msb) {
+                                MidiCC.NRPN_MSB,
+                                MidiCC.NRPN_LSB ->
+                                    dteTarget = DteTarget.NRPN
+                                MidiCC.RPN_MSB,
+                                MidiCC.RPN_LSB ->
+                                    dteTarget = DteTarget.RPN
 
-                            MidiCC.DTE_MSB ->
-                                channel(evt.groupAndChannel).processMidi1Dte(evt.midi1Lsb.toByte(), true)
-                            MidiCC.DTE_LSB ->
-                                channel(evt.groupAndChannel).processMidi1Dte(evt.midi1Lsb.toByte(), false)
-                            MidiCC.DTE_INCREMENT ->
-                                channel(evt.groupAndChannel).processMidi1DteIncrement()
-                            MidiCC.DTE_DECREMENT ->
-                                channel(evt.groupAndChannel).processMidi1DteDecrement()
+                                MidiCC.DTE_MSB ->
+                                    processMidi1Dte(evt.midi1Lsb.toByte(), true)
+                                MidiCC.DTE_LSB ->
+                                    processMidi1Dte(evt.midi1Lsb.toByte(), false)
+                                MidiCC.DTE_INCREMENT ->
+                                    processMidi1DteIncrement()
+                                MidiCC.DTE_DECREMENT ->
+                                    processMidi1DteDecrement()
+                            }
+                            controls[evt.midi1Msb] = (evt.midi1Lsb shl 25).toUInt()
+                            when (evt.midi2CCIndex) {
+                                MidiCC.OMNI_MODE_OFF -> omniMode = false
+                                MidiCC.OMNI_MODE_ON -> omniMode = true
+                                MidiCC.MONO_MODE_ON -> monoPolyMode = false
+                                MidiCC.POLY_MODE_ON -> monoPolyMode = true
+                            }
                         }
-                        channel(evt.groupAndChannel).controls[evt.midi1Msb] = (evt.midi1Lsb shl 25).toUInt()
                     }
                     MidiChannelStatus.PROGRAM ->
                         channel(evt.groupAndChannel).program = evt.midi1Msb.toByte()
@@ -110,7 +119,15 @@ class Midi2Machine {
                             channel(evt.groupAndChannel).pafVelocity[evt.midi2Note] = evt.midi2PAfData
                         }
                     MidiChannelStatus.CC -> {
-                        channel(evt.groupAndChannel).controls[evt.midi2CCIndex] = evt.midi2CCData
+                        with(channel(evt.groupAndChannel)) {
+                            controls[evt.midi2CCIndex] = evt.midi2CCData
+                            when (evt.midi2CCIndex) {
+                                MidiCC.OMNI_MODE_OFF -> omniMode = false
+                                MidiCC.OMNI_MODE_ON -> omniMode = true
+                                MidiCC.MONO_MODE_ON -> monoPolyMode = false
+                                MidiCC.POLY_MODE_ON -> monoPolyMode = true
+                            }
+                        }
                     }
                     MidiChannelStatus.PROGRAM -> {
                         if (evt.midi2ProgramOptions and 1 != 0) {
@@ -156,7 +173,6 @@ class Midi2Machine {
     }
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 class Midi2MachineChannel {
     val noteOnStatus = Array<Boolean>(128) { false }
     val noteVelocity = Array<UShort>(128) { 0u }
@@ -164,6 +180,9 @@ class Midi2MachineChannel {
     val noteAttributeType = Array<UShort>(128) { 0u }
     val pafVelocity = Array<UInt>(128) { 0u }
     val controls = Array<UInt>(128) { 0u }
+    // They need independent flag to indicate which was set currently.
+    var omniMode: Boolean? = null
+    var monoPolyMode: Boolean? = null
     val perNoteRCC = Array(128) { Array<UInt>(128) { 0u } }
     val perNoteACC = Array(128) { Array<UInt>(128) { 0u } }
     val rpns = Array<UInt>(128 * 128) { 0u } // only 5 should be used though...

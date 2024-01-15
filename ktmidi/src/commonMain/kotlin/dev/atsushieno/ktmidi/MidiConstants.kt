@@ -352,7 +352,9 @@ object MidiCC {
     const val ALL_NOTES_OFF = 0x7B
     const val OMNI_MODE_OFF = 0x7C
     const val OMNI_MODE_ON = 0x7D
+    @Deprecated("Use MONO_MODE_ON")
     const val POLY_MODE_OFF = 0x7E
+    const val MONO_MODE_ON = 0x7E
     const val POLY_MODE_ON = 0x7F
 }
 

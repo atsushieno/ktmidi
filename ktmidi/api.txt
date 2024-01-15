@@ -623,6 +623,10 @@ package dev.atsushieno.ktmidi {
     field public static final byte UNKNOWN = 0; // 0x0
   }
 
+  public final class Midi1CIMessageReporterKt {
+    method public static kotlin.sequences.Sequence<java.util.List<java.lang.Byte>> reportMidiMessages(dev.atsushieno.ktmidi.Midi1Machine, byte address, byte messageDataControl, byte midiMessageReportSystemMessages, byte midiMessageReportChannelControllerMessages, byte midiMessageReportNoteDataMessages);
+  }
+
   public final class Midi1CompoundMessage implements dev.atsushieno.ktmidi.Midi1Message {
     ctor public Midi1CompoundMessage(int type, int arg1, int arg2, optional byte[]? extraData, optional int extraOffset, optional int extraLength);
     method public byte[]? getExtraData();
@@ -633,6 +637,15 @@ package dev.atsushieno.ktmidi {
     property public final int extraDataLength;
     property public final int extraDataOffset;
     property public final int value;
+  }
+
+  public final class Midi1ControllerCatalog {
+    ctor public Midi1ControllerCatalog(optional boolean[] enabledRpns, optional boolean[] enabledNrpns);
+    method public void enableAllNrpnMsbs();
+    method public boolean[] getEnabledNrpns();
+    method public boolean[] getEnabledRpns();
+    property public final boolean[] enabledNrpns;
+    property public final boolean[] enabledRpns;
   }
 
   public final class Midi1Event {
@@ -653,13 +666,18 @@ package dev.atsushieno.ktmidi {
   public final class Midi1Machine {
     ctor public Midi1Machine();
     method public dev.atsushieno.ktmidi.Midi1MachineChannel![] getChannels();
+    method public dev.atsushieno.ktmidi.Midi1ControllerCatalog getControllerCatalog();
     method @Deprecated public java.util.List<dev.atsushieno.ktmidi.Midi1Machine.OnMidi1MessageListener> getEventListeners();
     method public java.util.List<dev.atsushieno.ktmidi.Midi1Machine.OnMidi1MessageListener> getMessageListeners();
+    method public dev.atsushieno.ktmidi.Midi1SystemCommon getSystemCommon();
     method public void processMessage(dev.atsushieno.ktmidi.Midi1Message evt);
     method public void setChannels(dev.atsushieno.ktmidi.Midi1MachineChannel![]);
+    method public void setSystemCommon(dev.atsushieno.ktmidi.Midi1SystemCommon);
     property public final dev.atsushieno.ktmidi.Midi1MachineChannel![] channels;
+    property public final dev.atsushieno.ktmidi.Midi1ControllerCatalog controllerCatalog;
     property @Deprecated public final java.util.List<dev.atsushieno.ktmidi.Midi1Machine.OnMidi1MessageListener> eventListeners;
     property public final java.util.List<dev.atsushieno.ktmidi.Midi1Machine.OnMidi1MessageListener> messageListeners;
+    property public final dev.atsushieno.ktmidi.Midi1SystemCommon systemCommon;
   }
 
   public static fun interface Midi1Machine.OnMidi1MessageListener {
@@ -673,19 +691,22 @@ package dev.atsushieno.ktmidi {
     method public int getCurrentNRPN();
     method public int getCurrentRPN();
     method public dev.atsushieno.ktmidi.DteTarget getDteTarget();
+    method public Boolean? getMonoPolyMode();
     method public boolean[] getNoteOnStatus();
     method public byte[] getNoteVelocity();
     method public short[] getNrpns();
+    method public Boolean? getOmniMode();
     method public byte[] getPafVelocity();
     method public short getPitchbend();
     method public byte getProgram();
-    method @Deprecated public short getRpnTarget();
     method public short[] getRpns();
     method public void processDte(byte value, boolean isMsb);
     method public void processDteDecrement();
     method public void processDteIncrement();
     method public void setCaf(byte);
     method public void setDteTarget(dev.atsushieno.ktmidi.DteTarget);
+    method public void setMonoPolyMode(Boolean?);
+    method public void setOmniMode(Boolean?);
     method public void setPitchbend(short);
     method public void setProgram(byte);
     property public final byte caf;
@@ -693,13 +714,14 @@ package dev.atsushieno.ktmidi {
     property public final int currentNRPN;
     property public final int currentRPN;
     property public final dev.atsushieno.ktmidi.DteTarget dteTarget;
+    property public final Boolean? monoPolyMode;
     property public final boolean[] noteOnStatus;
     property public final byte[] noteVelocity;
     property public final short[] nrpns;
+    property public final Boolean? omniMode;
     property public final byte[] pafVelocity;
     property public final short pitchbend;
     property public final byte program;
-    property @Deprecated public final short rpnTarget;
     property public final short[] rpns;
   }
 
@@ -863,6 +885,19 @@ package dev.atsushieno.ktmidi {
     field public static final int SYSEX_END = 247; // 0xf7
   }
 
+  public final class Midi1SystemCommon {
+    ctor public Midi1SystemCommon();
+    method public byte getMtcQuarterFrame();
+    method public short getSongPositionPointer();
+    method public byte getSongSelect();
+    method public void setMtcQuarterFrame(byte);
+    method public void setSongPositionPointer(short);
+    method public void setSongSelect(byte);
+    property public final byte mtcQuarterFrame;
+    property public final short songPositionPointer;
+    property public final byte songSelect;
+  }
+
   public final class Midi1ToUmpTranslatorContext {
     ctor public Midi1ToUmpTranslatorContext(java.util.List<java.lang.Byte> midi1, optional boolean allowReorderedDTE, optional int midiProtocol, int group, optional boolean useSysex8, optional boolean isMidi1Smf);
     method public boolean getAllowReorderedDTE();
@@ -952,12 +987,15 @@ package dev.atsushieno.ktmidi {
     method public dev.atsushieno.ktmidi.Midi2MachineChannel channel(int index);
     method public kotlin.jvm.functions.Function2<java.lang.String,dev.atsushieno.ktmidi.Ump,kotlin.Unit> getDiagnosticsHandler();
     method public java.util.List<dev.atsushieno.ktmidi.Midi2Machine.Listener> getEventListeners();
+    method public dev.atsushieno.ktmidi.Midi1SystemCommon getSystemCommon();
     method public Iterable<dev.atsushieno.ktmidi.Midi2MachineChannel> getUsedChannels();
     method public void processEvent(dev.atsushieno.ktmidi.Ump evt);
     method @Deprecated public void removeListener(dev.atsushieno.ktmidi.Midi2Machine.Listener listener);
     method public void setDiagnosticsHandler(kotlin.jvm.functions.Function2<? super java.lang.String,? super dev.atsushieno.ktmidi.Ump,kotlin.Unit>);
+    method public void setSystemCommon(dev.atsushieno.ktmidi.Midi1SystemCommon);
     property public final kotlin.jvm.functions.Function2<java.lang.String,dev.atsushieno.ktmidi.Ump,kotlin.Unit> diagnosticsHandler;
     property public final java.util.List<dev.atsushieno.ktmidi.Midi2Machine.Listener> eventListeners;
+    property public final dev.atsushieno.ktmidi.Midi1SystemCommon systemCommon;
     property public final Iterable<dev.atsushieno.ktmidi.Midi2MachineChannel> usedChannels;
   }
 
@@ -970,10 +1008,13 @@ package dev.atsushieno.ktmidi {
     method public int getCaf();
     method public kotlin.UInt![] getControls();
     method public dev.atsushieno.ktmidi.DteTarget getDteTarget();
+    method public Boolean? getMonoPolyMode();
     method public kotlin.UShort![] getNoteAttribute();
     method public kotlin.UShort![] getNoteAttributeType();
+    method public Boolean![] getNoteOnStatus();
     method public kotlin.UShort![] getNoteVelocity();
     method public kotlin.UInt![] getNrpns();
+    method public Boolean? getOmniMode();
     method public kotlin.UInt![] getPafVelocity();
     method public kotlin.UInt![]![] getPerNoteACC();
     method public kotlin.UInt![] getPerNotePitchbend();
@@ -986,15 +1027,20 @@ package dev.atsushieno.ktmidi {
     method public void processMidi1DteIncrement();
     method public void setCaf(int);
     method public void setDteTarget(dev.atsushieno.ktmidi.DteTarget);
+    method public void setMonoPolyMode(Boolean?);
+    method public void setOmniMode(Boolean?);
     method public void setPitchbend(int);
     method public void setProgram(byte);
     property public final int caf;
     property public final kotlin.UInt![] controls;
     property public final dev.atsushieno.ktmidi.DteTarget dteTarget;
+    property public final Boolean? monoPolyMode;
     property public final kotlin.UShort![] noteAttribute;
     property public final kotlin.UShort![] noteAttributeType;
+    property public final Boolean![] noteOnStatus;
     property public final kotlin.UShort![] noteVelocity;
     property public final kotlin.UInt![] nrpns;
+    property public final Boolean? omniMode;
     property public final kotlin.UInt![] pafVelocity;
     property public final kotlin.UInt![]![] perNoteACC;
     property public final kotlin.UInt![] perNotePitchbend;
@@ -1180,6 +1226,7 @@ package dev.atsushieno.ktmidi {
     field public static final int LOCAL_CONTROL = 122; // 0x7a
     field public static final int MODULATION = 1; // 0x1
     field public static final int MODULATION_LSB = 33; // 0x21
+    field public static final int MONO_MODE_ON = 126; // 0x7e
     field public static final int NRPN_LSB = 98; // 0x62
     field public static final int NRPN_MSB = 99; // 0x63
     field public static final int OMNI_MODE_OFF = 124; // 0x7c
@@ -1187,7 +1234,7 @@ package dev.atsushieno.ktmidi {
     field public static final int PAN = 10; // 0xa
     field public static final int PAN_LSB = 42; // 0x2a
     field public static final int PHASER = 95; // 0x5f
-    field public static final int POLY_MODE_OFF = 126; // 0x7e
+    field @Deprecated public static final int POLY_MODE_OFF = 126; // 0x7e
     field public static final int POLY_MODE_ON = 127; // 0x7f
     field public static final int PORTAMENTO_CONTROL = 84; // 0x54
     field public static final int PORTAMENTO_SWITCH = 65; // 0x41

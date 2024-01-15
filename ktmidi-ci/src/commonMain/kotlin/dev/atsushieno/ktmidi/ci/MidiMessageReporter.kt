@@ -14,7 +14,7 @@ interface MidiMessageReporter {
     fun reportMidiMessages(
         groupAddress: Byte,
         channelAddress: Byte,
-        processInquirySupportedFeatures: Byte,
+        messageDataControl: Byte,
         midiMessageReportSystemMessages: Byte,
         midiMessageReportChannelControllerMessages: Byte,
         midiMessageReportNoteDataMessages: Byte

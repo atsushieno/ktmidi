@@ -10,58 +10,86 @@ class Midi1Machine {
     val eventListeners : MutableList<OnMidi1MessageListener>
         get() = messageListeners
 
+    val controllerCatalog = Midi1ControllerCatalog()
+
     var systemCommon = Midi1SystemCommon()
 
     var channels = Array(16) { Midi1MachineChannel() }
 
     fun processMessage(evt: Midi1Message) {
+        val ch = evt.channel.toUnsigned()
         when (evt.statusCode.toUnsigned()) {
             MidiChannelStatus.NOTE_ON -> {
-                with (channels[evt.channel.toUnsigned()]) {
+                with (channels[ch]) {
                     noteVelocity[evt.msb.toUnsigned()] = evt.lsb
                     noteOnStatus[evt.msb.toUnsigned()] = true
                 }
             }
             MidiChannelStatus.NOTE_OFF -> {
-                with (channels[evt.channel.toUnsigned()]) {
+                with (channels[ch]) {
                     noteVelocity[evt.msb.toUnsigned()] = evt.lsb
                     noteOnStatus[evt.msb.toUnsigned()] = false
                 }
             }
             MidiChannelStatus.PAF ->
-                channels[evt.channel.toUnsigned()].pafVelocity[evt.msb.toUnsigned()] = evt.lsb
+                channels[ch].pafVelocity[evt.msb.toUnsigned()] = evt.lsb
             MidiChannelStatus.CC -> {
                 // FIXME: handle RPNs and NRPNs by DTE
                 when (evt.msb.toInt()) {
                     MidiCC.NRPN_MSB,
                     MidiCC.NRPN_LSB ->
-                        channels[evt.channel.toUnsigned()].dteTarget = DteTarget.NRPN
+                        channels[ch].dteTarget = DteTarget.NRPN
                     MidiCC.RPN_MSB,
                     MidiCC.RPN_LSB ->
-                        channels[evt.channel.toUnsigned()].dteTarget = DteTarget.RPN
+                        channels[ch].dteTarget = DteTarget.RPN
 
                     MidiCC.DTE_MSB ->
-                        channels[evt.channel.toUnsigned()].processDte(evt.lsb, true)
+                        channels[ch].processDte(evt.lsb, true)
                     MidiCC.DTE_LSB ->
-                        channels[evt.channel.toUnsigned()].processDte(evt.lsb, false)
+                        channels[ch].processDte(evt.lsb, false)
                     MidiCC.DTE_INCREMENT ->
-                        channels[evt.channel.toUnsigned()].processDteIncrement()
+                        channels[ch].processDteIncrement()
                     MidiCC.DTE_DECREMENT ->
-                        channels[evt.channel.toUnsigned()].processDteDecrement()
+                        channels[ch].processDteDecrement()
                 }
-                channels[evt.channel.toUnsigned()].controls[evt.msb.toUnsigned()] = evt.lsb
+                channels[ch].controls[evt.msb.toUnsigned()] = evt.lsb
+                when (evt.msb.toUnsigned()) {
+                    MidiCC.OMNI_MODE_OFF -> channels[ch].omniMode = false
+                    MidiCC.OMNI_MODE_ON -> channels[ch].omniMode = true
+                    MidiCC.MONO_MODE_ON -> channels[ch].monoPolyMode = false
+                    MidiCC.POLY_MODE_ON -> channels[ch].monoPolyMode = true
+                }
             }
             MidiChannelStatus.PROGRAM ->
-                channels[evt.channel.toUnsigned()].program = evt.msb
+                channels[ch].program = evt.msb
             MidiChannelStatus.CAF ->
-                channels[evt.channel.toUnsigned()].caf = evt.msb
+                channels[ch].caf = evt.msb
             MidiChannelStatus.PITCH_BEND ->
-                channels[evt.channel.toUnsigned()].pitchbend = ((evt.msb.toUnsigned() shl 7) + evt.lsb).toShort()
+                channels[ch].pitchbend = ((evt.msb.toUnsigned() shl 7) + evt.lsb).toShort()
         }
 
         messageListeners.forEach { it.onMessage(evt) }
     }
 }
+
+private val midi1StandardRpnEnabled = BooleanArray(0x80 * 0x80) { false }.apply {
+    this[MidiRpn.PITCH_BEND_SENSITIVITY] = true
+    this[MidiRpn.FINE_TUNING] = true
+    this[MidiRpn.COARSE_TUNING] = true
+    this[MidiRpn.TUNING_PROGRAM] = true
+    this[MidiRpn.TUNING_BANK_SELECT] = true
+    this[MidiRpn.MODULATION_DEPTH] = true
+}
+
+class Midi1ControllerCatalog(
+    val enabledRpns: BooleanArray = midi1StandardRpnEnabled.copyOf(),
+    val enabledNrpns: BooleanArray = BooleanArray(0x80 * 0x80) { false }
+) {
+    fun enableAllNrpnMsbs() {
+        (0 until 0x80).forEach { enabledNrpns[it * 0x80] = true }
+    }
+}
+
 
 class Midi1SystemCommon {
     var mtcQuarterFrame: Byte = 0
@@ -74,6 +102,9 @@ class Midi1MachineChannel {
     val noteVelocity = ByteArray(128)
     val pafVelocity = ByteArray(128)
     val controls = ByteArray(128)
+    // They need independent flag to indicate which was set currently.
+    var omniMode: Boolean? = null
+    var monoPolyMode: Boolean? = null
     // They store values sent by DTE (MSB+LSB), per index (MSB+LSB)
     val rpns = ShortArray(128 * 128) // only 5 should be used though
     val nrpns = ShortArray(128 * 128)
@@ -82,10 +113,6 @@ class Midi1MachineChannel {
     var pitchbend: Short = 8192
     var dteTarget: DteTarget = DteTarget.RPN
     private var dte_target_value: Byte = 0
-
-    @Deprecated("Use currentRPN (of Int type)")
-    val rpnTarget: Short
-        get() = ((controls[MidiCC.RPN_MSB].toUnsigned() shl 7) + controls[MidiCC.RPN_LSB]).toShort()
 
     val currentRPN: Int
         get() = ((controls[MidiCC.RPN_MSB].toUnsigned() shl 7) + controls[MidiCC.RPN_LSB])

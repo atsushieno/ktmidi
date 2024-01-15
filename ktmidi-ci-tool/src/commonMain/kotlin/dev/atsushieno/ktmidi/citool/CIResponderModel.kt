@@ -64,5 +64,6 @@ class CIResponderModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
         responder.logger.logEventReceived.add { msg, direction ->
             AppModel.log(msg, direction)
         }
+        responder.midiMessageReporter = Midi1MessageReporter(outputSender)
     }
 }

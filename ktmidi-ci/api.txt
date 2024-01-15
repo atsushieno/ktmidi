@@ -1216,7 +1216,7 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   public interface MidiMessageReporter {
-    method public kotlin.sequences.Sequence<java.util.List<java.lang.Byte>> reportMidiMessages(byte groupAddress, byte channelAddress, byte processInquirySupportedFeatures, byte midiMessageReportSystemMessages, byte midiMessageReportChannelControllerMessages, byte midiMessageReportNoteDataMessages);
+    method public kotlin.sequences.Sequence<java.util.List<java.lang.Byte>> reportMidiMessages(byte groupAddress, byte channelAddress, byte messageDataControl, byte midiMessageReportSystemMessages, byte midiMessageReportChannelControllerMessages, byte midiMessageReportNoteDataMessages);
   }
 
   public final class ObservableProfileList {
