@@ -22,7 +22,7 @@ package dev.atsushieno.ktmidi {
   }
 
   public static final class ByteOrder.Companion {
-    method public dev.atsushieno.ktmidi.ByteOrder nativeOrder();
+    method public error.NonExistentClass! nativeOrder();
   }
 
   public final class ChordAlterationType {

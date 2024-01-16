@@ -5,8 +5,8 @@ enum class ByteOrder {
     BIG_ENDIAN;
 
     companion object {
-        // FIXME: implement
-        fun nativeOrder() = LITTLE_ENDIAN
+        // FIXME: replace this with ktor-io ByteOrder.nativeOrder() once it gets ready for wasmJs target
+        fun nativeOrder() = nativeByteOrder()
     }
 }
 
@@ -14,3 +14,5 @@ enum class ByteOrder {
 fun String.toUtf8ByteArray() = stringToByteArray(this)
 
 internal expect fun stringToByteArray(s: String): ByteArray
+
+internal expect fun nativeByteOrder(): ByteOrder
