@@ -119,6 +119,12 @@ data class PortCreatorContext(
 // MidiAccess implementation.
 
 class EmptyMidiAccess : MidiAccess() {
+    companion object {
+        // They are exposed so that they could be accessed in non-blocking context
+        //  that is mandatory in Kotlin/Wasm etc.
+        val input: MidiInput = EmptyMidiInput.instance
+        val output: MidiOutput = EmptyMidiOutput.instance
+    }
     override val name: String
         get() = "(EMPTY)"
 
@@ -128,15 +134,15 @@ class EmptyMidiAccess : MidiAccess() {
         get() = arrayListOf(EmptyMidiOutput.instance.details)
 
     override suspend fun openInput(portId: String): MidiInput {
-        if (portId != EmptyMidiInput.instance.details.id)
+        if (portId != input.details.id)
             throw IllegalArgumentException("Port ID $portId does not exist.")
-        return EmptyMidiInput.instance
+        return input
     }
 
     override suspend fun openOutput(portId: String): MidiOutput {
-        if (portId != EmptyMidiOutput.instance.details.id)
+        if (portId != output.details.id)
             throw IllegalArgumentException("Port ID $portId does not exist.")
-        return EmptyMidiOutput.instance
+        return output
     }
 }
 

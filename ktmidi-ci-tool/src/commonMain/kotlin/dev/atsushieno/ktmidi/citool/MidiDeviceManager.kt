@@ -105,18 +105,9 @@ class MidiDeviceManager {
     }
 
     init {
-        // suppress warnings (for lack of initialization; runBlocking{} is not regarded as completing synchronously)
-        var i: MidiInput? = null
-        var o: MidiOutput? = null
-        // FIXME: it used to be runBlocking(), but replaced for wasmJs support.
-        //  We would probably depend on GUI coroutine context
-        GlobalScope.launch {
-            i = emptyMidiAccess.openInput(emptyMidiAccess.inputs.first().id)
-            o = emptyMidiAccess.openOutput(emptyMidiAccess.outputs.first().id)
-            emptyMidiInput = i!!
-            emptyMidiOutput = o!!
-            midiInput = emptyMidiInput
-            midiOutput = emptyMidiOutput
-        }
+        emptyMidiInput = EmptyMidiAccess.input
+        emptyMidiOutput = EmptyMidiAccess.output
+        midiInput = EmptyMidiAccess.input
+        midiOutput = EmptyMidiAccess.output
     }
 }
