@@ -129,6 +129,14 @@ package dev.atsushieno.ktmidi {
     property public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
     property public String name;
     property public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
+    field public static final dev.atsushieno.ktmidi.EmptyMidiAccess.Companion Companion;
+  }
+
+  public static final class EmptyMidiAccess.Companion {
+    method public dev.atsushieno.ktmidi.MidiInput getInput();
+    method public dev.atsushieno.ktmidi.MidiOutput getOutput();
+    property public final dev.atsushieno.ktmidi.MidiInput input;
+    property public final dev.atsushieno.ktmidi.MidiOutput output;
   }
 
   public final class FlexDataAddress {
@@ -2308,6 +2316,22 @@ package dev.atsushieno.ktmidi {
     method public suspend Object? waitBySeconds(double addedSeconds, kotlin.coroutines.Continuation<? super kotlin.Unit>);
     property public final double totalProceededSeconds;
     property public final double totalWaitedSeconds;
+  }
+
+  public final class WebMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
+    ctor public WebMidiAccess();
+    method public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
+    method public String getName();
+    method public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
+    method public suspend Object? openInput(String portId, kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput>);
+    method public suspend Object? openOutput(String portId, kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput>);
+    property public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
+    property public String name;
+    property public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
+  }
+
+  public final class WebMidiAccessKt {
+    method public static void processRequestMidiAccess();
   }
 
   public final class WellKnownNames {
