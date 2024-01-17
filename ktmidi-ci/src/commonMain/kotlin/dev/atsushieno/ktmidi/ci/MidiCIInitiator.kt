@@ -57,6 +57,14 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
 
     val logger = Logger()
 
+    enum class SubscriptionActionState {
+        Subscribing,
+        Subscribed,
+        Unsubscribing,
+        Unsubscribed
+    }
+    data class Subscription(var pendingRequestId: Byte?, var subscriptionId: String?, val propertyId: String, var state: SubscriptionActionState)
+
     class Connection(
         private val parent: MidiCIInitiator,
         val targetMUID: Int,
@@ -65,12 +73,14 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
         var productInstanceId: String = "",
         val propertyClient: MidiCIPropertyClient = CommonRulesPropertyClient(parent.logger, parent.muid) { msg -> parent.sendGetPropertyData(msg) }
     ) {
+
         val profiles = ObservableProfileList(mutableListOf())
 
         val properties = ClientObservablePropertyList(parent.logger, propertyClient)
 
         private val openRequests = mutableListOf<Message.GetPropertyData>()
-        private val pendingSubscriptions = mutableMapOf<Byte,String>()
+        val subscriptions = mutableListOf<Subscription>()
+        val subscriptionUpdated = mutableListOf<(sub: Subscription)->Unit>()
 
         val pendingChunkManager = PropertyChunkManager()
 
@@ -99,12 +109,64 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
         fun addPendingRequest(msg: Message.GetPropertyData) {
             openRequests.add(msg)
         }
-        fun addPendingSubscription(requestId: Byte, propertyId: String) {
-            pendingSubscriptions[requestId] = propertyId
+        fun addPendingSubscription(requestId: Byte, subscriptionId: String?, propertyId: String) {
+            val sub = Subscription(requestId, subscriptionId, propertyId, SubscriptionActionState.Subscribing)
+            subscriptions.add(sub)
+            subscriptionUpdated.forEach { it(sub) }
         }
 
-        fun removePendingSubscription(requestId: Byte): String? =
-            pendingSubscriptions.remove(requestId)
+        fun promoteSubscriptionAsUnsubscribing(propertyId: String, newRequestId: Byte) {
+            val sub = subscriptions.firstOrNull { it.propertyId == propertyId }
+            if (sub == null) {
+                parent.logger.logError("Cannot unsubscribe property as not found: $propertyId")
+                return
+            }
+            if (sub.state == SubscriptionActionState.Unsubscribing) {
+                parent.logger.logError("Unsubscription for the property is already underway (property: ${sub.propertyId}, subscriptionId: ${sub.subscriptionId}, state: ${sub.state})")
+                return
+            }
+            sub.pendingRequestId = newRequestId
+            sub.state = SubscriptionActionState.Unsubscribing
+            subscriptionUpdated.forEach { it(sub) }
+        }
+
+        fun processPropertySubscriptionReply(msg: Message.SubscribePropertyReply) {
+            val subscriptionId = propertyClient.getSubscriptionId(msg.header)
+            if (subscriptionId == null) {
+                parent.logger.logError("Subscription ID is missing in the Reply to Subscription message. requestId: ${msg.requestId}")
+                if (!ImplementationSettings.workaroundJUCEMissingSubscriptionIdIssue)
+                    return
+            }
+            val sub = subscriptions.firstOrNull { subscriptionId == it.subscriptionId }
+                ?: subscriptions.firstOrNull { it.pendingRequestId == msg.requestId }
+            if (sub == null) {
+                parent.logger.logError("There was no pending subscription that matches subscribeId ($subscriptionId) or requestId (${msg.requestId})")
+                return
+            }
+
+            when (sub.state) {
+                SubscriptionActionState.Subscribed,
+                SubscriptionActionState.Unsubscribed -> {
+                    parent.logger.logError("Received Subscription Reply, but it is unexpected (property: ${sub.propertyId}, subscriptionId: ${sub.subscriptionId}, state: ${sub.state})")
+                    return
+                }
+                else -> {}
+            }
+
+            sub.subscriptionId = subscriptionId
+
+            propertyClient.processPropertySubscriptionResult(sub, msg)
+
+            if (sub.state == SubscriptionActionState.Unsubscribing) {
+                // do unsubscribe
+                sub.state = SubscriptionActionState.Unsubscribed
+                subscriptions.remove(sub)
+                subscriptionUpdated.forEach { it(sub) }
+            } else {
+                sub.state = SubscriptionActionState.Subscribed
+                subscriptionUpdated.forEach { it(sub) }
+            }
+        }
     }
 
     val connections = mutableMapOf<Int, Connection>()
@@ -231,12 +293,23 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
         }
     }
 
-    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
+    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
         val conn = connections[destinationMUID]
         if (conn != null) {
-            val header = conn.propertyClient.createSubscribeHeader(resource, mutualEncoding)
+            val header = conn.propertyClient.createSubscriptionHeader(resource, MidiCISubscriptionCommand.START, mutualEncoding)
             val msg = Message.SubscribeProperty(muid, destinationMUID, requestIdSerial++, header, listOf())
-            conn.addPendingSubscription(msg.requestId, resource)
+            conn.addPendingSubscription(msg.requestId, subscriptionId, resource)
+            sendSubscribeProperty(msg)
+        }
+    }
+
+    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
+        val conn = connections[destinationMUID]
+        if (conn != null) {
+            val newRequestId = requestIdSerial++
+            val header = conn.propertyClient.createSubscriptionHeader(resource, MidiCISubscriptionCommand.END, mutualEncoding)
+            val msg = Message.SubscribeProperty(muid, destinationMUID, newRequestId, header, listOf())
+            conn.promoteSubscriptionAsUnsubscribing(resource, newRequestId)
             sendSubscribeProperty(msg)
         }
     }
@@ -505,13 +578,8 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
     fun defaultProcessSubscribePropertyReply(msg: Message.SubscribePropertyReply) {
         val conn = connections[msg.sourceMUID]
         if (conn != null) {
-            if (conn.propertyClient.getReplyStatusFor(msg.header) == PropertyExchangeStatus.OK) {
-                val propertyId = conn.removePendingSubscription(msg.requestId)
-                if (propertyId != null)
-                    conn.propertyClient.processPropertySubscriptionResult(propertyId, msg)
-                else
-                    logger.logError("There was no pending subscription for requestId ${msg.requestId}")
-            }
+            if (conn.propertyClient.getReplyStatusFor(msg.header) == PropertyExchangeStatus.OK)
+                conn.processPropertySubscriptionReply(msg)
         }
     }
     var processSubscribePropertyReply: (msg: Message.SubscribePropertyReply) -> Unit = { msg ->

@@ -12,7 +12,7 @@ package dev.atsushieno.ktmidi.ci
 interface MidiCIPropertyClient {
     fun createRequestHeader(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): List<Byte>
 
-    fun createSubscribeHeader(resourceIdentifier: String, mutualEncoding: String?): List<Byte>
+    fun createSubscriptionHeader(resourceIdentifier: String, command: String, mutualEncoding: String?): List<Byte>
 
     fun getPropertyIdForHeader(header: List<Byte>): String
 
@@ -22,19 +22,28 @@ interface MidiCIPropertyClient {
 
     fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply)
 
+    // FIXME: too much of infection by Common Rules for PE
     fun getReplyStatusFor(header: List<Byte>): Int?
 
+    // FIXME: too much of infection by Common Rules for PE
     fun getMediaTypeFor(replyHeader: List<Byte>): String
 
+    // FIXME: too much of infection by Common Rules for PE
     fun getEncodingFor(header: List<Byte>): String
 
+    // FIXME: too much of infection by Common Rules for PE
     fun getIsPartialFor(header: List<Byte>): Boolean
 
+    // FIXME: too much of infection by Common Rules for PE
     fun getCommandFieldFor(header: List<Byte>): String?
 
+    // FIXME: too much of infection by Common Rules for PE
     fun getSubscribedProperty(msg: Message.SubscribeProperty): String?
 
-    fun processPropertySubscriptionResult(propertyId: String, reply: Message.SubscribePropertyReply)
+    // FIXME: too much of infection by Common Rules for PE
+    fun processPropertySubscriptionResult(sub: MidiCIInitiator.Subscription, reply: Message.SubscribePropertyReply)
+    // FIXME: too much of infection by Common Rules for PE
+    fun getSubscriptionId(header: List<Byte>): String?
 
     fun createStatusHeader(status: Int): List<Byte>
     fun getUpdatedValue(existing: PropertyValue?, isPartial: Boolean, mediaType: String, body: List<Byte>): Pair<Boolean, List<Byte>>

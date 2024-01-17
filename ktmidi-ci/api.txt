@@ -155,8 +155,11 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   public final class ImplementationSettings {
+    method public boolean getWorkaroundJUCEMissingSubscriptionIdIssue();
     method public boolean getWorkaroundJUCEProfileNumChannelsIssue();
+    method public void setWorkaroundJUCEMissingSubscriptionIdIssue(boolean);
     method public void setWorkaroundJUCEProfileNumChannelsIssue(boolean);
+    property public final boolean workaroundJUCEMissingSubscriptionIdIssue;
     property public final boolean workaroundJUCEProfileNumChannelsIssue;
     field public static final dev.atsushieno.ktmidi.ci.ImplementationSettings INSTANCE;
   }
@@ -749,7 +752,8 @@ package dev.atsushieno.ktmidi.ci {
     method public void sendSetPropertyData(dev.atsushieno.ktmidi.ci.Message.SetPropertyData msg);
     method public void sendSetPropertyData(int destinationMUID, String resource, java.util.List<java.lang.Byte> data, optional String? encoding, optional boolean isPartial);
     method public void sendSubscribeProperty(dev.atsushieno.ktmidi.ci.Message.SubscribeProperty msg);
-    method public void sendSubscribeProperty(int destinationMUID, String resource, String? mutualEncoding);
+    method public void sendSubscribeProperty(int destinationMUID, String resource, String? mutualEncoding, optional String? subscriptionId);
+    method public void sendUnsubscribeProperty(int destinationMUID, String resource, String? mutualEncoding, optional String? subscriptionId);
     method public void setOnAck(kotlin.jvm.functions.Function8<? super java.lang.Integer,? super java.lang.Integer,? super java.lang.Byte,? super java.lang.Byte,? super java.lang.Byte,? super java.util.List<java.lang.Byte>,? super kotlin.UShort,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
     method public void setOnNak(kotlin.jvm.functions.Function8<? super java.lang.Integer,? super java.lang.Integer,? super java.lang.Byte,? super java.lang.Byte,? super java.lang.Byte,? super java.util.List<java.lang.Byte>,? super kotlin.UShort,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
     method public void setProcessAck(kotlin.jvm.functions.Function8<? super java.lang.Integer,? super java.lang.Integer,? super java.lang.Byte,? super java.lang.Byte,? super java.lang.Byte,? super java.util.List<java.lang.Byte>,? super kotlin.UShort,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
@@ -817,7 +821,7 @@ package dev.atsushieno.ktmidi.ci {
   public static final class MidiCIInitiator.Connection {
     ctor public MidiCIInitiator.Connection(dev.atsushieno.ktmidi.ci.MidiCIInitiator parent, int targetMUID, dev.atsushieno.ktmidi.ci.DeviceDetails device, optional byte maxSimultaneousPropertyRequests, optional String productInstanceId, optional dev.atsushieno.ktmidi.ci.MidiCIPropertyClient propertyClient);
     method public void addPendingRequest(dev.atsushieno.ktmidi.ci.Message.GetPropertyData msg);
-    method public void addPendingSubscription(byte requestId, String propertyId);
+    method public void addPendingSubscription(byte requestId, String? subscriptionId, String propertyId);
     method public dev.atsushieno.ktmidi.ci.DeviceDetails getDevice();
     method public byte getMaxSimultaneousPropertyRequests();
     method public dev.atsushieno.ktmidi.ci.PropertyChunkManager getPendingChunkManager();
@@ -825,8 +829,11 @@ package dev.atsushieno.ktmidi.ci {
     method public dev.atsushieno.ktmidi.ci.ObservableProfileList getProfiles();
     method public dev.atsushieno.ktmidi.ci.ClientObservablePropertyList getProperties();
     method public dev.atsushieno.ktmidi.ci.MidiCIPropertyClient getPropertyClient();
+    method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.MidiCIInitiator.Subscription,kotlin.Unit>> getSubscriptionUpdated();
+    method public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIInitiator.Subscription> getSubscriptions();
     method public int getTargetMUID();
-    method public String? removePendingSubscription(byte requestId);
+    method public void processPropertySubscriptionReply(dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply msg);
+    method public void promoteSubscriptionAsUnsubscribing(String propertyId, byte newRequestId);
     method public void setMaxSimultaneousPropertyRequests(byte);
     method public void setProductInstanceId(String);
     method public void updateProperty(dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply msg);
@@ -838,6 +845,8 @@ package dev.atsushieno.ktmidi.ci {
     property public final dev.atsushieno.ktmidi.ci.ObservableProfileList profiles;
     property public final dev.atsushieno.ktmidi.ci.ClientObservablePropertyList properties;
     property public final dev.atsushieno.ktmidi.ci.MidiCIPropertyClient propertyClient;
+    property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.MidiCIInitiator.Subscription,kotlin.Unit>> subscriptionUpdated;
+    property public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIInitiator.Subscription> subscriptions;
     property public final int targetMUID;
   }
 
@@ -886,6 +895,35 @@ package dev.atsushieno.ktmidi.ci {
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribeProperty,kotlin.Unit>> subscribePropertyReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply,kotlin.Unit>> subscribePropertyReplyReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<java.util.List<java.lang.Byte>,kotlin.Unit>> unknownMessageReceived;
+  }
+
+  public static final class MidiCIInitiator.Subscription {
+    ctor public MidiCIInitiator.Subscription(Byte? pendingRequestId, String? subscriptionId, String propertyId, dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState state);
+    method public Byte? component1();
+    method public String? component2();
+    method public String component3();
+    method public dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState component4();
+    method public dev.atsushieno.ktmidi.ci.MidiCIInitiator.Subscription copy(Byte? pendingRequestId, String? subscriptionId, String propertyId, dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState state);
+    method public Byte? getPendingRequestId();
+    method public String getPropertyId();
+    method public dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState getState();
+    method public String? getSubscriptionId();
+    method public void setPendingRequestId(Byte?);
+    method public void setState(dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState);
+    method public void setSubscriptionId(String?);
+    property public final Byte? pendingRequestId;
+    property public final String propertyId;
+    property public final dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState state;
+    property public final String? subscriptionId;
+  }
+
+  public enum MidiCIInitiator.SubscriptionActionState {
+    method public static dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState valueOf(String value) throws java.lang.IllegalArgumentException, java.lang.NullPointerException;
+    method public static dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState[] values();
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState Subscribed;
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState Subscribing;
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState Unsubscribed;
+    enum_constant public static final dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState Unsubscribing;
   }
 
   @kotlinx.serialization.Serializable public final class MidiCIInitiatorConfiguration {
@@ -957,7 +995,7 @@ package dev.atsushieno.ktmidi.ci {
   public interface MidiCIPropertyClient {
     method public java.util.List<java.lang.Byte> createRequestHeader(String resourceIdentifier, String? encoding, boolean isPartialSet);
     method public java.util.List<java.lang.Byte> createStatusHeader(int status);
-    method public java.util.List<java.lang.Byte> createSubscribeHeader(String resourceIdentifier, String? mutualEncoding);
+    method public java.util.List<java.lang.Byte> createSubscriptionHeader(String resourceIdentifier, String command, String? mutualEncoding);
     method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public String? getCommandFieldFor(java.util.List<java.lang.Byte> header);
@@ -969,9 +1007,10 @@ package dev.atsushieno.ktmidi.ci {
     method public String getPropertyIdForHeader(java.util.List<java.lang.Byte> header);
     method public Integer? getReplyStatusFor(java.util.List<java.lang.Byte> header);
     method public String? getSubscribedProperty(dev.atsushieno.ktmidi.ci.Message.SubscribeProperty msg);
+    method public String? getSubscriptionId(java.util.List<java.lang.Byte> header);
     method public kotlin.Pair<java.lang.Boolean,java.util.List<java.lang.Byte>> getUpdatedValue(dev.atsushieno.ktmidi.ci.PropertyValue? existing, boolean isPartial, String mediaType, java.util.List<java.lang.Byte> body);
     method public void onGetPropertyDataReply(dev.atsushieno.ktmidi.ci.Message.GetPropertyData request, dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply reply);
-    method public void processPropertySubscriptionResult(String propertyId, dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply reply);
+    method public void processPropertySubscriptionResult(dev.atsushieno.ktmidi.ci.MidiCIInitiator.Subscription sub, dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply reply);
     method public suspend Object? requestPropertyList(int destinationMUID, byte requestId, kotlin.coroutines.Continuation<? super kotlin.Unit>);
     property public abstract java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> propertyCatalogUpdated;
   }
@@ -1509,7 +1548,7 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     ctor public CommonRulesPropertyClient(dev.atsushieno.ktmidi.ci.Logger logger, int muid, kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.GetPropertyData,kotlin.Unit> sendGetPropertyData);
     method public java.util.List<java.lang.Byte> createRequestHeader(String resourceIdentifier, String? encoding, boolean isPartialSet);
     method public java.util.List<java.lang.Byte> createStatusHeader(int status);
-    method public java.util.List<java.lang.Byte> createSubscribeHeader(String resourceIdentifier, String? mutualEncoding);
+    method public java.util.List<java.lang.Byte> createSubscriptionHeader(String resourceIdentifier, String command, String? mutualEncoding);
     method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public String? getCommandFieldFor(java.util.List<java.lang.Byte> header);
@@ -1521,10 +1560,11 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     method public String getPropertyIdForHeader(java.util.List<java.lang.Byte> header);
     method public Integer? getReplyStatusFor(java.util.List<java.lang.Byte> header);
     method public String? getSubscribedProperty(dev.atsushieno.ktmidi.ci.Message.SubscribeProperty msg);
+    method public String? getSubscriptionId(java.util.List<java.lang.Byte> header);
     method public java.util.List<dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry> getSubscriptions();
     method public kotlin.Pair<java.lang.Boolean,java.util.List<java.lang.Byte>> getUpdatedValue(dev.atsushieno.ktmidi.ci.PropertyValue? existing, boolean isPartial, String mediaType, java.util.List<java.lang.Byte> body);
     method public void onGetPropertyDataReply(dev.atsushieno.ktmidi.ci.Message.GetPropertyData request, dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply reply);
-    method public void processPropertySubscriptionResult(String propertyId, dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply reply);
+    method public void processPropertySubscriptionResult(dev.atsushieno.ktmidi.ci.MidiCIInitiator.Subscription sub, dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply reply);
     method public suspend Object? requestPropertyList(int destinationMUID, byte requestId, kotlin.coroutines.Continuation<? super kotlin.Unit>);
     property public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> propertyCatalogUpdated;
     property public final java.util.List<dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry> subscriptions;
@@ -1534,8 +1574,7 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     ctor public CommonRulesPropertyHelper(dev.atsushieno.ktmidi.ci.Logger logger);
     method public final java.util.List<java.lang.Byte> createRequestHeaderBytes(String resourceIdentifier, String? encoding, boolean isPartialSet);
     method public final dev.atsushieno.ktmidi.ci.json.Json.JsonValue createRequestHeaderInternal(String resourceIdentifier, String? encoding, boolean isPartialSet);
-    method public final java.util.List<java.lang.Byte> createSubscribeHeaderBytes(String resourceIdentifier, String? mutualEncoding);
-    method public final dev.atsushieno.ktmidi.ci.json.Json.JsonValue createSubscribeHeaderInternal(String resourceIdentifier, String? mutualEncoding);
+    method public final java.util.List<java.lang.Byte> createSubscribeHeaderBytes(String resourceIdentifier, String command, String? mutualEncoding);
     method public final dev.atsushieno.ktmidi.ci.json.Json.JsonValue createUpdateNotificationHeader(String subscribeId, String command);
     method public final java.util.List<java.lang.Byte> createUpdateNotificationHeaderBytes(String subscribeId, String command);
     method public final String getEncodingForInternal(java.util.List<java.lang.Byte> header);
@@ -1547,6 +1586,11 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     method public final java.util.List<java.lang.Byte> getResourceListRequestBytes();
     method public final dev.atsushieno.ktmidi.ci.json.Json.JsonValue getResourceListRequestJson();
     property protected final dev.atsushieno.ktmidi.ci.Logger logger;
+    field public static final dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyHelper.Companion Companion;
+  }
+
+  public static final class CommonRulesPropertyHelper.Companion {
+    method public String generateRandomSubscribeId();
   }
 
   public final class CommonRulesPropertyService extends dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyHelper implements dev.atsushieno.ktmidi.ci.MidiCIPropertyService {
@@ -1688,6 +1732,11 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
   }
 
   public final class PropertyCommonRules_nativeKt {
+    method public static byte[] decodeZlibWorkaround(byte[] bytes);
+    method public static byte[] encodeZlibWorkaround(byte[] bytes);
+  }
+
+  public final class PropertyCommonRules_wasmJsKt {
     method public static byte[] decodeZlibWorkaround(byte[] bytes);
     method public static byte[] encodeZlibWorkaround(byte[] bytes);
   }

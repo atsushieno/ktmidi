@@ -5,6 +5,7 @@ import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
 import dev.atsushieno.ktmidi.ci.LogEntry
+import dev.atsushieno.ktmidi.citool.ConnectionModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -60,7 +61,7 @@ class InitiatorViewModel {
 
     var selectedRemoteDeviceMUID = mutableStateOf(0)
     val selectedRemoteDevice = derivedStateOf {
-        val conn = AppModel.ciDeviceManager.initiator.initiator.connections[selectedRemoteDeviceMUID.value]
+        val conn = AppModel.ciDeviceManager.initiator.connections.firstOrNull { it.conn.targetMUID == selectedRemoteDeviceMUID.value }
         if (conn != null) ConnectionViewModel(conn) else null
     }
 
@@ -73,29 +74,23 @@ class InitiatorViewModel {
     }
 }
 
-class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
+class ConnectionViewModel(val conn: ConnectionModel) {
     fun selectProfile(profile: MidiCIProfileId) {
         Snapshot.withMutableSnapshot { selectedProfile.value = profile }
     }
 
     var selectedProfile = mutableStateOf<MidiCIProfileId?>(null)
 
-    val profiles = mutableStateListOf<MidiCIProfileState>().apply {
-        addAll(conn.profiles.profiles.map { MidiCIProfileState(mutableStateOf(it.address), it.profile, mutableStateOf(it.enabled)) })
-    }
-
     fun sendProfileDetailsInquiry(profile: MidiCIProfileId, address: Byte, target: Byte) {
-        AppModel.ciDeviceManager.initiator.sendProfileDetailsInquiry(address, conn.targetMUID, profile, target)
+        AppModel.ciDeviceManager.initiator.sendProfileDetailsInquiry(address, conn.conn.targetMUID, profile, target)
     }
 
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
-        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.targetMUID, propertyId, null)
+        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.conn.targetMUID, propertyId, null)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
-
-    val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.properties.values)}
 
     fun refreshPropertyValue(targetMUID: Int, propertyId: String, encoding: String?) {
         AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(targetMUID, propertyId, encoding)
@@ -105,44 +100,16 @@ class ConnectionViewModel(val conn: MidiCIInitiator.Connection) {
         AppModel.ciDeviceManager.initiator.sendSubscribeProperty(targetMUID, propertyId, mutualEncoding)
     }
 
+    fun sendUnsubscribeProperty(targetMUID: Int, propertyId: String, mutualEncoding: String?) {
+        AppModel.ciDeviceManager.initiator.sendUnsubscribeProperty(targetMUID, propertyId, mutualEncoding)
+    }
+
     fun sendSetPropertyDataRequest(targetMUID: Int, propertyId: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) {
         AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(targetMUID, propertyId, bytes, encoding, isPartial)
     }
 
     fun setProfile(targetMUID: Int, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean) {
         AppModel.ciDeviceManager.initiator.setProfile(targetMUID, address, profile, newEnabled)
-    }
-
-    init {
-        conn.profiles.profilesChanged.add { change, profile ->
-            when (change) {
-                ObservableProfileList.ProfilesChange.Added ->
-                    profiles.add(MidiCIProfileState(mutableStateOf(profile.address), profile.profile, mutableStateOf(profile.enabled)))
-                ObservableProfileList.ProfilesChange.Removed ->
-                    profiles.removeAll {it.profile == profile.profile && it.address.value == profile.address }
-            }
-        }
-        conn.profiles.profileEnabledChanged.add { profile, numChannelsRequested ->
-            if (numChannelsRequested > 1)
-                TODO("FIXME: implement")
-            profiles.filter { it.profile == profile.profile && it.address.value == profile.address }
-                .forEach { Snapshot.withMutableSnapshot { it.enabled.value = profile.enabled } }
-        }
-
-        conn.properties.valueUpdated.add { entry ->
-            val index = properties.indexOfFirst { it.id == entry.id }
-            if (index < 0)
-                properties.add(entry)
-            else {
-                properties.removeAt(index)
-                properties.add(index, entry)
-            }
-        }
-
-        conn.properties.propertiesCatalogUpdated.add {
-            properties.clear()
-            properties.addAll(conn.properties.values)
-        }
     }
 }
 
@@ -323,7 +290,15 @@ class ApplicationSettingsViewModel(config: MidiCIDeviceConfiguration) {
     val defaultConfigFile = AppModel.defaultConfigFile
     val device = DeviceConfigurationViewModel(config)
 
-    val workaroundJUCEProfileNumChannelsIssue = mutableStateOf(false)
+    val workaroundJUCEMissingSubscriptionIdIssue = mutableStateOf(
+        ImplementationSettings.workaroundJUCEMissingSubscriptionIdIssue)
+    fun workaroundJUCEMissingSubscriptionIdIssue(value: Boolean) {
+        ImplementationSettings.workaroundJUCEMissingSubscriptionIdIssue = value
+        workaroundJUCEMissingSubscriptionIdIssue.value = value
+    }
+
+    val workaroundJUCEProfileNumChannelsIssue = mutableStateOf(
+        ImplementationSettings.workaroundJUCEProfileNumChannelsIssue)
     fun workaroundJUCEProfileNumChannelsIssue(value: Boolean) {
         ImplementationSettings.workaroundJUCEProfileNumChannelsIssue = value
         workaroundJUCEProfileNumChannelsIssue.value = value

@@ -238,7 +238,8 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         metadata: PropertyMetadata?,
                         body: List<Byte>,
                         refreshValueClicked: (requestedEncoding: String?) -> Unit,
-                        subscribeClicked: (requestedEncoding: String?) -> Unit,
+                        isSubscribing: Boolean,
+                        subscriptionChanged: (newSubscribing: Boolean, requestedEncoding: String?) -> Unit,
                         commitChangeClicked: (List<Byte>, String?, Boolean) -> Unit) {
     // It is saved to optionally reset cached state
     var prev by remember { mutableStateOf(metadata) }
@@ -261,8 +262,8 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         Text("Refresh")
                     }
                     if (metadata?.canSubscribe == true) {
-                        Button(onClick = { subscribeClicked(selectedEncoding) }) {
-                            Text("Subscribe")
+                        Button(onClick = { subscriptionChanged(!isSubscribing, selectedEncoding) }) {
+                            Text(if (isSubscribing) "Unsubscribe" else "Subscribe")
                         }
                     }
                     // encoding selector

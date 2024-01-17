@@ -9,8 +9,8 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
     override fun createRequestHeader(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): List<Byte> =
         createRequestHeaderBytes(resourceIdentifier, encoding, isPartialSet)
 
-    override fun createSubscribeHeader(resourceIdentifier: String, mutualEncoding: String?): List<Byte> =
-        createSubscribeHeaderBytes(resourceIdentifier, mutualEncoding)
+    override fun createSubscriptionHeader(resourceIdentifier: String, command: String, mutualEncoding: String?): List<Byte> =
+        createSubscribeHeaderBytes(resourceIdentifier, command, mutualEncoding)
 
     override fun getPropertyIdForHeader(header: List<Byte>) = getPropertyIdentifierInternal(header)
 
@@ -55,14 +55,22 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
         return subscription.resource
     }
 
-    override fun processPropertySubscriptionResult(propertyId: String, reply: Message.SubscribePropertyReply) {
+    override fun getSubscriptionId(header: List<Byte>): String? =
+        getReplyHeaderField(header, PropertyCommonHeaderKeys.SUBSCRIBE_ID)?.stringValue
+
+    override fun processPropertySubscriptionResult(sub: MidiCIInitiator.Subscription, reply: Message.SubscribePropertyReply) {
         val status = getReplyStatusFor(reply.header)
         if (status != PropertyExchangeStatus.OK)
             return
         val subscribeId = getReplyHeaderField(reply.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID) ?: return
-        // does this MUID matter...?
-        // does encoding matter...? It could be explicitly specified by client itself, but responder should specify it anyway.
-        subscriptions.add(SubscriptionEntry(propertyId, reply.destinationMUID, null, subscribeId.stringValue))
+
+        if (sub.state == MidiCIInitiator.SubscriptionActionState.Unsubscribing)
+            // should we rather compare subscribeId? Can we subscribe to one property multiple times? (If yes then this code is wrong)
+            subscriptions.removeAll { it.resource == sub.propertyId }
+        else
+            // does this MUID matter...?
+            // does encoding matter...? It could be explicitly specified by client itself, but responder should specify it anyway.
+            subscriptions.add(SubscriptionEntry(sub.propertyId, reply.destinationMUID, null, subscribeId.stringValue))
     }
 
     override fun createStatusHeader(status: Int): List<Byte> =

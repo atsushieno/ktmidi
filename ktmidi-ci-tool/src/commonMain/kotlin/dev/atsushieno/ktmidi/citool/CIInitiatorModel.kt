@@ -1,6 +1,11 @@
 package dev.atsushieno.ktmidi.citool
 
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.ci.*
+import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
 import dev.atsushieno.ktmidi.citool.view.ViewModel
 import kotlin.random.Random
 
@@ -12,23 +17,28 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
             outputSender(data)
         }.apply {
             config.productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
+            logger.logEventReceived.add { msg, direction ->
+                AppModel.log(msg, direction)
+            }
+
+            val cml = this@CIInitiatorModel.connections
+            connectionsChanged.add { change, conn ->
+                when (change) {
+                    MidiCIInitiator.ConnectionChange.Added -> cml.add(ConnectionModel(conn))
+                    MidiCIInitiator.ConnectionChange.Removed -> cml.remove(cml.firstOrNull { conn == it.conn })
+                    else -> {}
+                }
+            }
         }
     }
+
+    val connections = mutableStateListOf<ConnectionModel>()
 
     fun processCIMessage(data: List<Byte>) {
         AppModel.log("[Initiator received SYSEX] " + data.joinToString { it.toString(16) },
             MessageDirection.In)
         initiator.processInput(data)
     }
-
-    /*
-    var device: MidiCIDeviceInfo
-        get() = AppModel.savedSettings.initiator.common.device
-        set(value) {
-            AppModel.savedSettings.initiator.common.device = value
-            initiator.device = value
-        }
-    */
 
     fun sendDiscovery() {
         initiator.sendDiscovery()
@@ -68,10 +78,64 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
         initiator.sendSubscribeProperty(destinationMUID, resource, mutualEncoding)
     }
+    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
+        initiator.sendUnsubscribeProperty(destinationMUID, resource, mutualEncoding)
+    }
+}
+
+class ConnectionModel(val conn: MidiCIInitiator.Connection) {
+
+    val profiles = mutableStateListOf<MidiCIProfileState>().apply {
+        addAll(conn.profiles.profiles.map { MidiCIProfileState(mutableStateOf(it.address), it.profile, mutableStateOf(it.enabled)) })
+    }
+
+    val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.properties.values)}
+
+    fun getMetadataList() = conn.propertyClient.getMetadataList()
+
+    data class SubscriptionState(val propertyId: String, var state: MutableState<MidiCIInitiator.SubscriptionActionState>)
+    var subscriptions = mutableStateListOf<SubscriptionState>()
 
     init {
-        initiator.logger.logEventReceived.add { msg, direction ->
-            AppModel.log(msg, direction)
+        conn.profiles.profilesChanged.add { change, profile ->
+            when (change) {
+                ObservableProfileList.ProfilesChange.Added ->
+                    profiles.add(MidiCIProfileState(mutableStateOf(profile.address), profile.profile, mutableStateOf(profile.enabled)))
+                ObservableProfileList.ProfilesChange.Removed ->
+                    profiles.removeAll {it.profile == profile.profile && it.address.value == profile.address }
+            }
+        }
+        conn.profiles.profileEnabledChanged.add { profile, numChannelsRequested ->
+            if (numChannelsRequested > 1)
+                TODO("FIXME: implement")
+            profiles.filter { it.profile == profile.profile && it.address.value == profile.address }
+                .forEach { Snapshot.withMutableSnapshot { it.enabled.value = profile.enabled } }
+        }
+
+        conn.properties.valueUpdated.add { entry ->
+            val index = properties.indexOfFirst { it.id == entry.id }
+            if (index < 0)
+                properties.add(entry)
+            else {
+                properties.removeAt(index)
+                properties.add(index, entry)
+            }
+        }
+
+        conn.properties.propertiesCatalogUpdated.add {
+            properties.clear()
+            properties.addAll(conn.properties.values)
+        }
+
+        conn.subscriptionUpdated.add { sub ->
+            if (sub.state == MidiCIInitiator.SubscriptionActionState.Subscribing)
+                subscriptions.add(SubscriptionState(sub.propertyId, mutableStateOf(sub.state)))
+            else {
+                val state = subscriptions.firstOrNull { sub.propertyId == it.propertyId } ?: return@add
+                state.state.value = sub.state
+                if (sub.state == MidiCIInitiator.SubscriptionActionState.Unsubscribed)
+                    subscriptions.remove(state)
+            }
         }
     }
 }

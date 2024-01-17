@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.atsushieno.ktmidi.ci.MidiCIInitiator
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
+import dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState
 
 @Composable
 fun InitiatorScreen(vm: InitiatorViewModel) {
@@ -61,9 +62,14 @@ fun ClientConnection(vm: ConnectionViewModel) {
             val sp = selectedProperty
             if (sp != null)
                 ClientPropertyDetails(vm, sp,
-                    refreshValueClicked = { encoding -> vm.refreshPropertyValue(vm.conn.targetMUID, sp, encoding) },
-                    subscribeClicked = { encoding -> vm.sendSubscribeProperty(vm.conn.targetMUID, sp, encoding) },
-                    commitChangeClicked = { id, bytes, encoding, isPartial -> vm.sendSetPropertyDataRequest(vm.conn.targetMUID, id, bytes, encoding, isPartial) }
+                    refreshValueClicked = { encoding -> vm.refreshPropertyValue(vm.conn.conn.targetMUID, sp, encoding) },
+                    subscribeClicked = { newState, encoding ->
+                        if (newState)
+                            vm.sendSubscribeProperty(vm.conn.conn.targetMUID, sp, encoding)
+                        else
+                            vm.sendUnsubscribeProperty(vm.conn.conn.targetMUID, sp, encoding)
+                    },
+                    commitChangeClicked = { id, bytes, encoding, isPartial -> vm.sendSetPropertyDataRequest(vm.conn.conn.targetMUID, id, bytes, encoding, isPartial) }
                 )
         }
     }
@@ -76,7 +82,7 @@ fun DeviceItemCard(label: String) {
 
 @Composable
 private fun ClientConnectionInfo(vm: ConnectionViewModel) {
-    val conn = vm.conn
+    val conn = vm.conn.conn
     Column {
         Text("Device", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         val small = 12.sp
@@ -137,7 +143,7 @@ private fun InitiatorDestinationSelector(connections: MutableMap<Int, MidiCIInit
 @Composable
 fun ClientProfileList(vm: ConnectionViewModel) {
     Column {
-        val profileIds = vm.profiles.map { it.profile }.distinct()
+        val profileIds = vm.conn.profiles.map { it.profile }.distinct()
         Snapshot.withMutableSnapshot {
             profileIds.forEach {
                 ClientProfileListEntry(it, vm.selectedProfile.value == it) { profileId -> vm.selectProfile(profileId) }
@@ -186,11 +192,11 @@ fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
             }
         }
         Text("Set Profile On Ch./Grp.")
-        val entries = vm.profiles.filter { it.profile.toString() == profile.toString() }
+        val entries = vm.conn.profiles.filter { it.profile.toString() == profile.toString() }
         entries.forEach {
             Row {
                 Switch(checked = it.enabled.value, onCheckedChange = { newEnabled ->
-                    vm.setProfile(vm.conn.targetMUID, it.address.value, it.profile, newEnabled)
+                    vm.setProfile(vm.conn.conn.targetMUID, it.address.value, it.profile, newEnabled)
                 })
                 Text(when (it.address.value.toInt()) {
                     0x7F -> "Function Block"
@@ -206,7 +212,7 @@ fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
 @Composable
 fun ClientPropertyList(vm: ConnectionViewModel) {
     Column {
-        val properties = vm.properties.map { it.id }.distinct()
+        val properties = vm.conn.properties.map { it.id }.distinct()
         Snapshot.withMutableSnapshot {
             properties.forEach {
                 PropertyListEntry(it, vm.selectedProperty.value == it) {
@@ -220,13 +226,14 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
 @Composable
 fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
                           refreshValueClicked: (requestedEncoding: String?) -> Unit,
-                          subscribeClicked: (requestedEncoding: String?) -> Unit,
+                          subscribeClicked: (newValue: Boolean, requestedEncoding: String?) -> Unit,
                           commitChangeClicked: (id: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) -> Unit) {
     Column(Modifier.padding(12.dp)) {
-        val entry = vm.properties.first { it.id == propertyId }
-        val def = vm.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == entry.id }
+        val entry = vm.conn.properties.first { it.id == propertyId }
+        val def = vm.conn.getMetadataList()?.firstOrNull { it.resource == entry.id }
         PropertyValueEditor(false, entry.mediaType, def, entry.body,
             refreshValueClicked,
+            isSubscribing = vm.conn.subscriptions.firstOrNull { it.propertyId == propertyId }?.state?.value == SubscriptionActionState.Subscribed,
             subscribeClicked,
             commitChangeClicked = { bytes, encoding, isPartial -> commitChangeClicked(entry.id, bytes, encoding, isPartial) })
         if (def != null)

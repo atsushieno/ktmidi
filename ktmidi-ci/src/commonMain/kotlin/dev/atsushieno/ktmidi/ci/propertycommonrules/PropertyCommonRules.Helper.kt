@@ -6,8 +6,14 @@ import dev.atsushieno.ktmidi.ci.MidiCISubscriptionCommand
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
 import dev.atsushieno.ktmidi.ci.toASCIIByteArray
+import kotlin.random.Random
 
 abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
+
+    companion object {
+        fun generateRandomSubscribeId() = Random.nextInt().toString(16)
+    }
+
     fun getPropertyIdentifierInternal(header: List<Byte>): String {
         val json = try {
             Json.parse(MidiCIConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
@@ -61,16 +67,16 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return requestASCIIBytes
     }
 
-    fun createSubscribeHeaderInternal(resourceIdentifier: String, mutualEncoding: String?): Json.JsonValue {
+    internal fun createSubscribeHeaderInternal(resourceIdentifier: String, command: String, mutualEncoding: String?): Json.JsonValue {
         val resource = Pair(
             Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
             Json.JsonValue(resourceIdentifier)
         )
-        val command = Pair(
+        val commandJson = Pair(
             Json.JsonValue(PropertyCommonHeaderKeys.COMMAND),
-            Json.JsonValue(MidiCISubscriptionCommand.START)
+            Json.JsonValue(command)
         )
-        val list = mutableListOf(resource, command)
+        val list = mutableListOf(resource, commandJson)
         if (mutualEncoding != null)
             list.add(Pair(
                 Json.JsonValue(PropertyCommonHeaderKeys.MUTUAL_ENCODING),
@@ -79,8 +85,8 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return Json.JsonValue(list.toMap())
     }
 
-    fun createSubscribeHeaderBytes(resourceIdentifier: String, mutualEncoding: String?): List<Byte> {
-        val json = createSubscribeHeaderInternal(resourceIdentifier, mutualEncoding)
+    fun createSubscribeHeaderBytes(resourceIdentifier: String, command: String, mutualEncoding: String?): List<Byte> {
+        val json = createSubscribeHeaderInternal(resourceIdentifier, command, mutualEncoding)
         val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toASCIIByteArray().toList()
         return requestASCIIBytes
     }
