@@ -40,9 +40,9 @@ class MidiCIResponderConfiguration(
     val propertyMetadataList: MutableList<PropertyMetadata> = mutableListOf(),
 
     // Process Inquiry
-    var processInquirySupportedFeatures: Byte = 0,
-    var midiMessageReportSystemMessages: Byte = 0,
-    var midiMessageReportChannelControllerMessages: Byte = 0,
-    var midiMessageReportNoteDataMessages: Byte = 0
+    var processInquirySupportedFeatures: Byte = MidiCIProcessInquiryFeatures.MIDI_MESSAGE_REPORT,
+    var midiMessageReportSystemMessages: Byte = MidiMessageReportSystemMessagesFlags.All,
+    var midiMessageReportChannelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All,
+    var midiMessageReportNoteDataMessages: Byte = MidiMessageReportNoteDataFlags.All
 ) {
 }

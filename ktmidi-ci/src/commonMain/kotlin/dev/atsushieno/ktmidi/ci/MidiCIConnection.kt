@@ -95,6 +95,43 @@ object MidiCISubscriptionCommand {
     const val END = "end"
 }
 
+object MidiCIProcessInquiryFeatures {
+    const val MIDI_MESSAGE_REPORT: Byte = 1
+}
+
+
+object MidiMessageReportDataControl {
+    const val None:Byte = 0
+    const val OnlyNonDefaults:Byte = 1
+    const val Full:Byte = 0x7F
+}
+
+object MidiMessageReportSystemMessagesFlags {
+    const val MtcQuarterFrame:Byte = 1
+    const val SongPosition:Byte = 2
+    const val SongSelect:Byte = 4
+    const val All:Byte = 7
+}
+
+object MidiMessageReportChannelControllerFlags {
+    const val Pitchbend:Byte = 1
+    const val CC:Byte = 2
+    const val Rpn:Byte = 4
+    const val Nrpn:Byte = 8
+    const val Program:Byte = 16
+    const val CAf:Byte = 32
+    const val All:Byte = 63
+}
+
+object MidiMessageReportNoteDataFlags {
+    const val Notes:Byte = 1
+    const val PAf:Byte = 2
+    const val Pitchbend:Byte = 4
+    const val RegisteredController:Byte = 8
+    const val AssignableController:Byte = 16
+    const val All:Byte = 31
+}
+
 object MidiCIConstants {
     const val UNIVERSAL_SYSEX: Byte = 0x7E
     const val SYSEX_SUB_ID_MIDI_CI: Byte = 0x0D

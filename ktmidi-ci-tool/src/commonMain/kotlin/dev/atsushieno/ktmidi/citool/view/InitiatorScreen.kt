@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.atsushieno.ktmidi.ci.MidiCIConstants
 import dev.atsushieno.ktmidi.ci.MidiCIInitiator
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 import dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState
@@ -71,6 +72,16 @@ fun ClientConnection(vm: ConnectionViewModel) {
                     },
                     commitChangeClicked = { id, bytes, encoding, isPartial -> vm.sendSetPropertyDataRequest(vm.conn.conn.targetMUID, id, bytes, encoding, isPartial) }
                 )
+        }
+
+        Text("Process Inquiry", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Row {
+            var midiMessageReportAddress by remember { mutableStateOf(MidiCIConstants.ADDRESS_FUNCTION_BLOCK) }
+            Text("Channel: ")
+            AddressSelector(midiMessageReportAddress, valueChange = { midiMessageReportAddress = it })
+            Button(onClick = { vm.requestMidiMessageReport(midiMessageReportAddress, vm.conn.conn.targetMUID) }) {
+                Text("Request MIDI Message Report")
+            }
         }
     }
 }

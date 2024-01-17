@@ -81,6 +81,15 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
         initiator.sendUnsubscribeProperty(destinationMUID, resource, mutualEncoding)
     }
+
+    fun requestMidiMessageReport(address: Byte, targetMUID: Int,
+                                 messageDataControl: Byte = MidiMessageReportDataControl.Full,
+                                 systemMessages: Byte = MidiMessageReportSystemMessagesFlags.All.toByte(),
+                                 channelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All.toByte(),
+                                 noteDataMessages: Byte = MidiMessageReportNoteDataFlags.All.toByte()
+    ) {
+        initiator.sendMidiMessageReportInquiry(address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
+    }
 }
 
 class ConnectionModel(val conn: MidiCIInitiator.Connection) {

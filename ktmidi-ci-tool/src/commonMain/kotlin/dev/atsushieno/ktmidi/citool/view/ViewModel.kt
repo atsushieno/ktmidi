@@ -111,6 +111,10 @@ class ConnectionViewModel(val conn: ConnectionModel) {
     fun setProfile(targetMUID: Int, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean) {
         AppModel.ciDeviceManager.initiator.setProfile(targetMUID, address, profile, newEnabled)
     }
+
+    fun requestMidiMessageReport(address: Byte, targetMUID: Int) {
+        AppModel.ciDeviceManager.initiator.requestMidiMessageReport(address, targetMUID)
+    }
 }
 
 class PropertyValueState(val id: MutableState<String>, val mediaType: MutableState<String>, val data: MutableState<List<Byte>>) {
