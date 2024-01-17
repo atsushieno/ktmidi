@@ -15,15 +15,17 @@ package dev.atsushieno.ktmidi.ci
  */
 interface MidiCIPropertyService {
     fun getPropertyIdForHeader(header: List<Byte>): String
-    fun createUpdateNotificationHeader(propertyId: String, isUpdatePartial: Boolean): List<Byte>
+    fun createUpdateNotificationHeader(propertyId: String, fields: Map<String, Any?>): List<Byte>
     fun getMetadataList(): List<PropertyMetadata>?
     fun getPropertyData(msg: Message.GetPropertyData) : Result<Message.GetPropertyDataReply>
     fun setPropertyData(msg: Message.SetPropertyData) : Result<Message.SetPropertyDataReply>
     fun subscribeProperty(msg: Message.SubscribeProperty) : Result<Message.SubscribePropertyReply>
-    fun getReplyStatusFor(header: List<Byte>): Int?
-    fun getMediaTypeFor(replyHeader: List<Byte>): String
     fun addMetadata(property: PropertyMetadata)
     fun removeMetadata(propertyId: String)
+    // FIXME: too much exposure of Common Rules for PE
+    fun encodeBody(data: List<Byte>, encoding: String?): List<Byte>
+    // FIXME: too much exposure of Common Rules for PE
+    fun decodeBody(data: List<Byte>, encoding: String?): List<Byte>
 
     val propertyCatalogUpdated: MutableList<() -> Unit>
 }

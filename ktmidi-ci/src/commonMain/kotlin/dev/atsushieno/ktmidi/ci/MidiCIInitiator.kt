@@ -2,6 +2,7 @@ package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyClient
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyExchangeStatus
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -87,7 +88,7 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
         fun updateProperty(msg: Message.GetPropertyDataReply) {
             val req = openRequests.firstOrNull { it.requestId == msg.requestId } ?: return
             openRequests.remove(req)
-            val status = propertyClient.getReplyStatusFor(msg.header) ?: return
+            val status = propertyClient.getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS) ?: return
 
             if (status == PropertyExchangeStatus.OK) {
                 propertyClient.onGetPropertyDataReply(req, msg)
@@ -131,7 +132,7 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
         }
 
         fun processPropertySubscriptionReply(msg: Message.SubscribePropertyReply) {
-            val subscriptionId = propertyClient.getSubscriptionId(msg.header)
+            val subscriptionId = propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID)
             if (subscriptionId == null) {
                 parent.logger.logError("Subscription ID is missing in the Reply to Subscription message. requestId: ${msg.requestId}")
                 if (!ImplementationSettings.workaroundJUCEMissingSubscriptionIdIssue)
@@ -258,7 +259,9 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
     fun sendGetPropertyData(destinationMUID: Int, resource: String, encoding: String?) {
         val conn = connections[destinationMUID]
         if (conn != null) {
-            val header = conn.propertyClient.createRequestHeader(resource, encoding, false)
+            val header = conn.propertyClient.createDataRequestHeader(resource, mapOf(
+                PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
+                PropertyCommonHeaderKeys.SET_PARTIAL to false))
             val msg = Message.GetPropertyData(muid, destinationMUID, requestIdSerial++, header)
             sendGetPropertyData(msg)
         }
@@ -278,7 +281,9 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
     fun sendSetPropertyData(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
         val conn = connections[destinationMUID]
         if (conn != null) {
-            val header = conn.propertyClient.createRequestHeader(resource, encoding, isPartial)
+            val header = conn.propertyClient.createDataRequestHeader(resource, mapOf(
+                PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
+                PropertyCommonHeaderKeys.SET_PARTIAL to isPartial))
             val encodedBody = conn.propertyClient.encodeBody(data, encoding)
             sendSetPropertyData(Message.SetPropertyData(muid, destinationMUID, requestIdSerial++, header, encodedBody))
         }
@@ -296,7 +301,9 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
     fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
         val conn = connections[destinationMUID]
         if (conn != null) {
-            val header = conn.propertyClient.createSubscriptionHeader(resource, MidiCISubscriptionCommand.START, mutualEncoding)
+            val header = conn.propertyClient.createSubscriptionHeader(resource, mapOf(
+                PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.START,
+                PropertyCommonHeaderKeys.MUTUAL_ENCODING to mutualEncoding))
             val msg = Message.SubscribeProperty(muid, destinationMUID, requestIdSerial++, header, listOf())
             conn.addPendingSubscription(msg.requestId, subscriptionId, resource)
             sendSubscribeProperty(msg)
@@ -307,7 +314,9 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
         val conn = connections[destinationMUID]
         if (conn != null) {
             val newRequestId = requestIdSerial++
-            val header = conn.propertyClient.createSubscriptionHeader(resource, MidiCISubscriptionCommand.END, mutualEncoding)
+            val header = conn.propertyClient.createSubscriptionHeader(resource, mapOf(
+                PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.END,
+                PropertyCommonHeaderKeys.MUTUAL_ENCODING to mutualEncoding))
             val msg = Message.SubscribeProperty(muid, destinationMUID, newRequestId, header, listOf())
             conn.promoteSubscriptionAsUnsubscribing(resource, newRequestId)
             sendSubscribeProperty(msg)
@@ -578,7 +587,7 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
     fun defaultProcessSubscribePropertyReply(msg: Message.SubscribePropertyReply) {
         val conn = connections[msg.sourceMUID]
         if (conn != null) {
-            if (conn.propertyClient.getReplyStatusFor(msg.header) == PropertyExchangeStatus.OK)
+            if (conn.propertyClient.getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS) == PropertyExchangeStatus.OK)
                 conn.processPropertySubscriptionReply(msg)
         }
     }

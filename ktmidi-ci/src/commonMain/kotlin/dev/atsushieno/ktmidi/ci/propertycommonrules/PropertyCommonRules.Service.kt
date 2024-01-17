@@ -57,8 +57,12 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
     // MidiCIPropertyService implementation
     override fun getPropertyIdForHeader(header: List<Byte>) = getPropertyIdentifierInternal(header)
 
-    override fun createUpdateNotificationHeader(subscribeId: String, isUpdatePartial: Boolean) =
-        createUpdateNotificationHeaderBytes(subscribeId, if (isUpdatePartial) MidiCISubscriptionCommand.PARTIAL else MidiCISubscriptionCommand.FULL)
+    override fun createUpdateNotificationHeader(propertyId: String, fields: Map<String, Any?>) =
+        createUpdateNotificationHeaderBytes(
+            fields[PropertyCommonHeaderKeys.SUBSCRIBE_ID] as String,
+            if (fields[PropertyCommonHeaderKeys.SET_PARTIAL] as Boolean)
+                MidiCISubscriptionCommand.PARTIAL else MidiCISubscriptionCommand.FULL
+        )
 
     override fun getMetadataList(): List<PropertyMetadata> {
         return defaultPropertyList + metadataList
@@ -114,11 +118,6 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
             )
         )
     }
-
-    override fun getReplyStatusFor(header: List<Byte>): Int? = getReplyStatusFor(header)
-
-    override fun getMediaTypeFor(replyHeader: List<Byte>): String =
-        getMediaTypeFor(replyHeader)
 
     override fun addMetadata(property: PropertyMetadata) {
         metadataList.add(property)
@@ -265,4 +264,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
     fun createTerminateNotificationHeader(subscribeId: String): List<Byte> =
         createUpdateNotificationHeaderBytes(subscribeId, MidiCISubscriptionCommand.END)
+
+    override fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> = encodeBodyInternal(data, encoding)
+    override fun decodeBody(data: List<Byte>, encoding: String?): List<Byte> = decodeBodyInternal(data, encoding)
 }

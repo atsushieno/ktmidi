@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyService
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
 import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
 import kotlinx.datetime.Clock
 import kotlin.experimental.and
@@ -88,10 +89,20 @@ class MidiCIResponder(
         }
     }
     private fun createPropertyNotification(propertyId: String, data: List<Byte>, isPartial: Boolean): Sequence<Message.SubscribeProperty> = sequence {
+        var lastEncoding: String? = null
+        var lastEncodedData = data
         subscriptions.filter { it.resource == propertyId }.forEach {
-            // FIXME: implement encoding support (does Subscription message contain mutualEncoding?)
-            val header = propertyService.createUpdateNotificationHeader(it.subscribeId, isPartial)
-            yield(Message.SubscribeProperty(muid, MidiCIConstants.BROADCAST_MUID_32, requestIdSerial++, header, data))
+            val encodedData = if (it.encoding == lastEncoding) lastEncodedData else if (it.encoding == null) data else propertyService.encodeBody(data, it.encoding)
+            // do not invoke encodeBody() many times.
+            if (it.encoding != lastEncoding && it.encoding != null) {
+                lastEncoding = it.encoding
+                lastEncodedData = encodedData
+            }
+            val header = propertyService.createUpdateNotificationHeader(it.resource, mapOf(
+                PropertyCommonHeaderKeys.SUBSCRIBE_ID to it.subscribeId,
+                PropertyCommonHeaderKeys.SET_PARTIAL to isPartial,
+                PropertyCommonHeaderKeys.MUTUAL_ENCODING to it.encoding))
+            yield(Message.SubscribeProperty(muid, MidiCIConstants.BROADCAST_MUID_32, requestIdSerial++, header, encodedData))
         }
     }
 

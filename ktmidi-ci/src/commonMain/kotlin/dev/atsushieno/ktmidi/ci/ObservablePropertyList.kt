@@ -1,5 +1,8 @@
 package dev.atsushieno.ktmidi.ci
 
+import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesKnownMimeTypes
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyDataEncoding
 import kotlinx.serialization.Serializable
 
 /**
@@ -65,8 +68,10 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
     }
 
     fun updateValue(propertyId: String, reply: Message.GetPropertyDataReply) {
-        val mediaType = propertyClient.getMediaTypeFor(reply.header)
-        val mutualEncoding = propertyClient.getEncodingFor(reply.header)
+        // FIXME: cosmetic but unnecessary Common Rules for PE exposure
+        val mediaType = propertyClient.getHeaderFieldString(reply.header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
+        // FIXME: cosmetic but unnecessary Common Rules for PE exposure
+        val mutualEncoding = propertyClient.getHeaderFieldString(reply.header, PropertyCommonHeaderKeys.MUTUAL_ENCODING) ?: PropertyDataEncoding.ASCII
         val decodedBody = propertyClient.decodeBody(reply.body, mutualEncoding)
         // there is no partial updates in Reply to Get Property Data
         updateValue(propertyId, false, mediaType, decodedBody)
@@ -78,12 +83,14 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
             logger.logError("Updating property value failed as the specified subscription property is not found.")
             return null
         }
-        val command = propertyClient.getCommandFieldFor(msg.header)
+        val command = propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.COMMAND)
         if (command == MidiCISubscriptionCommand.NOTIFY)
             return command
         val isPartial = command == MidiCISubscriptionCommand.PARTIAL
-        val mediaType = propertyClient.getMediaTypeFor(msg.header)
-        val encoding = propertyClient.getEncodingFor(msg.header)
+        // FIXME: cosmetic but unnecessary exposure of Common Rules for PE.
+        val mediaType = propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
+        // FIXME: cosmetic but unnecessary exposure of Common Rules for PE.
+        val encoding = propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.MUTUAL_ENCODING) ?: PropertyDataEncoding.ASCII
         val decodedBody = propertyClient.decodeBody(msg.body, encoding)
         updateValue(id, isPartial, mediaType, decodedBody)
         return command

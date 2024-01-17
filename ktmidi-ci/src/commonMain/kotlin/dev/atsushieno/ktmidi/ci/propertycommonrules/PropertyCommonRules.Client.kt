@@ -6,11 +6,11 @@ import dev.atsushieno.ktmidi.ci.json.JsonParserException
 
 class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) :
     CommonRulesPropertyHelper(logger), MidiCIPropertyClient {
-    override fun createRequestHeader(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): List<Byte> =
-        createRequestHeaderBytes(resourceIdentifier, encoding, isPartialSet)
+    override fun createDataRequestHeader(propertyId: String, fields: Map<String, Any?>): List<Byte> =
+        createRequestHeaderBytes(propertyId, fields[PropertyCommonHeaderKeys.MUTUAL_ENCODING] as String?, fields[PropertyCommonHeaderKeys.SET_PARTIAL] as Boolean)
 
-    override fun createSubscriptionHeader(resourceIdentifier: String, command: String, mutualEncoding: String?): List<Byte> =
-        createSubscribeHeaderBytes(resourceIdentifier, command, mutualEncoding)
+    override fun createSubscriptionHeader(propertyId: String, fields: Map<String, Any?>): List<Byte> =
+        createSubscribeHeaderBytes(propertyId, fields[PropertyCommonHeaderKeys.COMMAND] as String, fields[PropertyCommonHeaderKeys.MUTUAL_ENCODING] as String?)
 
     override fun getPropertyIdForHeader(header: List<Byte>) = getPropertyIdentifierInternal(header)
 
@@ -27,22 +27,8 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
         propertyCatalogUpdated.forEach { it() }
     }
 
-    override fun getReplyStatusFor(header: List<Byte>): Int? = getReplyStatusForInternal(header)
-
-    override fun getMediaTypeFor(replyHeader: List<Byte>): String =
-        getMediaTypeForInternal(replyHeader)
-
-    override fun getEncodingFor(header: List<Byte>): String =
-        getEncodingForInternal(header)
-
-    override fun getIsPartialFor(header: List<Byte>): Boolean =
-        getReplyHeaderField(header, PropertyCommonHeaderKeys.SET_PARTIAL)?.token?.type == Json.TokenType.True
-
-    override fun getCommandFieldFor(header: List<Byte>): String? =
-        getReplyHeaderField(header, PropertyCommonHeaderKeys.COMMAND)?.stringValue
-
     override fun getSubscribedProperty(msg: Message.SubscribeProperty): String? {
-        val subscribeId = getReplyHeaderField(msg.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID)?.stringValue
+        val subscribeId = getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID)
         if (subscribeId == null) {
             logger.logError("Subscribe Id is not found in the property header")
             return null
@@ -55,14 +41,12 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
         return subscription.resource
     }
 
-    override fun getSubscriptionId(header: List<Byte>): String? =
-        getReplyHeaderField(header, PropertyCommonHeaderKeys.SUBSCRIBE_ID)?.stringValue
-
-    override fun processPropertySubscriptionResult(sub: MidiCIInitiator.Subscription, reply: Message.SubscribePropertyReply) {
-        val status = getReplyStatusFor(reply.header)
+    override fun processPropertySubscriptionResult(subscriptionContext: Any, msg: Message.SubscribePropertyReply) {
+        val sub = subscriptionContext as MidiCIInitiator.Subscription
+        val status = getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS)
         if (status != PropertyExchangeStatus.OK)
             return
-        val subscribeId = getReplyHeaderField(reply.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID) ?: return
+        val subscribeId = getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID) ?: return
 
         if (sub.state == MidiCIInitiator.SubscriptionActionState.Unsubscribing)
             // should we rather compare subscribeId? Can we subscribe to one property multiple times? (If yes then this code is wrong)
@@ -70,7 +54,7 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
         else
             // does this MUID matter...?
             // does encoding matter...? It could be explicitly specified by client itself, but responder should specify it anyway.
-            subscriptions.add(SubscriptionEntry(sub.propertyId, reply.destinationMUID, null, subscribeId.stringValue))
+            subscriptions.add(SubscriptionEntry(sub.propertyId, msg.destinationMUID, null, subscribeId))
     }
 
     override fun createStatusHeader(status: Int): List<Byte> =
@@ -115,31 +99,8 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
             Pair(false, existing.body)
     }
 
-    override fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> {
-        return when (encoding) {
-            PropertyDataEncoding.ASCII -> data
-            PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.encodeToMcoded7(data)
-            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.encodeToZlibMcoded7(data)
-            null -> data
-            else -> {
-                logger.logError("Unrecognized mutualEncoding is specified: $encoding")
-                data
-            }
-        }
-    }
-
-    override fun decodeBody(data: List<Byte>, encoding: String?): List<Byte> {
-        return when (encoding) {
-            PropertyDataEncoding.ASCII -> data
-            PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.decodeMcoded7(data)
-            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.decodeZlibMcoded7(data)
-            null -> data
-            else -> {
-                logger.logError("Unrecognized mutualEncoding is specified: $encoding")
-                data
-            }
-        }
-    }
+    override fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> = encodeBodyInternal(data, encoding)
+    override fun decodeBody(data: List<Byte>, encoding: String?): List<Byte> = decodeBodyInternal(data, encoding)
 
     override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
 

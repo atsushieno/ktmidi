@@ -2,7 +2,6 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules
 
 import dev.atsushieno.ktmidi.ci.Logger
 import dev.atsushieno.ktmidi.ci.MidiCIConverter
-import dev.atsushieno.ktmidi.ci.MidiCISubscriptionCommand
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
 import dev.atsushieno.ktmidi.ci.toASCIIByteArray
@@ -48,7 +47,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
     }
 
     private val partialSetPair = Pair(Json.JsonValue(PropertyCommonHeaderKeys.SET_PARTIAL), Json.TrueValue)
-    fun createRequestHeaderInternal(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): Json.JsonValue {
+    private fun createRequestHeaderInternal(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): Json.JsonValue {
         val list = mutableListOf<Pair<Json.JsonValue,Json.JsonValue>>()
         list.add(Pair(
             Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
@@ -67,7 +66,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return requestASCIIBytes
     }
 
-    internal fun createSubscribeHeaderInternal(resourceIdentifier: String, command: String, mutualEncoding: String?): Json.JsonValue {
+    private fun createSubscribeHeaderInternal(resourceIdentifier: String, command: String, mutualEncoding: String?): Json.JsonValue {
         val resource = Pair(
             Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
             Json.JsonValue(resourceIdentifier)
@@ -91,7 +90,8 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return requestASCIIBytes
     }
 
-    fun getReplyHeaderField(header: List<Byte>, field: String): Json.JsonValue? {
+    @Deprecated("Use getHeaderFieldXxx() methods instead")
+    private fun getHeaderFieldJson(header: List<Byte>, field: String): Json.JsonValue? {
         val replyString = MidiCIConverter.decodeASCIIToString(header.toByteArray().decodeToString())
         val replyJson = try {
             Json.parse(replyString)
@@ -103,37 +103,33 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return valuePair.second
     }
 
-    fun getReplyStatusForInternal(header: List<Byte>): Int? {
-        val json = getReplyHeaderField(header, PropertyCommonHeaderKeys.STATUS)
-        return if (json == null) null
-        else if (json.token.type == Json.TokenType.Number) json.token.number.toInt()
-        else null
+    @Suppress("DEPRECATION")
+    fun getHeaderFieldBoolean(header: List<Byte>, field: String): Boolean {
+        val json = getHeaderFieldJson(header, field)
+        return json?.token?.type == Json.TokenType.True
     }
 
-    fun getMediaTypeForInternal(replyHeader: List<Byte>): String {
-        val defaultMimeType = CommonRulesKnownMimeTypes.APPLICATION_JSON
-        val json = getReplyHeaderField(replyHeader, PropertyCommonHeaderKeys.MEDIA_TYPE)
-        return if (json == null) defaultMimeType
-        else if (json.token.type == Json.TokenType.String) json.stringValue
-        else defaultMimeType
+    @Suppress("DEPRECATION")
+    fun getHeaderFieldInteger(header: List<Byte>, field: String): Int? {
+        val json = getHeaderFieldJson(header, field)
+        return if (json?.token?.type == Json.TokenType.Number) json.token.number.toInt() else null
     }
 
-    fun getEncodingForInternal(header: List<Byte>): String {
-        val defaultEncoding = PropertyDataEncoding.ASCII
-        val json = getReplyHeaderField(header, PropertyCommonHeaderKeys.MUTUAL_ENCODING)
-        return if (json == null) defaultEncoding
-        else if (json.token.type == Json.TokenType.String) json.stringValue
-        else defaultEncoding
+    @Suppress("DEPRECATION")
+    fun getHeaderFieldString(header: List<Byte>, field: String): String? {
+        val json = getHeaderFieldJson(header, field)
+        return if (json?.token?.type == Json.TokenType.String) json.stringValue else null
     }
 
     fun createUpdateNotificationHeader(subscribeId: String, command: String): Json.JsonValue {
-        val resource = Pair(
-            Json.JsonValue(PropertyCommonHeaderKeys.SUBSCRIBE_ID),
-            Json.JsonValue(subscribeId)
-        )
+        // M2-103-UM_v1.1 section 5.1.1: For subscription messages, the first Property shall be the command.
         val command = Pair(
             Json.JsonValue(PropertyCommonHeaderKeys.COMMAND),
             Json.JsonValue(command)
+        )
+        val resource = Pair(
+            Json.JsonValue(PropertyCommonHeaderKeys.SUBSCRIBE_ID),
+            Json.JsonValue(subscribeId)
         )
         return Json.JsonValue(mapOf(resource, command))
 
@@ -142,6 +138,32 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         val json = createUpdateNotificationHeader(subscribeId, command)
         val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toASCIIByteArray().toList()
         return requestASCIIBytes
+    }
+
+    internal fun encodeBodyInternal(data: List<Byte>, encoding: String?): List<Byte> {
+        return when (encoding) {
+            PropertyDataEncoding.ASCII -> data
+            PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.encodeToMcoded7(data)
+            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.encodeToZlibMcoded7(data)
+            null -> data
+            else -> {
+                logger.logError("Unrecognized mutualEncoding is specified: $encoding")
+                data
+            }
+        }
+    }
+
+    internal fun decodeBodyInternal(data: List<Byte>, encoding: String?): List<Byte> {
+        return when (encoding) {
+            PropertyDataEncoding.ASCII -> data
+            PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.decodeMcoded7(data)
+            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.decodeZlibMcoded7(data)
+            null -> data
+            else -> {
+                logger.logError("Unrecognized mutualEncoding is specified: $encoding")
+                data
+            }
+        }
     }
 }
 

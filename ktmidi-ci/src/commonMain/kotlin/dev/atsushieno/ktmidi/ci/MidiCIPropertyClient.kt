@@ -10,9 +10,9 @@ package dev.atsushieno.ktmidi.ci
  *   - The list acquisition must be automatically detected.
  */
 interface MidiCIPropertyClient {
-    fun createRequestHeader(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): List<Byte>
+    fun createDataRequestHeader(propertyId: String, fields: Map<String, Any?>): List<Byte>
 
-    fun createSubscriptionHeader(resourceIdentifier: String, command: String, mutualEncoding: String?): List<Byte>
+    fun createSubscriptionHeader(propertyId: String, fields: Map<String, Any?>): List<Byte>
 
     fun getPropertyIdForHeader(header: List<Byte>): String
 
@@ -22,32 +22,21 @@ interface MidiCIPropertyClient {
 
     fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply)
 
-    // FIXME: too much of infection by Common Rules for PE
-    fun getReplyStatusFor(header: List<Byte>): Int?
+    fun getHeaderFieldInteger(header: List<Byte>, field: String): Int?
+    fun getHeaderFieldString(header: List<Byte>, field: String): String?
+    fun getHeaderFieldBoolean(header: List<Byte>, field: String): Boolean
 
-    // FIXME: too much of infection by Common Rules for PE
-    fun getMediaTypeFor(replyHeader: List<Byte>): String
+    // To avoid too much Common Rules for PE exposure, we need to cast this Any argument as Subscription in the implementation.
+    fun processPropertySubscriptionResult(subscriptionContext: Any, msg: Message.SubscribePropertyReply)
 
-    // FIXME: too much of infection by Common Rules for PE
-    fun getEncodingFor(header: List<Byte>): String
-
-    // FIXME: too much of infection by Common Rules for PE
-    fun getIsPartialFor(header: List<Byte>): Boolean
-
-    // FIXME: too much of infection by Common Rules for PE
-    fun getCommandFieldFor(header: List<Byte>): String?
-
-    // FIXME: too much of infection by Common Rules for PE
     fun getSubscribedProperty(msg: Message.SubscribeProperty): String?
 
-    // FIXME: too much of infection by Common Rules for PE
-    fun processPropertySubscriptionResult(sub: MidiCIInitiator.Subscription, reply: Message.SubscribePropertyReply)
-    // FIXME: too much of infection by Common Rules for PE
-    fun getSubscriptionId(header: List<Byte>): String?
-
     fun createStatusHeader(status: Int): List<Byte>
+    // FIXME: too much exposure of Common Rules for PE
     fun getUpdatedValue(existing: PropertyValue?, isPartial: Boolean, mediaType: String, body: List<Byte>): Pair<Boolean, List<Byte>>
+    // FIXME: too much exposure of Common Rules for PE
     fun encodeBody(data: List<Byte>, encoding: String?): List<Byte>
+    // FIXME: too much exposure of Common Rules for PE
     fun decodeBody(data: List<Byte>, encoding: String?): List<Byte>
 
     val propertyCatalogUpdated: MutableList<() -> Unit>

@@ -993,37 +993,34 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   public interface MidiCIPropertyClient {
-    method public java.util.List<java.lang.Byte> createRequestHeader(String resourceIdentifier, String? encoding, boolean isPartialSet);
+    method public java.util.List<java.lang.Byte> createDataRequestHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
     method public java.util.List<java.lang.Byte> createStatusHeader(int status);
-    method public java.util.List<java.lang.Byte> createSubscriptionHeader(String resourceIdentifier, String command, String? mutualEncoding);
+    method public java.util.List<java.lang.Byte> createSubscriptionHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
     method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
-    method public String? getCommandFieldFor(java.util.List<java.lang.Byte> header);
-    method public String getEncodingFor(java.util.List<java.lang.Byte> header);
-    method public boolean getIsPartialFor(java.util.List<java.lang.Byte> header);
-    method public String getMediaTypeFor(java.util.List<java.lang.Byte> replyHeader);
+    method public boolean getHeaderFieldBoolean(java.util.List<java.lang.Byte> header, String field);
+    method public Integer? getHeaderFieldInteger(java.util.List<java.lang.Byte> header, String field);
+    method public String? getHeaderFieldString(java.util.List<java.lang.Byte> header, String field);
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata>? getMetadataList();
     method public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> getPropertyCatalogUpdated();
     method public String getPropertyIdForHeader(java.util.List<java.lang.Byte> header);
-    method public Integer? getReplyStatusFor(java.util.List<java.lang.Byte> header);
     method public String? getSubscribedProperty(dev.atsushieno.ktmidi.ci.Message.SubscribeProperty msg);
-    method public String? getSubscriptionId(java.util.List<java.lang.Byte> header);
     method public kotlin.Pair<java.lang.Boolean,java.util.List<java.lang.Byte>> getUpdatedValue(dev.atsushieno.ktmidi.ci.PropertyValue? existing, boolean isPartial, String mediaType, java.util.List<java.lang.Byte> body);
     method public void onGetPropertyDataReply(dev.atsushieno.ktmidi.ci.Message.GetPropertyData request, dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply reply);
-    method public void processPropertySubscriptionResult(dev.atsushieno.ktmidi.ci.MidiCIInitiator.Subscription sub, dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply reply);
+    method public void processPropertySubscriptionResult(Object subscriptionContext, dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply msg);
     method public suspend Object? requestPropertyList(int destinationMUID, byte requestId, kotlin.coroutines.Continuation<? super kotlin.Unit>);
     property public abstract java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> propertyCatalogUpdated;
   }
 
   public interface MidiCIPropertyService {
     method public void addMetadata(dev.atsushieno.ktmidi.ci.PropertyMetadata property);
-    method public java.util.List<java.lang.Byte> createUpdateNotificationHeader(String propertyId, boolean isUpdatePartial);
-    method public String getMediaTypeFor(java.util.List<java.lang.Byte> replyHeader);
+    method public java.util.List<java.lang.Byte> createUpdateNotificationHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
+    method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
+    method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata>? getMetadataList();
     method public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> getPropertyCatalogUpdated();
     method public Object getPropertyData(dev.atsushieno.ktmidi.ci.Message.GetPropertyData msg);
     method public String getPropertyIdForHeader(java.util.List<java.lang.Byte> header);
-    method public Integer? getReplyStatusFor(java.util.List<java.lang.Byte> header);
     method public void removeMetadata(String propertyId);
     method public Object setPropertyData(dev.atsushieno.ktmidi.ci.Message.SetPropertyData msg);
     method public Object subscribeProperty(dev.atsushieno.ktmidi.ci.Message.SubscribeProperty msg);
@@ -1546,25 +1543,19 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
 
   public final class CommonRulesPropertyClient extends dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyHelper implements dev.atsushieno.ktmidi.ci.MidiCIPropertyClient {
     ctor public CommonRulesPropertyClient(dev.atsushieno.ktmidi.ci.Logger logger, int muid, kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.GetPropertyData,kotlin.Unit> sendGetPropertyData);
-    method public java.util.List<java.lang.Byte> createRequestHeader(String resourceIdentifier, String? encoding, boolean isPartialSet);
+    method public java.util.List<java.lang.Byte> createDataRequestHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
     method public java.util.List<java.lang.Byte> createStatusHeader(int status);
-    method public java.util.List<java.lang.Byte> createSubscriptionHeader(String resourceIdentifier, String command, String? mutualEncoding);
+    method public java.util.List<java.lang.Byte> createSubscriptionHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
     method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
-    method public String? getCommandFieldFor(java.util.List<java.lang.Byte> header);
-    method public String getEncodingFor(java.util.List<java.lang.Byte> header);
-    method public boolean getIsPartialFor(java.util.List<java.lang.Byte> header);
-    method public String getMediaTypeFor(java.util.List<java.lang.Byte> replyHeader);
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> getMetadataList();
     method public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> getPropertyCatalogUpdated();
     method public String getPropertyIdForHeader(java.util.List<java.lang.Byte> header);
-    method public Integer? getReplyStatusFor(java.util.List<java.lang.Byte> header);
     method public String? getSubscribedProperty(dev.atsushieno.ktmidi.ci.Message.SubscribeProperty msg);
-    method public String? getSubscriptionId(java.util.List<java.lang.Byte> header);
     method public java.util.List<dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry> getSubscriptions();
     method public kotlin.Pair<java.lang.Boolean,java.util.List<java.lang.Byte>> getUpdatedValue(dev.atsushieno.ktmidi.ci.PropertyValue? existing, boolean isPartial, String mediaType, java.util.List<java.lang.Byte> body);
     method public void onGetPropertyDataReply(dev.atsushieno.ktmidi.ci.Message.GetPropertyData request, dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply reply);
-    method public void processPropertySubscriptionResult(dev.atsushieno.ktmidi.ci.MidiCIInitiator.Subscription sub, dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply reply);
+    method public void processPropertySubscriptionResult(Object subscriptionContext, dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply msg);
     method public suspend Object? requestPropertyList(int destinationMUID, byte requestId, kotlin.coroutines.Continuation<? super kotlin.Unit>);
     property public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> propertyCatalogUpdated;
     property public final java.util.List<dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry> subscriptions;
@@ -1573,16 +1564,14 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
   public abstract class CommonRulesPropertyHelper {
     ctor public CommonRulesPropertyHelper(dev.atsushieno.ktmidi.ci.Logger logger);
     method public final java.util.List<java.lang.Byte> createRequestHeaderBytes(String resourceIdentifier, String? encoding, boolean isPartialSet);
-    method public final dev.atsushieno.ktmidi.ci.json.Json.JsonValue createRequestHeaderInternal(String resourceIdentifier, String? encoding, boolean isPartialSet);
     method public final java.util.List<java.lang.Byte> createSubscribeHeaderBytes(String resourceIdentifier, String command, String? mutualEncoding);
     method public final dev.atsushieno.ktmidi.ci.json.Json.JsonValue createUpdateNotificationHeader(String subscribeId, String command);
     method public final java.util.List<java.lang.Byte> createUpdateNotificationHeaderBytes(String subscribeId, String command);
-    method public final String getEncodingForInternal(java.util.List<java.lang.Byte> header);
+    method public final boolean getHeaderFieldBoolean(java.util.List<java.lang.Byte> header, String field);
+    method public final Integer? getHeaderFieldInteger(java.util.List<java.lang.Byte> header, String field);
+    method public final String? getHeaderFieldString(java.util.List<java.lang.Byte> header, String field);
     method protected final dev.atsushieno.ktmidi.ci.Logger getLogger();
-    method public final String getMediaTypeForInternal(java.util.List<java.lang.Byte> replyHeader);
     method public final String getPropertyIdentifierInternal(java.util.List<java.lang.Byte> header);
-    method public final dev.atsushieno.ktmidi.ci.json.Json.JsonValue? getReplyHeaderField(java.util.List<java.lang.Byte> header, String field);
-    method public final Integer? getReplyStatusForInternal(java.util.List<java.lang.Byte> header);
     method public final java.util.List<java.lang.Byte> getResourceListRequestBytes();
     method public final dev.atsushieno.ktmidi.ci.json.Json.JsonValue getResourceListRequestJson();
     property protected final dev.atsushieno.ktmidi.ci.Logger logger;
@@ -1597,16 +1586,16 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     ctor public CommonRulesPropertyService(dev.atsushieno.ktmidi.ci.Logger logger, int muid, dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo deviceInfo, optional java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> metadataList, optional dev.atsushieno.ktmidi.ci.json.Json.JsonValue? channelList, optional dev.atsushieno.ktmidi.ci.json.Json.JsonValue? jsonSchema);
     method public void addMetadata(dev.atsushieno.ktmidi.ci.PropertyMetadata property);
     method public java.util.List<java.lang.Byte> createTerminateNotificationHeader(String subscribeId);
-    method public java.util.List<java.lang.Byte> createUpdateNotificationHeader(String subscribeId, boolean isUpdatePartial);
+    method public java.util.List<java.lang.Byte> createUpdateNotificationHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
+    method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
+    method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo getDeviceInfo();
     method public java.util.Map<java.lang.String,dev.atsushieno.ktmidi.ci.json.Json.JsonValue> getLinkedResources();
-    method public String getMediaTypeFor(java.util.List<java.lang.Byte> replyHeader);
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> getMetadataList();
     method public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> getPropertyCatalogUpdated();
     method public kotlin.Pair<dev.atsushieno.ktmidi.ci.json.Json.JsonValue,dev.atsushieno.ktmidi.ci.json.Json.JsonValue> getPropertyData(dev.atsushieno.ktmidi.ci.json.Json.JsonValue headerJson);
     method public Object getPropertyData(dev.atsushieno.ktmidi.ci.Message.GetPropertyData msg);
     method public String getPropertyIdForHeader(java.util.List<java.lang.Byte> header);
-    method public Integer? getReplyStatusFor(java.util.List<java.lang.Byte> header);
     method public java.util.List<dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry> getSubscriptions();
     method public void removeMetadata(String propertyId);
     method public void setDeviceInfo(dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo);
