@@ -26,6 +26,7 @@ In `ktmidi` module:
   - `MidiMusic.read()` reads and `MidiMusic.write()` writes to SMF (standard MIDI format) files with MIDI messages, with `Midi1TrackMerger`, `Midi2TrackMerger`, `Midi1TrackSplitter` and `Midi2TrackSplitter` that help you implement sequential event processing for your own MIDI players, or per-track editors if needed.
   - `UmpFactory` and `UmpRetriever` provides various accessors to MIDI 2.0 `Ump` data class.
   - `UmpTranslator` covers the standard conversion between MIDI 1.0 and MIDI 2.0 protocols, with a set of extensive options.
+  - `Midi1Machine` and `Midi2Machine` work as a potential MIDI device internal state machine, which is also to cover MIDI-CI Process Inquiry "MIDI Message Report" feature.
 - `MidiPlayer` and `Midi2Player`: provides MIDI player functionality: play/pause/stop and fast-forwarding.
   - Midi messages are sent to its "message listeners". If you don't pass a Midi Access instance or a Midi Output instance, it will do nothing but event dispatching.
   - It is based on customizible scheduler `MidiPlayerTimer`. You can pass a stub implementation that does not wait, for testing.
@@ -98,13 +99,19 @@ The entire API is still subject to change, and it had been actually radically ch
 
 ## MIDI 2.0 support
 
-ktmidi supports MIDI 2.0. It can be either in our own manner (i.e. it presumes MIDI 2.0 protocol is already established elsewhere), or partially using MIDI-CI protocol. It is up to apps... for example, [atsushieno/kmmk](https://github.com/atsushieno/kmmk) sends MICI-CI "Set New Protocol" message to the output devices, which kind of declares that it will be sending MIDI 2.0 UMPs (but without "Test New Protocol", as it requires bidirectional messaging that kmmk does not implement). If you want to follow MIDI-CI system exclusive messages, establish pair of MIDI input and output and handle message exchanges manually.
+### Potential field of usages
 
-ktmidi assumes there are various other use-cases without those message exchanges e.g. use of UMPs in MIDI 2.0-only messaging in apps or audio plugins.
+ktmidi supports MIDI 2.0 UMPs, and MIDI-CI if you count it as part of MIDI 2.0.
 
-Since you can derive from `MidiAccess` abstract API, you can create your own MIDI access implementation and don't have to wait for platform native API to support MIDI 2.0. Note that MIDI 2.0 support is still an experimental work.
+UMPs It can be sent and received in our own manner (i.e. it presumes MIDI 2.0 protocol is already established elsewhere). There was a now-deprecated way to promote MIDI protocols using Protocol Negotiation and some apps like [atsushieno/kmmk](https://github.com/atsushieno/kmmk) made use of it (Protocol Negotiation is gone in MIDI-CI version 1.2 specification). Now that it is gone, you are supposed to establish UMP-enabled transports by your own somehow.
+
+ktmidi assumes there are various other use-cases without those message exchanges e.g. use of UMPs in MIDI 2.0-only messaging in apps or audio plugins (for example, [Audio Plugins For Android](https://github.com/atsushieno/aap-core) along with [resident-midi-keyboard](https://github.com/atsushieno/resident-midi-keyboard)).
+
+Since you can derive from `MidiAccess` abstract API, you can create your own MIDI access implementation and don't have to wait for platform native API to support MIDI 2.0.
 
 It would be useful for general MIDI 2.0 software tools such as MIDI 2.0 UMP player.
+
+### Implemented features
 
 Here is a list of MIDI 2.0 extensibility in this API:
 
@@ -120,7 +127,7 @@ Here is a list of MIDI 2.0 extensibility in this API:
 
 MIDI 2.0 June 2023 updates comes with a brand-new MIDI Clip File specification, which calls itself "SMF2". Though it is not a multi-track music file format like SMF. Therefore, we still have our own format. See [docs/MIDI2_FORMATS.md](docs/MIDI2_FORMATS.md) for details.
 
-[mugene-ng](https://github.com/atsushieno/mugene-ng) can generate music files based on this format.
+It is implemented as `Midi2Music` (`read()` and `write()`), and [mugene-ng](https://github.com/atsushieno/mugene-ng) makes use of it to generate music files that are based on this format.
 
 ## Historical background
 

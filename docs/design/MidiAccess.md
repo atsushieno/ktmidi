@@ -21,6 +21,7 @@ We have the following platform-specific implementations:
 - `RtMidiAccess`: based on [thestk/rtmidi](https://github.com/thestk/rtmidi), on Kotlin/JVM. Supports virtual MIDI ports (wherever supported), no device detection. It should be used the default cross-platform desktop implementation on Mac and Windows.
 - `RtMidiNativeAccess`: same as `RtMidiAccess`, but for Kotlin/Native.
 - `JzzMidiAccess` : based on [Jazz-Soft/JZZ](https://jazz-soft.net/doc/JZZ/), on Kotlin/JS. Not really tested yet.
+- `WebMidiAccess` : direct Web MIDI API implementation for Kotlin/Wasm.
 
 It is also possible to implement this API for custom MIDI devices and/or
 ports. This design is inherited from managed-midi API. Therefore it is possible to build something like `FluidsynthMidiAccess` in [nfluidsynth](https://github.com/atsushieno/nfluidsynth) which was for managed-midi.
