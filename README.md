@@ -4,32 +4,45 @@
 
 ktmidi is a Kotlin Multiplatform library for MIDI Access API and MIDI data processing that covers MIDI 1.0 and MIDI 2.0.
 
+![ktmidi-ci-tool screenshot](docs/images/ktmidi-0.7.png)
+
 ## Features
 
-It provides various MIDI features, including:
+It provides various MIDI features, including implementations for MIDI 1.0, Standard MIDI File Format, MIDI 2.0 UMP, MIDI-CI and related specifications.
 
-- MIDI 1.0 messages and 2.0 UMPs everywhere.
+In `ktmidi` module:
+
+- MIDI 1.0 bytestream messages and 2.0 UMPs everywhere.
 - `MidiAccess` : MIDI access abstraction API like what Web MIDI API 1.0 provides.
   - There are actual implementations for some platform specific MIDI API within this library, and you can implement your own backend if you need.
   - Unlike `javax.sound.midi` API, this API also covers creating virtual ports wherever possible.
-    - `ktmidi-jvm-desktop` module contains ALSA backend as well as [RtMidi](https://github.com/thestk/rtmidi) backend via [atsushieno/rtmidi-jna](https://github.com/atsushieno/rtmidi-jna) that support it (Unsupported platforms are left unsupported). Note that they are for Kotlin/JVM.
-    - `ktmidi-native-ext` module contains RtMidi *native* backend for Kotlin-Native. It is built for both static and shared, and known to work as `player-sample-native` sample app module.
+    - `ktmidi-jvm-desktop` module contains ALSA backend (`AlsaMidiAccess`), as well as [RtMidi](https://github.com/thestk/rtmidi) backend (`RtMidiAccess`) via [atsushieno/rtmidi-javacpp](https://github.com/atsushieno/rtmidi-javacpp) for whatever platforms JavaCPP covers.
+    - `ktmidi-native-ext` module contains RtMidi *native* backend (`RtMidiNativeAccess`) for Kotlin-Native. `player-sample-native` sample app uses it.
   - For Kotlin/JS, `JzzMidiAccess` which wraps [Jazz-Soft JZZ](https://jazz-soft.net/doc/JZZ/) is included. It should cover both node.js and web browsers.
-- `MidiMusic` and `Midi2Music` : reflects Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support only partially based on standard; `Midi2Track` follows MIDI Clip File specification but there is no multi-track comparable specification to SMF for MIDI 2.0 yet.)
+  - For Kotlin/Wasm on browsers, `WebMidiAccess` makes use of Web MIDI API directly. (Node/Deno via wasmWasi is not covered yet.)
+- `MidiMusic` and `Midi2Music` : represents Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support only partially based on standard; `Midi2Track` follows MIDI Clip File specification but there is no multi-track comparable specification to SMF for MIDI 2.0 yet.)
   - No strongly-typed message types (something like NoteOnMessage, NoteOffMessage, and so on). There is no point of defining strongly-typed messages for each mere MIDI status byte - you wouldn't need message type abstraction.
-  - No worries, there are contants of Int or Byte in `MidiChannelStatus`, `MidiCC`, `MidiRpn`, `MidiMetaType` etc. so that you don't have to remember the actual constant numbers.
+    - No worries, there are contants of Int or Byte in `MidiChannelStatus`, `MidiCC`, `MidiRpn`, `MidiMetaType` etc. so that you don't have to remember the actual constant numbers.
   - `MidiMusic.read()` reads and `MidiMusic.write()` writes to SMF (standard MIDI format) files with MIDI messages, with `Midi1TrackMerger`, `Midi2TrackMerger`, `Midi1TrackSplitter` and `Midi2TrackSplitter` that help you implement sequential event processing for your own MIDI players, or per-track editors if needed.
-  - `UmpFactory` and `UmpRetriever` provides various accessors to MIDI 2.0 `Ump` data class, as well as some preliminary MIDI-CI support in `CIFactory` class.
+  - `UmpFactory` and `UmpRetriever` provides various accessors to MIDI 2.0 `Ump` data class.
+  - `UmpTranslator` covers the standard conversion between MIDI 1.0 and MIDI 2.0 protocols, with a set of extensive options.
 - `MidiPlayer` and `Midi2Player`: provides MIDI player functionality: play/pause/stop and fast-forwarding.
   - Midi messages are sent to its "message listeners". If you don't pass a Midi Access instance or a Midi Output instance, it will do nothing but event dispatching.
-  - It is based on customizible scheduler `MidiPlayerTimer`.
+  - It is based on customizible scheduler `MidiPlayerTimer`. You can pass a stub implementation that does not wait, for testing.
   - Not realtime strict (as on GC-ed language / VM), but would suffice for general usage.
 
-There are three sample project modules for two sample programs:
+In `ktmidi-ci` module (the overall API is unstable and subject to change):
+
+- `MidiCIInitiator` and `MidiCIResponder` classes implement MIDI-CI agent models that conforms to MIDI-CI, Common Rules for MIDI-CI Profile Inquiry, and Common Rules for MIDI-CI Property Exchange specifications.
+- `Message` implements the sturecures for each MIDI-CI message type.
+- primitive MIDI-CI SysEx byte stream processor in `CIFactory` and `CIRetrieval` classes.
+
+There are handful of sample project modules:
 
 - `player-sample` is an example console MIDI player for Kotlin/JVM desktop.
 - `player-sample-native` is almost the same, but for Kotlin/Native desktop.
 - `input-sample` is an example console MIDI input receiver that dumps the MIDI messages it received, for Kotlin/JVM desktop.
+- `ktmidi-ci-tool` is a comprehensive MIDI-CI functionality demo that connects to another MIDI-CI device (through a pair of MIDI connections so far).
 
 ## Using ktmidi
 
@@ -125,11 +138,11 @@ We use [GitHub issues](https://github.com/atsushieno/ktmidi/issues) for bug repo
 
 For hacking and/or contributing to ktmidi, please have a look at [docs/HACKING.md](docs/HACKING.md).
 
-For Applications that use ktmidi, check out [this Discussions thread](https://github.com/atsushieno/ktmidi/discussions/14).
+There is [Application/library showcase](https://github.com/atsushieno/ktmidi/discussions/14)  discussions thread.
 
 API documentation is published at: https://atsushieno.github.io/ktmidi/
 
-The documentation can be built using `./gradlew dokkaHtml` and it will be generated locally at `build/dokka/html`.
+(The documentation can be built using `./gradlew dokkaHtml` and it will be generated locally at `build/dokka/html`.)
 
 There are couple of API/implementation design docs:
 
@@ -137,7 +150,7 @@ There are couple of API/implementation design docs:
 - [docs/design/MidiMusic.md](docs/design/MidiMusic.md)
 - [docs/design/MidiPlayer.md](docs/design/MidiPlayer.md)
 
-You can also find some real-world usage examples:
+You can also find some real-world usage examples of these API components:
 
 - [kmmk](https://github.com/atsushieno/kmmk/blob/e431452aadb50ae1925dd9b9b0eb25948694758f/common/src/commonMain/kotlin/dev/atsushieno/kmmk/MidiDeviceManager.kt) for `MidiAccess`/`MidiOutput`
 - [mugene-ng](https://github.com/atsushieno/mugene-ng/blob/3bc55304a0ffc8014c3cf1df97d2bffea4ebda29/mugene/src/commonMain/kotlin/dev/atsushieno/mugene/mml_smf_generator.kt) for SMF/MIDI2 file generator
