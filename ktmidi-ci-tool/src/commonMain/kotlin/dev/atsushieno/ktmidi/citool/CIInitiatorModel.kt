@@ -9,53 +9,10 @@ import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
 import dev.atsushieno.ktmidi.citool.view.ViewModel
 import kotlin.random.Random
 
-internal infix fun Byte.shr(n: Int): Int = this.toInt() shr n
+class CIInitiatorModel(private val device: CIDeviceModel) {
+    val initiator by lazy { device.device.initiator }
 
-class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
-    val initiator by lazy {
-        MidiCIInitiator(AppModel.muid, AppModel.initiator) { data ->
-            AppModel.log("[Initiator sent MIDI] " + data.joinToString { it.toUByte().toString(16) },
-                MessageDirection.Out)
-            outputSender(data)
-        }.apply {
-            config.productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
-            logger.logEventReceived.add { msg, direction ->
-                AppModel.log(msg, direction)
-            }
-
-            val cml = this@CIInitiatorModel.connections
-            connectionsChanged.add { change, conn ->
-                when (change) {
-                    MidiCIInitiator.ConnectionChange.Added -> cml.add(ConnectionModel(conn))
-                    MidiCIInitiator.ConnectionChange.Removed -> cml.remove(cml.firstOrNull { conn == it.conn })
-                    else -> {}
-                }
-            }
-            events.midiMessageReportReplyReceived.add {
-                receivingMidiMessageReports = true
-                midiMessageReportModeChanged.forEach { it() }
-            }
-            events.endOfMidiMessageReportReceived.add {
-                receivingMidiMessageReports = false
-                midiMessageReportModeChanged.forEach { it() }
-            }
-        }
-    }
-
-    val connections = mutableStateListOf<ConnectionModel>()
-
-    var receivingMidiMessageReports = false
-    val midiMessageReportModeChanged = mutableListOf<() -> Unit>()
-
-    fun processCIMessage(data: List<Byte>) {
-        if (data.isEmpty()) return
-        AppModel.log("[Initiator received MIDI] " + data.joinToString { it.toUByte().toString(16) }, MessageDirection.In)
-        initiator.processInput(data)
-    }
-
-    fun sendDiscovery() {
-        initiator.sendDiscovery()
-    }
+    val connections = mutableStateListOf<ClientConnectionModel>()
 
     // FIXME: we need to make MidiCIInitiator EndpointInquiry hook-able.
     fun sendEndpointMessage(targetMUID: Int) {
@@ -103,9 +60,15 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
     ) {
         initiator.sendMidiMessageReportInquiry(address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
     }
+
+    init {
+        initiator.connectionsChanged.add { change, conn ->
+            connections.add(ClientConnectionModel(device, conn))
+        }
+    }
 }
 
-class ConnectionModel(val conn: MidiCIInitiator.Connection) {
+class ClientConnectionModel(val parent: CIDeviceModel, val conn: MidiCIInitiator.ClientConnection) {
 
     val profiles = mutableStateListOf<MidiCIProfileState>().apply {
         addAll(conn.profiles.profiles.map { MidiCIProfileState(mutableStateOf(it.address), it.profile, mutableStateOf(it.enabled)) })

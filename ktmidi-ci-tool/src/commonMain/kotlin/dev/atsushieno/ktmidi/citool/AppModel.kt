@@ -33,11 +33,9 @@ class CIToolRepository {
 
     private var savedSettings: SavedSettings = SavedSettings()
     val midiDeviceManager = MidiDeviceManager()
-    val ciDeviceManager  = CIDeviceManager(midiDeviceManager)
+    val ciDeviceManager  = CIDeviceManager(savedSettings.device, midiDeviceManager)
 
-    val common by lazy { savedSettings.common }
-    val initiator by lazy { savedSettings.initiator }
-    val recipient by lazy { savedSettings.recipient }
+    val device by savedSettings::device
 
     fun setInputDevice(id: String) {
         midiDeviceManager.midiInputDeviceId = id

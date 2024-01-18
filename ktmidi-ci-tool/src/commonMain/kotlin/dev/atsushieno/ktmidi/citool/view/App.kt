@@ -39,13 +39,7 @@ fun MainContent() {
                 tabs.forEachIndexed { index, title ->
                     Tab(text = { Text(title) },
                         selected = tabIndex == index,
-                        onClick = {
-                            when (index) {
-                                0 -> AppModel.ciDeviceManager.isResponder = false
-                                1 -> AppModel.ciDeviceManager.isResponder = true
-                                else -> {}
-                            }
-                            tabIndex = index },
+                        onClick = { tabIndex = index },
                         icon = {
                             when (index) {
                                 0 -> Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null)

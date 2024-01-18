@@ -30,7 +30,7 @@ fun InitiatorScreen(vm: InitiatorViewModel) {
         Row {
             val destinationMUID by remember { vm.selectedRemoteDeviceMUID }
             InitiatorDestinationSelector(
-                vm.connections,
+                vm.device.connections.map { it.conn.targetMUID to it.conn }.toMap(),
                 destinationMUID,
                 onChange = { Snapshot.withMutableSnapshot { vm.selectedRemoteDeviceMUID.value = it } })
 
@@ -117,7 +117,7 @@ private fun ClientConnectionInfo(vm: ConnectionViewModel) {
 }
 
 @Composable
-private fun InitiatorDestinationSelector(connections: MutableMap<Int, MidiCIInitiator.Connection>,
+private fun InitiatorDestinationSelector(connections: Map<Int, MidiCIInitiator.ClientConnection>,
                                          destinationMUID: Int,
                                          onChange: (Int) -> Unit) {
     var dialogState by remember { mutableStateOf(false) }

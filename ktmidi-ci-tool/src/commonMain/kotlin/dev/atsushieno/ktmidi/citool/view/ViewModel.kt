@@ -5,7 +5,8 @@ import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
 import dev.atsushieno.ktmidi.ci.LogEntry
-import dev.atsushieno.ktmidi.citool.ConnectionModel
+import dev.atsushieno.ktmidi.citool.CIDeviceModel
+import dev.atsushieno.ktmidi.citool.ClientConnectionModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,11 +39,11 @@ object ViewModel {
         logs.clear()
     }
 
-    val initiator = InitiatorViewModel()
+    val initiator = InitiatorViewModel(AppModel.ciDeviceManager.device)
 
-    val responder = ResponderViewModel(AppModel.ciDeviceManager.responder.responder)
+    val responder = ResponderViewModel(AppModel.ciDeviceManager.device)
 
-    val settings = ApplicationSettingsViewModel(AppModel.common)
+    val settings = ApplicationSettingsViewModel(AppModel.device)
 
     init {
         AppModel.logRecorded += { logs.add(it) }
@@ -52,12 +53,10 @@ object ViewModel {
 class MidiCIProfileState(
     var address: MutableState<Byte>, val profile: MidiCIProfileId, val enabled: MutableState<Boolean> = mutableStateOf(false))
 
-class InitiatorViewModel {
+class InitiatorViewModel(val device: CIDeviceModel) {
     fun sendDiscovery() {
-        AppModel.ciDeviceManager.initiator.sendDiscovery()
+        AppModel.ciDeviceManager.device.sendDiscovery()
     }
-
-    val connections by AppModel.ciDeviceManager.initiator.initiator::connections
 
     var selectedRemoteDeviceMUID = mutableStateOf(0)
     val selectedRemoteDevice = derivedStateOf {
@@ -68,13 +67,13 @@ class InitiatorViewModel {
     init {
         // When a new entry is appeared and nothing was selected, move to the new entry.
         AppModel.ciDeviceManager.initiator.initiator.connectionsChanged.add { change, conn ->
-            if (selectedRemoteDeviceMUID.value == 0 && change == MidiCIInitiator.ConnectionChange.Added)
-                Snapshot.withMutableSnapshot { selectedRemoteDeviceMUID.value = conn.targetMUID }
+            if (selectedRemoteDeviceMUID.value == 0 && change == ConnectionChange.Added)
+                selectedRemoteDeviceMUID.value = conn.targetMUID
         }
     }
 }
 
-class ConnectionViewModel(val conn: ConnectionModel) {
+class ConnectionViewModel(val conn: ClientConnectionModel) {
     fun selectProfile(profile: MidiCIProfileId) {
         Snapshot.withMutableSnapshot { selectedProfile.value = profile }
     }
@@ -131,8 +130,10 @@ class PropertyValueState(val id: MutableState<String>, val mediaType: MutableSta
     )
 }
 
-// FIXME: replace responder with CIResponderModel. MidiCIResponder should be accessed only via the model in this module.
-class ResponderViewModel(private val responder: MidiCIResponder) {
+class ResponderViewModel(val model: CIDeviceModel) {
+    private val device by model::device
+    private val responder by device::responder
+
     // Profile Configuration
     fun selectProfile(profile: MidiCIProfileId) {
         Snapshot.withMutableSnapshot { selectedProfile.value = profile }
@@ -140,15 +141,6 @@ class ResponderViewModel(private val responder: MidiCIResponder) {
 
     var selectedProfile = mutableStateOf<MidiCIProfileId?>(null)
     var isSelectedProfileIdEditing = mutableStateOf(false)
-    val profiles = mutableStateListOf<MidiCIProfileState>().apply {
-        addAll(responder.profiles.profiles.map {
-            MidiCIProfileState(
-                mutableStateOf(it.address),
-                it.profile,
-                mutableStateOf(it.enabled)
-            )
-        })
-    }
 
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
@@ -162,7 +154,7 @@ class ResponderViewModel(private val responder: MidiCIResponder) {
         val existing = properties[index]
 
         // update definition
-        responder.properties.updateMetadata(oldPropertyId, property)
+        AppModel.ciDeviceManager.device.device.responder.properties.updateMetadata(oldPropertyId, property)
 
         // We need to update the property value list state, as the property ID might have changed.
         val existingList = properties.toList()
@@ -183,14 +175,14 @@ class ResponderViewModel(private val responder: MidiCIResponder) {
 
     fun createNewProperty() {
         val property = PropertyMetadata().apply { resource = "Property${Random.nextInt()}" }
-        AppModel.ciDeviceManager.responder.addProperty(property)
+        model.addLocalProperty(property)
         selectedProperty.value = property.resource
     }
 
     fun removeSelectedProperty() {
         val p = selectedProperty.value ?: return
         selectedProperty.value = null
-        AppModel.ciDeviceManager.responder.removeProperty(p)
+        model.removeLocalProperty(p)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
@@ -199,55 +191,33 @@ class ResponderViewModel(private val responder: MidiCIResponder) {
         responder.propertyService.getMetadataList().firstOrNull { it.resource == propertyId }
 
     fun addNewProfile(state: MidiCIProfile) {
-        AppModel.ciDeviceManager.responder.addProfile(state)
+        model.addLocalProfile(state)
         selectedProfile.value = state.profile
         isSelectedProfileIdEditing.value = true
     }
 
     fun updateProfileName(oldProfileId: MidiCIProfileId, newProfileId: MidiCIProfileId) {
-        AppModel.ciDeviceManager.responder.updateProfileName(oldProfileId, newProfileId)
+        model.updateLocalProfileName(oldProfileId, newProfileId)
         isSelectedProfileIdEditing.value = false
         selectedProfile.value = newProfileId
     }
 
     fun updateProfileTarget(profile: MidiCIProfileState, newAddress: Byte, numChannelsRequested: Short) {
-        AppModel.ciDeviceManager.responder.updateProfileTarget(profile, newAddress, profile.enabled.value, numChannelsRequested)
+        model.updateLocalProfileTarget(profile, newAddress, profile.enabled.value, numChannelsRequested)
     }
 
     fun removeProfileTarget(address: Byte, profile: MidiCIProfileId) {
-        AppModel.ciDeviceManager.responder.removeProfile(address, profile)
+        model.removeLocalProfile(address, profile)
         // if the profile ID is gone, then deselect it
-        if (profiles.all { it.profile != profile })
+        if (model.localProfileStates.all { it.profile != profile })
             selectedProfile.value = null
     }
 
     fun addNewProfileTarget(state: MidiCIProfile) {
-        AppModel.ciDeviceManager.responder.addProfile(state)
+        model.addLocalProfile(state)
     }
 
     init {
-        responder.profiles.profilesChanged.add { change, profile ->
-            when (change) {
-                ObservableProfileList.ProfilesChange.Added ->
-                    profiles.add(MidiCIProfileState(mutableStateOf(profile.address), profile.profile, mutableStateOf(profile.enabled)))
-                ObservableProfileList.ProfilesChange.Removed ->
-                    profiles.removeAll { it.profile == profile.profile && it.address.value == profile.address }
-            }
-        }
-        responder.profiles.profileUpdated.add { profileId: MidiCIProfileId, oldAddress: Byte, newEnabled: Boolean, newAddress: Byte, numChannelsRequested: Short ->
-            val entry = profiles.first { it.profile == profileId && it.address.value == oldAddress }
-            if (numChannelsRequested > 1)
-                TODO("FIXME: implement")
-            entry.address.value = newAddress
-            entry.enabled.value = newEnabled
-        }
-        responder.profiles.profileEnabledChanged.add { profile, numChannelsRequested ->
-            if (numChannelsRequested > 1)
-                TODO("FIXME: implement")
-            val dst = profiles.first { it.profile == profile.profile && it.address.value == profile.address }
-            dst.enabled.value = profile.enabled
-        }
-
         responder.properties.propertiesCatalogUpdated.add {
             properties.clear()
             properties.addAll(responder.properties.values.map { PropertyValueState(it) })
@@ -277,7 +247,7 @@ class DeviceConfigurationViewModel(private val config: MidiCIDeviceConfiguration
 
     fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
         config.device = deviceInfo
-        AppModel.ciDeviceManager.responder.responder.propertyService.deviceInfo = deviceInfo
+        AppModel.ciDeviceManager.device.device.responder.propertyService.deviceInfo = deviceInfo
         this.manufacturerId.value = deviceInfo.manufacturerId
         this.familyId.value = deviceInfo.familyId
         this.modelId.value = deviceInfo.modelId

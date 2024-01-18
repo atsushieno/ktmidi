@@ -19,7 +19,6 @@ import dev.atsushieno.ktmidi.ci.MidiCIConstants
 import dev.atsushieno.ktmidi.ci.MidiCIProfile
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 import dev.atsushieno.ktmidi.ci.PropertyMetadata
-import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
 fun ResponderScreen(vm: ResponderViewModel) {
@@ -73,7 +72,7 @@ fun LocalPropertyConfiguration(vm: ResponderViewModel) {
 fun LocalProfileList(vm: ResponderViewModel) {
     Column {
         var isSelectedProfileEditable by remember { vm.isSelectedProfileIdEditing }
-        val profileIds = vm.profiles.map { it.profile }.distinct()
+        val profileIds = vm.model.localProfileStates.map { it.profile }.distinct()
         var editedProfileName by remember { mutableStateOf("") }
         Snapshot.withMutableSnapshot {
             profileIds.forEach {
@@ -145,7 +144,7 @@ fun LocalProfileListEntry(profileId: MidiCIProfileId, currentProfileNameEdit: St
 @Composable
 fun LocalProfileDetails(vm: ResponderViewModel, profile: MidiCIProfileId) {
     Column {
-        val entries = vm.profiles.filter { it.profile.toString() == profile.toString() }
+        val entries = vm.model.localProfileStates.filter { it.profile.toString() == profile.toString() }
 
         Row {
             Text("Off/On", Modifier.width(80.dp))
@@ -178,7 +177,7 @@ fun LocalProfileDetails(vm: ResponderViewModel, profile: MidiCIProfileId) {
                 val state = MidiCIProfile(profile, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, false)
                 vm.addNewProfileTarget(state)
                 vm.selectedProfile.value = state.profile
-            }, enabled = vm.selectedProfile.value != null && vm.profiles.all { it.profile != profile || it.address.value != MidiCIConstants.ADDRESS_FUNCTION_BLOCK }) {
+            }, enabled = vm.selectedProfile.value != null && vm.model.localProfileStates.all { it.profile != profile || it.address.value != MidiCIConstants.ADDRESS_FUNCTION_BLOCK }) {
                 Image(Icons.Default.Add, "Add")
             }
         }

@@ -42,7 +42,7 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
     }
 
     override fun processPropertySubscriptionResult(subscriptionContext: Any, msg: Message.SubscribePropertyReply) {
-        val sub = subscriptionContext as MidiCIInitiator.Subscription
+        val sub = subscriptionContext as MidiCIInitiator.ClientSubscription
         val status = getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS)
         if (status != PropertyExchangeStatus.OK)
             return
