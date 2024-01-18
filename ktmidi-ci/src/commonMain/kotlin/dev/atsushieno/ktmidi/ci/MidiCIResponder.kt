@@ -17,8 +17,9 @@ import kotlin.experimental.and
 class MidiCIResponder(
     val muid: Int,
     val config: MidiCIResponderConfiguration,
-    private val sendOutput: (data: List<Byte>) -> Unit) {
-    
+    private val sendOutput: (data: List<Byte>) -> Unit,
+    private val sendMidiMessageReport: (protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit) {
+
     val device: MidiCIDeviceInfo
         get() = config.common.device
 
@@ -36,7 +37,7 @@ class MidiCIResponder(
         val subscribePropertyReplyReceived = mutableListOf<(msg: Message.SubscribePropertyReply) -> Unit>()
         val propertyNotifyReceived = mutableListOf<(msg: Message.PropertyNotify) -> Unit>()
         val processInquiryReceived = mutableListOf<(msg: Message.ProcessInquiry) -> Unit>()
-        val midiMessageReportReceived = mutableListOf<(msg: Message.ProcessMidiMessageReport) -> Unit>()
+        val midiMessageReportReceived = mutableListOf<(msg: Message.MidiMessageReportInquiry) -> Unit>()
     }
 
     val events = Events()
@@ -51,7 +52,10 @@ class MidiCIResponder(
 
     private val pendingChunkManager = PropertyChunkManager()
 
+    // FIXME: support UMP too
     var midiMessageReporter: MidiMessageReporter = object : MidiMessageReporter {
+        override val midiTransportProtocol = MidiMessageReportProtocol.Midi1Stream
+
         // stub implementation
         override fun reportMidiMessages(
             groupAddress: Byte,
@@ -387,7 +391,7 @@ class MidiCIResponder(
         Message.ProcessInquiryReply(muid, msg.sourceMUID, config.processInquirySupportedFeatures)
     fun sendProcessProcessInquiryReply(msg: Message.ProcessInquiryReply) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = mutableListOf<Byte>()
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIProcessInquiryCapabilitiesReply(
             dst, msg.sourceMUID, msg.destinationMUID, msg.supportedFeatures))
     }
@@ -397,26 +401,26 @@ class MidiCIResponder(
         sendProcessProcessInquiryReply(getProcessInquiryReplyFor(msg))
     }
 
-    fun getMidiMessageReportReplyFor(msg: Message.ProcessMidiMessageReport) =
-        Message.ProcessMidiMessageReportReply(msg.address, muid, msg.sourceMUID,
+    fun getMidiMessageReportReplyFor(msg: Message.MidiMessageReportInquiry) =
+        Message.MidiMessageReportReply(msg.address, muid, msg.sourceMUID,
             msg.systemMessages and config.midiMessageReportSystemMessages,
             msg.channelControllerMessages and config.midiMessageReportChannelControllerMessages,
             msg.noteDataMessages and config.midiMessageReportNoteDataMessages)
-    fun sendMidiMessageReportReply(msg: Message.ProcessMidiMessageReportReply) {
+    fun sendMidiMessageReportReply(msg: Message.MidiMessageReportReply) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = mutableListOf<Byte>()
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIMidiMessageReportReply(dst, msg.address,
             msg.sourceMUID, msg.destinationMUID,
             msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
     }
-    fun getEndOfMidiMessageReportFor(msg: Message.ProcessMidiMessageReport) =
-        Message.ProcessEndOfMidiMessageReport(msg.address, muid, msg.sourceMUID)
-    fun sendEndOfMidiMessageReport(msg: Message.ProcessEndOfMidiMessageReport) {
+    fun getEndOfMidiMessageReportFor(msg: Message.MidiMessageReportInquiry) =
+        Message.MidiMessageReportNotifyEnd(msg.address, muid, msg.sourceMUID)
+    fun sendEndOfMidiMessageReport(msg: Message.MidiMessageReportNotifyEnd) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = mutableListOf<Byte>()
+        val dst = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIEndOfMidiMessage(dst, msg.address, msg.sourceMUID, msg.destinationMUID))
     }
-    fun defaultProcessMidiMessageReport(msg: Message.ProcessMidiMessageReport) {
+    fun defaultProcessMidiMessageReport(msg: Message.MidiMessageReportInquiry) {
         sendMidiMessageReportReply(getMidiMessageReportReplyFor(msg))
 
         // send specified MIDI messages
@@ -429,12 +433,12 @@ class MidiCIResponder(
             config.midiMessageReportChannelControllerMessages,
             config.midiMessageReportNoteDataMessages
         ).forEach {
-            sendOutput(it)
+            sendMidiMessageReport(midiMessageReporter.midiTransportProtocol, it)
         }
 
         sendEndOfMidiMessageReport(getEndOfMidiMessageReportFor(msg))
     }
-    var processMidiMessageReport: (msg: Message.ProcessMidiMessageReport) -> Unit = { msg ->
+    var processMidiMessageReport: (msg: Message.MidiMessageReportInquiry) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)
         events.midiMessageReportReceived.forEach { it(msg) }
         defaultProcessMidiMessageReport(msg)
@@ -600,7 +604,7 @@ class MidiCIResponder(
                 // data[15] is reserved
                 val channelControllerMessages = data[16]
                 val noteDataMessages = data[17]
-                processMidiMessageReport(Message.ProcessMidiMessageReport(
+                processMidiMessageReport(Message.MidiMessageReportInquiry(
                     address, sourceMUID, destinationMUID,
                     messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
             }

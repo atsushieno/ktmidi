@@ -62,6 +62,7 @@ kotlin {
     linuxX64()
     mingwX64()
 
+    /*
     appleTargets.onEach {
         it.compilations.getByName("main") {
             cinterops {
@@ -72,7 +73,7 @@ kotlin {
                 }
             }
         }
-    }
+    }*/
 
     sourceSets {
         val commonMain by getting {

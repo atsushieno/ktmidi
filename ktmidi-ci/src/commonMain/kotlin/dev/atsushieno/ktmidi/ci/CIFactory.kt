@@ -407,7 +407,7 @@ object CIFactory {
         dst[14] = 0 // reserved for other System Messages
         dst[15] = channelControllerMessages
         dst[16] = noteDataMessages
-        return dst.take(18)
+        return dst.take(17)
     }
 
     fun midiCIEndOfMidiMessage(

@@ -50,8 +50,8 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
         val propertyNotifyReceived = mutableListOf<(msg: Message.PropertyNotify) -> Unit>()
 
         val processInquiryReplyReceived = mutableListOf<(msg: Message.ProcessInquiryReply) -> Unit>()
-        val midiMessageReportReplyReceived = mutableListOf<(msg: Message.ProcessMidiMessageReportReply) -> Unit>()
-        val endOfMidiMessageReportReceived = mutableListOf<(msg: Message.ProcessEndOfMidiMessageReport) -> Unit>()
+        val midiMessageReportReplyReceived = mutableListOf<(msg: Message.MidiMessageReportReply) -> Unit>()
+        val endOfMidiMessageReportReceived = mutableListOf<(msg: Message.MidiMessageReportNotifyEnd) -> Unit>()
     }
 
     val events = Events()
@@ -349,10 +349,10 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
                                      systemMessages: Byte,
                                      channelControllerMessages: Byte,
                                      noteDataMessages: Byte) =
-        sendMidiMessageReportInquiry(Message.ProcessMidiMessageReport(
+        sendMidiMessageReportInquiry(Message.MidiMessageReportInquiry(
             address, muid, destinationMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
 
-    fun sendMidiMessageReportInquiry(msg: Message.ProcessMidiMessageReport) {
+    fun sendMidiMessageReportInquiry(msg: Message.MidiMessageReportInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
         val buf = MutableList<Byte>(config.common.receivableMaxSysExSize) { 0 }
         sendOutput(CIFactory.midiCIMidiMessageReport(buf, msg.address, msg.sourceMUID, msg.destinationMUID,
@@ -610,13 +610,13 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
         // no particular things to do. Event handlers should be used if any.
     }
 
-    var processMidiMessageReportReply: (msg: Message.ProcessMidiMessageReportReply) -> Unit = { msg ->
+    var processMidiMessageReportReply: (msg: Message.MidiMessageReportReply) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)
         events.midiMessageReportReplyReceived.forEach { it(msg) }
         // no particular things to do. Event handlers should be used if any.
     }
 
-    var processEndOfMidiMessageReport: (msg: Message.ProcessEndOfMidiMessageReport) -> Unit = { msg ->
+    var processEndOfMidiMessageReport: (msg: Message.MidiMessageReportNotifyEnd) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)
         events.endOfMidiMessageReportReceived.forEach { it(msg) }
         // no particular things to do. Event handlers should be used if any.
@@ -861,14 +861,14 @@ class MidiCIInitiator(val muid: Int, val config: MidiCIInitiatorConfiguration,
                 // data[14] is reserved
                 val channelControllerMessages = data[15]
                 val noteDataMessages = data[16]
-                processMidiMessageReportReply(Message.ProcessMidiMessageReportReply(
+                processMidiMessageReportReply(Message.MidiMessageReportReply(
                     address, sourceMUID, destinationMUID,
                     systemMessages, channelControllerMessages, noteDataMessages))
             }
             CISubId2.PROCESS_INQUIRY_END_OF_MIDI_MESSAGE -> {
                 val address = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                processEndOfMidiMessageReport(Message.ProcessEndOfMidiMessageReport(address, sourceMUID, destinationMUID))
+                processEndOfMidiMessageReport(Message.MidiMessageReportNotifyEnd(address, sourceMUID, destinationMUID))
             }
 
             else -> {

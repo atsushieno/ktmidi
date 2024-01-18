@@ -9,10 +9,12 @@ import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
 import dev.atsushieno.ktmidi.citool.view.ViewModel
 import kotlin.random.Random
 
+internal infix fun Byte.shr(n: Int): Int = this.toInt() shr n
+
 class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) {
     val initiator by lazy {
         MidiCIInitiator(AppModel.muid, AppModel.initiator) { data ->
-            AppModel.log("[Initiator sent SYSEX] " + data.joinToString { it.toString(16) },
+            AppModel.log("[Initiator sent MIDI] " + data.joinToString { it.toUByte().toString(16) },
                 MessageDirection.Out)
             outputSender(data)
         }.apply {
@@ -29,14 +31,25 @@ class CIInitiatorModel(private val outputSender: (ciBytes: List<Byte>) -> Unit) 
                     else -> {}
                 }
             }
+            events.midiMessageReportReplyReceived.add {
+                receivingMidiMessageReports = true
+                midiMessageReportModeChanged.forEach { it() }
+            }
+            events.endOfMidiMessageReportReceived.add {
+                receivingMidiMessageReports = false
+                midiMessageReportModeChanged.forEach { it() }
+            }
         }
     }
 
     val connections = mutableStateListOf<ConnectionModel>()
 
+    var receivingMidiMessageReports = false
+    val midiMessageReportModeChanged = mutableListOf<() -> Unit>()
+
     fun processCIMessage(data: List<Byte>) {
-        AppModel.log("[Initiator received SYSEX] " + data.joinToString { it.toString(16) },
-            MessageDirection.In)
+        if (data.isEmpty()) return
+        AppModel.log("[Initiator received MIDI] " + data.joinToString { it.toUByte().toString(16) }, MessageDirection.In)
         initiator.processInput(data)
     }
 

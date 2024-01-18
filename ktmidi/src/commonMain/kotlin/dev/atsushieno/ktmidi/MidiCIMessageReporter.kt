@@ -2,33 +2,41 @@ package dev.atsushieno.ktmidi
 
 import kotlin.experimental.and
 
-private object MessageDataControl {
+typealias MessageDataControl = MidiMessageReportDataControl
+typealias SystemMessagesFlags = MidiMessageReportSystemMessagesFlags
+typealias ChannelControllerFlags = MidiMessageReportChannelControllerFlags
+typealias NoteDataFlags = MidiMessageReportNoteDataFlags
+
+object MidiMessageReportDataControl {
     const val None:Byte = 0
     const val OnlyNonDefaults:Byte = 1
     const val Full:Byte = 0x7F
 }
 
-private object SystemMessagesFlags {
-    const val MtcQuarterFrame = 0
-    const val SongPosition = 1 shl 1
-    const val SongSelect = 1 shl 2
+object MidiMessageReportSystemMessagesFlags {
+    const val MtcQuarterFrame:Byte = 1
+    const val SongPosition:Byte = 2
+    const val SongSelect:Byte = 4
+    const val All:Byte = 7
 }
 
-private object ChannelControllerFlags {
-    const val Pitchbend = 0
-    const val CC = 1 shl 1
-    const val Rpn = 1 shl 2
-    const val Nrpn = 1 shl 3
-    const val Program = 1 shl 4
-    const val CAf = 1 shl 5
+object MidiMessageReportChannelControllerFlags {
+    const val Pitchbend:Byte = 1
+    const val CC:Byte = 2
+    const val Rpn:Byte = 4
+    const val Nrpn:Byte = 8
+    const val Program:Byte = 16
+    const val CAf:Byte = 32
+    const val All:Byte = 63
 }
 
-private object NoteDataFlags {
-    const val Notes = 0
-    const val PAf = 1 shl 1
-    const val Pitchbend = 1 shl 2
-    const val RegisteredController = 1 shl 3
-    const val AssignableController = 1 shl 4
+object MidiMessageReportNoteDataFlags {
+    const val Notes:Byte = 1
+    const val PAf:Byte = 2
+    const val Pitchbend:Byte = 4
+    const val RegisteredController:Byte = 8
+    const val AssignableController:Byte = 16
+    const val All:Byte = 31
 }
 
 // FIXME: to fully support MessageDataControl.OnlyNoDefaults we need to track
@@ -44,13 +52,13 @@ fun Midi1Machine.reportMidiMessages(
     if (messageDataControl == MessageDataControl.None)
         return@sequence
 
-    yieldAll(getSystemMessages(messageDataControl, midiMessageReportSystemMessages))
+    yield(getSystemMessages(messageDataControl, midiMessageReportSystemMessages).flatten().toList())
     when (address.toInt()) {
         0x7E, 0x7F -> (0..15)
         else -> (address..address)
     }.forEach {
-        yieldAll(getChannelControllerMessages(messageDataControl, midiMessageReportChannelControllerMessages, it))
-        yieldAll(getNoteDataMessages(messageDataControl, midiMessageReportNoteDataMessages, it))
+        yield(getChannelControllerMessages(messageDataControl, midiMessageReportChannelControllerMessages, it).flatten().toList())
+        yield(getNoteDataMessages(messageDataControl, midiMessageReportNoteDataMessages, it).flatten().toList())
     }
 }
 
@@ -59,14 +67,14 @@ private fun Midi1Machine.getSystemMessages(
     flags: Byte
 ): Sequence<List<Byte>> = sequence {
     val f = flags.toInt()
-    if ((f and SystemMessagesFlags.MtcQuarterFrame) != 0)
+    if ((f and SystemMessagesFlags.MtcQuarterFrame.toInt()) != 0)
         yield(listOf(MidiSystemStatus.MIDI_TIME_CODE.toByte(), systemCommon.mtcQuarterFrame))
-    if ((f and SystemMessagesFlags.SongPosition) != 0 &&
+    if ((f and SystemMessagesFlags.SongPosition.toInt()) != 0 &&
         (messageDataControl == MessageDataControl.Full || systemCommon.songPositionPointer.toInt() != 0))
         yield(listOf(MidiSystemStatus.SONG_POSITION.toByte(),
             (systemCommon.songPositionPointer shl 7).toByte(),
             (systemCommon.songPositionPointer and 0x7F).toByte()))
-    if ((f and SystemMessagesFlags.SongSelect) != 0 &&
+    if ((f and SystemMessagesFlags.SongSelect.toInt()) != 0 &&
         (messageDataControl == MessageDataControl.Full || systemCommon.songSelect.toInt() != 0))
         yield(listOf(MidiSystemStatus.SONG_SELECT.toByte(), systemCommon.songSelect))
 }
@@ -91,35 +99,34 @@ private fun Midi1Machine.getChannelControllerMessages(
 ): Sequence<List<Byte>> = sequence {
     val f = flags.toInt()
     // Pitchbend
-    if ((f and ChannelControllerFlags.Pitchbend) != 0) {
+    if ((f and ChannelControllerFlags.Pitchbend.toInt()) != 0) {
         with(channels[channel]) {
-            yield(listOf(MidiChannelStatus.PITCH_BEND.toByte(), (pitchbend and 0x7F).toByte()))
-            yield(listOf(MidiChannelStatus.PITCH_BEND.toByte(), (pitchbend shr 7).toByte()))
+            yield(listOf(MidiChannelStatus.PITCH_BEND + channel, (pitchbend and 0x7F), (pitchbend shr 7)).map { it.toByte() })
         }
     }
     // CC
-    if ((f and ChannelControllerFlags.CC) != 0) {
+    if ((f and ChannelControllerFlags.CC.toInt()) != 0) {
         with(channels[channel]) {
             ((0..63) + (64..122)).forEach {
                 when (it) {
                     0, 6, 32, 38, 98, 99, 100, 101, 120, 121 -> return@forEach
                 }
-                yield(listOf(MidiChannelStatus.CC.toByte(), it.toByte(), controls[it]))
+                yield(listOf(MidiChannelStatus.CC + channel, it, controls[it].toInt()).map { it.toByte() })
             }
             when (omniMode) {
-                false -> yield(listOf(MidiChannelStatus.CC, MidiCC.OMNI_MODE_OFF, 0).map { it.toByte() })
-                true -> yield(listOf(MidiChannelStatus.CC, MidiCC.OMNI_MODE_ON, 0).map { it.toByte() })
+                false -> yield(listOf(MidiChannelStatus.CC + channel, MidiCC.OMNI_MODE_OFF, 0).map { it.toByte() })
+                true -> yield(listOf(MidiChannelStatus.CC + channel, MidiCC.OMNI_MODE_ON, 0).map { it.toByte() })
                 null -> {} // unspecified yet
             }
             when (monoPolyMode) {
-                false -> yield(listOf(MidiChannelStatus.CC, MidiCC.MONO_MODE_ON, controls[MidiCC.MONO_MODE_ON].toInt()).map {it.toByte()})
-                true -> yield(listOf(MidiChannelStatus.CC, MidiCC.POLY_MODE_ON, 0).map {it.toByte()})
+                false -> yield(listOf(MidiChannelStatus.CC + channel, MidiCC.MONO_MODE_ON, controls[MidiCC.MONO_MODE_ON].toInt()).map {it.toByte()})
+                true -> yield(listOf(MidiChannelStatus.CC + channel, MidiCC.POLY_MODE_ON, 0).map {it.toByte()})
                 null -> {} // unspecified yet
             }
         }
     }
     // RPN
-    if ((f and ChannelControllerFlags.Rpn) != 0) {
+    if ((f and ChannelControllerFlags.Rpn.toInt()) != 0) {
         with(channels[channel]) {
             (0 until 0x80 * 0x80).forEach {
                 if (controllerCatalog.enabledRpns[it])
@@ -130,7 +137,7 @@ private fun Midi1Machine.getChannelControllerMessages(
         }
     }
     // NRPN
-    if ((f and ChannelControllerFlags.Nrpn) != 0) {
+    if ((f and ChannelControllerFlags.Nrpn.toInt()) != 0) {
         with(channels[channel]) {
             (0 until 0x80 * 0x80).forEach {
                 if (controllerCatalog.enabledNrpns[it])
@@ -156,11 +163,11 @@ private fun Midi1Machine.getChannelControllerMessages(
     //    This happens regardless of whether they appear on the CC list or not.
     //
     // At this state, I'm lazy and find that Bank Select showing at the CC list and NOT here is the easiest.
-    if ((f and ChannelControllerFlags.Program) != 0) {
+    if ((f and ChannelControllerFlags.Program.toInt()) != 0) {
         yield(listOf(MidiChannelStatus.PROGRAM or channel, channels[channel].program).map { it.toByte() })
     }
     // CAf
-    if ((f and ChannelControllerFlags.CAf) != 0) {
+    if ((f and ChannelControllerFlags.CAf.toInt()) != 0) {
         yield(listOf(MidiChannelStatus.CAF or channel, channels[channel].caf).map { it.toByte() })
     }
 }
@@ -180,7 +187,7 @@ private fun Midi1Machine.getNoteDataMessages(
         val targetNotes = (0..127).filter { messageDataControl == MessageDataControl.Full || noteOnStatus[it] }
 
         // Notes
-        if ((f and NoteDataFlags.Notes) != 0) {
+        if ((f and NoteDataFlags.Notes.toInt()) != 0) {
             targetNotes.forEach {
                 yield(listOf(MidiChannelStatus.NOTE_ON or channel, it, noteVelocity[it]).map { it.toByte() })
                 // also:
@@ -189,7 +196,7 @@ private fun Midi1Machine.getNoteDataMessages(
             }
         }
         // PAf
-        if ((f and NoteDataFlags.PAf) != 0) {
+        if ((f and NoteDataFlags.PAf.toInt()) != 0) {
             targetNotes.forEach {
                 yield(listOf(MidiChannelStatus.PAF or channel, it, pafVelocity[it]).map { it.toByte() })
             }

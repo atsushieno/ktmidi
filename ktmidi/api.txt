@@ -643,10 +643,6 @@ package dev.atsushieno.ktmidi {
     field public static final byte UNKNOWN = 0; // 0x0
   }
 
-  public final class Midi1CIMessageReporterKt {
-    method public static kotlin.sequences.Sequence<java.util.List<java.lang.Byte>> reportMidiMessages(dev.atsushieno.ktmidi.Midi1Machine, byte address, byte messageDataControl, byte midiMessageReportSystemMessages, byte midiMessageReportChannelControllerMessages, byte midiMessageReportNoteDataMessages);
-  }
-
   public final class Midi1CompoundMessage implements dev.atsushieno.ktmidi.Midi1Message {
     ctor public Midi1CompoundMessage(int type, int arg1, int arg2, optional byte[]? extraData, optional int extraOffset, optional int extraLength);
     method public byte[]? getExtraData();
@@ -1281,6 +1277,10 @@ package dev.atsushieno.ktmidi {
     field public static final int VOLUME_LSB = 39; // 0x27
   }
 
+  public final class MidiCIMessageReporterKt {
+    method public static kotlin.sequences.Sequence<java.util.List<java.lang.Byte>> reportMidiMessages(dev.atsushieno.ktmidi.Midi1Machine, byte address, byte messageDataControl, byte midiMessageReportSystemMessages, byte midiMessageReportChannelControllerMessages, byte midiMessageReportNoteDataMessages);
+  }
+
   public final class MidiCIProtocolBytes {
     field public static final int EXTENSIONS = 2; // 0x2
     field public static final dev.atsushieno.ktmidi.MidiCIProtocolBytes INSTANCE;
@@ -1444,6 +1444,42 @@ package dev.atsushieno.ktmidi {
 
   @Deprecated public static final class MidiMessage.Companion {
     method @Deprecated public kotlin.sequences.Sequence<java.lang.Byte> encode7BitLength(int length);
+  }
+
+  public final class MidiMessageReportChannelControllerFlags {
+    field public static final byte All = 63; // 0x3f
+    field public static final byte CAf = 32; // 0x20
+    field public static final byte CC = 2; // 0x2
+    field public static final dev.atsushieno.ktmidi.MidiMessageReportChannelControllerFlags INSTANCE;
+    field public static final byte Nrpn = 8; // 0x8
+    field public static final byte Pitchbend = 1; // 0x1
+    field public static final byte Program = 16; // 0x10
+    field public static final byte Rpn = 4; // 0x4
+  }
+
+  public final class MidiMessageReportDataControl {
+    field public static final byte Full = 127; // 0x7f
+    field public static final dev.atsushieno.ktmidi.MidiMessageReportDataControl INSTANCE;
+    field public static final byte None = 0; // 0x0
+    field public static final byte OnlyNonDefaults = 1; // 0x1
+  }
+
+  public final class MidiMessageReportNoteDataFlags {
+    field public static final byte All = 31; // 0x1f
+    field public static final byte AssignableController = 16; // 0x10
+    field public static final dev.atsushieno.ktmidi.MidiMessageReportNoteDataFlags INSTANCE;
+    field public static final byte Notes = 1; // 0x1
+    field public static final byte PAf = 2; // 0x2
+    field public static final byte Pitchbend = 4; // 0x4
+    field public static final byte RegisteredController = 8; // 0x8
+  }
+
+  public final class MidiMessageReportSystemMessagesFlags {
+    field public static final byte All = 7; // 0x7
+    field public static final dev.atsushieno.ktmidi.MidiMessageReportSystemMessagesFlags INSTANCE;
+    field public static final byte MtcQuarterFrame = 1; // 0x1
+    field public static final byte SongPosition = 2; // 0x2
+    field public static final byte SongSelect = 4; // 0x4
   }
 
   public final class MidiMessageType {

@@ -8,6 +8,8 @@ package dev.atsushieno.ktmidi.ci
  * ktmidi core module to facilitate implementation of this interface.
  */
 interface MidiMessageReporter {
+    val midiTransportProtocol: MidiMessageReportProtocol
+
     /**
      * Return a sequence of MIDI messages (can be split in any number of lists)
      */

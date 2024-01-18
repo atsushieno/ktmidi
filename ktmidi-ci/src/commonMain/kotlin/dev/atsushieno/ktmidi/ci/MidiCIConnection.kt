@@ -100,6 +100,7 @@ object MidiCIProcessInquiryFeatures {
 }
 
 
+// Keep these object definitions in sync with ktmidi MidiMachines.
 object MidiMessageReportDataControl {
     const val None:Byte = 0
     const val OnlyNonDefaults:Byte = 1
@@ -130,6 +131,11 @@ object MidiMessageReportNoteDataFlags {
     const val RegisteredController:Byte = 8
     const val AssignableController:Byte = 16
     const val All:Byte = 31
+}
+
+enum class MidiMessageReportProtocol {
+    Midi1Stream,
+    Ump
 }
 
 object MidiCIConstants {

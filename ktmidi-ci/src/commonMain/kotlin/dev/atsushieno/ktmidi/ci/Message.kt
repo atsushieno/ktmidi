@@ -1,7 +1,5 @@
 package dev.atsushieno.ktmidi.ci
 
-import dev.atsushieno.ktmidi.ci.Message.Companion.dataString
-
 abstract class Message(protected val common: Common) {
 
     val address: Byte
@@ -62,7 +60,7 @@ abstract class Message(protected val common: Common) {
             Pair(CISubId2.PROCESS_INQUIRY_CAPABILITIES, 13),
             Pair(CISubId2.PROCESS_INQUIRY_CAPABILITIES_REPLY, 14),
             Pair(CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT, 18),
-            Pair(CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY, 18),
+            Pair(CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY, 17),
             Pair(CISubId2.PROCESS_INQUIRY_END_OF_MIDI_MESSAGE, 13),
         )
 
@@ -233,26 +231,26 @@ abstract class Message(protected val common: Common) {
         override val label = "ProcessInquiryReply"
         override val bodyString = "supportedFeatures=$supportedFeatures"
     }
-    class ProcessMidiMessageReport(address: Byte, sourceMUID: Int, destinationMUID: Int,
-                                    val messageDataControl: Byte,
-                                    val systemMessages: Byte,
-                                    val channelControllerMessages: Byte,
-                                    val noteDataMessages: Byte)
+    class MidiMessageReportInquiry(address: Byte, sourceMUID: Int, destinationMUID: Int,
+                                   val messageDataControl: Byte,
+                                   val systemMessages: Byte,
+                                   val channelControllerMessages: Byte,
+                                   val noteDataMessages: Byte)
         : Message(Common(sourceMUID, destinationMUID, address)) {
-        override val label = "ProcessMidiMessageReport"
+        override val label = "MidiMessageReportInquiry"
         override val bodyString = "messageDataControl=$messageDataControl, systemMessages=$systemMessages, channelControllerMessages=$channelControllerMessages, noteDataMessages=$noteDataMessages"
     }
-    class ProcessMidiMessageReportReply(address: Byte, sourceMUID: Int, destinationMUID: Int,
-                                        val systemMessages: Byte,
-                                        val channelControllerMessages: Byte,
-                                        val noteDataMessages: Byte)
+    class MidiMessageReportReply(address: Byte, sourceMUID: Int, destinationMUID: Int,
+                                 val systemMessages: Byte,
+                                 val channelControllerMessages: Byte,
+                                 val noteDataMessages: Byte)
         : Message(Common(sourceMUID, destinationMUID, address)) {
-        override val label = "ProcessMidiMessageReportReply"
+        override val label = "MidiMessageReportReply"
         override val bodyString = "systemMessages = $systemMessages, channelControllerMessages = $channelControllerMessages, noteDataMessages = $noteDataMessages"
     }
-    class ProcessEndOfMidiMessageReport(address: Byte, sourceMUID: Int, destinationMUID: Int)
+    class MidiMessageReportNotifyEnd(address: Byte, sourceMUID: Int, destinationMUID: Int)
         : Message(Common(sourceMUID, destinationMUID, address)) {
-        override val label = "ProcessEndOfMidiMessageReport"
+        override val label = "MidiMessageReportNotifyEnd"
         override val bodyString = ""
     }
 }
