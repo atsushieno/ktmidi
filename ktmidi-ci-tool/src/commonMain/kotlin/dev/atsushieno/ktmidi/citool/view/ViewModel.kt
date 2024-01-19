@@ -158,11 +158,8 @@ class ResponderViewModel(val model: CIDeviceModel) {
         AppModel.ciDeviceManager.device.device.responder.properties.updateMetadata(oldPropertyId, property)
 
         // We need to update the property value list state, as the property ID might have changed.
-        val existingList = properties.toList()
-        properties.clear()
-        properties.addAll(existingList.mapIndexed { idx, it ->
-            if (idx == index) PropertyValueState(property.resource, it.mediaType.value, existing.data.value) else it })
-
+        if (oldPropertyId != property.resource)
+            existing.id.value = property.resource
         selectedProperty.value = property.resource
     }
 
