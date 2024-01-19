@@ -10,7 +10,7 @@ enum class ConnectionChange {
 }
 
 class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
-                   private val sendCIOutput: (data: List<Byte>) -> Unit,
+                   private val sendCIOutput: (group: Byte, data: List<Byte>) -> Unit,
                    private val sendMidiMessageReport: (protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
 ) {
     val initiator by lazy { MidiCIInitiator(this, config.initiator, sendCIOutput) }
@@ -80,13 +80,13 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     fun sendDiscovery(msg: Message.DiscoveryInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
         val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(CIFactory.midiCIDiscovery(
+        sendCIOutput(msg.group, CIFactory.midiCIDiscovery(
             buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.device.manufacturer, msg.device.family, msg.device.modelNumber,
             msg.device.softwareRevisionLevel, msg.ciCategorySupported, msg.receivableMaxSysExSize, msg.outputPathId
         ))
     }
 
-    fun sendNakForUnknownCIMessage(data: List<Byte>) {
+    fun sendNakForUnknownCIMessage(group: Byte, data: List<Byte>) {
         val source = data[1]
         val originalSubId = data[3]
         val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
@@ -94,14 +94,15 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         val nak = MidiCIAckNakData(source, sourceMUID, destinationMUID, originalSubId,
             CINakStatus.MessageNotSupported, 0, listOf(), listOf())
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(CIFactory.midiCIAckNak(dst, true, nak))
+        sendCIOutput(group, CIFactory.midiCIAckNak(dst, true, nak))
     }
 
-    fun sendNakForUnknownMUID(originalSubId2: Byte, address: Byte, destinationMUID: Int) {
-        sendNakForError(address, destinationMUID, originalSubId2, CINakStatus.Nak, 0, message = "CI Device ${destinationMUID.muidString} is not connected.")
+    fun sendNakForUnknownMUID(group: Byte, originalSubId2: Byte, address: Byte, destinationMUID: Int) {
+        sendNakForError(group, address, destinationMUID, originalSubId2, CINakStatus.Nak, 0, message = "CI Device ${destinationMUID.muidString} is not connected.")
     }
 
-    fun sendNakForError(address: Byte, destinationMUID: Int, originalSubId2: Byte, statusCode: Byte, statusData: Byte, details: List<Byte> = List(5) {0}, message: String) {
+    fun sendNakForError(group: Byte, address: Byte, destinationMUID: Int, originalSubId2: Byte, statusCode: Byte, statusData: Byte, details: List<Byte> = List(5) {0}, message: String) {
+        // FIXME: pass group
         sendNakForError(Message.Nak(address, muid, destinationMUID, originalSubId2, statusCode, statusData, details,
             MidiCIConverter.encodeStringToASCII(message).toASCIIByteArray().toList()))
     }
@@ -109,7 +110,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     fun sendNakForError(msg: Message.Nak) {
         logger.logMessage(msg, MessageDirection.Out)
         val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(CIFactory.midiCIAckNak(buf, true, msg.address, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID,
+        sendCIOutput(msg.group, CIFactory.midiCIAckNak(buf, true, msg.address, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID,
             msg.originalSubId, msg.statusCode, msg.statusData, msg.details, msg.message))
     }
 
@@ -122,15 +123,15 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     fun invalidateMUID(msg: Message.InvalidateMUID) {
         logger.logMessage(msg, MessageDirection.Out)
         val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(CIFactory.midiCIDiscoveryInvalidateMuid(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.targetMUID))
+        sendCIOutput(msg.group, CIFactory.midiCIDiscoveryInvalidateMuid(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.targetMUID))
     }
 
     // Input handlers
 
-    var processUnknownCIMessage: (data: List<Byte>) -> Unit = { data ->
+    var processUnknownCIMessage: (group: Byte, data: List<Byte>) -> Unit = { group, data ->
         logger.nak(data, MessageDirection.In)
         events.unknownMessageReceived.forEach { it(data) }
-        sendNakForUnknownCIMessage(data)
+        sendNakForUnknownCIMessage(group, data)
     }
 
     private val defaultProcessInvalidateMUID = { sourceMUID: Int, muidToInvalidate: Int ->
@@ -144,7 +145,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     val sendDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.Out)
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(
+        sendCIOutput(msg.group,
             CIFactory.midiCIDiscoveryReply(
                 dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID,
                 msg.device.manufacturer, msg.device.family, msg.device.modelNumber, msg.device.softwareRevisionLevel,
@@ -168,7 +169,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     val sendEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.Out)
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(
+        sendCIOutput(msg.group,
             CIFactory.midiCIEndpointMessageReply(
                 dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID, msg.status, msg.data)
         )
@@ -254,7 +255,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     val sendProfileReply: (msg: Message.ProfileReply) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.Out)
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(CIFactory.midiCIProfileInquiryReply(dst, msg.address, msg.sourceMUID, msg.destinationMUID,
+        sendCIOutput(msg.group, CIFactory.midiCIProfileInquiryReply(dst, msg.address, msg.sourceMUID, msg.destinationMUID,
             msg.enabledProfiles,
             msg.disabledProfiles)
         )
@@ -285,7 +286,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     var onProfileSet = mutableListOf<(profile: MidiCIProfile, numChannelsRequested: Short) -> Unit>()
 
-    private val defaultProcessSetProfile = { address: Byte, initiatorMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, numChannelsRequested: Short, enabled: Boolean ->
+    private val defaultProcessSetProfile = { group: Byte, address: Byte, initiatorMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, numChannelsRequested: Short, enabled: Boolean ->
         val newEntry = MidiCIProfile(profile, address, enabled)
         val existing = localProfiles.profiles.firstOrNull { it.profile == profile }
         if (existing != null)
@@ -295,30 +296,30 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         enabled
     }
 
-    private fun sendSetProfileReport(address: Byte, profile: MidiCIProfileId, enabled: Boolean) {
+    private fun sendSetProfileReport(group: Byte, address: Byte, profile: MidiCIProfileId, enabled: Boolean) {
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(CIFactory.midiCIProfileReport(dst, address, enabled, muid, profile))
+        sendCIOutput(group, CIFactory.midiCIProfileReport(dst, address, enabled, muid, profile))
     }
 
-    fun sendProfileAddedReport(profile: MidiCIProfile) {
+    fun sendProfileAddedReport(group: Byte, profile: MidiCIProfile) {
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(CIFactory.midiCIProfileAddedRemoved(dst, profile.address, false, muid, profile.profile))
+        sendCIOutput(group, CIFactory.midiCIProfileAddedRemoved(dst, profile.address, false, muid, profile.profile))
     }
 
-    fun sendProfileRemovedReport(profile: MidiCIProfile) {
+    fun sendProfileRemovedReport(group: Byte, profile: MidiCIProfile) {
         val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(CIFactory.midiCIProfileAddedRemoved(dst, profile.address, true, muid, profile.profile))
+        sendCIOutput(group, CIFactory.midiCIProfileAddedRemoved(dst, profile.address, true, muid, profile.profile))
     }
 
     fun defaultProcessSetProfileOn(msg: Message.SetProfileOn) {
         // send Profile Enabled Report only when it is actually enabled
-        if (defaultProcessSetProfile(msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.numChannelsRequested, true))
-            sendSetProfileReport(msg.address, msg.profile, true)
+        if (defaultProcessSetProfile(msg.group, msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.numChannelsRequested, true))
+            sendSetProfileReport(msg.group, msg.address, msg.profile, true)
     }
     fun defaultProcessSetProfileOff(msg: Message.SetProfileOff) {
         // send Profile Disabled Report only when it is actually disabled
-        if (!defaultProcessSetProfile(msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, 0, false))
-            sendSetProfileReport(msg.address, msg.profile, false)
+        if (!defaultProcessSetProfile(msg.group, msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, 0, false))
+            sendSetProfileReport(msg.group, msg.address, msg.profile, false)
     }
 
     var processSetProfileOn = { msg: Message.SetProfileOn ->
@@ -372,7 +373,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     }
 
 
-    fun processInput(data: List<Byte>) {
+    fun processInput(group: Byte, data: List<Byte>) {
         if (data[0] != MidiCIConstants.UNIVERSAL_SYSEX || data[2] != MidiCIConstants.SYSEX_SUB_ID_MIDI_CI)
             return // not MIDI-CI sysex
         if (data.size < Message.COMMON_HEADER_SIZE)
@@ -388,11 +389,11 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
         // catch errors for (potentially) insufficient buffer sizes
         try {
-            processInputUnchecked(data, destinationMUID)
+            processInputUnchecked(group, data, destinationMUID)
         } catch(ex: IndexOutOfBoundsException) {
             val address = CIRetrieval.midiCIGetAddressing(data)
             val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-            sendNakForError(address, sourceMUID, data[3], CINakStatus.MalformedMessage, 0, List(5) { 0 }, ex.message ?: ex.toString())
+            sendNakForError(group, address, sourceMUID, data[3], CINakStatus.MalformedMessage, 0, List(5) { 0 }, ex.message ?: ex.toString())
         }
     }
 
@@ -410,7 +411,8 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         }
     }
 
-    private fun processInputUnchecked(data: List<Byte>, destinationMUID: Int) {
+    private fun processInputUnchecked(group: Byte, data: List<Byte>, destinationMUID: Int) {
+        // FIXME: pass group to Message constructor everywhere
         when (data[3]) {
             // Protocol Negotiation - we ignore them. Falls back to NAK
 
@@ -704,7 +706,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             }
 
             else -> {
-                processUnknownCIMessage(data)
+                processUnknownCIMessage(group, data)
             }
         }
     }

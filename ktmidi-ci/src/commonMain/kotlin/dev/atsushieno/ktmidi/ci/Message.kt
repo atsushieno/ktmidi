@@ -1,7 +1,8 @@
 package dev.atsushieno.ktmidi.ci
 
 abstract class Message(protected val common: Common) {
-
+    val group: Byte
+        get() = common.group
     val address: Byte
         get() = common.address
     val sourceMUID: Int
@@ -29,6 +30,8 @@ abstract class Message(protected val common: Common) {
                 0x7F -> "FunctionBlock"
                 else -> "Ch. $this"
             }
+        val Byte.groupString: String
+            get() = this.toString(16)
 
         val messageSizes = mapOf(
             Pair(CISubId2.DISCOVERY_INQUIRY, 30),
@@ -80,8 +83,8 @@ abstract class Message(protected val common: Common) {
         )
     }
 
-    data class Common(val sourceMUID: Int, val destinationMUID: Int = MidiCIConstants.BROADCAST_MUID_32, val address: Byte = MidiCIConstants.ADDRESS_FUNCTION_BLOCK) {
-        override fun toString() = "{address=$address, sourceMUID=${sourceMUID.muidString}, destinationMUID=${destinationMUID.muidString}}"
+    data class Common(val sourceMUID: Int, val destinationMUID: Int = MidiCIConstants.BROADCAST_MUID_32, val address: Byte = MidiCIConstants.ADDRESS_FUNCTION_BLOCK, val group: Byte = 0) {
+        override fun toString() = "{group=${group.groupString}, address=${address.addressString}, sourceMUID=${sourceMUID.muidString}, destinationMUID=${destinationMUID.muidString}}"
     }
 
     abstract val label: String

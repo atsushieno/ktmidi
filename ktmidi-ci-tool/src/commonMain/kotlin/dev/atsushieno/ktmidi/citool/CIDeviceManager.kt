@@ -31,7 +31,8 @@ class CIDeviceManager(config: MidiCIDeviceConfiguration, private val midiDeviceM
                     data[start + 3] == MidiCIConstants.SYSEX_SUB_ID_MIDI_CI
                 ) {
                     // it is a MIDI-CI message
-                    device.processCIMessage(data.drop(start + 1).take(length - 2))
+                    // Here it is MIDI 1.0 bytestream, so group is always 0.
+                    device.processCIMessage(0, data.drop(start + 1).take(length - 2))
                 }
                 else {
                     // it may be part of MIDI Message Report.

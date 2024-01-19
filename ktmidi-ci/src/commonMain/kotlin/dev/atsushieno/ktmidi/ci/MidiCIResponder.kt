@@ -16,7 +16,7 @@ import kotlin.experimental.and
 class MidiCIResponder(
     val parent: MidiCIDevice,
     val config: MidiCIResponderConfiguration,
-    private val sendOutput: (data: List<Byte>) -> Unit,
+    private val sendOutput: (group: Byte, data: List<Byte>) -> Unit,
     private val sendMidiMessageReport: (protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
 ) {
     val muid by parent::muid
@@ -84,7 +84,7 @@ class MidiCIResponder(
             dst, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
-            sendOutput(it)
+            sendOutput(msg.group, it)
         }
     }
     fun terminateSubscriptions() {
@@ -104,7 +104,7 @@ class MidiCIResponder(
     fun sendPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
         logger.logMessage(msg, MessageDirection.Out)
         val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(CIFactory.midiCIPropertyGetCapabilities(dst, msg.address, true,
+        sendOutput(msg.group, CIFactory.midiCIPropertyGetCapabilities(dst, msg.address, true,
             msg.sourceMUID, msg.destinationMUID, msg.maxSimultaneousRequests))
     }
     val getPropertyCapabilitiesReplyFor: (msg: Message.PropertyGetCapabilities) -> Message.PropertyGetCapabilitiesReply = { msg ->
@@ -127,7 +127,7 @@ class MidiCIResponder(
             dst, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
-            sendOutput(it)
+            sendOutput(msg.group, it)
         }
     }
     var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
@@ -148,7 +148,7 @@ class MidiCIResponder(
             dst, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, listOf()
         ).forEach {
-            sendOutput(it)
+            sendOutput(msg.group, it)
         }
     }
     var processSetPropertyData: (msg: Message.SetPropertyData) -> Unit = { msg ->
@@ -168,7 +168,7 @@ class MidiCIResponder(
             dst, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
             msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
         ).forEach {
-            sendOutput(it)
+            sendOutput(msg.group, it)
         }
     }
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
@@ -194,7 +194,7 @@ class MidiCIResponder(
     fun sendProcessProcessInquiryReply(msg: Message.ProcessInquiryReply) {
         logger.logMessage(msg, MessageDirection.Out)
         val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(CIFactory.midiCIProcessInquiryCapabilitiesReply(
+        sendOutput(msg.group, CIFactory.midiCIProcessInquiryCapabilitiesReply(
             dst, msg.sourceMUID, msg.destinationMUID, msg.supportedFeatures))
     }
     var processProcessInquiry: (msg: Message.ProcessInquiry) -> Unit = { msg ->
@@ -211,7 +211,7 @@ class MidiCIResponder(
     fun sendMidiMessageReportReply(msg: Message.MidiMessageReportReply) {
         logger.logMessage(msg, MessageDirection.Out)
         val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(CIFactory.midiCIMidiMessageReportReply(dst, msg.address,
+        sendOutput(msg.group, CIFactory.midiCIMidiMessageReportReply(dst, msg.address,
             msg.sourceMUID, msg.destinationMUID,
             msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
     }
@@ -220,7 +220,7 @@ class MidiCIResponder(
     fun sendEndOfMidiMessageReport(msg: Message.MidiMessageReportNotifyEnd) {
         logger.logMessage(msg, MessageDirection.Out)
         val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(CIFactory.midiCIEndOfMidiMessage(dst, msg.address, msg.sourceMUID, msg.destinationMUID))
+        sendOutput(msg.group, CIFactory.midiCIEndOfMidiMessage(dst, msg.address, msg.sourceMUID, msg.destinationMUID))
     }
     fun defaultProcessMidiMessageReport(msg: Message.MidiMessageReportInquiry) {
         sendMidiMessageReportReply(getMidiMessageReportReplyFor(msg))

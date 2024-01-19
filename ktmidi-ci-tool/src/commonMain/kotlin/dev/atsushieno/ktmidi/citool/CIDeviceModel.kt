@@ -21,9 +21,9 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
 
     val device by lazy {
         MidiCIDevice(muid, config,
-            sendCIOutput = { data ->
+            sendCIOutput = { group, data ->
                 AppModel.log(
-                    "[sent CI SysEx] " + data.joinToString { it.toUByte().toString(16) },
+                    "[sent CI SysEx (grp:$group)] " + data.joinToString { it.toUByte().toString(16) },
                     MessageDirection.Out
                 )
                 ciOutputSender(data)
@@ -81,10 +81,10 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
 
     val initiator = CIInitiatorModel(this)
 
-    fun processCIMessage(data: List<Byte>) {
+    fun processCIMessage(group: Byte, data: List<Byte>) {
         if (data.isEmpty()) return
-        AppModel.log("[received CI SysEx] " + data.joinToString { it.toUByte().toString(16) }, MessageDirection.In)
-        device.processInput(data)
+        AppModel.log("[received CI SysEx (grp:$group)] " + data.joinToString { it.toUByte().toString(16) }, MessageDirection.In)
+        device.processInput(group, data)
     }
 
     // observable state
@@ -113,14 +113,16 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
 
     fun addLocalProfile(profile: MidiCIProfile) {
         device.localProfiles.add(profile)
-        device.sendProfileAddedReport(profile)
+        // FIXME: supply group from somewhere
+        device.sendProfileAddedReport(0, profile)
     }
 
     fun removeLocalProfile(address: Byte, profileId: MidiCIProfileId) {
         // create a dummy entry...
         val profile = MidiCIProfile(profileId, address, false)
         device.localProfiles.remove(profile)
-        device.sendProfileRemovedReport(profile)
+        // FIXME: supply group from somewhere
+        device.sendProfileRemovedReport(0, profile)
     }
 
     fun updateLocalProfileName(oldProfile: MidiCIProfileId, newProfile: MidiCIProfileId) {

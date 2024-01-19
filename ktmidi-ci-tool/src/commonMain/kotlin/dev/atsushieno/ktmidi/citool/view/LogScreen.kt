@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.atsushieno.ktmidi.ci.Message
 import dev.atsushieno.ktmidi.ci.Message.Companion.addressString
+import dev.atsushieno.ktmidi.ci.Message.Companion.groupString
 import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -35,7 +36,7 @@ fun LogScreen() {
                     val msg = it.data
                     if (msg is Message) {
                         Column {
-                            Text("@" + msg.address.addressString, Modifier.width(150.dp).padding(10.dp, 0.dp), fontSize = 14.sp)
+                            Text("@${msg.group.groupString}/${msg.address.addressString}", Modifier.width(150.dp).padding(10.dp, 0.dp), fontSize = 14.sp)
                             Text(msg.sourceMUID.muidString, Modifier.width(150.dp).padding(10.dp, 0.dp), fontSize = 14.sp)
                             Text("->" + msg.destinationMUID.muidString, Modifier.width(150.dp).padding(10.dp, 0.dp), fontSize = 14.sp)
                         }
