@@ -33,19 +33,20 @@ fun InitiatorScreen(vm: InitiatorViewModel) {
                 vm.device.connections.map { it.conn.targetMUID to it.conn }.toMap(),
                 destinationMUID,
                 onChange = { Snapshot.withMutableSnapshot { vm.selectedRemoteDeviceMUID.value = it } })
-
-            if (conn != null)
-                ClientConnectionInfo(conn)
         }
 
-        if (conn != null)
-            ClientConnection(conn)
+        vm.connections.forEach {
+            ClientConnection(it)
+        }
     }
 }
 
 @Composable
 fun ClientConnection(vm: ConnectionViewModel) {
     Column(Modifier.padding(12.dp, 0.dp)) {
+        Divider()
+        ClientConnectionInfo(vm)
+
         Text("Profiles", fontSize = 24.sp, fontWeight = FontWeight.Bold)
 
         Row {
@@ -97,6 +98,7 @@ private fun ClientConnectionInfo(vm: ConnectionViewModel) {
     val conn = vm.conn.conn
     Column {
         Text("Device", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text("MUID: ${vm.conn.conn.targetMUID}")
         val small = 12.sp
         Row {
             DeviceItemCard("Manufacturer")

@@ -47,14 +47,14 @@ class CIDeviceManager(config: MidiCIDeviceConfiguration, private val midiDeviceM
                         device.chunkedMessages.addAll(data.toList())
                     } else
                         // received some message. No idea why, but log anyway.
-                        AppModel.log("[Received MIDI] " + data.drop(start).take(length), MessageDirection.In)
+                        AppModel.log("[received MIDI] " + data.drop(start).take(length), MessageDirection.In)
                 }
             }
         }
     }
 
     internal fun logMidiMessageReportChunk(data: List<Byte>) {
-        AppModel.log("[Received MIDI (buffered)] " +
+        AppModel.log("[received MIDI (buffered)] " +
                 data.joinToString { it.toUByte().toString(16) },
             MessageDirection.In)
     }

@@ -83,7 +83,7 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
 
     fun processCIMessage(data: List<Byte>) {
         if (data.isEmpty()) return
-        AppModel.log("[Received CI SysEx] " + data.joinToString { it.toUByte().toString(16) }, MessageDirection.In)
+        AppModel.log("[received CI SysEx] " + data.joinToString { it.toUByte().toString(16) }, MessageDirection.In)
         device.processInput(data)
     }
 

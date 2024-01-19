@@ -65,7 +65,20 @@ class InitiatorViewModel(val device: CIDeviceModel) {
         if (conn != null) ConnectionViewModel(conn) else null
     }
 
+    val connections = mutableStateListOf<ConnectionViewModel>()
+
     init {
+        device.device.connectionsChanged.add { change, item ->
+            when (change) {
+                ConnectionChange.Added -> {
+                    val conn = device.initiator.connections.first { it.conn == item }
+                    connections.add(ConnectionViewModel(conn))
+                }
+                ConnectionChange.Removed -> {
+                    connections.removeAll { it.conn.conn == item }
+                }
+            }
+        }
         // When a new entry is appeared and nothing was selected, move to the new entry.
         AppModel.ciDeviceManager.initiator.initiator.connectionsChanged.add { change, conn ->
             if (selectedRemoteDeviceMUID.value == 0 && change == ConnectionChange.Added)

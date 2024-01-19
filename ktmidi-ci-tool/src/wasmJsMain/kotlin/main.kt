@@ -4,11 +4,6 @@ import dev.atsushieno.ktmidi.WebMidiAccess
 import dev.atsushieno.ktmidi.citool.AppModel
 import dev.atsushieno.ktmidi.citool.initializeAppModel
 import dev.atsushieno.ktmidi.citool.view.App
-/*
-import dev.atsushieno.ktmidi.JzzMidiAccess
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-*/
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
