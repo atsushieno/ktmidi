@@ -67,7 +67,24 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     // Request sender
 
-    fun sendDiscovery() = initiator.sendDiscovery()
+    fun sendDiscovery(ciCategorySupported: Byte = MidiCISupportedCategories.THREE_P) =
+        sendDiscovery(Message.DiscoveryInquiry(muid,
+            DeviceDetails(
+                device.manufacturerId,
+                device.familyId,
+                device.modelId,
+                device.versionId
+            ),
+            ciCategorySupported, config.receivableMaxSysExSize, config.outputPathId))
+
+    fun sendDiscovery(msg: Message.DiscoveryInquiry) {
+        logger.logMessage(msg, MessageDirection.Out)
+        val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        sendCIOutput(CIFactory.midiCIDiscovery(
+            buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.device.manufacturer, msg.device.family, msg.device.modelNumber,
+            msg.device.softwareRevisionLevel, msg.ciCategorySupported, msg.receivableMaxSysExSize, msg.outputPathId
+        ))
+    }
 
     fun sendNakForUnknownCIMessage(data: List<Byte>) {
         val source = data[1]
@@ -122,6 +139,115 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             connections.remove(muidToInvalidate)
     }
     var processInvalidateMUID = defaultProcessInvalidateMUID
+
+    // to Discovery (responder)
+    val sendDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.Out)
+        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        sendCIOutput(
+            CIFactory.midiCIDiscoveryReply(
+                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID,
+                msg.device.manufacturer, msg.device.family, msg.device.modelNumber, msg.device.softwareRevisionLevel,
+                config.capabilityInquirySupported, config.receivableMaxSysExSize,
+                msg.outputPathId, msg.functionBlock
+            )
+        )
+    }
+    val getDiscoveryReplyForInquiry: (request: Message.DiscoveryInquiry) -> Message.DiscoveryReply = { request ->
+        val deviceDetails = DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId)
+        Message.DiscoveryReply(muid, request.sourceMUID, deviceDetails, config.capabilityInquirySupported,
+            config.receivableMaxSysExSize, request.outputPathId, config.functionBlock)
+    }
+    var processDiscovery: (msg: Message.DiscoveryInquiry) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.discoveryReceived.forEach { it(msg) }
+        val reply = getDiscoveryReplyForInquiry(msg)
+        sendDiscoveryReply(reply)
+    }
+
+    val sendEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.Out)
+        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        sendCIOutput(
+            CIFactory.midiCIEndpointMessageReply(
+                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID, msg.status, msg.data)
+        )
+    }
+    val getEndpointReplyForInquiry: (msg: Message.EndpointInquiry) -> Message.EndpointReply = { msg ->
+        val prodId = config.productInstanceId
+        if (prodId.length > 16 || prodId.any { it.code < 0x20 || it.code > 0x7E })
+            throw IllegalStateException("productInstanceId shall not be any longer than 16 bytes in size and must be all in ASCII code between 32 and 126")
+        Message.EndpointReply(muid, msg.sourceMUID, msg.status,
+            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId.isNotBlank()) prodId.toASCIIByteArray().toList() else listOf()
+        )
+    }
+    var processEndpointMessage: (msg: Message.EndpointInquiry) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.endpointInquiryReceived.forEach { it(msg) }
+        val reply = getEndpointReplyForInquiry(msg)
+        sendEndpointReply(reply)
+    }
+
+    // to Reply to Discovery (initiator)
+    val handleNewEndpoint = { msg: Message.DiscoveryReply ->
+        // If successfully discovered, continue to endpoint inquiry
+        val connection = MidiCIInitiator.ClientConnection(initiator, msg.sourceMUID, msg.device)
+        val existing = connections[msg.sourceMUID]
+        if (existing != null) {
+            connections.remove(msg.sourceMUID)
+            connectionsChanged.forEach { it(ConnectionChange.Removed, existing) }
+        }
+        connections[msg.sourceMUID]= connection
+        connectionsChanged.forEach { it(ConnectionChange.Added, connection) }
+
+        if (config.autoSendEndpointInquiry)
+            initiator.sendEndpointMessage(msg.sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
+
+        if (config.autoSendProfileInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROFILE_CONFIGURATION.toInt()) != 0)
+            initiator.requestProfiles(0x7F, msg.sourceMUID)
+        if (config.autoSendPropertyExchangeCapabilitiesInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROPERTY_EXCHANGE.toInt()) != 0)
+            initiator.requestPropertyExchangeCapabilities(0x7F, msg.sourceMUID, config.maxSimultaneousPropertyRequests)
+    }
+    var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.discoveryReplyReceived.forEach { it(msg) }
+        handleNewEndpoint(msg)
+    }
+
+    var onAck: (sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, nakStatusCode: Byte, nakStatusData: Byte, nakDetailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte>) -> Unit = { _,_,_,_,_,_,_,_ -> }
+    var onNak: (sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, nakStatusCode: Byte, nakStatusData: Byte, nakDetailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte>) -> Unit = { _,_,_,_,_,_,_,_ -> }
+    private fun defaultProcessAckNak(isNak: Boolean, sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, statusCode: Byte, statusData: Byte, detailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte>) {
+        if (isNak)
+            onNak(sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
+        else
+            onAck(sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
+    }
+    private val defaultProcessAck = { sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, statusCode: Byte, statusData: Byte, detailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte> ->
+        defaultProcessAckNak(false, sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
+    }
+    var processAck = defaultProcessAck
+    private val defaultProcessNak = { sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, statusCode: Byte, statusData: Byte, detailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte> ->
+        defaultProcessAckNak(true, sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
+    }
+    var processNak = defaultProcessNak
+
+    val defaultProcessEndpointReply = { msg: Message.EndpointReply ->
+        val conn = connections[msg.sourceMUID]
+        if (conn != null) {
+            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID) {
+                val s = msg.data.toByteArray().decodeToString()
+                if (s.all { it.code in 32..126 } && s.length <= 16)
+                    conn.productInstanceId = s
+                else
+                    invalidateMUID(msg.sourceMUID, "Invalid product instance ID")
+            }
+        }
+    }
+    var processEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.endpointReplyReceived.forEach { it(msg) }
+        defaultProcessEndpointReply(msg)
+    }
 
     // Local Profile Configuration
 
@@ -298,7 +424,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                 val initiatorOutputPath = if (data.size > 29) data[29] else 0
                 val functionBlock = if (data.size > 30) data[30] else 0
                 // Reply to Discovery
-                initiator.processDiscoveryReply(Message.DiscoveryReply(
+                processDiscoveryReply(Message.DiscoveryReply(
                     sourceMUID, destinationMUID, device, ciSupported, max, initiatorOutputPath, functionBlock))
             }
             CISubId2.ENDPOINT_MESSAGE_REPLY -> {
@@ -306,7 +432,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                 val status = data[13]
                 val dataLength = data[14] + (data[15].toInt() shl 7)
                 val dataValue = data.drop(16).take(dataLength)
-                initiator.processEndpointReply(Message.EndpointReply(sourceMUID, destinationMUID, status, dataValue))
+                processEndpointReply(Message.EndpointReply(sourceMUID, destinationMUID, status, dataValue))
             }
             CISubId2.INVALIDATE_MUID -> {
                 processInvalidateMUID(
@@ -316,7 +442,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             }
             CISubId2.ACK -> {
                 // ACK MIDI-CI
-                initiator.processAck(
+                processAck(
                     CIRetrieval.midiCIGetSourceMUID(data),
                     CIRetrieval.midiCIGetDestinationMUID(data),
                     data[13],
@@ -329,7 +455,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             }
             CISubId2.NAK -> {
                 // NAK MIDI-CI
-                initiator.processNak(
+                processNak(
                     CIRetrieval.midiCIGetSourceMUID(data),
                     CIRetrieval.midiCIGetDestinationMUID(data),
                     data[13],
@@ -486,14 +612,14 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                 val max = CIRetrieval.midiCIMaxSysExSize(data)
                 // only available in MIDI-CI 1.2 or later.
                 val initiatorOutputPath = if (data.size > 29) data[29] else 0
-                responder.processDiscovery(Message.DiscoveryInquiry(sourceMUID, device, ciSupported, max, initiatorOutputPath))
+                processDiscovery(Message.DiscoveryInquiry(sourceMUID, device, ciSupported, max, initiatorOutputPath))
             }
 
             CISubId2.ENDPOINT_MESSAGE_INQUIRY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 // only available in MIDI-CI 1.2 or later.
                 val status = data[13]
-                responder.processEndpointMessage(Message.EndpointInquiry(sourceMUID, destinationMUID, status))
+                processEndpointMessage(Message.EndpointInquiry(sourceMUID, destinationMUID, status))
             }
 
             // Profile Configuration

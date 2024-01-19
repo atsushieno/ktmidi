@@ -6,22 +6,22 @@ class MidiCIInitiatorTest {
     @Test
     fun initialState() {
         val mediator = TestCIMediator()
-        val initiator = mediator.initiator
+        val device1 = mediator.device1
 
-        assertEquals(0, initiator.device.manufacturerId)
-        assertEquals(19474, initiator.muid)
+        assertEquals(0, device1.device.manufacturerId)
+        assertEquals(19474, device1.muid)
     }
 
     @Test
     fun basicRun() {
         val mediator = TestCIMediator()
-        val initiator = mediator.initiator
-        initiator.sendDiscovery()
-        assertEquals(1, initiator.connections.size, "connections.size")
-        val responder = mediator.responder
-        val conn = initiator.connections[responder.muid]
+        val device1 = mediator.device1
+        val device2 = mediator.device2
+        device1.sendDiscovery()
+        assertEquals(1, device1.connections.size, "connections.size")
+        val conn = device1.connections[device2.muid]
         assertNotNull(conn, "conn")
-        assertEquals(responder.device.manufacturerId, conn.device.manufacturer, "conn.device.manufacturer")
+        assertEquals(device2.device.manufacturerId, conn.device.manufacturer, "conn.device.manufacturer")
     }
 }
 

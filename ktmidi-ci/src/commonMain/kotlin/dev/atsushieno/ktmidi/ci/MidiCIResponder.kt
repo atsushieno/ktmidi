@@ -98,53 +98,6 @@ class MidiCIResponder(
 
     // Message handlers
 
-    val sendDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(
-            CIFactory.midiCIDiscoveryReply(
-                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID,
-                msg.device.manufacturer, msg.device.family, msg.device.modelNumber, msg.device.softwareRevisionLevel,
-                parent.config.capabilityInquirySupported, parent.config.receivableMaxSysExSize,
-                msg.outputPathId, msg.functionBlock
-            )
-        )
-    }
-    val getDiscoveryReplyForInquiry: (request: Message.DiscoveryInquiry) -> Message.DiscoveryReply = { request ->
-        val deviceDetails = DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId)
-        Message.DiscoveryReply(muid, request.sourceMUID, deviceDetails, parent.config.capabilityInquirySupported,
-            parent.config.receivableMaxSysExSize, request.outputPathId, config.functionBlock)
-    }
-    var processDiscovery: (msg: Message.DiscoveryInquiry) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.discoveryReceived.forEach { it(msg) }
-        val reply = getDiscoveryReplyForInquiry(msg)
-        sendDiscoveryReply(reply)
-    }
-
-    val sendEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(
-            CIFactory.midiCIEndpointMessageReply(
-                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID, msg.status, msg.data)
-        )
-    }
-    val getEndpointReplyForInquiry: (msg: Message.EndpointInquiry) -> Message.EndpointReply = { msg ->
-        val prodId = config.productInstanceId
-        if (prodId.length > 16 || prodId.any { it.code < 0x20 || it.code > 0x7E })
-            throw IllegalStateException("productInstanceId shall not be any longer than 16 bytes in size and must be all in ASCII code between 32 and 126")
-        Message.EndpointReply(muid, msg.sourceMUID, msg.status,
-            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId.isNotBlank()) prodId.toASCIIByteArray().toList() else listOf()
-        )
-    }
-    var processEndpointMessage: (msg: Message.EndpointInquiry) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.endpointInquiryReceived.forEach { it(msg) }
-        val reply = getEndpointReplyForInquiry(msg)
-        sendEndpointReply(reply)
-    }
-
     // Property Exchange
 
     // Should this also delegate to property service...?

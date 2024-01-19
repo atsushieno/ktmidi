@@ -150,22 +150,6 @@ class MidiCIInitiator(
 
     // Initiator implementation
 
-    // Discovery
-
-    fun sendDiscovery(ciCategorySupported: Byte = MidiCISupportedCategories.THREE_P) =
-        sendDiscovery(Message.DiscoveryInquiry(muid,
-            DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId),
-            ciCategorySupported, parent.config.receivableMaxSysExSize, config.outputPathId))
-
-    fun sendDiscovery(msg: Message.DiscoveryInquiry) {
-        logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(CIFactory.midiCIDiscovery(
-            buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.device.manufacturer, msg.device.family, msg.device.modelNumber,
-            msg.device.softwareRevisionLevel, msg.ciCategorySupported, msg.receivableMaxSysExSize, msg.outputPathId
-        ))
-    }
-
     fun sendEndpointMessage(targetMuid: Int, status: Byte = MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID) =
         sendEndpointMessage(Message.EndpointInquiry(muid, targetMuid, status))
 
@@ -335,66 +319,6 @@ class MidiCIInitiator(
     private var requestIdSerial: Byte = 1
 
     // Reply handler
-
-    val handleNewEndpoint = { msg: Message.DiscoveryReply ->
-        // If successfully discovered, continue to endpoint inquiry
-        val connection = ClientConnection(this, msg.sourceMUID, msg.device)
-        val existing = connections[msg.sourceMUID]
-        if (existing != null) {
-            connections.remove(msg.sourceMUID)
-            connectionsChanged.forEach { it(ConnectionChange.Removed, existing) }
-        }
-        connections[msg.sourceMUID]= connection
-        connectionsChanged.forEach { it(ConnectionChange.Added, connection) }
-
-        if (config.autoSendEndpointInquiry)
-            sendEndpointMessage(msg.sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
-
-        if (config.autoSendProfileInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROFILE_CONFIGURATION.toInt()) != 0)
-            requestProfiles(0x7F, msg.sourceMUID)
-        if (config.autoSendPropertyExchangeCapabilitiesInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROPERTY_EXCHANGE.toInt()) != 0)
-            requestPropertyExchangeCapabilities(0x7F, msg.sourceMUID, parent.config.maxSimultaneousPropertyRequests)
-    }
-    var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.discoveryReplyReceived.forEach { it(msg) }
-        handleNewEndpoint(msg)
-    }
-
-    var onAck: (sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, nakStatusCode: Byte, nakStatusData: Byte, nakDetailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte>) -> Unit = { _,_,_,_,_,_,_,_ -> }
-    var onNak: (sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, nakStatusCode: Byte, nakStatusData: Byte, nakDetailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte>) -> Unit = { _,_,_,_,_,_,_,_ -> }
-    private fun defaultProcessAckNak(isNak: Boolean, sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, statusCode: Byte, statusData: Byte, detailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte>) {
-        if (isNak)
-            onNak(sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
-        else
-            onAck(sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
-    }
-    private val defaultProcessAck = { sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, statusCode: Byte, statusData: Byte, detailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte> ->
-        defaultProcessAckNak(false, sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
-    }
-    var processAck = defaultProcessAck
-    private val defaultProcessNak = { sourceMUID: Int, destinationMUID: Int, originalTransactionSubId: Byte, statusCode: Byte, statusData: Byte, detailsForEachSubIdClassification: List<Byte>, messageLength: UShort, messageText: List<Byte> ->
-        defaultProcessAckNak(true, sourceMUID, destinationMUID, originalTransactionSubId, statusCode, statusData, detailsForEachSubIdClassification, messageLength, messageText)
-    }
-    var processNak = defaultProcessNak
-
-    val defaultProcessEndpointReply = { msg: Message.EndpointReply ->
-        val conn = connections[msg.sourceMUID]
-        if (conn != null) {
-            if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID) {
-                val s = msg.data.toByteArray().decodeToString()
-                if (s.all { it.code in 32..126 } && s.length <= 16)
-                    conn.productInstanceId = s
-                else
-                    parent.invalidateMUID(msg.sourceMUID, "Invalid product instance ID")
-            }
-        }
-    }
-    var processEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.endpointReplyReceived.forEach { it(msg) }
-        defaultProcessEndpointReply(msg)
-    }
 
     // Protocol Negotiation is deprecated. We do not send any of them anymore.
 

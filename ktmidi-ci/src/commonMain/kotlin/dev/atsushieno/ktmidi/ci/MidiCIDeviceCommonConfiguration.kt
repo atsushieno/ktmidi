@@ -13,25 +13,27 @@ class MidiCIDeviceConfiguration(var device: MidiCIDeviceInfo) {
     val initiator = MidiCIInitiatorConfiguration()
     val responder = MidiCIResponderConfiguration()
 
+    // discovery initiator
+    var outputPathId: Byte = 0
+    var autoSendEndpointInquiry: Boolean = true
+    var autoSendProfileInquiry: Boolean = true
+    var autoSendPropertyExchangeCapabilitiesInquiry: Boolean = true
+
+    // discovery responder
+    var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK
+    var productInstanceId: String = "ktmidi-ci" + (Random.nextInt() % 65536)
+
     // Profile Configuration
     val localProfiles: MutableList<MidiCIProfile> = mutableListOf()
 }
 
 @Serializable
 class MidiCIInitiatorConfiguration(
-    var outputPathId: Byte = 0,
-    var productInstanceId: String? = null,
-
-    var autoSendEndpointInquiry: Boolean = true,
-    var autoSendProfileInquiry: Boolean = true,
-    var autoSendPropertyExchangeCapabilitiesInquiry: Boolean = true,
     var autoSendGetResourceList: Boolean = true,
 )
 
 @Serializable
 class MidiCIResponderConfiguration(
-    var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK,
-    var productInstanceId: String = "ktmidi-ci" + (Random.nextInt() % 65536),
 
     // Property Exchange
     val propertyValues: MutableList<PropertyValue> = mutableListOf(),

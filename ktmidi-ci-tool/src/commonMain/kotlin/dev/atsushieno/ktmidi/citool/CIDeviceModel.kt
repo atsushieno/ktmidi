@@ -37,7 +37,6 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
             }
         ).apply {
             // initiator
-            config.initiator.productInstanceId = "ktmidi-ci" + (Random.nextInt() % 65536)
             logger.logEventReceived.add { msg, direction ->
                 AppModel.log(msg, direction)
             }
