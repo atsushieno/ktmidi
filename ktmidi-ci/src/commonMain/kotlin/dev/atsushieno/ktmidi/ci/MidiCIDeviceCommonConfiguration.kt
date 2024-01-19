@@ -33,16 +33,16 @@ class MidiCIInitiatorConfiguration(
 )
 
 @Serializable
-class MidiCIResponderConfiguration(
+class MidiCIResponderConfiguration {
 
     // Property Exchange
-    val propertyValues: MutableList<PropertyValue> = mutableListOf(),
-    val propertyMetadataList: MutableList<PropertyMetadata> = mutableListOf(),
+    val propertyValues: MutableList<PropertyValue> = mutableListOf()
+    val propertyMetadataList: MutableList<PropertyMetadata> = mutableListOf()
 
     // Process Inquiry
-    var processInquirySupportedFeatures: Byte = MidiCIProcessInquiryFeatures.MIDI_MESSAGE_REPORT,
-    var midiMessageReportMessageDataControl: Byte = MidiMessageReportDataControl.Full,
-    var midiMessageReportSystemMessages: Byte = MidiMessageReportSystemMessagesFlags.All,
-    var midiMessageReportChannelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All,
+    var processInquirySupportedFeatures: Byte = MidiCIProcessInquiryFeatures.MIDI_MESSAGE_REPORT
+    var midiMessageReportMessageDataControl: Byte = MidiMessageReportDataControl.Full
+    var midiMessageReportSystemMessages: Byte = MidiMessageReportSystemMessagesFlags.All
+    var midiMessageReportChannelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All
     var midiMessageReportNoteDataMessages: Byte = MidiMessageReportNoteDataFlags.All
-)
+}

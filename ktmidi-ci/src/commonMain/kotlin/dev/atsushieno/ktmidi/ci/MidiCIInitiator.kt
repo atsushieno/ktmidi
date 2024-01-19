@@ -1,13 +1,11 @@
 package dev.atsushieno.ktmidi.ci
 
-import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyClient
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyExchangeStatus
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 
 /*
     Typical MIDI-CI processing flow

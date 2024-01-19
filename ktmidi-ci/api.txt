@@ -1216,7 +1216,7 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   @kotlinx.serialization.Serializable public final class MidiCIResponderConfiguration {
-    ctor public MidiCIResponderConfiguration(optional java.util.List<dev.atsushieno.ktmidi.ci.PropertyValue> propertyValues, optional java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> propertyMetadataList, optional byte processInquirySupportedFeatures, optional byte midiMessageReportMessageDataControl, optional byte midiMessageReportSystemMessages, optional byte midiMessageReportChannelControllerMessages, optional byte midiMessageReportNoteDataMessages);
+    ctor public MidiCIResponderConfiguration();
     method public byte getMidiMessageReportChannelControllerMessages();
     method public byte getMidiMessageReportMessageDataControl();
     method public byte getMidiMessageReportNoteDataMessages();

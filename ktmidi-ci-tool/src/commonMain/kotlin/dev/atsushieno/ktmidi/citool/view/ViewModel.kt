@@ -6,6 +6,7 @@ import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.AppModel
 import dev.atsushieno.ktmidi.ci.LogEntry
 import dev.atsushieno.ktmidi.citool.CIDeviceModel
+import dev.atsushieno.ktmidi.citool.CIToolRepository
 import dev.atsushieno.ktmidi.citool.ClientConnectionModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -261,7 +262,7 @@ class DeviceConfigurationViewModel(private val config: MidiCIDeviceConfiguration
 }
 
 class ApplicationSettingsViewModel(config: MidiCIDeviceConfiguration) {
-    val defaultConfigFile = AppModel.defaultConfigFile
+    val defaultConfigFile = CIToolRepository.defaultConfigFile
     val device = DeviceConfigurationViewModel(config)
 
     val workaroundJUCEMissingSubscriptionIdIssue = mutableStateOf(

@@ -37,6 +37,7 @@ fun InitiatorScreen(vm: InitiatorViewModel) {
             if (conn != null)
                 ClientConnectionInfo(conn)
         }
+
         if (conn != null)
             ClientConnection(conn)
     }

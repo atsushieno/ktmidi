@@ -31,7 +31,13 @@ class CIToolRepository {
 
     val muid: Int = Random.nextInt() and 0x7F7F7F7F
 
-    private var savedSettings: SavedSettings = SavedSettings()
+    private var savedSettings: SavedSettings = try {
+        getConfigDefault()
+    } catch (ex: Exception) {
+        println(ex)
+        println(ex.printStackTrace())
+        SavedSettings()
+    }
     val midiDeviceManager = MidiDeviceManager()
     val ciDeviceManager  = CIDeviceManager(savedSettings.device, midiDeviceManager)
 
@@ -57,12 +63,11 @@ class CIToolRepository {
         getPlatform().saveFileContent(file, Json.encodeToString(savedSettings).toUtf8ByteArray())
     }
 
-    val defaultConfigFile = "ktmidi-ci-tool.settings.json"
     private fun getConfigDefault() = getConfigFromFile((defaultConfigFile))
     fun loadConfigDefault() = loadConfig(defaultConfigFile)
     fun saveConfigDefault() = saveConfig(defaultConfigFile)
 
-    init {
-        savedSettings = try { getConfigDefault() } catch(ex: Exception) { SavedSettings() }
+    companion object {
+        const val defaultConfigFile = "ktmidi-ci-tool.settings.json"
     }
 }
