@@ -136,8 +136,10 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     private val defaultProcessInvalidateMUID = { sourceMUID: Int, muidToInvalidate: Int ->
         val conn = connections[muidToInvalidate]
-        if (conn != null)
+        if (conn != null) {
             connections.remove(muidToInvalidate)
+            connectionsChanged.forEach { it(ConnectionChange.Removed, conn) }
+        }
     }
     var processInvalidateMUID = defaultProcessInvalidateMUID
 
