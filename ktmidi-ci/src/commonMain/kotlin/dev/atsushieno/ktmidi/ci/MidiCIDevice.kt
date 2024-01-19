@@ -401,9 +401,9 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                             onComplete: (header: List<Byte>, body: List<Byte>) -> Unit) {
         val conn = connections[sourceMUID] ?: return
         if (chunkIndex < numChunks) {
-            conn.pendingChunkManager.addPendingChunk(Clock.System.now().epochSeconds, requestId, header, body)
+            conn.pendingChunkManager.addPendingChunk(Clock.System.now().epochSeconds, sourceMUID, requestId, header, body)
         } else {
-            val existing = if (chunkIndex > 1) conn.pendingChunkManager.finishPendingChunk(requestId, body) else null
+            val existing = if (chunkIndex > 1) conn.pendingChunkManager.finishPendingChunk(sourceMUID, requestId, body) else null
             val msgHeader = existing?.first ?: header
             val msgBody = existing?.second ?: body
             onComplete(msgHeader, msgBody)

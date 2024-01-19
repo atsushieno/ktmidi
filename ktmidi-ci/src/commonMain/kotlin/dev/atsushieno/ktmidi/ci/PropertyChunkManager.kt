@@ -1,21 +1,21 @@
 package dev.atsushieno.ktmidi.ci
 
 class PropertyChunkManager {
-    data class Chunk(val timestamp: Long, val requestId: Byte, val header: List<Byte>, val data: MutableList<Byte>)
+    data class Chunk(val timestamp: Long, val sourceMUID: Int, val requestId: Byte, val header: List<Byte>, val data: MutableList<Byte>)
 
     private val chunks = mutableListOf<Chunk>()
 
-    fun addPendingChunk(timestamp: Long, requestId: Byte, header: List<Byte>, data: List<Byte>) {
-        var chunk = chunks.firstOrNull { it.requestId == requestId }
+    fun addPendingChunk(timestamp: Long, sourceMUID: Int, requestId: Byte, header: List<Byte>, data: List<Byte>) {
+        var chunk = chunks.firstOrNull { it.sourceMUID == sourceMUID && it.requestId == requestId }
         if (chunk == null) {
-            chunk = Chunk(timestamp, requestId, header, mutableListOf())
+            chunk = Chunk(timestamp, sourceMUID, requestId, header, mutableListOf())
             chunks.add(chunk)
         }
         chunk.data.addAll(data)
     }
 
-    fun finishPendingChunk(requestId: Byte, data: List<Byte>): Pair<List<Byte>,List<Byte>> {
-        val chunk = chunks.removeAt(chunks.indexOfFirst { it.requestId == requestId })
+    fun finishPendingChunk(sourceMUID: Int, requestId: Byte, data: List<Byte>): Pair<List<Byte>,List<Byte>> {
+        val chunk = chunks.removeAt(chunks.indexOfFirst { it.sourceMUID == sourceMUID && it.requestId == requestId })
         chunk.data.addAll(data)
         return Pair(chunk.header, chunk.data)
     }

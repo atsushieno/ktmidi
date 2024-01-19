@@ -1355,24 +1355,27 @@ package dev.atsushieno.ktmidi.ci {
 
   public final class PropertyChunkManager {
     ctor public PropertyChunkManager();
-    method public void addPendingChunk(long timestamp, byte requestId, java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> data);
-    method public kotlin.Pair<java.util.List<java.lang.Byte>,java.util.List<java.lang.Byte>> finishPendingChunk(byte requestId, java.util.List<java.lang.Byte> data);
+    method public void addPendingChunk(long timestamp, int sourceMUID, byte requestId, java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> data);
+    method public kotlin.Pair<java.util.List<java.lang.Byte>,java.util.List<java.lang.Byte>> finishPendingChunk(int sourceMUID, byte requestId, java.util.List<java.lang.Byte> data);
   }
 
   public static final class PropertyChunkManager.Chunk {
-    ctor public PropertyChunkManager.Chunk(long timestamp, byte requestId, java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> data);
+    ctor public PropertyChunkManager.Chunk(long timestamp, int sourceMUID, byte requestId, java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> data);
     method public long component1();
-    method public byte component2();
-    method public java.util.List<java.lang.Byte> component3();
+    method public int component2();
+    method public byte component3();
     method public java.util.List<java.lang.Byte> component4();
-    method public dev.atsushieno.ktmidi.ci.PropertyChunkManager.Chunk copy(long timestamp, byte requestId, java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> data);
+    method public java.util.List<java.lang.Byte> component5();
+    method public dev.atsushieno.ktmidi.ci.PropertyChunkManager.Chunk copy(long timestamp, int sourceMUID, byte requestId, java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> data);
     method public java.util.List<java.lang.Byte> getData();
     method public java.util.List<java.lang.Byte> getHeader();
     method public byte getRequestId();
+    method public int getSourceMUID();
     method public long getTimestamp();
     property public final java.util.List<java.lang.Byte> data;
     property public final java.util.List<java.lang.Byte> header;
     property public final byte requestId;
+    property public final int sourceMUID;
     property public final long timestamp;
   }
 
