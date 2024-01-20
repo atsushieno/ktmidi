@@ -23,6 +23,7 @@ package dev.atsushieno.ktmidi.ci {
     method public void midiCIProfile(java.util.List<java.lang.Byte> dst, int offset, dev.atsushieno.ktmidi.ci.MidiCIProfileId info);
     method public java.util.List<java.lang.Byte> midiCIProfileAddedRemoved(java.util.List<java.lang.Byte> dst, byte address, boolean isRemoved, int sourceMUID, dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
     method public java.util.List<java.lang.Byte> midiCIProfileDetails(java.util.List<java.lang.Byte> dst, byte address, int sourceMUID, int destinationMUID, dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, byte target);
+    method public java.util.List<java.lang.Byte> midiCIProfileDetailsReply(java.util.List<java.lang.Byte> dst, byte address, int sourceMUID, int destinationMUID, dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, byte target, java.util.List<java.lang.Byte> data);
     method public java.util.List<java.lang.Byte> midiCIProfileInquiry(java.util.List<java.lang.Byte> dst, byte address, int sourceMUID, int destinationMUID);
     method public java.util.List<java.lang.Byte> midiCIProfileInquiryReply(java.util.List<java.lang.Byte> dst, byte address, int sourceMUID, int destinationMUID, java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> enabledProfiles, java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> disabledProfiles);
     method public java.util.List<java.lang.Byte> midiCIProfileReport(java.util.List<java.lang.Byte> dst, byte address, boolean isEnabledReport, int sourceMUID, dev.atsushieno.ktmidi.ci.MidiCIProfileId profile);
@@ -486,6 +487,18 @@ package dev.atsushieno.ktmidi.ci {
     property public String label;
   }
 
+  public static final class Message.ProfileSpecificData extends dev.atsushieno.ktmidi.ci.Message {
+    ctor public Message.ProfileSpecificData(byte address, int sourceMUID, int destinationMUID, dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, java.util.List<java.lang.Byte> data);
+    method public String getBodyString();
+    method public java.util.List<java.lang.Byte> getData();
+    method public String getLabel();
+    method public dev.atsushieno.ktmidi.ci.MidiCIProfileId getProfile();
+    property public String bodyString;
+    property public final java.util.List<java.lang.Byte> data;
+    property public String label;
+    property public final dev.atsushieno.ktmidi.ci.MidiCIProfileId profile;
+  }
+
   public static final class Message.PropertyGetCapabilities extends dev.atsushieno.ktmidi.ci.Message {
     ctor public Message.PropertyGetCapabilities(byte address, int sourceMUID, int destinationMUID, byte maxSimultaneousRequests);
     method public String getBodyString();
@@ -635,6 +648,7 @@ package dev.atsushieno.ktmidi.ci {
 
   public final class MidiCIDevice {
     ctor public MidiCIDevice(int muid, dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config, kotlin.jvm.functions.Function2<? super java.lang.Byte,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendCIOutput, kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.MidiMessageReportProtocol,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendMidiMessageReport);
+    method public void defaultProcessProfileDetailsInquiry(dev.atsushieno.ktmidi.ci.Message.ProfileDetailsInquiry msg);
     method public void defaultProcessSetProfileOff(dev.atsushieno.ktmidi.ci.Message.SetProfileOff msg);
     method public void defaultProcessSetProfileOn(dev.atsushieno.ktmidi.ci.Message.SetProfileOn msg);
     method public dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration getConfig();
@@ -653,7 +667,7 @@ package dev.atsushieno.ktmidi.ci {
     method public int getMuid();
     method public kotlin.jvm.functions.Function8<java.lang.Integer,java.lang.Integer,java.lang.Byte,java.lang.Byte,java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.UShort,java.util.List<java.lang.Byte>,kotlin.Unit> getOnAck();
     method public kotlin.jvm.functions.Function8<java.lang.Integer,java.lang.Integer,java.lang.Byte,java.lang.Byte,java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.UShort,java.util.List<java.lang.Byte>,kotlin.Unit> getOnNak();
-    method public java.util.List<kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.MidiCIProfile,java.lang.Short,kotlin.Unit>> getOnProfileSet();
+    method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.MidiCIProfile,kotlin.Unit>> getOnProfileSet();
     method public kotlin.jvm.functions.Function8<java.lang.Integer,java.lang.Integer,java.lang.Byte,java.lang.Byte,java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.UShort,java.util.List<java.lang.Byte>,kotlin.Unit> getProcessAck();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryInquiry,kotlin.Unit> getProcessDiscovery();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryReply,kotlin.Unit> getProcessDiscoveryReply();
@@ -661,14 +675,16 @@ package dev.atsushieno.ktmidi.ci {
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.EndpointReply,kotlin.Unit> getProcessEndpointReply();
     method public kotlin.jvm.functions.Function2<java.lang.Integer,java.lang.Integer,kotlin.Unit> getProcessInvalidateMUID();
     method public kotlin.jvm.functions.Function8<java.lang.Integer,java.lang.Integer,java.lang.Byte,java.lang.Byte,java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.UShort,java.util.List<java.lang.Byte>,kotlin.Unit> getProcessNak();
+    method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileDetailsInquiry,kotlin.Unit> getProcessProfileDetailsInquiry();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileInquiry,kotlin.Unit> getProcessProfileInquiry();
-    method public kotlin.jvm.functions.Function5<java.lang.Byte,java.lang.Integer,java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.util.List<java.lang.Byte>,kotlin.Unit> getProcessProfileSpecificData();
+    method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileSpecificData,kotlin.Unit> getProcessProfileSpecificData();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.PropertyNotify,kotlin.Unit> getProcessPropertyNotify();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SetProfileOff,kotlin.Unit> getProcessSetProfileOff();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SetProfileOn,kotlin.Unit> getProcessSetProfileOn();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribeProperty,kotlin.Unit> getProcessSubscribeProperty();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply,kotlin.Unit> getProcessSubscribePropertyReply();
     method public kotlin.jvm.functions.Function2<java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.Unit> getProcessUnknownCIMessage();
+    method public dev.atsushieno.ktmidi.ci.MidiCIProfileService getProfileService();
     method public dev.atsushieno.ktmidi.ci.MidiCIResponder getResponder();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryReply,kotlin.Unit> getSendDiscoveryReply();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.EndpointReply,kotlin.Unit> getSendEndpointReply();
@@ -683,10 +699,11 @@ package dev.atsushieno.ktmidi.ci {
     method public void sendNakForUnknownCIMessage(byte group, java.util.List<java.lang.Byte> data);
     method public void sendNakForUnknownMUID(byte group, byte originalSubId2, byte address, int destinationMUID);
     method public void sendProfileAddedReport(byte group, dev.atsushieno.ktmidi.ci.MidiCIProfile profile);
+    method public void sendProfileDetailsReply(dev.atsushieno.ktmidi.ci.Message.ProfileDetailsReply msg);
     method public void sendProfileRemovedReport(byte group, dev.atsushieno.ktmidi.ci.MidiCIProfile profile);
     method public void setOnAck(kotlin.jvm.functions.Function8<? super java.lang.Integer,? super java.lang.Integer,? super java.lang.Byte,? super java.lang.Byte,? super java.lang.Byte,? super java.util.List<java.lang.Byte>,? super kotlin.UShort,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
     method public void setOnNak(kotlin.jvm.functions.Function8<? super java.lang.Integer,? super java.lang.Integer,? super java.lang.Byte,? super java.lang.Byte,? super java.lang.Byte,? super java.util.List<java.lang.Byte>,? super kotlin.UShort,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
-    method public void setOnProfileSet(java.util.List<kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.MidiCIProfile,java.lang.Short,kotlin.Unit>>);
+    method public void setOnProfileSet(java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.MidiCIProfile,kotlin.Unit>>);
     method public void setProcessAck(kotlin.jvm.functions.Function8<? super java.lang.Integer,? super java.lang.Integer,? super java.lang.Byte,? super java.lang.Byte,? super java.lang.Byte,? super java.util.List<java.lang.Byte>,? super kotlin.UShort,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
     method public void setProcessDiscovery(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.DiscoveryInquiry,kotlin.Unit>);
     method public void setProcessDiscoveryReply(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.DiscoveryReply,kotlin.Unit>);
@@ -694,14 +711,16 @@ package dev.atsushieno.ktmidi.ci {
     method public void setProcessEndpointReply(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.EndpointReply,kotlin.Unit>);
     method public void setProcessInvalidateMUID(kotlin.jvm.functions.Function2<? super java.lang.Integer,? super java.lang.Integer,kotlin.Unit>);
     method public void setProcessNak(kotlin.jvm.functions.Function8<? super java.lang.Integer,? super java.lang.Integer,? super java.lang.Byte,? super java.lang.Byte,? super java.lang.Byte,? super java.util.List<java.lang.Byte>,? super kotlin.UShort,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
+    method public void setProcessProfileDetailsInquiry(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.ProfileDetailsInquiry,kotlin.Unit>);
     method public void setProcessProfileInquiry(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.ProfileInquiry,kotlin.Unit>);
-    method public void setProcessProfileSpecificData(kotlin.jvm.functions.Function5<? super java.lang.Byte,? super java.lang.Integer,? super java.lang.Integer,? super dev.atsushieno.ktmidi.ci.MidiCIProfileId,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
+    method public void setProcessProfileSpecificData(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.ProfileSpecificData,kotlin.Unit>);
     method public void setProcessPropertyNotify(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.PropertyNotify,kotlin.Unit>);
     method public void setProcessSetProfileOff(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.SetProfileOff,kotlin.Unit>);
     method public void setProcessSetProfileOn(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.SetProfileOn,kotlin.Unit>);
     method public void setProcessSubscribeProperty(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.SubscribeProperty,kotlin.Unit>);
     method public void setProcessSubscribePropertyReply(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply,kotlin.Unit>);
     method public void setProcessUnknownCIMessage(kotlin.jvm.functions.Function2<? super java.lang.Byte,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
+    method public void setProfileService(dev.atsushieno.ktmidi.ci.MidiCIProfileService);
     property public final dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config;
     property public final java.util.Map<java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIInitiator.ClientConnection> connections;
     property public final java.util.List<kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.ConnectionChange,dev.atsushieno.ktmidi.ci.MidiCIInitiator.ClientConnection,kotlin.Unit>> connectionsChanged;
@@ -718,7 +737,7 @@ package dev.atsushieno.ktmidi.ci {
     property public final int muid;
     property public final kotlin.jvm.functions.Function8<java.lang.Integer,java.lang.Integer,java.lang.Byte,java.lang.Byte,java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.UShort,java.util.List<java.lang.Byte>,kotlin.Unit> onAck;
     property public final kotlin.jvm.functions.Function8<java.lang.Integer,java.lang.Integer,java.lang.Byte,java.lang.Byte,java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.UShort,java.util.List<java.lang.Byte>,kotlin.Unit> onNak;
-    property public final java.util.List<kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.MidiCIProfile,java.lang.Short,kotlin.Unit>> onProfileSet;
+    property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.MidiCIProfile,kotlin.Unit>> onProfileSet;
     property public final kotlin.jvm.functions.Function8<java.lang.Integer,java.lang.Integer,java.lang.Byte,java.lang.Byte,java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.UShort,java.util.List<java.lang.Byte>,kotlin.Unit> processAck;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryInquiry,kotlin.Unit> processDiscovery;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryReply,kotlin.Unit> processDiscoveryReply;
@@ -726,14 +745,16 @@ package dev.atsushieno.ktmidi.ci {
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.EndpointReply,kotlin.Unit> processEndpointReply;
     property public final kotlin.jvm.functions.Function2<java.lang.Integer,java.lang.Integer,kotlin.Unit> processInvalidateMUID;
     property public final kotlin.jvm.functions.Function8<java.lang.Integer,java.lang.Integer,java.lang.Byte,java.lang.Byte,java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.UShort,java.util.List<java.lang.Byte>,kotlin.Unit> processNak;
+    property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileDetailsInquiry,kotlin.Unit> processProfileDetailsInquiry;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileInquiry,kotlin.Unit> processProfileInquiry;
-    property public final kotlin.jvm.functions.Function5<java.lang.Byte,java.lang.Integer,java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.util.List<java.lang.Byte>,kotlin.Unit> processProfileSpecificData;
+    property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileSpecificData,kotlin.Unit> processProfileSpecificData;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.PropertyNotify,kotlin.Unit> processPropertyNotify;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SetProfileOff,kotlin.Unit> processSetProfileOff;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SetProfileOn,kotlin.Unit> processSetProfileOn;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribeProperty,kotlin.Unit> processSubscribeProperty;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply,kotlin.Unit> processSubscribePropertyReply;
     property public final kotlin.jvm.functions.Function2<java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.Unit> processUnknownCIMessage;
+    property public final dev.atsushieno.ktmidi.ci.MidiCIProfileService profileService;
     property public final dev.atsushieno.ktmidi.ci.MidiCIResponder responder;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryReply,kotlin.Unit> sendDiscoveryReply;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.EndpointReply,kotlin.Unit> sendEndpointReply;
@@ -754,12 +775,14 @@ package dev.atsushieno.ktmidi.ci {
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProcessInquiry,kotlin.Unit>> getProcessInquiryReceived();
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProcessInquiryReply,kotlin.Unit>> getProcessInquiryReplyReceived();
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileAdded,kotlin.Unit>> getProfileAddedReceived();
+    method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileDetailsInquiry,kotlin.Unit>> getProfileDetailsInquiryReceived();
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileDetailsReply,kotlin.Unit>> getProfileDetailsReplyReceived();
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileDisabled,kotlin.Unit>> getProfileDisabledReceived();
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileEnabled,kotlin.Unit>> getProfileEnabledReceived();
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileInquiry,kotlin.Unit>> getProfileInquiryReceived();
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileReply,kotlin.Unit>> getProfileInquiryReplyReceived();
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileRemoved,kotlin.Unit>> getProfileRemovedReceived();
+    method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileSpecificData,kotlin.Unit>> getProfileSpecificDataReceived();
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.PropertyGetCapabilities,kotlin.Unit>> getPropertyCapabilityInquiryReceived();
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.PropertyGetCapabilitiesReply,kotlin.Unit>> getPropertyCapabilityReplyReceived();
     method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.PropertyNotify,kotlin.Unit>> getPropertyNotifyReceived();
@@ -782,12 +805,14 @@ package dev.atsushieno.ktmidi.ci {
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProcessInquiry,kotlin.Unit>> processInquiryReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProcessInquiryReply,kotlin.Unit>> processInquiryReplyReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileAdded,kotlin.Unit>> profileAddedReceived;
+    property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileDetailsInquiry,kotlin.Unit>> profileDetailsInquiryReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileDetailsReply,kotlin.Unit>> profileDetailsReplyReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileDisabled,kotlin.Unit>> profileDisabledReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileEnabled,kotlin.Unit>> profileEnabledReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileInquiry,kotlin.Unit>> profileInquiryReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileReply,kotlin.Unit>> profileInquiryReplyReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileRemoved,kotlin.Unit>> profileRemovedReceived;
+    property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileSpecificData,kotlin.Unit>> profileSpecificDataReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.PropertyGetCapabilities,kotlin.Unit>> propertyCapabilityInquiryReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.PropertyGetCapabilitiesReply,kotlin.Unit>> propertyCapabilityReplyReceived;
     property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.PropertyNotify,kotlin.Unit>> propertyNotifyReceived;
@@ -1065,18 +1090,20 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   @kotlinx.serialization.Serializable public final class MidiCIProfile {
-    ctor public MidiCIProfile(dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, byte address, boolean enabled);
-    method public dev.atsushieno.ktmidi.ci.MidiCIProfileId component1();
-    method public byte component2();
-    method public boolean component3();
-    method public dev.atsushieno.ktmidi.ci.MidiCIProfile copy(dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, byte address, boolean enabled);
+    ctor public MidiCIProfile(dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, byte group, byte address, boolean enabled, short numChannelsRequested);
     method public byte getAddress();
     method public boolean getEnabled();
+    method public byte getGroup();
+    method public short getNumChannelsRequested();
     method public dev.atsushieno.ktmidi.ci.MidiCIProfileId getProfile();
     method public void setAddress(byte);
     method public void setEnabled(boolean);
+    method public void setGroup(byte);
+    method public void setNumChannelsRequested(short);
     property public final byte address;
     property public final boolean enabled;
+    property public final byte group;
+    property public final short numChannelsRequested;
     property public final dev.atsushieno.ktmidi.ci.MidiCIProfileId profile;
   }
 
@@ -1098,6 +1125,10 @@ package dev.atsushieno.ktmidi.ci {
     property public final byte manuId3OrNumber;
     property public final byte specificInfoOrLevel;
     property public final byte specificInfoOrVersion;
+  }
+
+  public interface MidiCIProfileService {
+    method public java.util.List<java.lang.Byte>? getProfileDetails(dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, byte target);
   }
 
   public interface MidiCIPropertyClient {
@@ -1321,14 +1352,14 @@ package dev.atsushieno.ktmidi.ci {
     ctor public ObservableProfileList(java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfile> pl);
     method public void add(dev.atsushieno.ktmidi.ci.MidiCIProfile profile);
     method public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> getMatchingProfiles(byte address, boolean enabled);
-    method public java.util.List<kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.MidiCIProfile,java.lang.Short,kotlin.Unit>> getProfileEnabledChanged();
+    method public java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.MidiCIProfile,kotlin.Unit>> getProfileEnabledChanged();
     method public java.util.List<kotlin.jvm.functions.Function5<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Byte,java.lang.Boolean,java.lang.Byte,java.lang.Short,kotlin.Unit>> getProfileUpdated();
     method public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfile> getProfiles();
     method public java.util.List<kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.ObservableProfileList.ProfilesChange,dev.atsushieno.ktmidi.ci.MidiCIProfile,kotlin.Unit>> getProfilesChanged();
     method public void remove(dev.atsushieno.ktmidi.ci.MidiCIProfile profile);
     method public void setEnabled(boolean enabled, byte address, dev.atsushieno.ktmidi.ci.MidiCIProfileId profileId, short numChannelsRequested);
     method public void update(dev.atsushieno.ktmidi.ci.MidiCIProfile profile, boolean enabled, byte address, short numChannelsRequested);
-    property public final java.util.List<kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.MidiCIProfile,java.lang.Short,kotlin.Unit>> profileEnabledChanged;
+    property public final java.util.List<kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.MidiCIProfile,kotlin.Unit>> profileEnabledChanged;
     property public final java.util.List<kotlin.jvm.functions.Function5<dev.atsushieno.ktmidi.ci.MidiCIProfileId,java.lang.Byte,java.lang.Boolean,java.lang.Byte,java.lang.Short,kotlin.Unit>> profileUpdated;
     property public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfile> profiles;
     property public final java.util.List<kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.ObservableProfileList.ProfilesChange,dev.atsushieno.ktmidi.ci.MidiCIProfile,kotlin.Unit>> profilesChanged;
@@ -1584,6 +1615,11 @@ package dev.atsushieno.ktmidi.ci.profilecommonrules {
   public final class CommonProfileDetailsStandardTarget {
     field public static final dev.atsushieno.ktmidi.ci.profilecommonrules.CommonProfileDetailsStandardTarget INSTANCE;
     field public static final byte NUM_MIDI_CHANNELS = 0; // 0x0
+  }
+
+  public final class CommonRulesProfileService implements dev.atsushieno.ktmidi.ci.MidiCIProfileService {
+    ctor public CommonRulesProfileService();
+    method public java.util.List<java.lang.Byte>? getProfileDetails(dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, byte target);
   }
 
   public final class DefaultControlChangesProfile {

@@ -67,15 +67,13 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
             responder.midiMessageReporter = Midi1MessageReporter(midiMessageReportOutputSender)
 
             // responder
-            onProfileSet.add { profile, numChannelsRequested ->
-                localProfiles.profileEnabledChanged.forEach { it(profile, numChannelsRequested) }
-            }
+            onProfileSet.add { profile -> localProfiles.profileEnabledChanged.forEach { it(profile) } }
 
             // FIXME: they are dummy items that should be removed.
-            localProfiles.add(MidiCIProfile(MidiCIProfileId(0, 1, 2, 3, 4), 0x7E, true))
-            localProfiles.add(MidiCIProfile(MidiCIProfileId(5, 6, 7, 8, 9), 0x7F, true))
-            localProfiles.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 0, false))
-            localProfiles.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 4, true))
+            localProfiles.add(MidiCIProfile(MidiCIProfileId(0, 1, 2, 3, 4), 0, 0x7E, true, 0))
+            localProfiles.add(MidiCIProfile(MidiCIProfileId(5, 6, 7, 8, 9), 0, 0x7F, true, 0))
+            localProfiles.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 0, 0, false, 1))
+            localProfiles.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 0, 4, true, 1))
         }
     }
 
@@ -91,9 +89,11 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
     val localProfileStates = mutableStateListOf<MidiCIProfileState>().apply {
         addAll(device.localProfiles.profiles.map {
             MidiCIProfileState(
+                mutableStateOf(it.group),
                 mutableStateOf(it.address),
                 it.profile,
-                mutableStateOf(it.enabled)
+                mutableStateOf(it.enabled),
+                mutableStateOf(it.numChannelsRequested)
             )
         })
     }
@@ -117,9 +117,9 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
         device.sendProfileAddedReport(0, profile)
     }
 
-    fun removeLocalProfile(address: Byte, profileId: MidiCIProfileId) {
+    fun removeLocalProfile(group: Byte, address: Byte, profileId: MidiCIProfileId) {
         // create a dummy entry...
-        val profile = MidiCIProfile(profileId, address, false)
+        val profile = MidiCIProfile(profileId, group, address, false, 0)
         device.localProfiles.remove(profile)
         // FIXME: supply group from somewhere
         device.sendProfileRemovedReport(0, profile)
@@ -127,8 +127,8 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
 
     fun updateLocalProfileName(oldProfile: MidiCIProfileId, newProfile: MidiCIProfileId) {
         val removed = device.localProfiles.profiles.filter { it.profile == oldProfile }
-        val added = removed.map { MidiCIProfile(newProfile, it.address, it.enabled) }
-        removed.forEach { removeLocalProfile(it.address, it.profile) }
+        val added = removed.map { MidiCIProfile(newProfile, it.group, it.address, it.enabled, it.numChannelsRequested) }
+        removed.forEach { removeLocalProfile(it.group, it.address, it.profile) }
         added.forEach { addLocalProfile(it) }
     }
 
@@ -145,7 +145,13 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
         device.localProfiles.profilesChanged.add { change, profile ->
             when (change) {
                 ObservableProfileList.ProfilesChange.Added ->
-                    localProfileStates.add(MidiCIProfileState(mutableStateOf(profile.address), profile.profile, mutableStateOf(profile.enabled)))
+                    localProfileStates.add(
+                        MidiCIProfileState(
+                            mutableStateOf(profile.group),
+                            mutableStateOf(profile.address),
+                            profile.profile,
+                            mutableStateOf(profile.enabled),
+                            mutableStateOf(profile.numChannelsRequested)))
                 ObservableProfileList.ProfilesChange.Removed ->
                     localProfileStates.removeAll { it.profile == profile.profile && it.address.value == profile.address }
             }
@@ -157,9 +163,7 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
             entry.address.value = newAddress
             entry.enabled.value = newEnabled
         }
-        device.localProfiles.profileEnabledChanged.add { profile, numChannelsRequested ->
-            if (numChannelsRequested > 1)
-                TODO("FIXME: implement")
+        device.localProfiles.profileEnabledChanged.add { profile ->
             val dst = localProfileStates.first { it.profile == profile.profile && it.address.value == profile.address }
             dst.enabled.value = profile.enabled
         }

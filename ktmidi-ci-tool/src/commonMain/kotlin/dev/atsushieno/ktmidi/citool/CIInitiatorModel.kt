@@ -3,11 +3,10 @@ package dev.atsushieno.ktmidi.citool
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
 import dev.atsushieno.ktmidi.citool.view.ViewModel
-import kotlin.random.Random
+import kotlin.math.min
 
 class CIInitiatorModel(private val device: CIDeviceModel) {
     val initiator by lazy { device.device.initiator }
@@ -19,15 +18,17 @@ class CIInitiatorModel(private val device: CIDeviceModel) {
         initiator.sendEndpointMessage(targetMUID)
     }
 
-    fun setProfile(destinationMUID: Int, address: Byte, profile: MidiCIProfileId, nextEnabled: Boolean) {
+    fun setProfile(destinationMUID: Int, address: Byte, profile: MidiCIProfileId, nextEnabled: Boolean, newNumChannelsRequested: Short) {
         if (nextEnabled) {
             // FIXME: maybe we should pass number of channels somehow?
             val msg = Message.SetProfileOn(address, initiator.muid, destinationMUID, profile,
                 // NOTE: juce_midi_ci has a bug that it expects 1 for 7E and 7F, whereas MIDI-CI v1.2 states:
                 //   "When the Profile Destination field is set to address 0x7E or 0x7F, the number of Channels is determined
                 //    by the width of the Group or Function Block. Set the Number of Channels Requested field to a value of 0x0000."
-                if (address < 0x10 || ViewModel.settings.workaroundJUCEProfileNumChannelsIssue.value) 1
-                else 0)
+                if (address < 0x10 || ViewModel.settings.workaroundJUCEProfileNumChannelsIssue.value)
+                    { if (newNumChannelsRequested < 1) 1 else newNumChannelsRequested }
+                else newNumChannelsRequested
+            )
             initiator.setProfileOn(msg)
         } else {
             val msg = Message.SetProfileOff(address, initiator.muid, destinationMUID, profile)
@@ -71,7 +72,13 @@ class CIInitiatorModel(private val device: CIDeviceModel) {
 class ClientConnectionModel(val parent: CIDeviceModel, val conn: MidiCIInitiator.ClientConnection) {
 
     val profiles = mutableStateListOf<MidiCIProfileState>().apply {
-        addAll(conn.profiles.profiles.map { MidiCIProfileState(mutableStateOf(it.address), it.profile, mutableStateOf(it.enabled)) })
+        addAll(conn.profiles.profiles.map { MidiCIProfileState(
+            mutableStateOf(it.group),
+            mutableStateOf(it.address),
+            it.profile,
+            mutableStateOf(it.enabled),
+            mutableStateOf(it.numChannelsRequested)
+        ) })
     }
 
     val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.properties.values)}
@@ -85,16 +92,23 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: MidiCIInitiator
         conn.profiles.profilesChanged.add { change, profile ->
             when (change) {
                 ObservableProfileList.ProfilesChange.Added ->
-                    profiles.add(MidiCIProfileState(mutableStateOf(profile.address), profile.profile, mutableStateOf(profile.enabled)))
+                    profiles.add(MidiCIProfileState(
+                        mutableStateOf(profile.group),
+                        mutableStateOf(profile.address),
+                        profile.profile,
+                        mutableStateOf(profile.enabled),
+                        mutableStateOf(profile.numChannelsRequested)
+                    ))
                 ObservableProfileList.ProfilesChange.Removed ->
-                    profiles.removeAll {it.profile == profile.profile && it.address.value == profile.address }
+                    profiles.removeAll {it.profile == profile.profile && it.group.value == profile.group && it.address.value == profile.address }
             }
         }
-        conn.profiles.profileEnabledChanged.add { profile, numChannelsRequested ->
-            if (numChannelsRequested > 1)
-                TODO("FIXME: implement")
-            profiles.filter { it.profile == profile.profile && it.address.value == profile.address }
-                .forEach { Snapshot.withMutableSnapshot { it.enabled.value = profile.enabled } }
+        conn.profiles.profileEnabledChanged.add { profile ->
+            profiles.filter { it.profile == profile.profile && it.group.value == profile.group && it.address.value == profile.address }
+                .forEach {
+                    it.enabled.value = profile.enabled
+                    it.numChannelsRequested.value = profile.numChannelsRequested
+                }
         }
 
         conn.properties.valueUpdated.add { entry ->

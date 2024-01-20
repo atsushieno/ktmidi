@@ -323,8 +323,8 @@ class MidiCIInitiator(
     // Profile Configuration
     val defaultProcessProfileReply = { msg: Message.ProfileReply ->
         val conn = connections[msg.sourceMUID]
-        msg.enabledProfiles.forEach { conn?.profiles?.add(MidiCIProfile(it, msg.address, true)) }
-        msg.disabledProfiles.forEach { conn?.profiles?.add(MidiCIProfile(it, msg.address, false)) }
+        msg.enabledProfiles.forEach { conn?.profiles?.add(MidiCIProfile(it, msg.group, msg.address, true, if (msg.address >= 0x7E) 0 else 1)) }
+        msg.disabledProfiles.forEach { conn?.profiles?.add(MidiCIProfile(it, msg.group, msg.address, false, if (msg.address >= 0x7E) 0 else 1)) }
     }
     var processProfileReply = { msg: Message.ProfileReply ->
         logger.logMessage(msg, MessageDirection.In)
@@ -334,7 +334,7 @@ class MidiCIInitiator(
 
     val defaultProcessProfileAddedReport: (msg: Message.ProfileAdded) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
-        conn?.profiles?.add(MidiCIProfile(msg.profile, msg.address, false))
+        conn?.profiles?.add(MidiCIProfile(msg.profile, msg.group, msg.address, false, if (msg.address >= 0x7E) 0 else 1))
     }
     var processProfileAddedReport = { msg: Message.ProfileAdded ->
         logger.logMessage(msg, MessageDirection.In)
@@ -344,7 +344,7 @@ class MidiCIInitiator(
 
     val defaultProcessProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
         val conn = connections[msg.sourceMUID]
-        conn?.profiles?.remove(MidiCIProfile(msg.profile, msg.address, false))
+        conn?.profiles?.remove(MidiCIProfile(msg.profile, msg.group, msg.address, false, 0))
     }
     var processProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)

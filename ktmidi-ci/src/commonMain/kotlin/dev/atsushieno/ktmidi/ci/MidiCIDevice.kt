@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
+import dev.atsushieno.ktmidi.ci.profilecommonrules.CommonRulesProfileService
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
 import kotlinx.datetime.Clock
 
@@ -37,7 +38,9 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         val profileRemovedReceived = mutableListOf<(Message.ProfileRemoved) -> Unit>()
         val profileEnabledReceived = mutableListOf<(Message.ProfileEnabled) -> Unit>()
         val profileDisabledReceived = mutableListOf<(Message.ProfileDisabled) -> Unit>()
+        val profileDetailsInquiryReceived = mutableListOf<(Message.ProfileDetailsInquiry) -> Unit>()
         val profileDetailsReplyReceived = mutableListOf<(Message.ProfileDetailsReply) -> Unit>()
+        val profileSpecificDataReceived = mutableListOf<(Message.ProfileSpecificData) -> Unit>()
 
         val propertyCapabilityInquiryReceived = mutableListOf<(Message.PropertyGetCapabilities) -> Unit>()
         val propertyCapabilityReplyReceived = mutableListOf<(Message.PropertyGetCapabilitiesReply) -> Unit>()
@@ -63,6 +66,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     val connections = mutableMapOf<Int, MidiCIInitiator.ClientConnection>()
     val connectionsChanged = mutableListOf<(change: ConnectionChange, connection: MidiCIInitiator.ClientConnection) -> Unit>()
 
+    var profileService: MidiCIProfileService = CommonRulesProfileService()
     val localProfiles = ObservableProfileList(config.localProfiles)
 
     // Request sender
@@ -286,15 +290,15 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         }
     }
 
-    var onProfileSet = mutableListOf<(profile: MidiCIProfile, numChannelsRequested: Short) -> Unit>()
+    var onProfileSet = mutableListOf<(profile: MidiCIProfile) -> Unit>()
 
     private val defaultProcessSetProfile = { group: Byte, address: Byte, initiatorMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, numChannelsRequested: Short, enabled: Boolean ->
-        val newEntry = MidiCIProfile(profile, address, enabled)
+        val newEntry = MidiCIProfile(profile, group, address, enabled, numChannelsRequested)
         val existing = localProfiles.profiles.firstOrNull { it.profile == profile }
         if (existing != null)
             localProfiles.remove(existing)
         localProfiles.add(newEntry)
-        onProfileSet.forEach { it(newEntry, numChannelsRequested) }
+        onProfileSet.forEach { it(newEntry) }
         enabled
     }
 
@@ -335,7 +339,31 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         defaultProcessSetProfileOff(msg)
     }
 
-    var processProfileSpecificData: (address: Byte, sourceMUID: Int, destinationMUID: Int, profileId: MidiCIProfileId, data: List<Byte>) -> Unit = { _, _, _, _, _ -> }
+    fun sendProfileDetailsReply(msg: Message.ProfileDetailsReply) {
+        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+        sendCIOutput(msg.group, CIFactory.midiCIProfileDetailsReply(dst, msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.target, msg.data))
+    }
+    private fun getProfileDetailsReplyForInquiry(msg: Message.ProfileDetailsInquiry, data: List<Byte>) =
+        Message.ProfileDetailsReply(msg.address, muid, msg.sourceMUID, msg.profile, msg.target, data)
+    fun defaultProcessProfileDetailsInquiry(msg: Message.ProfileDetailsInquiry) {
+        val data = profileService.getProfileDetails(msg.profile, msg.target)
+        if (data != null)
+            sendProfileDetailsReply(getProfileDetailsReplyForInquiry(msg, data))
+        else
+            sendNakForError(msg.group, msg.address, msg.sourceMUID, CISubId2.PROFILE_DETAILS_INQUIRY, 0, 0,
+                message = "Profile Details Inquiry against unknown target (profile=${msg.profile}, target=${msg.target})")
+    }
+
+    var processProfileDetailsInquiry: (msg: Message.ProfileDetailsInquiry) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.profileDetailsInquiryReceived.forEach { it(msg) }
+        defaultProcessProfileDetailsInquiry(msg)
+    }
+
+    var processProfileSpecificData: (msg: Message.ProfileSpecificData) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.profileSpecificDataReceived.forEach { it(msg) }
+    }
 
     // Property Exchange
 
@@ -412,6 +440,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             onComplete(msgHeader, msgBody)
         }
     }
+
 
     private fun processInputUnchecked(group: Byte, data: List<Byte>, destinationMUID: Int) {
         // FIXME: pass group to Message constructor everywhere
@@ -646,12 +675,20 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                     processSetProfileOff(Message.SetProfileOff(address, sourceMUID, destinationMUID, profileId))
             }
 
+            CISubId2.PROFILE_DETAILS_INQUIRY -> {
+                val address = CIRetrieval.midiCIGetAddressing(data)
+                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
+                val profileId = CIRetrieval.midiCIGetProfileId(data)
+                val target = data[13]
+                processProfileDetailsInquiry(Message.ProfileDetailsInquiry(address, sourceMUID, destinationMUID, profileId, target))
+            }
+
             CISubId2.PROFILE_SPECIFIC_DATA -> {
                 val address = CIRetrieval.midiCIGetAddressing(data)
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
                 val dataLength = CIRetrieval.midiCIGetProfileSpecificDataSize(data)
-                processProfileSpecificData(address, sourceMUID, destinationMUID, profileId, data.drop(21).take(dataLength))
+                processProfileSpecificData(Message.ProfileSpecificData(address, sourceMUID, destinationMUID, profileId, data.drop(21).take(dataLength)))
             }
 
             // Property Exchange

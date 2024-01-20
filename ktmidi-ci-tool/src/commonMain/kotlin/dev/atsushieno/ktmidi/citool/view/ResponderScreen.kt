@@ -87,7 +87,7 @@ fun LocalProfileList(vm: ResponderViewModel) {
             val b0 = 0.toByte()
             val emptyId = MidiCIProfileId(b0, b0, b0, b0, b0)
             Button(onClick = {
-                val state = MidiCIProfile(emptyId, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, false)
+                val state = MidiCIProfile(emptyId, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, 0, false, 0)
                 vm.addNewProfile(state)
                 editedProfileName = state.profile.toString()
             }, enabled = !vm.isSelectedProfileIdEditing.value && profileIds.all { it != emptyId }) {
@@ -165,7 +165,7 @@ fun LocalProfileDetails(vm: ResponderViewModel, profile: MidiCIProfileId) {
                         numChannelsRequested = v
                 }, Modifier.width(80.dp))
                 Button(
-                    onClick = { vm.removeProfileTarget(it.address.value, it.profile) },
+                    onClick = { vm.removeProfileTarget(it.group.value, it.address.value, it.profile) },
                     enabled = !vm.isSelectedProfileIdEditing.value,
                     modifier = Modifier.padding(12.dp, 0.dp)) {
                     Image(Icons.Default.Delete, "Delete")
@@ -174,7 +174,7 @@ fun LocalProfileDetails(vm: ResponderViewModel, profile: MidiCIProfileId) {
         }
         Row {
             Button(onClick = {
-                val state = MidiCIProfile(profile, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, false)
+                val state = MidiCIProfile(profile, MidiCIConstants.ADDRESS_FUNCTION_BLOCK,  0,false, 0)
                 vm.addNewProfileTarget(state)
                 vm.selectedProfile.value = state.profile
             }, enabled = vm.selectedProfile.value != null && vm.model.localProfileStates.all { it.profile != profile || it.address.value != MidiCIConstants.ADDRESS_FUNCTION_BLOCK }) {
@@ -193,7 +193,7 @@ private val channelAddressMapping = (0 until 0x10).associate {
 
 @Composable
 fun AddressSelector(address: Byte, valueChange: (Byte) -> Unit) {
-    Row(Modifier.width(200.dp)) {
+    Row(Modifier.width(180.dp)) {
         var index by remember { mutableStateOf(address) }
         var menuExpanded by remember { mutableStateOf(false) }
         DropdownMenu(menuExpanded, { menuExpanded = false }) {

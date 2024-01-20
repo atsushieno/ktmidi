@@ -178,6 +178,11 @@ abstract class Message(protected val common: Common) {
         override val label = "ProfileDetailsReply"
         override val bodyString = "profile=$profile, target=$target, data=${data.dataString}"
     }
+    class ProfileSpecificData(address: Byte, sourceMUID: Int, destinationMUID: Int, val profile: MidiCIProfileId, val data: List<Byte>)
+        : Message(Common(sourceMUID, destinationMUID, address)) {
+        override val label = "ProfileSpecificData"
+        override val bodyString = "profile=$profile, data=${data.dataString}"
+    }
 
     // Property Exchange
     class PropertyGetCapabilities(address: Byte, sourceMUID: Int, destinationMUID: Int, val maxSimultaneousRequests: Byte)

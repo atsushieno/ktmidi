@@ -29,7 +29,8 @@ data class MidiCIProfileId(val manuId1OrStandard: Byte = 0x7E, val manuId2OrBank
 }
 
 @Serializable
-data class MidiCIProfile(val profile: MidiCIProfileId, var address: Byte, var enabled: Boolean)
+// Do not use data class. Comparing enabled and numChannelsRequested does not make sense.
+class MidiCIProfile(val profile: MidiCIProfileId, var group: Byte, var address: Byte, var enabled: Boolean, var numChannelsRequested: Short)
 
 object CIFactory {
     // Assumes the input value is already 7-bit encoded if required.
@@ -259,10 +260,10 @@ object CIFactory {
         return dst.take(20)
     }
 
-    fun midiCIProfileDetails(
+    private fun midiCIProfileDetailsCommon(
         dst: MutableList<Byte>, address: Byte,
         sourceMUID: Int, destinationMUID: Int,
-        profile: MidiCIProfileId, target: Byte): List<Byte> {
+        profile: MidiCIProfileId, target: Byte) {
         midiCIMessageCommon(
             dst, address,
             CISubId2.PROFILE_DETAILS_INQUIRY,
@@ -270,7 +271,21 @@ object CIFactory {
         )
         midiCIProfile(dst, 13, profile)
         dst[18] = target
+    }
+
+    fun midiCIProfileDetails(
+        dst: MutableList<Byte>, address: Byte,
+        sourceMUID: Int, destinationMUID: Int,
+        profile: MidiCIProfileId, target: Byte): List<Byte> {
+        midiCIProfileDetailsCommon(dst, address, sourceMUID, destinationMUID, profile, target)
         return dst.take(19)
+    }
+
+    fun midiCIProfileDetailsReply(dst: MutableList<Byte>, address: Byte, sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, target: Byte, data: List<Byte>): List<Byte> {
+        midiCIProfileDetailsCommon(dst, address, sourceMUID, destinationMUID, profile, target)
+        midiCI7bitInt14At(dst, 18, data.size.toShort())
+        memcpy(dst, 20, data, data.size)
+        return dst.take(21 + data.size)
     }
 
     fun midiCIProfileSpecificData(

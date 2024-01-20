@@ -52,7 +52,12 @@ object ViewModel {
 }
 
 class MidiCIProfileState(
-    var address: MutableState<Byte>, val profile: MidiCIProfileId, val enabled: MutableState<Boolean> = mutableStateOf(false))
+    var group: MutableState<Byte>,
+    var address: MutableState<Byte>,
+    val profile: MidiCIProfileId,
+    val enabled: MutableState<Boolean>,
+    val numChannelsRequested: MutableState<Short>
+)
 
 class InitiatorViewModel(val device: CIDeviceModel) {
     fun sendDiscovery() {
@@ -121,8 +126,8 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
         AppModel.ciDeviceManager.initiator.sendSetPropertyDataRequest(targetMUID, propertyId, bytes, encoding, isPartial)
     }
 
-    fun setProfile(targetMUID: Int, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean) {
-        AppModel.ciDeviceManager.initiator.setProfile(targetMUID, address, profile, newEnabled)
+    fun setProfile(targetMUID: Int, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) {
+        AppModel.ciDeviceManager.initiator.setProfile(targetMUID, address, profile, newEnabled, newNumChannelsRequested)
     }
 
     fun requestMidiMessageReport(address: Byte, targetMUID: Int) {
@@ -217,8 +222,8 @@ class ResponderViewModel(val model: CIDeviceModel) {
         model.updateLocalProfileTarget(profile, newAddress, profile.enabled.value, numChannelsRequested)
     }
 
-    fun removeProfileTarget(address: Byte, profile: MidiCIProfileId) {
-        model.removeLocalProfile(address, profile)
+    fun removeProfileTarget(group: Byte, address: Byte, profile: MidiCIProfileId) {
+        model.removeLocalProfile(group, address, profile)
         // if the profile ID is gone, then deselect it
         if (model.localProfileStates.all { it.profile != profile })
             selectedProfile.value = null

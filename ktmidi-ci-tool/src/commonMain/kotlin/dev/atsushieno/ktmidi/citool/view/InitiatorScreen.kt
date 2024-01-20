@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -181,42 +182,58 @@ fun ClientProfileListEntry(profileId: MidiCIProfileId, isSelected: Boolean, sele
 fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
     Column {
         Text("Details Inquiry")
-        var profileDetailsInquiryAddress by remember { mutableStateOf("0") }
+        var profileDetailsInquiryAddress by remember { mutableStateOf(MidiCIConstants.ADDRESS_FUNCTION_BLOCK) }
         var profileDetailsInquiryTarget by remember { mutableStateOf("0") }
-        Row {
-            Text("Address:")
-            TextField(
-                profileDetailsInquiryAddress,
-                { profileDetailsInquiryAddress = it },
-                modifier = Modifier.width(60.dp)
-            )
-            Text("Target:")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("channel:")
+            AddressSelector(profileDetailsInquiryAddress, valueChange = { profileDetailsInquiryAddress = it} )
+            Text("target byte:")
             TextField(
                 profileDetailsInquiryTarget,
                 { profileDetailsInquiryTarget = it },
                 modifier = Modifier.width(60.dp)
             )
             Button(onClick = {
-                val address = profileDetailsInquiryAddress.toByteOrNull()
+                val address = profileDetailsInquiryAddress
                 val target = profileDetailsInquiryTarget.toByteOrNull()
-                if (address != null && target != null)
+                if (target != null)
                     vm.sendProfileDetailsInquiry(profile, address, target)
             }) {
                 Text("Send Details Inquiry")
             }
         }
-        Text("Set Profile On Ch./Grp.")
+        Text("Set Profile [Grp. / Ch.] ")
         val entries = vm.conn.profiles.filter { it.profile.toString() == profile.toString() }
         entries.forEach {
-            Row {
+            var numChannelsRequestedString by remember { mutableStateOf(it.numChannelsRequested.value.toString()) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("[${it.group.value} / ")
+                Text(
+                    when (it.address.value.toInt()) {
+                        0x7F -> "Function Block"
+                        0x7E -> "Group"
+                        else -> it.address.value.toString()
+                    },
+                    Modifier.width(120.dp)
+                )
+                Text("]", Modifier.padding(10.dp))
                 Switch(checked = it.enabled.value, onCheckedChange = { newEnabled ->
-                    vm.setProfile(vm.conn.conn.targetMUID, it.address.value, it.profile, newEnabled)
-                })
-                Text(when (it.address.value.toInt()) {
-                    0x7F -> "Function Block"
-                    0x7E -> "Group"
-                    else -> it.address.value.toString()
-                })
+                    try {
+                        vm.setProfile(
+                            vm.conn.conn.targetMUID,
+                            it.address.value,
+                            it.profile,
+                            newEnabled,
+                            numChannelsRequestedString.toShort()
+                        )
+                    } catch (_: NumberFormatException) {
+                    }
+                }, Modifier.padding(10.dp))
+                Text("number of channels requested:", fontSize = 12.sp)
+                TextField(numChannelsRequestedString,
+                    onValueChange = { v:String -> numChannelsRequestedString = v },
+                    Modifier.width(50.dp),
+                    enabled = it.address.value < 0x7E)
             }
         }
     }
