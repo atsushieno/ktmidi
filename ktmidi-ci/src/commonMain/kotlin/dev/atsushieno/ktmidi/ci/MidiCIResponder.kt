@@ -28,11 +28,10 @@ class MidiCIResponder(
     val properties by lazy { ServiceObservablePropertyList(config.propertyValues, propertyService) }
     val subscriptions: List<SubscriptionEntry> by propertyService::subscriptions
 
-    // FIXME: support UMP too
     var midiMessageReporter: MidiMessageReporter = object : MidiMessageReporter {
+        // stub implementation
         override val midiTransportProtocol = MidiMessageReportProtocol.Midi1Stream
 
-        // stub implementation
         override fun reportMidiMessages(
             groupAddress: Byte,
             channelAddress: Byte,
@@ -46,17 +45,17 @@ class MidiCIResponder(
     private var requestIdSerial: Byte = 0
 
     // update property value. It involves updates to subscribers
-    fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
+    fun updatePropertyValue(group: Byte, propertyId: String, data: List<Byte>, isPartial: Boolean) {
         properties.values.first { it.id == propertyId }.body = data
-        notifyPropertyUpdatesToSubscribers(propertyId, data, isPartial)
+        notifyPropertyUpdatesToSubscribers(group, propertyId, data, isPartial)
     }
 
-    var notifyPropertyUpdatesToSubscribers: (propertyId: String, data: List<Byte>, isPartial: Boolean) -> Unit = { propertyId, data, isPartial ->
-        createPropertyNotification(propertyId, data, isPartial).forEach { msg ->
+    var notifyPropertyUpdatesToSubscribers: (group: Byte, propertyId: String, data: List<Byte>, isPartial: Boolean) -> Unit = { group, propertyId, data, isPartial ->
+        createPropertyNotification(group, propertyId, data, isPartial).forEach { msg ->
             notifyPropertyUpdatesToSubscribers(msg)
         }
     }
-    private fun createPropertyNotification(propertyId: String, data: List<Byte>, isPartial: Boolean): Sequence<Message.SubscribeProperty> = sequence {
+    private fun createPropertyNotification(group: Byte, propertyId: String, data: List<Byte>, isPartial: Boolean): Sequence<Message.SubscribeProperty> = sequence {
         var lastEncoding: String? = null
         var lastEncodedData = data
         subscriptions.filter { it.resource == propertyId }.forEach {
@@ -70,7 +69,8 @@ class MidiCIResponder(
                 PropertyCommonHeaderKeys.SUBSCRIBE_ID to it.subscribeId,
                 PropertyCommonHeaderKeys.SET_PARTIAL to isPartial,
                 PropertyCommonHeaderKeys.MUTUAL_ENCODING to it.encoding))
-            yield(Message.SubscribeProperty(muid, MidiCIConstants.BROADCAST_MUID_32, requestIdSerial++, header, encodedData))
+            yield(Message.SubscribeProperty(Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+                requestIdSerial++, header, encodedData))
         }
     }
 
@@ -87,9 +87,10 @@ class MidiCIResponder(
             sendOutput(msg.group, it)
         }
     }
-    fun terminateSubscriptions() {
+    fun terminateSubscriptions(group: Byte) {
         propertyService.subscriptions.forEach {
-            val msg = Message.SubscribeProperty(muid, it.muid, requestIdSerial++,
+            val msg = Message.SubscribeProperty(Message.Common(muid, it.muid, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+                requestIdSerial++,
                 propertyService.createTerminateNotificationHeader(it.subscribeId), listOf()
             )
             sendPropertySubscription(msg)
@@ -111,7 +112,8 @@ class MidiCIResponder(
         val establishedMaxSimultaneousPropertyRequests =
             if (msg.maxSimultaneousRequests > parent.config.maxSimultaneousPropertyRequests) parent.config.maxSimultaneousPropertyRequests
             else msg.maxSimultaneousRequests
-        Message.PropertyGetCapabilitiesReply(msg.address, muid, msg.sourceMUID, establishedMaxSimultaneousPropertyRequests)
+        Message.PropertyGetCapabilitiesReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+            establishedMaxSimultaneousPropertyRequests)
     }
     var processPropertyCapabilitiesInquiry: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)
@@ -190,7 +192,8 @@ class MidiCIResponder(
     // Process Inquiry
 
     fun getProcessInquiryReplyFor(msg: Message.ProcessInquiry) =
-        Message.ProcessInquiryReply(muid, msg.sourceMUID, config.processInquirySupportedFeatures)
+        Message.ProcessInquiryReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+            config.processInquirySupportedFeatures)
     fun sendProcessProcessInquiryReply(msg: Message.ProcessInquiryReply) {
         logger.logMessage(msg, MessageDirection.Out)
         val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
@@ -204,7 +207,7 @@ class MidiCIResponder(
     }
 
     fun getMidiMessageReportReplyFor(msg: Message.MidiMessageReportInquiry) =
-        Message.MidiMessageReportReply(msg.address, muid, msg.sourceMUID,
+        Message.MidiMessageReportReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
             msg.systemMessages and config.midiMessageReportSystemMessages,
             msg.channelControllerMessages and config.midiMessageReportChannelControllerMessages,
             msg.noteDataMessages and config.midiMessageReportNoteDataMessages)
@@ -216,7 +219,7 @@ class MidiCIResponder(
             msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
     }
     fun getEndOfMidiMessageReportFor(msg: Message.MidiMessageReportInquiry) =
-        Message.MidiMessageReportNotifyEnd(msg.address, muid, msg.sourceMUID)
+        Message.MidiMessageReportNotifyEnd(Message.Common(muid, msg.sourceMUID, msg.address, msg.group))
     fun sendEndOfMidiMessageReport(msg: Message.MidiMessageReportNotifyEnd) {
         logger.logMessage(msg, MessageDirection.Out)
         val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
@@ -227,8 +230,7 @@ class MidiCIResponder(
 
         // send specified MIDI messages
         midiMessageReporter.reportMidiMessages(
-            // FIXME: Message should come up with group
-            0,
+            msg.group,
             msg.address,
             config.midiMessageReportMessageDataControl,
             config.midiMessageReportSystemMessages,

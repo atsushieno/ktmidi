@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi.citool
 
 import dev.atsushieno.ktmidi.Midi1Machine
+import dev.atsushieno.ktmidi.Midi2Machine
 import dev.atsushieno.ktmidi.ci.MidiMessageReportProtocol
 import dev.atsushieno.ktmidi.ci.MidiMessageReporter
 import dev.atsushieno.ktmidi.reportMidiMessages
@@ -8,9 +9,13 @@ import dev.atsushieno.ktmidi.reportMidiMessages
 class Midi1MessageReporter(
     private val ciOutputHandler: (midi1Messages: List<Byte>) -> Unit
 ) : MidiMessageReporter {
-    override val midiTransportProtocol = MidiMessageReportProtocol.Midi1Stream
+    override val midiTransportProtocol
+        get() = configuredMidiTransportProtocol
 
-    val machine = Midi1Machine()
+    var configuredMidiTransportProtocol = MidiMessageReportProtocol.Midi1Stream
+
+    val midi1Machine = Midi1Machine()
+    val midi2Machine = Midi2Machine()
 
     override fun reportMidiMessages(
         groupAddress: Byte,
@@ -20,9 +25,12 @@ class Midi1MessageReporter(
         midiMessageReportChannelControllerMessages: Byte,
         midiMessageReportNoteDataMessages: Byte
     ): Sequence<List<Byte>> =
-        machine.reportMidiMessages(channelAddress,
-            messageDataControl,
-            midiMessageReportSystemMessages,
-            midiMessageReportChannelControllerMessages,
-            midiMessageReportNoteDataMessages)
+        if (configuredMidiTransportProtocol == MidiMessageReportProtocol.Ump)
+            TODO("FIXME: implement")
+        else
+            midi1Machine.reportMidiMessages(channelAddress,
+                messageDataControl,
+                midiMessageReportSystemMessages,
+                midiMessageReportChannelControllerMessages,
+                midiMessageReportNoteDataMessages)
 }

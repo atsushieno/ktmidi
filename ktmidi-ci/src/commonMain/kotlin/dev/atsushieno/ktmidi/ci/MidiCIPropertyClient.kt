@@ -18,7 +18,7 @@ interface MidiCIPropertyClient {
 
     fun getMetadataList(): List<PropertyMetadata>?
 
-    suspend fun requestPropertyList(destinationMUID: Int, requestId: Byte)
+    fun requestPropertyList(group: Byte, destinationMUID: Int, requestId: Byte)
 
     fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply)
 

@@ -182,7 +182,7 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 
     fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
-        responder.updatePropertyValue(propertyId, data, isPartial)
+        responder.updatePropertyValue(model.defaultSenderGroup, propertyId, data, isPartial)
         // It might be partial update, in that case we have to retrieve
         // the partial application result from MidiCIPropertyService processing.
         properties.first { it.id.value == propertyId }.data.value =

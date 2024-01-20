@@ -74,7 +74,8 @@ class MidiCIInitiator(
             val command = properties.updateValue(msg)
             return Pair(
                 command,
-                Message.SubscribePropertyReply(ourMUID, msg.sourceMUID, msg.requestId,
+                Message.SubscribePropertyReply(Message.Common(ourMUID, msg.sourceMUID, msg.address, msg.group),
+                    msg.requestId,
                     propertyClient.createStatusHeader(PropertyExchangeStatus.OK), listOf()
                 )
             )
@@ -148,8 +149,8 @@ class MidiCIInitiator(
 
     // Initiator implementation
 
-    fun sendEndpointMessage(targetMuid: Int, status: Byte = MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID) =
-        sendEndpointMessage(Message.EndpointInquiry(muid, targetMuid, status))
+    fun sendEndpointMessage(group: Byte, targetMuid: Int, status: Byte = MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID) =
+        sendEndpointMessage(Message.EndpointInquiry(Message.Common(muid, targetMuid, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group), status))
 
     fun sendEndpointMessage(msg: Message.EndpointInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
@@ -160,8 +161,8 @@ class MidiCIInitiator(
 
     // Profile Configuration
 
-    fun requestProfiles(destinationChannelOr7F: Byte, destinationMUID: Int) =
-        requestProfiles(Message.ProfileInquiry(destinationChannelOr7F, muid, destinationMUID))
+    fun requestProfiles(group: Byte, destinationChannelOr7F: Byte, destinationMUID: Int) =
+        requestProfiles(Message.ProfileInquiry(Message.Common(muid, destinationMUID, destinationChannelOr7F, group)))
 
     fun requestProfiles(msg: Message.ProfileInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
@@ -181,8 +182,9 @@ class MidiCIInitiator(
         sendOutput(msg.group, CIFactory.midiCIProfileSet(buf, msg.address, false, msg.sourceMUID, msg.destinationMUID, msg.profile, 0))
     }
 
-    fun requestProfileDetails(address: Byte, muid: Int, profile: MidiCIProfileId, target: Byte) =
-        requestProfileDetails(Message.ProfileDetailsInquiry(address, this.muid, muid, profile, target))
+    fun requestProfileDetails(group: Byte, address: Byte, targetMUID: Int, profile: MidiCIProfileId, target: Byte) =
+        requestProfileDetails(Message.ProfileDetailsInquiry(Message.Common(muid, targetMUID, address, group),
+            profile, target))
 
     fun requestProfileDetails(msg: Message.ProfileDetailsInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
@@ -192,9 +194,10 @@ class MidiCIInitiator(
 
     // Property Exchange
 
-    fun requestPropertyExchangeCapabilities(address: Byte, destinationMUID: Int, maxSimultaneousPropertyRequests: Byte) =
+    fun requestPropertyExchangeCapabilities(group: Byte, address: Byte, destinationMUID: Int, maxSimultaneousPropertyRequests: Byte) =
 
-        requestPropertyExchangeCapabilities(Message.PropertyGetCapabilities(address, muid, destinationMUID, maxSimultaneousPropertyRequests))
+        requestPropertyExchangeCapabilities(Message.PropertyGetCapabilities(Message.Common(muid, destinationMUID, address, group),
+            maxSimultaneousPropertyRequests))
 
     fun requestPropertyExchangeCapabilities(msg: Message.PropertyGetCapabilities) {
         logger.logMessage(msg, MessageDirection.Out)
@@ -209,13 +212,14 @@ class MidiCIInitiator(
         ))
     }
 
-    fun sendGetPropertyData(destinationMUID: Int, resource: String, encoding: String?) {
+    fun sendGetPropertyData(group: Byte, destinationMUID: Int, resource: String, encoding: String?) {
         val conn = connections[destinationMUID]
         if (conn != null) {
             val header = conn.propertyClient.createDataRequestHeader(resource, mapOf(
                 PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
                 PropertyCommonHeaderKeys.SET_PARTIAL to false))
-            val msg = Message.GetPropertyData(muid, destinationMUID, requestIdSerial++, header)
+            val msg = Message.GetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+                requestIdSerial++, header)
             sendGetPropertyData(msg)
         }
     }
@@ -231,14 +235,15 @@ class MidiCIInitiator(
         }
     }
 
-    fun sendSetPropertyData(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
+    fun sendSetPropertyData(group: Byte, destinationMUID: Int, resource: String, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
         val conn = connections[destinationMUID]
         if (conn != null) {
             val header = conn.propertyClient.createDataRequestHeader(resource, mapOf(
                 PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
                 PropertyCommonHeaderKeys.SET_PARTIAL to isPartial))
             val encodedBody = conn.propertyClient.encodeBody(data, encoding)
-            sendSetPropertyData(Message.SetPropertyData(muid, destinationMUID, requestIdSerial++, header, encodedBody))
+            sendSetPropertyData(Message.SetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+                requestIdSerial++, header, encodedBody))
         }
     }
 
@@ -251,26 +256,28 @@ class MidiCIInitiator(
         }
     }
 
-    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
+    fun sendSubscribeProperty(group: Byte, destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
         val conn = connections[destinationMUID]
         if (conn != null) {
             val header = conn.propertyClient.createSubscriptionHeader(resource, mapOf(
                 PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.START,
                 PropertyCommonHeaderKeys.MUTUAL_ENCODING to mutualEncoding))
-            val msg = Message.SubscribeProperty(muid, destinationMUID, requestIdSerial++, header, listOf())
+            val msg = Message.SubscribeProperty(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+                requestIdSerial++, header, listOf())
             conn.addPendingSubscription(msg.requestId, subscriptionId, resource)
             sendSubscribeProperty(msg)
         }
     }
 
-    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
+    fun sendUnsubscribeProperty(group: Byte, destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
         val conn = connections[destinationMUID]
         if (conn != null) {
             val newRequestId = requestIdSerial++
             val header = conn.propertyClient.createSubscriptionHeader(resource, mapOf(
                 PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.END,
                 PropertyCommonHeaderKeys.MUTUAL_ENCODING to mutualEncoding))
-            val msg = Message.SubscribeProperty(muid, destinationMUID, newRequestId, header, listOf())
+            val msg = Message.SubscribeProperty(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+                newRequestId, header, listOf())
             conn.promoteSubscriptionAsUnsubscribing(resource, newRequestId)
             sendSubscribeProperty(msg)
         }
@@ -288,8 +295,8 @@ class MidiCIInitiator(
     }
 
     // Process Inquiry
-    fun sendProcessInquiry(destinationMUID: Int) =
-        sendProcessInquiry(Message.ProcessInquiry(muid, destinationMUID))
+    fun sendProcessInquiry(group: Byte, destinationMUID: Int) =
+        sendProcessInquiry(Message.ProcessInquiry(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group)))
 
     fun sendProcessInquiry(msg: Message.ProcessInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
@@ -297,13 +304,14 @@ class MidiCIInitiator(
         sendOutput(msg.group, CIFactory.midiCIProcessInquiryCapabilities(buf, msg.sourceMUID, msg.destinationMUID))
     }
 
-    fun sendMidiMessageReportInquiry(address: Byte, destinationMUID: Int,
+    fun sendMidiMessageReportInquiry(group: Byte, address: Byte, destinationMUID: Int,
                                      messageDataControl: Byte,
                                      systemMessages: Byte,
                                      channelControllerMessages: Byte,
                                      noteDataMessages: Byte) =
         sendMidiMessageReportInquiry(Message.MidiMessageReportInquiry(
-            address, muid, destinationMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
+            Message.Common(muid, destinationMUID, address, group),
+            messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
 
     fun sendMidiMessageReportInquiry(msg: Message.MidiMessageReportInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
@@ -386,12 +394,11 @@ class MidiCIInitiator(
 
             // proceed to query resource list
             if (config.autoSendGetResourceList)
-                GlobalScope.launch {
-                    conn.propertyClient.requestPropertyList(msg.sourceMUID, requestIdSerial++)
-                }
+                conn.propertyClient.requestPropertyList(msg.group, msg.sourceMUID, requestIdSerial++)
         }
         else
-            parent.sendNakForUnknownMUID(msg.group, CISubId2.PROPERTY_CAPABILITIES_REPLY, msg.address, msg.sourceMUID)
+            parent.sendNakForUnknownMUID(Message.Common(muid, msg.sourceMUID, msg.group, msg.address),
+                CISubId2.PROPERTY_CAPABILITIES_REPLY)
     }
     var processPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)
@@ -435,11 +442,12 @@ class MidiCIInitiator(
                 sendPropertySubscribeReply(reply.second!!)
             // If the update was NOTIFY, then it is supposed to send Get Data request.
             if (reply.first == MidiCISubscriptionCommand.NOTIFY)
-                sendGetPropertyData(msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header), null) // is there mutualEncoding from SubscribeProperty?
+                sendGetPropertyData(msg.group, msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header), null) // is there mutualEncoding from SubscribeProperty?
         }
         else
             // Unknown MUID - send back NAK
-            parent.sendNakForUnknownMUID(msg.group, CISubId2.PROPERTY_SUBSCRIBE, msg.address, msg.sourceMUID)
+            parent.sendNakForUnknownMUID(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+                CISubId2.PROPERTY_SUBSCRIBE)
     }
 
     fun defaultProcessSubscribePropertyReply(msg: Message.SubscribePropertyReply) {

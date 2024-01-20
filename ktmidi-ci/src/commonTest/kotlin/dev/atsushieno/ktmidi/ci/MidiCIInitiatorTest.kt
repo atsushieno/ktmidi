@@ -17,7 +17,7 @@ class MidiCIInitiatorTest {
         val mediator = TestCIMediator()
         val device1 = mediator.device1
         val device2 = mediator.device2
-        device1.sendDiscovery()
+        device1.sendDiscovery(0)
         assertEquals(1, device1.connections.size, "connections.size")
         val conn = device1.connections[device2.muid]
         assertNotNull(conn, "conn")

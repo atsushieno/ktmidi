@@ -16,8 +16,8 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
 
     override fun getMetadataList(): List<PropertyMetadata> = resourceList
 
-    override suspend fun requestPropertyList(destinationMUID: Int, requestId: Byte) =
-        requestResourceList(destinationMUID, requestId)
+    override fun requestPropertyList(group: Byte, destinationMUID: Int, requestId: Byte) =
+        requestResourceList(group, destinationMUID, requestId)
 
     override fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
         // If the reply message is about ResourceList, then store the list internally.
@@ -109,9 +109,10 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
     private val resourceList = mutableListOf<PropertyMetadata>()
     val subscriptions = mutableListOf<SubscriptionEntry>()
 
-    private fun requestResourceList(destinationMUID: Int, requestId: Byte) {
+    private fun requestResourceList(group: Byte, destinationMUID: Int, requestId: Byte) {
         val requestASCIIBytes = getResourceListRequestBytes()
-        val msg = Message.GetPropertyData(muid, destinationMUID, requestId, requestASCIIBytes)
+        val msg = Message.GetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+            requestId, requestASCIIBytes)
         sendGetPropertyData(msg)
     }
 

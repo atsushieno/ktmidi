@@ -11,6 +11,9 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
                     private val ciOutputSender: (ciBytes: List<Byte>) -> Unit,
                     private val midiMessageReportOutputSender: (bytes: List<Byte>) -> Unit) {
 
+    // FIXME: this means we somehow ignore any group specification wherever this field is used.
+    var defaultSenderGroup: Byte = 0
+
     // from CIInitiatorModel
     val connections = mutableStateListOf<ClientConnectionModel>()
 
@@ -101,7 +104,7 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
     // Management message client
 
     fun sendDiscovery() {
-        device.sendDiscovery()
+        device.sendDiscovery(defaultSenderGroup)
     }
 
     // local profile configuration

@@ -10,13 +10,19 @@ enum class ConnectionChange {
     Removed
 }
 
+/**
+ * Represents A MIDI-CI Device entity, or a Function Block[*1].
+ *
+ * [*1] M2-101-UM_v1_2: MIDI-CI specification section 3.1 states:
+ * "Each Function Block that supports MIDI-CI shall have a different MUID and act as a unique MIDI-CI Device"
+ *
+ */
 class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                    private val sendCIOutput: (group: Byte, data: List<Byte>) -> Unit,
                    private val sendMidiMessageReport: (protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
 ) {
     val initiator by lazy { MidiCIInitiator(this, config.initiator, sendCIOutput) }
     val responder by lazy { MidiCIResponder(this, config.responder, sendCIOutput, sendMidiMessageReport) }
-
 
     val device: MidiCIDeviceInfo
         get() = config.device
@@ -29,6 +35,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         val discoveryReplyReceived = mutableListOf<(Message.DiscoveryReply) -> Unit>()
         val endpointInquiryReceived = mutableListOf<(msg: Message.EndpointInquiry) -> Unit>()
         val endpointReplyReceived = mutableListOf<(Message.EndpointReply) -> Unit>()
+        val invalidateMUIDReceived = mutableListOf<(Message.InvalidateMUID) -> Unit>()
 
         val profileInquiryReceived = mutableListOf<(msg: Message.ProfileInquiry) -> Unit>()
         val profileInquiryReplyReceived = mutableListOf<(Message.ProfileReply) -> Unit>()
@@ -71,8 +78,9 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     // Request sender
 
-    fun sendDiscovery(ciCategorySupported: Byte = MidiCISupportedCategories.THREE_P) =
-        sendDiscovery(Message.DiscoveryInquiry(muid,
+    fun sendDiscovery(group: Byte, ciCategorySupported: Byte = MidiCISupportedCategories.THREE_P) =
+        sendDiscovery(Message.DiscoveryInquiry(
+            Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
             DeviceDetails(
                 device.manufacturerId,
                 device.familyId,
@@ -101,13 +109,12 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         sendCIOutput(group, CIFactory.midiCIAckNak(dst, true, nak))
     }
 
-    fun sendNakForUnknownMUID(group: Byte, originalSubId2: Byte, address: Byte, destinationMUID: Int) {
-        sendNakForError(group, address, destinationMUID, originalSubId2, CINakStatus.Nak, 0, message = "CI Device ${destinationMUID.muidString} is not connected.")
+    fun sendNakForUnknownMUID(common: Message.Common, originalSubId2: Byte) {
+        sendNakForError(common, originalSubId2, CINakStatus.Nak, 0, message = "CI Device is not connected. (MUID: ${common.destinationMUID.muidString})")
     }
 
-    fun sendNakForError(group: Byte, address: Byte, destinationMUID: Int, originalSubId2: Byte, statusCode: Byte, statusData: Byte, details: List<Byte> = List(5) {0}, message: String) {
-        // FIXME: pass group
-        sendNakForError(Message.Nak(address, muid, destinationMUID, originalSubId2, statusCode, statusData, details,
+    fun sendNakForError(common: Message.Common, originalSubId2: Byte, statusCode: Byte, statusData: Byte, details: List<Byte> = List(5) {0}, message: String) {
+        sendNakForError(Message.Nak(common, originalSubId2, statusCode, statusData, details,
             MidiCIConverter.encodeStringToASCII(message).toASCIIByteArray().toList()))
     }
 
@@ -118,9 +125,9 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             msg.originalSubId, msg.statusCode, msg.statusData, msg.details, msg.message))
     }
 
-    fun invalidateMUID(targetMUID: Int, message: String) {
+    fun invalidateMUID(address: Byte, group: Byte, targetMUID: Int, message: String) {
         logger.logError(message)
-        val msg = Message.InvalidateMUID(muid, targetMUID)
+        val msg = Message.InvalidateMUID(Message.Common(muid, targetMUID, address, group), targetMUID)
         invalidateMUID(msg)
     }
 
@@ -138,14 +145,18 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         sendNakForUnknownCIMessage(group, data)
     }
 
-    private val defaultProcessInvalidateMUID = { sourceMUID: Int, muidToInvalidate: Int ->
-        val conn = connections[muidToInvalidate]
+    fun defaultProcessInvalidateMUID(msg: Message.InvalidateMUID) {
+        val conn = connections[msg.targetMUID]
         if (conn != null) {
-            connections.remove(muidToInvalidate)
+            connections.remove(msg.targetMUID)
             connectionsChanged.forEach { it(ConnectionChange.Removed, conn) }
         }
     }
-    var processInvalidateMUID = defaultProcessInvalidateMUID
+    var processInvalidateMUID: (msg: Message.InvalidateMUID) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.invalidateMUIDReceived.forEach { it(msg) }
+        defaultProcessInvalidateMUID(msg)
+    }
 
     // to Discovery (responder)
     val sendDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
@@ -162,7 +173,8 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     }
     val getDiscoveryReplyForInquiry: (request: Message.DiscoveryInquiry) -> Message.DiscoveryReply = { request ->
         val deviceDetails = DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId)
-        Message.DiscoveryReply(muid, request.sourceMUID, deviceDetails, config.capabilityInquirySupported,
+        Message.DiscoveryReply(Message.Common(muid, request.sourceMUID, request.address, request.group),
+            deviceDetails, config.capabilityInquirySupported,
             config.receivableMaxSysExSize, request.outputPathId, config.functionBlock)
     }
     var processDiscovery: (msg: Message.DiscoveryInquiry) -> Unit = { msg ->
@@ -184,7 +196,8 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         val prodId = config.productInstanceId
         if (prodId.length > 16 || prodId.any { it.code < 0x20 || it.code > 0x7E })
             throw IllegalStateException("productInstanceId shall not be any longer than 16 bytes in size and must be all in ASCII code between 32 and 126")
-        Message.EndpointReply(muid, msg.sourceMUID, msg.status,
+        Message.EndpointReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+            msg.status,
             if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId.isNotBlank()) prodId.toASCIIByteArray().toList() else listOf()
         )
     }
@@ -208,12 +221,12 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         connectionsChanged.forEach { it(ConnectionChange.Added, connection) }
 
         if (config.autoSendEndpointInquiry)
-            initiator.sendEndpointMessage(msg.sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
+            initiator.sendEndpointMessage(msg.group, msg.sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
 
         if (config.autoSendProfileInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROFILE_CONFIGURATION.toInt()) != 0)
-            initiator.requestProfiles(0x7F, msg.sourceMUID)
+            initiator.requestProfiles(msg.group, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, msg.sourceMUID)
         if (config.autoSendPropertyExchangeCapabilitiesInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROPERTY_EXCHANGE.toInt()) != 0)
-            initiator.requestPropertyExchangeCapabilities(0x7F, msg.sourceMUID, config.maxSimultaneousPropertyRequests)
+            initiator.requestPropertyExchangeCapabilities(msg.group, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, msg.sourceMUID, config.maxSimultaneousPropertyRequests)
     }
     var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)
@@ -246,7 +259,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                 if (s.all { it.code in 32..126 } && s.length <= 16)
                     conn.productInstanceId = s
                 else
-                    invalidateMUID(msg.sourceMUID, "Invalid product instance ID")
+                    invalidateMUID(msg.address, msg.group, msg.sourceMUID, "Invalid product instance ID")
             }
         }
     }
@@ -276,7 +289,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     val getProfileRepliesForInquiry: (msg: Message.ProfileInquiry) -> Sequence<Message.ProfileReply> = { msg ->
         sequence {
             getAllAddresses(msg.address).forEach { address ->
-                yield(Message.ProfileReply(address, muid, msg.sourceMUID,
+                yield(Message.ProfileReply(Message.Common(muid, msg.sourceMUID, address, msg.group),
                     localProfiles.getMatchingProfiles(address, true),
                     localProfiles.getMatchingProfiles(address, false)))
             }
@@ -344,13 +357,15 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         sendCIOutput(msg.group, CIFactory.midiCIProfileDetailsReply(dst, msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.target, msg.data))
     }
     private fun getProfileDetailsReplyForInquiry(msg: Message.ProfileDetailsInquiry, data: List<Byte>) =
-        Message.ProfileDetailsReply(msg.address, muid, msg.sourceMUID, msg.profile, msg.target, data)
+        Message.ProfileDetailsReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+            msg.profile, msg.target, data)
     fun defaultProcessProfileDetailsInquiry(msg: Message.ProfileDetailsInquiry) {
         val data = profileService.getProfileDetails(msg.profile, msg.target)
         if (data != null)
             sendProfileDetailsReply(getProfileDetailsReplyForInquiry(msg, data))
         else
-            sendNakForError(msg.group, msg.address, msg.sourceMUID, CISubId2.PROFILE_DETAILS_INQUIRY, 0, 0,
+            sendNakForError(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+                CISubId2.PROFILE_DETAILS_INQUIRY, 0, 0,
                 message = "Profile Details Inquiry against unknown target (profile=${msg.profile}, target=${msg.target})")
     }
 
@@ -408,33 +423,37 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             return // not MIDI-CI sysex
         if (data.size < Message.COMMON_HEADER_SIZE)
             return // insufficient buffer size in any case
+        val common = Message.Common(
+            CIRetrieval.midiCIGetSourceMUID(data),
+            CIRetrieval.midiCIGetDestinationMUID(data),
+            CIRetrieval.midiCIGetAddressing(data),
+            group
+            )
         if (data.size < (Message.messageSizes[data[3]] ?: Int.MAX_VALUE)) {
             logger.logError("Insufficient message size for ${data[3]}: ${data.size}")
             return // insufficient buffer size for the message
         }
-
-        val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
-        if (destinationMUID != muid && destinationMUID != MidiCIConstants.BROADCAST_MUID_32)
+        if (common.destinationMUID != muid && common.destinationMUID != MidiCIConstants.BROADCAST_MUID_32)
             return // we are not the target
 
         // catch errors for (potentially) insufficient buffer sizes
         try {
-            processInputUnchecked(group, data, destinationMUID)
+            processInputUnchecked(common, data)
         } catch(ex: IndexOutOfBoundsException) {
             val address = CIRetrieval.midiCIGetAddressing(data)
             val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-            sendNakForError(group, address, sourceMUID, data[3], CINakStatus.MalformedMessage, 0, List(5) { 0 }, ex.message ?: ex.toString())
+            sendNakForError(Message.Common(muid, sourceMUID, address, group), data[3], CINakStatus.MalformedMessage, 0, List(5) { 0 }, ex.message ?: ex.toString())
         }
     }
 
-    private fun handleChunk(sourceMUID: Int, requestId: Byte, chunkIndex: Short, numChunks: Short,
+    private fun handleChunk(common: Message.Common, requestId: Byte, chunkIndex: Short, numChunks: Short,
                             header: List<Byte>, body: List<Byte>,
                             onComplete: (header: List<Byte>, body: List<Byte>) -> Unit) {
-        val conn = connections[sourceMUID] ?: return
+        val conn = connections[common.sourceMUID] ?: return
         if (chunkIndex < numChunks) {
-            conn.pendingChunkManager.addPendingChunk(Clock.System.now().epochSeconds, sourceMUID, requestId, header, body)
+            conn.pendingChunkManager.addPendingChunk(Clock.System.now().epochSeconds, common.sourceMUID, requestId, header, body)
         } else {
-            val existing = if (chunkIndex > 1) conn.pendingChunkManager.finishPendingChunk(sourceMUID, requestId, body) else null
+            val existing = if (chunkIndex > 1) conn.pendingChunkManager.finishPendingChunk(common.sourceMUID, requestId, body) else null
             val msgHeader = existing?.first ?: header
             val msgBody = existing?.second ?: body
             onComplete(msgHeader, msgBody)
@@ -442,15 +461,13 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     }
 
 
-    private fun processInputUnchecked(group: Byte, data: List<Byte>, destinationMUID: Int) {
-        // FIXME: pass group to Message constructor everywhere
+    private fun processInputUnchecked(common: Message.Common, data: List<Byte>) {
         when (data[3]) {
             // Protocol Negotiation - we ignore them. Falls back to NAK
 
             // Discovery
             CISubId2.DISCOVERY_REPLY -> {
                 val ciSupported = data[24]
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val device = CIRetrieval.midiCIGetDeviceDetails(data)
                 val max = CIRetrieval.midiCIMaxSysExSize(data)
                 // only available in MIDI-CI 1.2 or later.
@@ -458,20 +475,18 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                 val functionBlock = if (data.size > 30) data[30] else 0
                 // Reply to Discovery
                 processDiscoveryReply(Message.DiscoveryReply(
-                    sourceMUID, destinationMUID, device, ciSupported, max, initiatorOutputPath, functionBlock))
+                    common, device, ciSupported, max, initiatorOutputPath, functionBlock))
             }
             CISubId2.ENDPOINT_MESSAGE_REPLY -> {
                 val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val status = data[13]
                 val dataLength = data[14] + (data[15].toInt() shl 7)
                 val dataValue = data.drop(16).take(dataLength)
-                processEndpointReply(Message.EndpointReply(sourceMUID, destinationMUID, status, dataValue))
+                processEndpointReply(Message.EndpointReply(common, status, dataValue))
             }
             CISubId2.INVALIDATE_MUID -> {
-                processInvalidateMUID(
-                    CIRetrieval.midiCIGetSourceMUID(data),
-                    CIRetrieval.midiCIGetMUIDToInvalidate(data)
-                )
+                val targetMUID = CIRetrieval.midiCIGetMUIDToInvalidate(data)
+                processInvalidateMUID(Message.InvalidateMUID(common, targetMUID))
             }
             CISubId2.ACK -> {
                 // ACK MIDI-CI
@@ -502,84 +517,65 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
             // Profile Configuration
             CISubId2.PROFILE_INQUIRY_REPLY -> {
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profiles = CIRetrieval.midiCIGetProfileSet(data)
                 initiator.processProfileReply(Message.ProfileReply(
-                    address,
-                    sourceMUID,
-                    destinationMUID,
+                    common,
                     profiles.filter { it.second }.map { it.first },
                     profiles.filter { !it.second }.map { it.first })
                 )
             }
             CISubId2.PROFILE_ADDED_REPORT -> {
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profile = CIRetrieval.midiCIGetProfileId(data)
-                initiator.processProfileAddedReport(Message.ProfileAdded(address, sourceMUID, profile))
+                initiator.processProfileAddedReport(Message.ProfileAdded(common, profile))
             }
             CISubId2.PROFILE_REMOVED_REPORT -> {
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profile = CIRetrieval.midiCIGetProfileId(data)
-                initiator.processProfileRemovedReport(Message.ProfileRemoved(address, sourceMUID, profile))
+                initiator.processProfileRemovedReport(Message.ProfileRemoved(common, profile))
             }
             CISubId2.PROFILE_DETAILS_REPLY -> {
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profile = CIRetrieval.midiCIGetProfileId(data)
                 val target = data[18]
                 val dataSize = data[19] + (data[20] shl 7)
                 val details = data.drop(21).take(dataSize)
-                initiator.processProfileDetailsReply(Message.ProfileDetailsReply(address, sourceMUID, destinationMUID, profile, target, details))
+                initiator.processProfileDetailsReply(Message.ProfileDetailsReply(common, profile, target, details))
             }
 
             CISubId2.PROFILE_ENABLED_REPORT -> {
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profile = CIRetrieval.midiCIGetProfileId(data)
                 val channels = (data[18] + (data[19] shl 7)).toShort()
-                initiator.processProfileEnabledReport(Message.ProfileEnabled(address, sourceMUID, profile, channels))
+                initiator.processProfileEnabledReport(Message.ProfileEnabled(common, profile, channels))
             }
             CISubId2.PROFILE_DISABLED_REPORT -> {
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profile = CIRetrieval.midiCIGetProfileId(data)
                 val channels = (data[18] + (data[19] shl 7)).toShort()
-                initiator.processProfileDisabledReport(Message.ProfileDisabled(address, sourceMUID, profile, channels))
+                initiator.processProfileDisabledReport(Message.ProfileDisabled(common, profile, channels))
             }
 
             // Property Exchange
             CISubId2.PROPERTY_CAPABILITIES_REPLY -> {
                 initiator.processPropertyCapabilitiesReply(Message.PropertyGetCapabilitiesReply(
-                    CIRetrieval.midiCIGetAddressing(data),
-                    CIRetrieval.midiCIGetSourceMUID(data),
-                    destinationMUID,
+                    common,
                     CIRetrieval.midiCIGetMaxPropertyRequests(data))
                 )
             }
             CISubId2.PROPERTY_GET_DATA_REPLY -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val header = CIRetrieval.midiCIGetPropertyHeader(data)
                 val requestId = data[13]
                 val numChunks = CIRetrieval.midiCIGetPropertyTotalChunks(data)
                 val chunkIndex = CIRetrieval.midiCIGetPropertyChunkIndex(data)
                 val body = CIRetrieval.midiCIGetPropertyBodyInThisChunk(data)
 
-                handleChunk(sourceMUID, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
-                    initiator.processGetDataReply(Message.GetPropertyDataReply(sourceMUID, destinationMUID, requestId, wholeHeader, wholeBody))
+                handleChunk(common, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
+                    initiator.processGetDataReply(Message.GetPropertyDataReply(common, requestId, wholeHeader, wholeBody))
                 }
             }
             CISubId2.PROPERTY_SET_DATA_REPLY -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val header = CIRetrieval.midiCIGetPropertyHeader(data)
                 val requestId = data[13]
                 initiator.processSetDataReply(Message.SetPropertyDataReply(
-                    sourceMUID, destinationMUID, requestId, header))
+                    common, requestId, header))
             }
             CISubId2.PROPERTY_SUBSCRIBE -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
@@ -587,19 +583,17 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                 val chunkIndex = CIRetrieval.midiCIGetPropertyChunkIndex(data)
                 val body = CIRetrieval.midiCIGetPropertyBodyInThisChunk(data)
 
-                handleChunk(sourceMUID, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
-                    processSubscribeProperty(Message.SubscribeProperty(sourceMUID, destinationMUID, requestId, wholeHeader, wholeBody))
+                handleChunk(common, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
+                    processSubscribeProperty(Message.SubscribeProperty(common, requestId, wholeHeader, wholeBody))
                 }
             }
             CISubId2.PROPERTY_SUBSCRIBE_REPLY -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
-                processSubscribePropertyReply(Message.SubscribePropertyReply(sourceMUID, destinationMUID, requestId, header, listOf()))
+                processSubscribePropertyReply(Message.SubscribePropertyReply(common, requestId, header, listOf()))
             }
             CISubId2.PROPERTY_NOTIFY -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val requestId = data[13]
                 val headerSize = data[14] + (data[15].toInt() shl 7)
                 val header = data.drop(16).take(headerSize)
@@ -607,118 +601,98 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                 val chunkIndex = CIRetrieval.midiCIGetPropertyChunkIndex(data)
                 val body = CIRetrieval.midiCIGetPropertyBodyInThisChunk(data)
 
-                handleChunk(sourceMUID, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
-                    processPropertyNotify(Message.PropertyNotify(sourceMUID, destinationMUID, requestId, wholeHeader, wholeBody))
+                handleChunk(common, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
+                    processPropertyNotify(Message.PropertyNotify(common, requestId, wholeHeader, wholeBody))
                 }
             }
 
             // Process Inquiry
             CISubId2.PROCESS_INQUIRY_CAPABILITIES_REPLY -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val supportedFeatures = data[13]
-                initiator.processProcessInquiryReply(Message.ProcessInquiryReply(sourceMUID, destinationMUID, supportedFeatures))
+                initiator.processProcessInquiryReply(Message.ProcessInquiryReply(common, supportedFeatures))
             }
             CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY -> {
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val systemMessages = data[13]
                 // data[14] is reserved
                 val channelControllerMessages = data[15]
                 val noteDataMessages = data[16]
                 initiator.processMidiMessageReportReply(Message.MidiMessageReportReply(
-                    address, sourceMUID, destinationMUID,
-                    systemMessages, channelControllerMessages, noteDataMessages))
+                    common, systemMessages, channelControllerMessages, noteDataMessages))
             }
             CISubId2.PROCESS_INQUIRY_END_OF_MIDI_MESSAGE -> {
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                initiator.processEndOfMidiMessageReport(Message.MidiMessageReportNotifyEnd(address, sourceMUID, destinationMUID))
+                initiator.processEndOfMidiMessageReport(Message.MidiMessageReportNotifyEnd(common))
             }
 
             // Responder inputs
 
             // Discovery
             CISubId2.DISCOVERY_INQUIRY -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val device = CIRetrieval.midiCIGetDeviceDetails(data)
                 val ciSupported = data[24]
                 val max = CIRetrieval.midiCIMaxSysExSize(data)
                 // only available in MIDI-CI 1.2 or later.
                 val initiatorOutputPath = if (data.size > 29) data[29] else 0
-                processDiscovery(Message.DiscoveryInquiry(sourceMUID, device, ciSupported, max, initiatorOutputPath))
+                processDiscovery(Message.DiscoveryInquiry(common, device, ciSupported, max, initiatorOutputPath))
             }
 
             CISubId2.ENDPOINT_MESSAGE_INQUIRY -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 // only available in MIDI-CI 1.2 or later.
                 val status = data[13]
-                processEndpointMessage(Message.EndpointInquiry(sourceMUID, destinationMUID, status))
+                processEndpointMessage(Message.EndpointInquiry(common, status))
             }
 
             // Profile Configuration
 
             CISubId2.PROFILE_INQUIRY -> {
-                val source = data[1]
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                processProfileInquiry(Message.ProfileInquiry(source, sourceMUID, destinationMUID))
+                processProfileInquiry(Message.ProfileInquiry(common))
             }
 
             CISubId2.SET_PROFILE_ON, CISubId2.SET_PROFILE_OFF -> {
                 val enabled = data[3] == CISubId2.SET_PROFILE_ON
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
                 val channels = (data[18] + (data[19] shl 7)).toShort()
                 if (enabled)
-                    processSetProfileOn(Message.SetProfileOn(address, sourceMUID, destinationMUID, profileId, channels))
+                    processSetProfileOn(Message.SetProfileOn(common, profileId, channels))
                 else
-                    processSetProfileOff(Message.SetProfileOff(address, sourceMUID, destinationMUID, profileId))
+                    processSetProfileOff(Message.SetProfileOff(common, profileId))
             }
 
             CISubId2.PROFILE_DETAILS_INQUIRY -> {
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
                 val target = data[13]
-                processProfileDetailsInquiry(Message.ProfileDetailsInquiry(address, sourceMUID, destinationMUID, profileId, target))
+                processProfileDetailsInquiry(Message.ProfileDetailsInquiry(common, profileId, target))
             }
 
             CISubId2.PROFILE_SPECIFIC_DATA -> {
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
                 val dataLength = CIRetrieval.midiCIGetProfileSpecificDataSize(data)
-                processProfileSpecificData(Message.ProfileSpecificData(address, sourceMUID, destinationMUID, profileId, data.drop(21).take(dataLength)))
+                processProfileSpecificData(Message.ProfileSpecificData(common, profileId, data.drop(21).take(dataLength)))
             }
 
             // Property Exchange
 
             CISubId2.PROPERTY_CAPABILITIES_INQUIRY -> {
-                val destination = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val max = CIRetrieval.midiCIGetMaxPropertyRequests(data)
 
                 responder.processPropertyCapabilitiesInquiry(
-                    Message.PropertyGetCapabilities(destination, sourceMUID, destinationMUID, max))
+                    Message.PropertyGetCapabilities(common, max))
             }
 
             CISubId2.PROPERTY_GET_DATA_INQUIRY -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val requestId = data[13]
                 val header = CIRetrieval.midiCIGetPropertyHeader(data)
-                responder.processGetPropertyData(Message.GetPropertyData(sourceMUID, destinationMUID, requestId, header))
+                responder.processGetPropertyData(Message.GetPropertyData(common, requestId, header))
             }
 
             CISubId2.PROPERTY_SET_DATA_INQUIRY -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val requestId = data[13]
                 val header = CIRetrieval.midiCIGetPropertyHeader(data)
                 val numChunks = CIRetrieval.midiCIGetPropertyTotalChunks(data)
                 val chunkIndex = CIRetrieval.midiCIGetPropertyChunkIndex(data)
                 val body = CIRetrieval.midiCIGetPropertyBodyInThisChunk(data)
 
-                handleChunk(sourceMUID, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
-                    responder.processSetPropertyData(Message.SetPropertyData(sourceMUID, destinationMUID, requestId, wholeHeader, wholeBody))
+                handleChunk(common, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
+                    responder.processSetPropertyData(Message.SetPropertyData(common, requestId, wholeHeader, wholeBody))
                 }
             }
 
@@ -727,25 +701,21 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             // CISubId2.PROPERTY_NOTIFY -> implemented earlier
 
             CISubId2.PROCESS_INQUIRY_CAPABILITIES -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-                responder.processProcessInquiry(Message.ProcessInquiry(sourceMUID, destinationMUID))
+                responder.processProcessInquiry(Message.ProcessInquiry(common))
             }
 
             CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT -> {
-                val address = CIRetrieval.midiCIGetAddressing(data)
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val messageDataControl = data[13]
                 val systemMessages = data[14]
                 // data[15] is reserved
                 val channelControllerMessages = data[16]
                 val noteDataMessages = data[17]
                 responder.processMidiMessageReport(Message.MidiMessageReportInquiry(
-                    address, sourceMUID, destinationMUID,
-                    messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
+                    common, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
             }
 
             else -> {
-                processUnknownCIMessage(group, data)
+                processUnknownCIMessage(common.group, data)
             }
         }
     }

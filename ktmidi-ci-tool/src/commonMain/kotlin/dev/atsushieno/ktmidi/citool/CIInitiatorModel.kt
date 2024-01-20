@@ -13,15 +13,14 @@ class CIInitiatorModel(private val device: CIDeviceModel) {
 
     val connections = mutableStateListOf<ClientConnectionModel>()
 
-    // FIXME: we need to make MidiCIInitiator EndpointInquiry hook-able.
     fun sendEndpointMessage(targetMUID: Int) {
-        initiator.sendEndpointMessage(targetMUID)
+        initiator.sendEndpointMessage(device.defaultSenderGroup, targetMUID)
     }
 
     fun setProfile(destinationMUID: Int, address: Byte, profile: MidiCIProfileId, nextEnabled: Boolean, newNumChannelsRequested: Short) {
         if (nextEnabled) {
             // FIXME: maybe we should pass number of channels somehow?
-            val msg = Message.SetProfileOn(address, initiator.muid, destinationMUID, profile,
+            val msg = Message.SetProfileOn(Message.Common(initiator.muid, destinationMUID, address, device.defaultSenderGroup), profile,
                 // NOTE: juce_midi_ci has a bug that it expects 1 for 7E and 7F, whereas MIDI-CI v1.2 states:
                 //   "When the Profile Destination field is set to address 0x7E or 0x7F, the number of Channels is determined
                 //    by the width of the Group or Function Block. Set the Number of Channels Requested field to a value of 0x0000."
@@ -31,26 +30,26 @@ class CIInitiatorModel(private val device: CIDeviceModel) {
             )
             initiator.setProfileOn(msg)
         } else {
-            val msg = Message.SetProfileOff(address, initiator.muid, destinationMUID, profile)
+            val msg = Message.SetProfileOff(Message.Common(initiator.muid, destinationMUID, address, device.defaultSenderGroup), profile)
             initiator.setProfileOff(msg)
         }
     }
 
     fun sendProfileDetailsInquiry(address: Byte, muid: Int, profile: MidiCIProfileId, target: Byte) {
-        initiator.requestProfileDetails(address, muid, profile, target)
+        initiator.requestProfileDetails(device.defaultSenderGroup, address, muid, profile, target)
     }
 
     fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?) {
-        initiator.sendGetPropertyData(destinationMUID, resource, encoding)
+        initiator.sendGetPropertyData(device.defaultSenderGroup, destinationMUID, resource, encoding)
     }
     fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) {
-        initiator.sendSetPropertyData(destinationMUID, resource, data, encoding, isPartial)
+        initiator.sendSetPropertyData(device.defaultSenderGroup, destinationMUID, resource, data, encoding, isPartial)
     }
     fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
-        initiator.sendSubscribeProperty(destinationMUID, resource, mutualEncoding)
+        initiator.sendSubscribeProperty(device.defaultSenderGroup, destinationMUID, resource, mutualEncoding)
     }
     fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
-        initiator.sendUnsubscribeProperty(destinationMUID, resource, mutualEncoding)
+        initiator.sendUnsubscribeProperty(device.defaultSenderGroup, destinationMUID, resource, mutualEncoding)
     }
 
     fun requestMidiMessageReport(address: Byte, targetMUID: Int,
@@ -59,7 +58,7 @@ class CIInitiatorModel(private val device: CIDeviceModel) {
                                  channelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All.toByte(),
                                  noteDataMessages: Byte = MidiMessageReportNoteDataFlags.All.toByte()
     ) {
-        initiator.sendMidiMessageReportInquiry(address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
+        initiator.sendMidiMessageReportInquiry(device.defaultSenderGroup, address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
     }
 
     init {

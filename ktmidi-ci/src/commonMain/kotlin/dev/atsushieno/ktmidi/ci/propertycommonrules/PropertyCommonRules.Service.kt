@@ -79,7 +79,8 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
         val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toASCIIByteArray().toList()
         val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toASCIIByteArray().toList()
-        return Result.success(Message.GetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader, replyBody))
+        return Result.success(Message.GetPropertyDataReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+            msg.requestId, replyHeader, replyBody))
     }
     override fun setPropertyData(msg: Message.SetPropertyData) : Result<Message.SetPropertyDataReply> {
         val jsonInquiryHeader = try {
@@ -93,7 +94,8 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
             return Result.failure(result.exceptionOrNull()!!)
 
         val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.getOrNull()!!)).toASCIIByteArray().toList()
-        return Result.success(Message.SetPropertyDataReply(muid, msg.sourceMUID, msg.requestId, replyHeader))
+        return Result.success(Message.SetPropertyDataReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+            msg.requestId, replyHeader))
     }
 
     override fun subscribeProperty(msg: Message.SubscribeProperty): Result<Message.SubscribePropertyReply> {
@@ -108,15 +110,8 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
         val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toASCIIByteArray().toList()
         val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toASCIIByteArray().toList()
-        return Result.success(
-            Message.SubscribePropertyReply(
-                muid,
-                msg.sourceMUID,
-                msg.requestId,
-                replyHeader,
-                replyBody
-            )
-        )
+        return Result.success(Message.SubscribePropertyReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+                msg.requestId, replyHeader, replyBody))
     }
 
     override fun addMetadata(property: PropertyMetadata) {
