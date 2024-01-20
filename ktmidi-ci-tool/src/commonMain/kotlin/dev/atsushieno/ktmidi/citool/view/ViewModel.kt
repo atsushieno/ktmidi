@@ -190,7 +190,7 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 
     fun createNewProperty() {
-        val property = PropertyMetadata().apply { resource = "Property${Random.nextInt()}" }
+        val property = PropertyMetadata().apply { resource = "X-${Random.nextInt(9999)}" }
         model.addLocalProperty(property)
         selectedProperty.value = property.resource
     }
