@@ -48,6 +48,7 @@ fun PropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
 )
 
 class CommonRulesPropertyService(logger: Logger, private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
+                                 private val values: MutableList<PropertyValue>,
                                  private val metadataList: MutableList<PropertyMetadata> = mutableListOf(),
                                  private val channelList: Json.JsonValue? = null,
                                  private val jsonSchema: Json.JsonValue? = null
@@ -78,7 +79,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
         val result = getPropertyData(jsonInquiry)
 
         val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toASCIIByteArray().toList()
-        val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toASCIIByteArray().toList()
+        val replyBody = result.second
         return Result.success(Message.GetPropertyDataReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
             msg.requestId, replyHeader, replyBody))
     }
@@ -128,8 +129,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
     // impl
 
-    val linkedResources = mutableMapOf<String, Json.JsonValue>()
-    private val values = mutableMapOf<String, Json.JsonValue>()
+    val linkedResources = mutableMapOf<String, List<Byte>>()
     val subscriptions = mutableListOf<SubscriptionEntry>()
 
     private fun bytesToJsonArray(list: List<Byte>) = list.map { Json.JsonValue(it.toDouble()) }
@@ -167,7 +167,9 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
             json.getObjectValue(PropertyCommonHeaderKeys.RESOURCE)?.stringValue ?: "",
             json.getObjectValue(PropertyCommonHeaderKeys.RES_ID)?.stringValue,
             json.getObjectValue(PropertyCommonHeaderKeys.MUTUAL_ENCODING)?.stringValue,
-            json.getObjectValue(PropertyCommonHeaderKeys.MEDIA_TYPE)?.stringValue
+            json.getObjectValue(PropertyCommonHeaderKeys.MEDIA_TYPE)?.stringValue,
+            json.getObjectValue(PropertyCommonHeaderKeys.OFFSET)?.numberValue?.toInt(),
+            json.getObjectValue(PropertyCommonHeaderKeys.LIMIT)?.numberValue?.toInt(),
         )
     private fun getReplyHeaderJson(src: PropertyCommonReplyHeader) = Json.JsonValue(mutableMapOf(
         Pair(Json.JsonValue(PropertyCommonHeaderKeys.STATUS), Json.JsonValue(src.status.toDouble()))
@@ -182,21 +184,45 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
             this[Json.JsonValue(PropertyCommonHeaderKeys.MEDIA_TYPE)] = Json.JsonValue(src.mediaType)
         if (src.subscribeId != null)
             this[Json.JsonValue(PropertyCommonHeaderKeys.SUBSCRIBE_ID)] = Json.JsonValue(src.subscribeId)
+        if (src.totalCount != null)
+            this[Json.JsonValue(PropertyCommonHeaderKeys.TOTAL_COUNT)] = Json.JsonValue(src.totalCount.toDouble())
     })
 
-    fun getPropertyData(headerJson: Json.JsonValue): Pair<Json.JsonValue, Json.JsonValue> {
-        val header = getPropertyHeader(headerJson)
+    private fun getPropertyDataJson(header: PropertyCommonRequestHeader): Pair<Json.JsonValue, Json.JsonValue> {
         val body = when(header.resource) {
             PropertyResourceNames.RESOURCE_LIST -> Json.JsonValue(metadataList.map { it.toJsonValue() })
             PropertyResourceNames.DEVICE_INFO -> getDeviceInfoJson()
             PropertyResourceNames.CHANNEL_LIST -> channelList
             PropertyResourceNames.JSON_SCHEMA -> jsonSchema
             else -> {
-                linkedResources[header.resId] ?: values[header.resource]
+                val bytes = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body
                     ?: throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")
+                if (bytes.any()) Json.parse(bytes.toByteArray().decodeToString()) else Json.EmptyObject
             }
         }
-        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)), body ?: Json.EmptyObject)
+
+        // Property list pagination (Common Rules for PE 6.6.2)
+        val paginatedBody =
+            if (body?.token?.type == Json.TokenType.Array && header.offset != null) {
+                if (header.limit == null)
+                    Json.JsonValue(body.token.seq.drop(header.offset).toList())
+                else
+                    Json.JsonValue(body.token.seq.drop(header.offset).take(header.limit).toList())
+            }
+            else body
+        val totalCount = if (body != paginatedBody) body?.token?.seq?.toList()?.size else null
+        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, totalCount = totalCount)), paginatedBody ?: Json.EmptyObject)
+    }
+
+    fun getPropertyData(headerJson: Json.JsonValue): Pair<Json.JsonValue, List<Byte>> {
+        val header = getPropertyHeader(headerJson)
+        if (header.mediaType == null || header.mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON) {
+            val ret = getPropertyDataJson(header)
+            return Pair(ret.first, MidiCIConverter.encodeStringToASCII(Json.serialize(ret.second)).toASCIIByteArray().toList())
+        }
+        val bytes = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body
+            ?: listOf()
+        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)), bytes)
     }
 
     fun setPropertyData(headerJson: Json.JsonValue, body: List<Byte>): Result<Json.JsonValue> {
@@ -218,31 +244,29 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
             else -> return Result.failure(PropertyExchangeException("Unknown mutualEncoding was specified: ${header.mutualEncoding}"))
         }
 
-        if (header.mediaType != CommonRulesKnownMimeTypes.APPLICATION_JSON)
-            TODO("FIXME: we need to change internal value list type to hold List<Byte> instead of JsonValue")
-
-        val bodyJson = try {
-            Json.parse(MidiCIConverter.decodeASCIIToString(decodedBody.toByteArray().decodeToString()))
-        } catch(ex: JsonParserException) {
-            return Result.failure(ex)
-        }
-
         // Perform partial updates, if applicable
+        val existing = values.firstOrNull { it.id == header.resource }
         if (headerJson.getObjectValue(PropertyCommonHeaderKeys.SET_PARTIAL)?.isBooleanTrue == true) {
-            val existing = values[header.resource]
             if (existing == null) {
                 logger.logError("Partial update is specified but there is no existing value for property ${header.resource}")
             } else {
-                val result = PropertyPartialUpdater.applyPartialUpdates(existing, bodyJson)
+                val bodyJson = try {
+                    Json.parse(MidiCIConverter.decodeASCIIToString(decodedBody.toByteArray().decodeToString()))
+                } catch(ex: JsonParserException) {
+                    return Result.failure(ex)
+                }
+                val result = PropertyPartialUpdater.applyPartialUpdates(Json.parse(existing.body.toByteArray().decodeToString()), bodyJson)
                 if (!result.first) {
                     logger.logError("Failed partial update for property ${header.resource}")
                 }
                 else
-                    values[header.resource] = result.second
+                    existing.body = result.second.getSerializedBytes()
             }
         }
+        else if (existing != null)
+            existing.body = decodedBody
         else
-            values[header.resource] = bodyJson
+            values.add(PropertyValue(header.resource, header.mediaType ?: CommonRulesKnownMimeTypes.APPLICATION_JSON, decodedBody))
         return Result.success(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)))
     }
 

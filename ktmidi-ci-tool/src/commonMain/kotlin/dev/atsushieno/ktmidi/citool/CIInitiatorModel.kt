@@ -39,8 +39,8 @@ class CIInitiatorModel(private val device: CIDeviceModel) {
         initiator.requestProfileDetails(device.defaultSenderGroup, address, muid, profile, target)
     }
 
-    fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?) {
-        initiator.sendGetPropertyData(device.defaultSenderGroup, destinationMUID, resource, encoding)
+    fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
+        initiator.sendGetPropertyData(device.defaultSenderGroup, destinationMUID, resource, encoding, paginateOffset, paginateLimit)
     }
     fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) {
         initiator.sendSetPropertyData(device.defaultSenderGroup, destinationMUID, resource, data, encoding, isPartial)

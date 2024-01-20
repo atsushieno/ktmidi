@@ -7,7 +7,7 @@ import dev.atsushieno.ktmidi.ci.json.JsonParserException
 class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) :
     CommonRulesPropertyHelper(logger), MidiCIPropertyClient {
     override fun createDataRequestHeader(propertyId: String, fields: Map<String, Any?>): List<Byte> =
-        createRequestHeaderBytes(propertyId, fields[PropertyCommonHeaderKeys.MUTUAL_ENCODING] as String?, fields[PropertyCommonHeaderKeys.SET_PARTIAL] as Boolean)
+        createRequestHeaderBytes(propertyId, fields)
 
     override fun createSubscriptionHeader(propertyId: String, fields: Map<String, Any?>): List<Byte> =
         createSubscribeHeaderBytes(propertyId, fields[PropertyCommonHeaderKeys.COMMAND] as String, fields[PropertyCommonHeaderKeys.MUTUAL_ENCODING] as String?)

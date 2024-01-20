@@ -18,6 +18,10 @@ object PropertyCommonHeaderKeys {
     const val CACHE_TIME = "cacheTime"
     // M2-103-UM 5.5 Extra Header Property for Using Property Data which is Not JSON Data
     const val MEDIA_TYPE = "mediaType"
+    // M2-103-UM 6.6.2 Pagination
+    const val OFFSET = "offset"
+    const val LIMIT = "limit"
+    const val TOTAL_COUNT = "totalCount"
     // M2-103-UM 8. Full and Partial SET Inquiries
     const val SET_PARTIAL = "setPartial"
     // M2-103-UM 9. Subscribing to Property Data
@@ -89,13 +93,18 @@ object DeviceInfoPropertyNames {
     const val SERIAL_NUMBER = "serialNumber"
 }
 
+// required fields are non-null, optionals are nullable
 data class PropertyCommonRequestHeader(
     val resource: String,
     val resId: String? = null,
     val mutualEncoding: String? = PropertyDataEncoding.ASCII,
-    val mediaType: String? = CommonRulesKnownMimeTypes.APPLICATION_JSON
+    val mediaType: String? = CommonRulesKnownMimeTypes.APPLICATION_JSON,
+    // M2-103-UM 6.6.2 Pagination
+    val offset: Int? = null,
+    val limit: Int? = null
 )
 
+// required fields are non-null, optionals are nullable
 data class PropertyCommonReplyHeader(
     val status: Int,
     val message: String? = null,
@@ -104,7 +113,9 @@ data class PropertyCommonReplyHeader(
     // M2-103-UM 5.5 Extra Header Property for Using Property Data which is Not JSON Data
     val mediaType: String? = null,
     // M2-103-UM 9.1 Extra Request Header Properties for Subscriptions
-    val subscribeId: String? = null
+    val subscribeId: String? = null,
+    // M2-103-UM 6.6.2 Pagination
+    val totalCount: Int? = null
 )
 
 object PropertyCommonConverter {

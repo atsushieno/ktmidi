@@ -446,14 +446,16 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         }
     }
 
+    val localPendingChunkManager = PropertyChunkManager()
+
     private fun handleChunk(common: Message.Common, requestId: Byte, chunkIndex: Short, numChunks: Short,
                             header: List<Byte>, body: List<Byte>,
                             onComplete: (header: List<Byte>, body: List<Byte>) -> Unit) {
-        val conn = connections[common.sourceMUID] ?: return
+        val pendingChunkManager = connections[common.sourceMUID]?.pendingChunkManager ?: localPendingChunkManager
         if (chunkIndex < numChunks) {
-            conn.pendingChunkManager.addPendingChunk(Clock.System.now().epochSeconds, common.sourceMUID, requestId, header, body)
+            pendingChunkManager.addPendingChunk(Clock.System.now().epochSeconds, common.sourceMUID, requestId, header, body)
         } else {
-            val existing = if (chunkIndex > 1) conn.pendingChunkManager.finishPendingChunk(common.sourceMUID, requestId, body) else null
+            val existing = if (chunkIndex > 1) pendingChunkManager.finishPendingChunk(common.sourceMUID, requestId, body) else null
             val msgHeader = existing?.first ?: header
             val msgBody = existing?.second ?: body
             onComplete(msgHeader, msgBody)

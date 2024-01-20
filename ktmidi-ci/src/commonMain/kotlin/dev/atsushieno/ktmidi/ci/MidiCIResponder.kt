@@ -24,7 +24,7 @@ class MidiCIResponder(
     val events by parent::events
     val logger by parent::logger
 
-    val propertyService by lazy { CommonRulesPropertyService(logger, muid, device, config.propertyMetadataList) }
+    val propertyService by lazy { CommonRulesPropertyService(logger, muid, device, config.propertyValues, config.propertyMetadataList) }
     val properties by lazy { ServiceObservablePropertyList(config.propertyValues, propertyService) }
     val subscriptions: List<SubscriptionEntry> by propertyService::subscriptions
 

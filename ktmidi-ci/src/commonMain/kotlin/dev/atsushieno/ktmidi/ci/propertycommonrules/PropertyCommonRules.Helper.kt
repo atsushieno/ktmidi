@@ -38,7 +38,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return result
     }
 
-    fun getResourceListRequestJson() = createRequestHeaderInternal(PropertyResourceNames.RESOURCE_LIST, null, false)
+    fun getResourceListRequestJson() = createRequestHeaderInternal(PropertyResourceNames.RESOURCE_LIST, mapOf())
 
     fun getResourceListRequestBytes(): List<Byte> {
         val json = getResourceListRequestJson()
@@ -47,7 +47,11 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
     }
 
     private val partialSetPair = Pair(Json.JsonValue(PropertyCommonHeaderKeys.SET_PARTIAL), Json.TrueValue)
-    private fun createRequestHeaderInternal(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): Json.JsonValue {
+    private fun createRequestHeaderInternal(resourceIdentifier: String, fields: Map<String, Any?>): Json.JsonValue {
+        val encoding = fields[PropertyCommonHeaderKeys.MUTUAL_ENCODING] as String?
+        val isPartialSet = fields[PropertyCommonHeaderKeys.SET_PARTIAL] as Boolean?
+        val paginateOffset = fields[PropertyCommonHeaderKeys.OFFSET] as Int?
+        val paginateLimit = fields[PropertyCommonHeaderKeys.LIMIT] as Int?
         val list = mutableListOf<Pair<Json.JsonValue,Json.JsonValue>>()
         list.add(Pair(
             Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
@@ -55,13 +59,17 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         ))
         if (encoding != null)
             list.add(Pair(Json.JsonValue(PropertyCommonHeaderKeys.MUTUAL_ENCODING), Json.JsonValue(encoding)))
-        if (isPartialSet)
+        if (isPartialSet == true)
             list.add(partialSetPair)
+        if (paginateOffset != null)
+            list.add(Pair(Json.JsonValue(PropertyCommonHeaderKeys.OFFSET), Json.JsonValue(paginateOffset.toDouble())))
+        if (paginateLimit != null)
+            list.add(Pair(Json.JsonValue(PropertyCommonHeaderKeys.LIMIT), Json.JsonValue(paginateLimit.toDouble())))
         return Json.JsonValue(list.toMap())
     }
 
-    fun createRequestHeaderBytes(resourceIdentifier: String, encoding: String?, isPartialSet: Boolean): List<Byte> {
-        val json = createRequestHeaderInternal(resourceIdentifier, encoding, isPartialSet)
+    fun createRequestHeaderBytes(resourceIdentifier: String, fields: Map<String, Any?>): List<Byte> {
+        val json = createRequestHeaderInternal(resourceIdentifier, fields)
         val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toASCIIByteArray().toList()
         return requestASCIIBytes
     }

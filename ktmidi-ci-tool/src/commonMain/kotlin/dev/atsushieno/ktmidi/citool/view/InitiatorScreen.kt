@@ -66,7 +66,7 @@ fun ClientConnection(vm: ConnectionViewModel) {
             val sp = selectedProperty
             if (sp != null)
                 ClientPropertyDetails(vm, sp,
-                    refreshValueClicked = { encoding -> vm.refreshPropertyValue(vm.conn.conn.targetMUID, sp, encoding) },
+                    refreshValueClicked = { encoding, paginateOffset, paginateLimit -> vm.refreshPropertyValue(vm.conn.conn.targetMUID, sp, encoding, paginateOffset, paginateLimit) },
                     subscribeClicked = { newState, encoding ->
                         if (newState)
                             vm.sendSubscribeProperty(vm.conn.conn.targetMUID, sp, encoding)
@@ -256,7 +256,7 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
 
 @Composable
 fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
-                          refreshValueClicked: (requestedEncoding: String?) -> Unit,
+                          refreshValueClicked: (requestedEncoding: String?, paginateOffset: Int?, paginateLimit: Int?) -> Unit,
                           subscribeClicked: (newValue: Boolean, requestedEncoding: String?) -> Unit,
                           commitChangeClicked: (id: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) -> Unit) {
     Column(Modifier.padding(12.dp)) {

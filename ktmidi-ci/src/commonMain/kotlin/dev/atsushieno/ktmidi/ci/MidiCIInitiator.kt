@@ -212,12 +212,15 @@ class MidiCIInitiator(
         ))
     }
 
-    fun sendGetPropertyData(group: Byte, destinationMUID: Int, resource: String, encoding: String?) {
+    fun sendGetPropertyData(group: Byte, destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
         val conn = connections[destinationMUID]
         if (conn != null) {
             val header = conn.propertyClient.createDataRequestHeader(resource, mapOf(
                 PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
-                PropertyCommonHeaderKeys.SET_PARTIAL to false))
+                PropertyCommonHeaderKeys.SET_PARTIAL to false,
+                PropertyCommonHeaderKeys.OFFSET to paginateOffset,
+                PropertyCommonHeaderKeys.LIMIT to paginateLimit
+            ).filter { it.value != null })
             val msg = Message.GetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
                 requestIdSerial++, header)
             sendGetPropertyData(msg)
@@ -442,7 +445,10 @@ class MidiCIInitiator(
                 sendPropertySubscribeReply(reply.second!!)
             // If the update was NOTIFY, then it is supposed to send Get Data request.
             if (reply.first == MidiCISubscriptionCommand.NOTIFY)
-                sendGetPropertyData(msg.group, msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header), null) // is there mutualEncoding from SubscribeProperty?
+                sendGetPropertyData(msg.group, msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header),
+                    // is there mutualEncoding from SubscribeProperty?
+                    encoding = null,
+                    paginateOffset = null, paginateLimit = null)
         }
         else
             // Unknown MUID - send back NAK

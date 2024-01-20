@@ -663,6 +663,7 @@ package dev.atsushieno.ktmidi.ci {
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileInquiry,kotlin.sequences.Sequence<dev.atsushieno.ktmidi.ci.Message.ProfileReply>> getGetProfileRepliesForInquiry();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryReply,kotlin.Unit> getHandleNewEndpoint();
     method public dev.atsushieno.ktmidi.ci.MidiCIInitiator getInitiator();
+    method public dev.atsushieno.ktmidi.ci.PropertyChunkManager getLocalPendingChunkManager();
     method public dev.atsushieno.ktmidi.ci.ObservableProfileList getLocalProfiles();
     method public dev.atsushieno.ktmidi.ci.Logger getLogger();
     method public int getMuid();
@@ -733,6 +734,7 @@ package dev.atsushieno.ktmidi.ci {
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileInquiry,kotlin.sequences.Sequence<dev.atsushieno.ktmidi.ci.Message.ProfileReply>> getProfileRepliesForInquiry;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryReply,kotlin.Unit> handleNewEndpoint;
     property public final dev.atsushieno.ktmidi.ci.MidiCIInitiator initiator;
+    property public final dev.atsushieno.ktmidi.ci.PropertyChunkManager localPendingChunkManager;
     property public final dev.atsushieno.ktmidi.ci.ObservableProfileList localProfiles;
     property public final dev.atsushieno.ktmidi.ci.Logger logger;
     property public final int muid;
@@ -956,7 +958,7 @@ package dev.atsushieno.ktmidi.ci {
     method public void requestPropertyExchangeCapabilities(dev.atsushieno.ktmidi.ci.Message.PropertyGetCapabilities msg);
     method public void sendEndpointMessage(byte group, int targetMuid, optional byte status);
     method public void sendEndpointMessage(dev.atsushieno.ktmidi.ci.Message.EndpointInquiry msg);
-    method public void sendGetPropertyData(byte group, int destinationMUID, String resource, String? encoding);
+    method public void sendGetPropertyData(byte group, int destinationMUID, String resource, String? encoding, Integer? paginateOffset, Integer? paginateLimit);
     method public void sendGetPropertyData(dev.atsushieno.ktmidi.ci.Message.GetPropertyData msg);
     method public void sendMidiMessageReportInquiry(byte group, byte address, int destinationMUID, byte messageDataControl, byte systemMessages, byte channelControllerMessages, byte noteDataMessages);
     method public void sendMidiMessageReportInquiry(dev.atsushieno.ktmidi.ci.Message.MidiMessageReportInquiry msg);
@@ -1671,7 +1673,7 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
 
   public abstract class CommonRulesPropertyHelper {
     ctor public CommonRulesPropertyHelper(dev.atsushieno.ktmidi.ci.Logger logger);
-    method public final java.util.List<java.lang.Byte> createRequestHeaderBytes(String resourceIdentifier, String? encoding, boolean isPartialSet);
+    method public final java.util.List<java.lang.Byte> createRequestHeaderBytes(String resourceIdentifier, java.util.Map<java.lang.String,?> fields);
     method public final java.util.List<java.lang.Byte> createSubscribeHeaderBytes(String resourceIdentifier, String command, String? mutualEncoding);
     method public final dev.atsushieno.ktmidi.ci.json.Json.JsonValue createUpdateNotificationHeader(String subscribeId, String command);
     method public final java.util.List<java.lang.Byte> createUpdateNotificationHeaderBytes(String subscribeId, String command);
@@ -1691,17 +1693,17 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
   }
 
   public final class CommonRulesPropertyService extends dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyHelper implements dev.atsushieno.ktmidi.ci.MidiCIPropertyService {
-    ctor public CommonRulesPropertyService(dev.atsushieno.ktmidi.ci.Logger logger, int muid, dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo deviceInfo, optional java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> metadataList, optional dev.atsushieno.ktmidi.ci.json.Json.JsonValue? channelList, optional dev.atsushieno.ktmidi.ci.json.Json.JsonValue? jsonSchema);
+    ctor public CommonRulesPropertyService(dev.atsushieno.ktmidi.ci.Logger logger, int muid, dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo deviceInfo, java.util.List<dev.atsushieno.ktmidi.ci.PropertyValue> values, optional java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> metadataList, optional dev.atsushieno.ktmidi.ci.json.Json.JsonValue? channelList, optional dev.atsushieno.ktmidi.ci.json.Json.JsonValue? jsonSchema);
     method public void addMetadata(dev.atsushieno.ktmidi.ci.PropertyMetadata property);
     method public java.util.List<java.lang.Byte> createTerminateNotificationHeader(String subscribeId);
     method public java.util.List<java.lang.Byte> createUpdateNotificationHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
     method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo getDeviceInfo();
-    method public java.util.Map<java.lang.String,dev.atsushieno.ktmidi.ci.json.Json.JsonValue> getLinkedResources();
+    method public java.util.Map<java.lang.String,java.util.List<java.lang.Byte>> getLinkedResources();
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> getMetadataList();
     method public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> getPropertyCatalogUpdated();
-    method public kotlin.Pair<dev.atsushieno.ktmidi.ci.json.Json.JsonValue,dev.atsushieno.ktmidi.ci.json.Json.JsonValue> getPropertyData(dev.atsushieno.ktmidi.ci.json.Json.JsonValue headerJson);
+    method public kotlin.Pair<dev.atsushieno.ktmidi.ci.json.Json.JsonValue,java.util.List<java.lang.Byte>> getPropertyData(dev.atsushieno.ktmidi.ci.json.Json.JsonValue headerJson);
     method public Object getPropertyData(dev.atsushieno.ktmidi.ci.Message.GetPropertyData msg);
     method public String getPropertyIdForHeader(java.util.List<java.lang.Byte> header);
     method public java.util.List<dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry> getSubscriptions();
@@ -1712,7 +1714,7 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     method public kotlin.Pair<dev.atsushieno.ktmidi.ci.json.Json.JsonValue,dev.atsushieno.ktmidi.ci.json.Json.JsonValue> subscribe(int subscriberMUID, dev.atsushieno.ktmidi.ci.json.Json.JsonValue headerJson);
     method public Object subscribeProperty(dev.atsushieno.ktmidi.ci.Message.SubscribeProperty msg);
     property public final dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo deviceInfo;
-    property public final java.util.Map<java.lang.String,dev.atsushieno.ktmidi.ci.json.Json.JsonValue> linkedResources;
+    property public final java.util.Map<java.lang.String,java.util.List<java.lang.Byte>> linkedResources;
     property public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> propertyCatalogUpdated;
     property public final java.util.List<dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry> subscriptions;
   }
@@ -1759,52 +1761,64 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     field public static final String CACHE_TIME = "cacheTime";
     field public static final String COMMAND = "command";
     field public static final dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys INSTANCE;
+    field public static final String LIMIT = "limit";
     field public static final String MEDIA_TYPE = "mediaType";
     field public static final String MESSAGE = "message";
     field public static final String MUTUAL_ENCODING = "mutualEncoding";
+    field public static final String OFFSET = "offset";
     field public static final String RESOURCE = "resource";
     field public static final String RES_ID = "resId";
     field public static final String SET_PARTIAL = "setPartial";
     field public static final String STATUS = "status";
     field public static final String SUBSCRIBE_ID = "subscribeId";
+    field public static final String TOTAL_COUNT = "totalCount";
   }
 
   public final class PropertyCommonReplyHeader {
-    ctor public PropertyCommonReplyHeader(int status, optional String? message, optional String? mutualEncoding, optional String? cacheTime, optional String? mediaType, optional String? subscribeId);
+    ctor public PropertyCommonReplyHeader(int status, optional String? message, optional String? mutualEncoding, optional String? cacheTime, optional String? mediaType, optional String? subscribeId, optional Integer? totalCount);
     method public int component1();
     method public String? component2();
     method public String? component3();
     method public String? component4();
     method public String? component5();
     method public String? component6();
-    method public dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonReplyHeader copy(int status, String? message, String? mutualEncoding, String? cacheTime, String? mediaType, String? subscribeId);
+    method public Integer? component7();
+    method public dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonReplyHeader copy(int status, String? message, String? mutualEncoding, String? cacheTime, String? mediaType, String? subscribeId, Integer? totalCount);
     method public String? getCacheTime();
     method public String? getMediaType();
     method public String? getMessage();
     method public String? getMutualEncoding();
     method public int getStatus();
     method public String? getSubscribeId();
+    method public Integer? getTotalCount();
     property public final String? cacheTime;
     property public final String? mediaType;
     property public final String? message;
     property public final String? mutualEncoding;
     property public final int status;
     property public final String? subscribeId;
+    property public final Integer? totalCount;
   }
 
   public final class PropertyCommonRequestHeader {
-    ctor public PropertyCommonRequestHeader(String resource, optional String? resId, optional String? mutualEncoding, optional String? mediaType);
+    ctor public PropertyCommonRequestHeader(String resource, optional String? resId, optional String? mutualEncoding, optional String? mediaType, optional Integer? offset, optional Integer? limit);
     method public String component1();
     method public String? component2();
     method public String? component3();
     method public String? component4();
-    method public dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonRequestHeader copy(String resource, String? resId, String? mutualEncoding, String? mediaType);
+    method public Integer? component5();
+    method public Integer? component6();
+    method public dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonRequestHeader copy(String resource, String? resId, String? mutualEncoding, String? mediaType, Integer? offset, Integer? limit);
+    method public Integer? getLimit();
     method public String? getMediaType();
     method public String? getMutualEncoding();
+    method public Integer? getOffset();
     method public String? getResId();
     method public String getResource();
+    property public final Integer? limit;
     property public final String? mediaType;
     property public final String? mutualEncoding;
+    property public final Integer? offset;
     property public final String? resId;
     property public final String resource;
   }

@@ -105,13 +105,13 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
 
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
-        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.conn.targetMUID, propertyId, null)
+        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.conn.targetMUID, propertyId, encoding = null, paginateOffset = 0, paginateLimit = 10)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
 
-    fun refreshPropertyValue(targetMUID: Int, propertyId: String, encoding: String?) {
-        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(targetMUID, propertyId, encoding)
+    fun refreshPropertyValue(targetMUID: Int, propertyId: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
+        AppModel.ciDeviceManager.initiator.sendGetPropertyDataRequest(targetMUID, propertyId, encoding, paginateOffset, paginateLimit)
     }
 
     fun sendSubscribeProperty(targetMUID: Int, propertyId: String, mutualEncoding: String?) {

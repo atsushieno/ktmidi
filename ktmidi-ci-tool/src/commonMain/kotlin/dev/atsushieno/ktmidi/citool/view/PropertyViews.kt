@@ -237,7 +237,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         mediaType: String,
                         metadata: PropertyMetadata?,
                         body: List<Byte>,
-                        refreshValueClicked: (requestedEncoding: String?) -> Unit,
+                        refreshValueClicked: (requestedEncoding: String?, paginateOffset: Int?, paginateLimit: Int?) -> Unit,
                         isSubscribing: Boolean,
                         subscriptionChanged: (newSubscribing: Boolean, requestedEncoding: String?) -> Unit,
                         commitChangeClicked: (List<Byte>, String?, Boolean) -> Unit) {
@@ -254,11 +254,22 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         var editing by remember { mutableStateOf(false) }
         val showRefreshAndSubscribeButtons = @Composable {
             if (!isLocalEditor && !editing) {
+                var paginateOffset by remember { mutableStateOf("0") }
+                var paginateLimit by remember { mutableStateOf("9999") }
                 Row {
                     var selectedEncoding by remember { mutableStateOf<String?>(null) }
                     if (resetState)
                         selectedEncoding = null
-                    Button(onClick = { refreshValueClicked(selectedEncoding) }) {
+                    Button(onClick = {
+                        if (metadata?.canPaginate == true) {
+                            val offset = paginateOffset.toIntOrNull()
+                            val limit = paginateLimit.toIntOrNull()
+                            // FIXME: maybe we should warn number parsing errors.
+                            refreshValueClicked(selectedEncoding, offset, limit)
+                        }
+                        else
+                            refreshValueClicked(selectedEncoding, null, null)
+                    }) {
                         Text("Refresh")
                     }
                     if (metadata?.canSubscribe == true) {
@@ -267,7 +278,18 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         }
                     }
                     // encoding selector
-                    PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding ?: "", onSelectionChange = { selectedEncoding = it.ifEmpty { null } })
+                    PropertyEncodingSelector(
+                        metadata?.encodings ?: listOf(),
+                        selectedEncoding ?: "",
+                        onSelectionChange = { selectedEncoding = it.ifEmpty { null } })
+                }
+                Row {
+                    if (metadata?.canPaginate == true) {
+                        Text("Pagenate? offset: ")
+                        TextField(paginateOffset, { paginateOffset = it })
+                        Text(" limit: ")
+                        TextField(paginateLimit, { paginateLimit = it })
+                    }
                 }
             }
         }
