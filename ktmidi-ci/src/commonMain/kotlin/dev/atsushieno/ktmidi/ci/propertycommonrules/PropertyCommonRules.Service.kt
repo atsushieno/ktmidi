@@ -69,6 +69,9 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
         return defaultPropertyList + metadataList
     }
 
+    // This is the entrypoint for Get Property Data inquiry implementation for the property host.
+    // In Common Rules for PE (and ONLY in Common Rules), it needs to decode body based on `mutualEncoding`,
+    // and serialize it back into the requested encoding.
     override fun getPropertyData(msg: Message.GetPropertyData) : Result<Message.GetPropertyDataReply> {
         val jsonInquiry = try {
             Json.parse(MidiCIConverter.decodeASCIIToString(msg.header.toByteArray().decodeToString()))
@@ -211,18 +214,24 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
             }
             else body
         val totalCount = if (body != paginatedBody) body?.token?.seq?.toList()?.size else null
-        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, totalCount = totalCount)), paginatedBody ?: Json.EmptyObject)
+        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, mutualEncoding = header.mutualEncoding, totalCount = totalCount)), paginatedBody ?: Json.EmptyObject)
     }
 
-    fun getPropertyData(headerJson: Json.JsonValue): Pair<Json.JsonValue, List<Byte>> {
+    // It returns the *encoded* result.
+    private fun getPropertyData(headerJson: Json.JsonValue): Pair<Json.JsonValue, List<Byte>> {
         val header = getPropertyHeader(headerJson)
         if (header.mediaType == null || header.mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON) {
             val ret = getPropertyDataJson(header)
-            return Pair(ret.first, MidiCIConverter.encodeStringToASCII(Json.serialize(ret.second)).toASCIIByteArray().toList())
+            val body = MidiCIConverter.encodeStringToASCII(Json.serialize(ret.second)).toASCIIByteArray().toList()
+            val encodedBody = encodeBody(body, header.mutualEncoding)
+            return Pair(ret.first, encodedBody)
+        } else {
+            val body = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body
+                ?: listOf()
+            val encodedBody = encodeBody(body, header.mutualEncoding)
+            val replyHeader = getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, mutualEncoding = header.mutualEncoding))
+            return Pair(replyHeader, encodedBody)
         }
-        val bytes = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body
-            ?: listOf()
-        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)), bytes)
     }
 
     fun setPropertyData(headerJson: Json.JsonValue, body: List<Byte>): Result<Json.JsonValue> {
@@ -236,14 +245,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
                 return Result.failure(PropertyExchangeException("Property is readonly: ${PropertyResourceNames.CHANNEL_LIST}"))
         }
 
-        val decodedBody = when (header.mutualEncoding) {
-            PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.decodeMcoded7(body)
-            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.decodeZlibMcoded7(body)
-            PropertyDataEncoding.ASCII -> body
-            null -> body
-            else -> return Result.failure(PropertyExchangeException("Unknown mutualEncoding was specified: ${header.mutualEncoding}"))
-        }
-
+        val decodedBody = decodeBody(body, header.mutualEncoding)
         // Perform partial updates, if applicable
         val existing = values.firstOrNull { it.id == header.resource }
         if (headerJson.getObjectValue(PropertyCommonHeaderKeys.SET_PARTIAL)?.isBooleanTrue == true) {
