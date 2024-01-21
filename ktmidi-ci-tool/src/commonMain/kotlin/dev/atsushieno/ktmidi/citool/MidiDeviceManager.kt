@@ -89,6 +89,8 @@ class MidiDeviceManager {
     private var midiOutputError = mutableStateOf<Exception?>(null)
     private var virtualMidiOutputError = mutableStateOf<Exception?>(null)
 
+    val midiOutputSent = mutableListOf<(bytes: ByteArray, timestamp: Long)->Unit>()
+
     fun sendToAll(bytes: ByteArray, timestamp: Long) {
         try {
             if (midiOutputError.value == null)
@@ -102,6 +104,7 @@ class MidiDeviceManager {
         } catch (ex: Exception) {
             Snapshot.withMutableSnapshot { virtualMidiOutputError.value = ex }
         }
+        midiOutputSent.forEach { it(bytes, timestamp) }
     }
 
     init {

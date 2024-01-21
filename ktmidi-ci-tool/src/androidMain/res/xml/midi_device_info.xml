@@ -1,0 +1,6 @@
+<devices>
+    <device name="KtMidiCITool" manufacturer="atsushieno" product="KtMidiCITool">
+        <input-port name="KtMidiTool Virtual Out" />
+        <output-port name="KtMidiTool Virtual In" />
+    </device>
+</devices>

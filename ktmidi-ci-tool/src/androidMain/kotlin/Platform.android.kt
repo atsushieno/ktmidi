@@ -1,21 +1,19 @@
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
-import java.nio.file.*
 
-class AndroidPlatform : Platform {
+class AndroidPlatform(private val context: Context) : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
     override val canReadLocalFile = (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+    private val spName = "ktmidi-ci-tool"
+    private val spKeyName = "ktmidi-ci-tool"
     override fun loadFileContent(path: String): ByteArray =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            Files.readAllBytes(FileSystems.getDefault().getPath(path))
-        else TODO("Not supported on Android N or earlier")
+        (context.getSharedPreferences(spName, Context.MODE_PRIVATE).getString(spKeyName, null) ?: "{}").encodeToByteArray()
 
     override fun saveFileContent(path: String, bytes: ByteArray) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            Files.write(FileSystems.getDefault().getPath(path), bytes)
-        else TODO("Not supported on Android N or earlier")
+        context.getSharedPreferences(spName, Context.MODE_PRIVATE).edit().putString(spKeyName, bytes.decodeToString()).apply()
     }
 
     @Composable
@@ -23,4 +21,6 @@ class AndroidPlatform : Platform {
         FilePicker(show = show) { fileChosen(it?.path) }
 }
 
-actual fun getPlatform(): Platform = AndroidPlatform()
+var androidPlatform: AndroidPlatform? = null
+
+actual fun getPlatform(): Platform = androidPlatform!!

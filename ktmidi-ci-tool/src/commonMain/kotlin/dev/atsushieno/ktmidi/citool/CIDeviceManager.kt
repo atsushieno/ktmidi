@@ -24,32 +24,36 @@ class CIDeviceManager(config: MidiCIDeviceConfiguration, private val midiDeviceM
     private fun setupInputEventListener(input: MidiInput) {
         // FIXME: support UMP input
         input.setMessageReceivedListener { data, start, length, _ ->
-            ViewHelper.runInUIContext {
-                if (data.size > start + 3 &&
-                    data[start] == Midi1Status.SYSEX.toByte() &&
-                    data[start + 1] == MidiCIConstants.UNIVERSAL_SYSEX &&
-                    data[start + 3] == MidiCIConstants.SYSEX_SUB_ID_MIDI_CI
-                ) {
-                    // it is a MIDI-CI message
-                    // Here it is MIDI 1.0 bytestream, so group is always 0.
-                    device.processCIMessage(0, data.drop(start + 1).take(length - 2))
-                }
-                else {
-                    // it may be part of MIDI Message Report.
-                    // Until it receives End of MIDI Message Report, preserve inputs and output in batch style per channel.
-                    if (device.receivingMidiMessageReports) {
-                        val channel = data[0] and 15
-                        if (channel != device.lastChunkedMessageChannel) {
-                            if (device.chunkedMessages.any())
-                                logMidiMessageReportChunk(device.chunkedMessages)
-                            device.chunkedMessages.clear()
-                            device.lastChunkedMessageChannel = channel
-                        }
-                        device.chunkedMessages.addAll(data.toList())
-                    } else
-                        // received some message. No idea why, but log anyway.
-                        AppModel.log("[received MIDI] " + data.drop(start).take(length), MessageDirection.In)
-                }
+            processMidiInput(data, start, length)
+        }
+    }
+
+    internal fun processMidiInput(data: ByteArray, start: Int, length: Int) {
+        ViewHelper.runInUIContext {
+            if (data.size > start + 3 &&
+                data[start] == Midi1Status.SYSEX.toByte() &&
+                data[start + 1] == MidiCIConstants.UNIVERSAL_SYSEX &&
+                data[start + 3] == MidiCIConstants.SYSEX_SUB_ID_MIDI_CI
+            ) {
+                // it is a MIDI-CI message
+                // Here it is MIDI 1.0 bytestream, so group is always 0.
+                device.processCIMessage(0, data.drop(start + 1).take(length - 2))
+            }
+            else {
+                // it may be part of MIDI Message Report.
+                // Until it receives End of MIDI Message Report, preserve inputs and output in batch style per channel.
+                if (device.receivingMidiMessageReports) {
+                    val channel = data[0] and 15
+                    if (channel != device.lastChunkedMessageChannel) {
+                        if (device.chunkedMessages.any())
+                            logMidiMessageReportChunk(device.chunkedMessages)
+                        device.chunkedMessages.clear()
+                        device.lastChunkedMessageChannel = channel
+                    }
+                    device.chunkedMessages.addAll(data.toList())
+                } else
+                // received some message. No idea why, but log anyway.
+                    AppModel.log("[received MIDI] " + data.drop(start).take(length), MessageDirection.In)
             }
         }
     }
