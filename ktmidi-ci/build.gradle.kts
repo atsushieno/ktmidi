@@ -128,8 +128,7 @@ android {
     sourceSets["test"].assets.srcDir("src/commonTest/resources") // kind of hack...
 
     defaultConfig {
-        // FIXME: replace this constant with valid value once Gradle/AGP fixed the relevant crasher bug.
-        minSdk = 23//libs.versions.android.minSdk.toString().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
     }
     buildTypes {
         val debug by getting
