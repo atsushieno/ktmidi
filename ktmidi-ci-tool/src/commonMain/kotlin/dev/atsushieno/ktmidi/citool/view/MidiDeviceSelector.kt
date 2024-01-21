@@ -43,7 +43,8 @@ private fun MidiDeviceSelector(isInput: Boolean, ports: List<MidiPortDetails>, c
 
     DropdownMenu(expanded = dialogState, onDismissRequest = { dialogState = false}) {
         val onClick: (String) -> Unit = { id ->
-            portChanged(id)
+            if (id != "")
+                portChanged(id)
             dialogState = false
         }
         if (ports.any())
