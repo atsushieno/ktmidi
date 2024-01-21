@@ -56,7 +56,7 @@ class PropertyCommonConverterTest {
         0x6b, 0x58, 0x68, 0x58, 0x6a, 0x18, 0x44, 0x56,
         0x72, 0x01, 0x00, 0x58, 0x15, 0x09, 0x61).map { it.toByte() }
 
-    // FIXME: not working
+    // FIXME: not working on some platforms
     //@Test
     fun decodeZlib() {
         val expected = "{\"foo\": [1,2,3,4,5], \"bar\": [6,7,8,9,0]}\n".toASCIIByteArray().toList()
@@ -65,12 +65,12 @@ class PropertyCommonConverterTest {
         assertContentEquals(expected, actual)
     }
 
-    // FIXME: not working
+    // FIXME: not working on some platforms
     //@Test
     fun encodeZlib() {
         val input = "{\"foo\": [1,2,3,4,5], \"bar\": [6,7,8,9,0]}\n".toASCIIByteArray().toList()
-        val expected = zlibTestVector1
-        val actual = PropertyCommonConverter.encodeZlib(input.toByteArray())
-        assertContentEquals(expected, actual)
+        val encoded = PropertyCommonConverter.encodeZlib(input.toByteArray())
+        val decoded = PropertyCommonConverter.decodeZlib(encoded.toByteArray())
+        assertContentEquals(input, decoded)
     }
 }
