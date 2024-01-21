@@ -19,8 +19,8 @@ class Logger {
         logEventReceived.forEach { it(msg, direction) }
     }
 
-    fun nak(data: List<Byte>, direction: MessageDirection) {
-        logMessage("- NAK(${data.joinToString { it.toString(16) }}", direction)
+    fun nak(common: Message.Common, data: List<Byte>, direction: MessageDirection) {
+        logMessage("Unrecognized message with unknown SubID2. ($common, ${data.joinToString { it.toString(16) }}", direction)
     }
 
     fun logError(message: String) = logMessage("Error: $message", MessageDirection.None)

@@ -99,14 +99,14 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     }
 
     fun sendNakForUnknownCIMessage(group: Byte, data: List<Byte>) {
+        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
         val source = data[1]
         val originalSubId = data[3]
         val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
         val destinationMUID = CIRetrieval.midiCIGetDestinationMUID(data)
-        val nak = MidiCIAckNakData(source, sourceMUID, destinationMUID, originalSubId,
-            CINakStatus.MessageNotSupported, 0, listOf(), listOf())
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(group, CIFactory.midiCIAckNak(dst, true, nak))
+        sendCIOutput(group, CIFactory.midiCIAckNak(dst, true, source,
+            MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID, originalSubId,
+            CINakStatus.MessageNotSupported, 0, listOf(), listOf()))
     }
 
     fun sendNakForUnknownMUID(common: Message.Common, originalSubId2: Byte) {
@@ -139,10 +139,10 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     // Input handlers
 
-    var processUnknownCIMessage: (group: Byte, data: List<Byte>) -> Unit = { group, data ->
-        logger.nak(data, MessageDirection.In)
+    var processUnknownCIMessage: (common: Message.Common, data: List<Byte>) -> Unit = { common, data ->
+        logger.nak(common, data, MessageDirection.In)
         events.unknownMessageReceived.forEach { it(data) }
-        sendNakForUnknownCIMessage(group, data)
+        sendNakForUnknownCIMessage(common.group, data)
     }
 
     fun defaultProcessInvalidateMUID(msg: Message.InvalidateMUID) {
@@ -717,7 +717,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             }
 
             else -> {
-                processUnknownCIMessage(common.group, data)
+                processUnknownCIMessage(common, data)
             }
         }
     }

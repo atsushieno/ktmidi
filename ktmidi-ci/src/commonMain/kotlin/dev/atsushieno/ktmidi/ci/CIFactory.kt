@@ -1,37 +1,5 @@
 package dev.atsushieno.ktmidi.ci
 
-import kotlinx.serialization.Serializable
-
-data class MidiCIProtocolTypeInfo(
-    val type: Byte,
-    val version: Byte,
-    val extensions: Byte,
-    val reserved1: Byte,
-    val reserved2: Byte
-)
-
-data class MidiCIAckNakData(
-    val source: Byte,
-    val sourceMUID: Int,
-    val destinationMUID: Int,
-    val originalSubId: Byte,
-    val statusCode: Byte,
-    val statusData: Byte,
-    val nakDetails: List<Byte>,
-    val messageTextData: List<Byte>
-)
-
-// manufacture ID1,2,3 + manufacturer specific 1,2 ... or ... 0x7E, bank, number, version, level.
-@Serializable
-data class MidiCIProfileId(val manuId1OrStandard: Byte = 0x7E, val manuId2OrBank: Byte, val manuId3OrNumber: Byte, val specificInfoOrVersion: Byte, val specificInfoOrLevel: Byte) {
-    override fun toString() =
-        "${manuId1OrStandard.toString(16)}:${manuId2OrBank.toString(16)}:${manuId3OrNumber.toString(16)}:${specificInfoOrVersion.toString(16)}:${specificInfoOrLevel.toString(16)}"
-}
-
-@Serializable
-// Do not use data class. Comparing enabled and numChannelsRequested does not make sense.
-class MidiCIProfile(val profile: MidiCIProfileId, var group: Byte, var address: Byte, var enabled: Boolean, var numChannelsRequested: Short)
-
 object CIFactory {
     // Assumes the input value is already 7-bit encoded if required.
     fun midiCiDirectInt16At(dst: MutableList<Byte>, offset: Int, v: Short) {
@@ -434,13 +402,6 @@ object CIFactory {
     }
 
     // ACK/NAK
-
-    fun midiCIAckNak(dst: MutableList<Byte>, isNak: Boolean, data: MidiCIAckNakData) =
-        midiCIAckNak(
-            dst, isNak, data.source, MidiCIConstants.CI_VERSION_AND_FORMAT,
-            data.sourceMUID, data.destinationMUID,
-            data.originalSubId, data.statusCode, data.statusData,
-            data.nakDetails, data.messageTextData)
 
     fun midiCIAckNak(
         dst: MutableList<Byte>,

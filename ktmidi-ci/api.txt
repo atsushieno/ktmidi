@@ -6,7 +6,6 @@ package dev.atsushieno.ktmidi.ci {
     method public void midiCI7bitInt21At(java.util.List<java.lang.Byte> dst, int offset, int v);
     method public void midiCI7bitInt28At(java.util.List<java.lang.Byte> dst, int offset, int v);
     method public java.util.List<java.lang.Byte> midiCIAckNak(java.util.List<java.lang.Byte> dst, boolean isNak, byte address, byte versionAndFormat, int sourceMUID, int destinationMUID, byte originalSubId, byte statusCode, byte statusData, java.util.List<java.lang.Byte> nakDetails, java.util.List<java.lang.Byte> messageTextData);
-    method public java.util.List<java.lang.Byte> midiCIAckNak(java.util.List<java.lang.Byte> dst, boolean isNak, dev.atsushieno.ktmidi.ci.MidiCIAckNakData data);
     method public java.util.List<java.lang.Byte> midiCIDiscovery(java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize, byte initiatorOutputPathId);
     method public void midiCIDiscoveryCommon(java.util.List<java.lang.Byte> dst, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer3Bytes, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize, byte initiatorOutputPathId);
     method public java.util.List<java.lang.Byte> midiCIDiscoveryInvalidateMuid(java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int targetMUID);
@@ -191,7 +190,7 @@ package dev.atsushieno.ktmidi.ci {
     method public java.util.List<kotlin.jvm.functions.Function2<java.lang.Object,dev.atsushieno.ktmidi.ci.MessageDirection,kotlin.Unit>> getLogEventReceived();
     method public void logError(String message);
     method public void logMessage(Object msg, dev.atsushieno.ktmidi.ci.MessageDirection direction);
-    method public void nak(java.util.List<java.lang.Byte> data, dev.atsushieno.ktmidi.ci.MessageDirection direction);
+    method public void nak(dev.atsushieno.ktmidi.ci.Message.Common common, java.util.List<java.lang.Byte> data, dev.atsushieno.ktmidi.ci.MessageDirection direction);
     property public final java.util.List<kotlin.jvm.functions.Function2<java.lang.Object,dev.atsushieno.ktmidi.ci.MessageDirection,kotlin.Unit>> logEventReceived;
   }
 
@@ -591,35 +590,6 @@ package dev.atsushieno.ktmidi.ci {
     enum_constant public static final dev.atsushieno.ktmidi.ci.MessageDirection Out;
   }
 
-  public final class MidiCIAckNakData {
-    ctor public MidiCIAckNakData(byte source, int sourceMUID, int destinationMUID, byte originalSubId, byte statusCode, byte statusData, java.util.List<java.lang.Byte> nakDetails, java.util.List<java.lang.Byte> messageTextData);
-    method public byte component1();
-    method public int component2();
-    method public int component3();
-    method public byte component4();
-    method public byte component5();
-    method public byte component6();
-    method public java.util.List<java.lang.Byte> component7();
-    method public java.util.List<java.lang.Byte> component8();
-    method public dev.atsushieno.ktmidi.ci.MidiCIAckNakData copy(byte source, int sourceMUID, int destinationMUID, byte originalSubId, byte statusCode, byte statusData, java.util.List<java.lang.Byte> nakDetails, java.util.List<java.lang.Byte> messageTextData);
-    method public int getDestinationMUID();
-    method public java.util.List<java.lang.Byte> getMessageTextData();
-    method public java.util.List<java.lang.Byte> getNakDetails();
-    method public byte getOriginalSubId();
-    method public byte getSource();
-    method public int getSourceMUID();
-    method public byte getStatusCode();
-    method public byte getStatusData();
-    property public final int destinationMUID;
-    property public final java.util.List<java.lang.Byte> messageTextData;
-    property public final java.util.List<java.lang.Byte> nakDetails;
-    property public final byte originalSubId;
-    property public final byte source;
-    property public final int sourceMUID;
-    property public final byte statusCode;
-    property public final byte statusData;
-  }
-
   public final class MidiCIConstants {
     field public static final byte ADDRESS_FUNCTION_BLOCK = 127; // 0x7f
     field public static final byte ADDRESS_GROUP = 126; // 0x7e
@@ -685,7 +655,7 @@ package dev.atsushieno.ktmidi.ci {
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SetProfileOn,kotlin.Unit> getProcessSetProfileOn();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribeProperty,kotlin.Unit> getProcessSubscribeProperty();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply,kotlin.Unit> getProcessSubscribePropertyReply();
-    method public kotlin.jvm.functions.Function2<java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.Unit> getProcessUnknownCIMessage();
+    method public kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.Message.Common,java.util.List<java.lang.Byte>,kotlin.Unit> getProcessUnknownCIMessage();
     method public dev.atsushieno.ktmidi.ci.MidiCIProfileService getProfileService();
     method public dev.atsushieno.ktmidi.ci.MidiCIResponder getResponder();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryReply,kotlin.Unit> getSendDiscoveryReply();
@@ -721,7 +691,7 @@ package dev.atsushieno.ktmidi.ci {
     method public void setProcessSetProfileOn(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.SetProfileOn,kotlin.Unit>);
     method public void setProcessSubscribeProperty(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.SubscribeProperty,kotlin.Unit>);
     method public void setProcessSubscribePropertyReply(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply,kotlin.Unit>);
-    method public void setProcessUnknownCIMessage(kotlin.jvm.functions.Function2<? super java.lang.Byte,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
+    method public void setProcessUnknownCIMessage(kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.Message.Common,? super java.util.List<java.lang.Byte>,kotlin.Unit>);
     method public void setProfileService(dev.atsushieno.ktmidi.ci.MidiCIProfileService);
     property public final dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config;
     property public final java.util.Map<java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIInitiator.ClientConnection> connections;
@@ -756,7 +726,7 @@ package dev.atsushieno.ktmidi.ci {
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SetProfileOn,kotlin.Unit> processSetProfileOn;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribeProperty,kotlin.Unit> processSubscribeProperty;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply,kotlin.Unit> processSubscribePropertyReply;
-    property public final kotlin.jvm.functions.Function2<java.lang.Byte,java.util.List<java.lang.Byte>,kotlin.Unit> processUnknownCIMessage;
+    property public final kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.Message.Common,java.util.List<java.lang.Byte>,kotlin.Unit> processUnknownCIMessage;
     property public final dev.atsushieno.ktmidi.ci.MidiCIProfileService profileService;
     property public final dev.atsushieno.ktmidi.ci.MidiCIResponder responder;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryReply,kotlin.Unit> sendDiscoveryReply;
@@ -1169,26 +1139,6 @@ package dev.atsushieno.ktmidi.ci {
     method public Object setPropertyData(dev.atsushieno.ktmidi.ci.Message.SetPropertyData msg);
     method public Object subscribeProperty(dev.atsushieno.ktmidi.ci.Message.SubscribeProperty msg);
     property public abstract java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> propertyCatalogUpdated;
-  }
-
-  public final class MidiCIProtocolTypeInfo {
-    ctor public MidiCIProtocolTypeInfo(byte type, byte version, byte extensions, byte reserved1, byte reserved2);
-    method public byte component1();
-    method public byte component2();
-    method public byte component3();
-    method public byte component4();
-    method public byte component5();
-    method public dev.atsushieno.ktmidi.ci.MidiCIProtocolTypeInfo copy(byte type, byte version, byte extensions, byte reserved1, byte reserved2);
-    method public byte getExtensions();
-    method public byte getReserved1();
-    method public byte getReserved2();
-    method public byte getType();
-    method public byte getVersion();
-    property public final byte extensions;
-    property public final byte reserved1;
-    property public final byte reserved2;
-    property public final byte type;
-    property public final byte version;
   }
 
   public final class MidiCIResponder {
