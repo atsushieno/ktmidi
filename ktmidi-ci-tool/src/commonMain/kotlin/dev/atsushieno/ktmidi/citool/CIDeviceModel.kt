@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.profilecommonrules.DefaultControlChangesProfile
 import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
-import kotlin.random.Random
 
 class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDeviceConfiguration,
                     private val ciOutputSender: (ciBytes: List<Byte>) -> Unit,
@@ -25,14 +24,14 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
     val device by lazy {
         MidiCIDevice(muid, config,
             sendCIOutput = { group, data ->
-                AppModel.log(
+                parent.owner.log(
                     "[sent CI SysEx (grp:$group)] " + data.joinToString { it.toUByte().toString(16) },
                     MessageDirection.Out
                 )
                 ciOutputSender(data)
             },
             sendMidiMessageReport = { protocol, data ->
-                AppModel.log(
+                parent.owner.log(
                     "[sent MIDI Message Report (protocol=$protocol)] " + data.joinToString { it.toUByte().toString(16) },
                     MessageDirection.Out
                 )
@@ -41,7 +40,7 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
         ).apply {
             // initiator
             logger.logEventReceived.add { msg, direction ->
-                AppModel.log(msg, direction)
+                parent.owner.log(msg, direction)
             }
 
             initiator.connectionsChanged.add { change, conn ->
@@ -84,7 +83,7 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
 
     fun processCIMessage(group: Byte, data: List<Byte>) {
         if (data.isEmpty()) return
-        AppModel.log("[received CI SysEx (grp:$group)] " + data.joinToString { it.toUByte().toString(16) }, MessageDirection.In)
+        parent.owner.log("[received CI SysEx (grp:$group)] " + data.joinToString { it.toUByte().toString(16) }, MessageDirection.In)
         device.processInput(group, data)
     }
 

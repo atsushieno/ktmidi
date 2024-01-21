@@ -44,17 +44,9 @@ class CIToolRepository {
         SavedSettings()
     }
     val midiDeviceManager = MidiDeviceManager()
-    val ciDeviceManager  = CIDeviceManager(savedSettings.device, midiDeviceManager)
+    val ciDeviceManager  = CIDeviceManager(this, savedSettings.device, midiDeviceManager)
 
     val device by savedSettings::device
-
-    fun setInputDevice(id: String) {
-        midiDeviceManager.midiInputDeviceId = id
-    }
-
-    fun setOutputDevice(id: String) {
-        midiDeviceManager.midiOutputDeviceId = id
-    }
 
     private fun getConfigFromFile(file: String): SavedSettings {
         val bytes = getPlatform().loadFileContent(file)

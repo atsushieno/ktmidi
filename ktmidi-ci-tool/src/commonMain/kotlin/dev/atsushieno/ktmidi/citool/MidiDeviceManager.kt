@@ -91,6 +91,14 @@ class MidiDeviceManager {
 
     val midiOutputSent = mutableListOf<(bytes: ByteArray, timestamp: Long)->Unit>()
 
+    fun setInputDevice(id: String) {
+        midiInputDeviceId = id
+    }
+
+    fun setOutputDevice(id: String) {
+        midiOutputDeviceId = id
+    }
+
     fun sendToAll(bytes: ByteArray, timestamp: Long) {
         try {
             if (midiOutputError.value == null)

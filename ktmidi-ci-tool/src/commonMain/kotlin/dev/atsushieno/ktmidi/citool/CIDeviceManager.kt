@@ -8,9 +8,9 @@ import dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration
 import dev.atsushieno.ktmidi.citool.view.ViewHelper
 import kotlin.experimental.and
 
-class CIDeviceManager(config: MidiCIDeviceConfiguration, private val midiDeviceManager: MidiDeviceManager) {
+class CIDeviceManager(val owner: CIToolRepository, config: MidiCIDeviceConfiguration, private val midiDeviceManager: MidiDeviceManager) {
     val device by lazy {
-        CIDeviceModel(this, AppModel.muid, config,
+        CIDeviceModel(this, owner.muid, config,
             ciOutputSender = { data ->
                 val midi1Bytes = listOf(Midi1Status.SYSEX.toByte()) + data + listOf(Midi1Status.SYSEX_END.toByte())
                 midiDeviceManager.sendToAll(midi1Bytes.toByteArray(), 0)
@@ -53,13 +53,13 @@ class CIDeviceManager(config: MidiCIDeviceConfiguration, private val midiDeviceM
                     device.chunkedMessages.addAll(data.toList())
                 } else
                 // received some message. No idea why, but log anyway.
-                    AppModel.log("[received MIDI] " + data.drop(start).take(length), MessageDirection.In)
+                    owner.log("[received MIDI] " + data.drop(start).take(length), MessageDirection.In)
             }
         }
     }
 
     internal fun logMidiMessageReportChunk(data: List<Byte>) {
-        AppModel.log("[received MIDI (buffered)] " +
+        owner.log("[received MIDI (buffered)] " +
                 data.joinToString { it.toUByte().toString(16) },
             MessageDirection.In)
     }

@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import dev.atsushieno.ktmidi.citool.AppModel
 
 @Composable
 fun App() {

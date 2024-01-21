@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
 import dev.atsushieno.ktmidi.citool.view.ViewModel
-import kotlin.math.min
 
 class CIInitiatorModel(private val device: CIDeviceModel) {
     val initiator by lazy { device.device.initiator }
