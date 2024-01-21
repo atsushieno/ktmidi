@@ -6,9 +6,7 @@ import dev.atsushieno.ktmidi.ci.MidiMessageReportProtocol
 import dev.atsushieno.ktmidi.ci.MidiMessageReporter
 import dev.atsushieno.ktmidi.reportMidiMessages
 
-class Midi1MessageReporter(
-    private val ciOutputHandler: (midi1Messages: List<Byte>) -> Unit
-) : MidiMessageReporter {
+class MidiMachineMessageReporter : MidiMessageReporter {
     override val midiTransportProtocol
         get() = configuredMidiTransportProtocol
 

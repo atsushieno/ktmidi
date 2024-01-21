@@ -67,7 +67,7 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
                 midiMessageReportModeChanged.forEach { it() }
             }
 
-            responder.midiMessageReporter = Midi1MessageReporter(midiMessageReportOutputSender)
+            responder.midiMessageReporter = MidiMachineMessageReporter()
 
             // responder
             onProfileSet.add { profile -> localProfiles.profileEnabledChanged.forEach { it(profile) } }
