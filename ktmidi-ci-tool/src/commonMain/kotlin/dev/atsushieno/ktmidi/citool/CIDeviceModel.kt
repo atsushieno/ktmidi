@@ -115,16 +115,14 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
 
     fun addLocalProfile(profile: MidiCIProfile) {
         device.localProfiles.add(profile)
-        // FIXME: supply group from somewhere
-        device.sendProfileAddedReport(0, profile)
+        device.sendProfileAddedReport(defaultSenderGroup, profile)
     }
 
     fun removeLocalProfile(group: Byte, address: Byte, profileId: MidiCIProfileId) {
         // create a dummy entry...
         val profile = MidiCIProfile(profileId, group, address, false, 0)
         device.localProfiles.remove(profile)
-        // FIXME: supply group from somewhere
-        device.sendProfileRemovedReport(0, profile)
+        device.sendProfileRemovedReport(defaultSenderGroup, profile)
     }
 
     fun updateLocalProfileName(oldProfile: MidiCIProfileId, newProfile: MidiCIProfileId) {
@@ -160,10 +158,9 @@ class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDevice
         }
         device.localProfiles.profileUpdated.add { profileId: MidiCIProfileId, oldAddress: Byte, newEnabled: Boolean, newAddress: Byte, numChannelsRequested: Short ->
             val entry = localProfileStates.first { it.profile == profileId && it.address.value == oldAddress }
-            if (numChannelsRequested > 1)
-                TODO("FIXME: implement")
             entry.address.value = newAddress
             entry.enabled.value = newEnabled
+            entry.numChannelsRequested.value = numChannelsRequested
         }
         device.localProfiles.profileEnabledChanged.add { profile ->
             val dst = localProfileStates.first { it.profile == profile.profile && it.address.value == profile.address }
