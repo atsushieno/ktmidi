@@ -237,4 +237,11 @@ class CIFactoryTest {
         )
         assertEquals(0x3F, actual11[3])
     }
+
+    @Test
+    fun midiCI32to28() {
+        assertEquals(0xFFFFFFF, CIFactory.midiCI32to28(0x7F7F7F7F), "#1")
+        assertEquals(0xFC285E9, CIFactory.midiCI32to28(0x7E0A0B69), "#2")
+        assertEquals(0xCBD8657, CIFactory.midiCI32to28(0x65760C57), "#3")
+    }
 }

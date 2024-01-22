@@ -19,7 +19,7 @@ class CIInitiatorModel(private val device: CIDeviceModel) {
     fun setProfile(destinationMUID: Int, address: Byte, profile: MidiCIProfileId, nextEnabled: Boolean, newNumChannelsRequested: Short) {
         if (nextEnabled) {
             // FIXME: maybe we should pass number of channels somehow?
-            val msg = Message.SetProfileOn(Message.Common(initiator.muid, destinationMUID, address, device.defaultSenderGroup), profile,
+            val msg = Message.SetProfileOn(Message.Common(device.muid, destinationMUID, address, device.defaultSenderGroup), profile,
                 // NOTE: juce_midi_ci has a bug that it expects 1 for 7E and 7F, whereas MIDI-CI v1.2 states:
                 //   "When the Profile Destination field is set to address 0x7E or 0x7F, the number of Channels is determined
                 //    by the width of the Group or Function Block. Set the Number of Channels Requested field to a value of 0x0000."
@@ -29,7 +29,7 @@ class CIInitiatorModel(private val device: CIDeviceModel) {
             )
             initiator.setProfileOn(msg)
         } else {
-            val msg = Message.SetProfileOff(Message.Common(initiator.muid, destinationMUID, address, device.defaultSenderGroup), profile)
+            val msg = Message.SetProfileOff(Message.Common(device.muid, destinationMUID, address, device.defaultSenderGroup), profile)
             initiator.setProfileOff(msg)
         }
     }

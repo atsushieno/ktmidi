@@ -20,8 +20,8 @@ abstract class Message(protected val common: Common) {
             get() = toByteArray().take(MAX_TO_STRING_LENGTH).toByteArray().decodeToString()
         val List<Byte>.dataString: String
             get() = "(string: ${this.toByteArray().decodeToString()}, bytes: ${this.joinToString { it.toString(16) }})"
-        val Int.muidString: String
-            get() = toString(16)
+        val Int.muidString: String // shows 28-bit integer
+            get() = CIFactory.midiCI32to28(this).toString(16)
         val Byte.addressString: String
             get() = when (this.toInt()) {
                 0x7E -> "Group"

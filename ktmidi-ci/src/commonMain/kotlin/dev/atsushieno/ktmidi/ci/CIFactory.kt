@@ -431,4 +431,9 @@ object CIFactory {
         return dst.take(23 + messageTextData.size)
     }
 
+    fun midiCI32to28(i: Int): Int =
+        ((i shr 24) shl 21) +
+        (((i shr 16) and 0x7F) shl 14) +
+        (((i shr 8) and 0x7F) shl 7) +
+        (i and 0x7F)
 }

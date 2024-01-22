@@ -6,7 +6,7 @@ import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.profilecommonrules.DefaultControlChangesProfile
 import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
 
-class CIDeviceModel(val parent: CIDeviceManager, muid: Int, config: MidiCIDeviceConfiguration,
+class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDeviceConfiguration,
                     private val ciOutputSender: (ciBytes: List<Byte>) -> Unit,
                     private val midiMessageReportOutputSender: (bytes: List<Byte>) -> Unit) {
 

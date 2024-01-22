@@ -422,7 +422,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         }
     }
 
-    val localPendingChunkManager = PropertyChunkManager()
+    private val localPendingChunkManager = PropertyChunkManager()
 
     private fun handleChunk(common: Message.Common, requestId: Byte, chunkIndex: Short, numChunks: Short,
                             header: List<Byte>, body: List<Byte>,

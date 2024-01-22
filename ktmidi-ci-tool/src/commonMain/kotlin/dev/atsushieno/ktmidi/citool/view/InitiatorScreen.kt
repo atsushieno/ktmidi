@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 import dev.atsushieno.ktmidi.ci.MidiCIConstants
 import dev.atsushieno.ktmidi.ci.MidiCIInitiator
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
@@ -99,7 +100,7 @@ private fun ClientConnectionInfo(vm: ConnectionViewModel) {
     val conn = vm.conn.conn
     Column {
         Text("Device", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Text("MUID: ${vm.conn.conn.targetMUID}")
+        Text("MUID: ${vm.conn.conn.targetMUID.muidString}")
         val small = 12.sp
         Row {
             DeviceItemCard("Manufacturer")

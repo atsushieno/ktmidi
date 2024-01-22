@@ -2,6 +2,7 @@
 package dev.atsushieno.ktmidi.ci {
 
   public final class CIFactory {
+    method public int midiCI32to28(int i);
     method public void midiCI7bitInt14At(java.util.List<java.lang.Byte> dst, int offset, short v);
     method public void midiCI7bitInt21At(java.util.List<java.lang.Byte> dst, int offset, int v);
     method public void midiCI7bitInt28At(java.util.List<java.lang.Byte> dst, int offset, int v);
@@ -38,6 +39,7 @@ package dev.atsushieno.ktmidi.ci {
 
   public final class CIFactoryTest {
     ctor public CIFactoryTest();
+    method public void midiCI32to28();
     method public void testDiscoveryMessages();
     method public void testProfileConfigurationMessages();
     method public void testPropertyExchangeMessages();
@@ -657,7 +659,6 @@ package dev.atsushieno.ktmidi.ci {
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileInquiry,kotlin.sequences.Sequence<dev.atsushieno.ktmidi.ci.Message.ProfileReply>> getGetProfileRepliesForInquiry();
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryReply,kotlin.Unit> getHandleNewEndpoint();
     method public dev.atsushieno.ktmidi.ci.MidiCIInitiator getInitiator();
-    method public dev.atsushieno.ktmidi.ci.PropertyChunkManager getLocalPendingChunkManager();
     method public dev.atsushieno.ktmidi.ci.ObservableProfileList getLocalProfiles();
     method public dev.atsushieno.ktmidi.ci.Logger getLogger();
     method public int getMuid();
@@ -728,7 +729,6 @@ package dev.atsushieno.ktmidi.ci {
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileInquiry,kotlin.sequences.Sequence<dev.atsushieno.ktmidi.ci.Message.ProfileReply>> getProfileRepliesForInquiry;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.DiscoveryReply,kotlin.Unit> handleNewEndpoint;
     property public final dev.atsushieno.ktmidi.ci.MidiCIInitiator initiator;
-    property public final dev.atsushieno.ktmidi.ci.PropertyChunkManager localPendingChunkManager;
     property public final dev.atsushieno.ktmidi.ci.ObservableProfileList localProfiles;
     property public final dev.atsushieno.ktmidi.ci.Logger logger;
     property public final int muid;
