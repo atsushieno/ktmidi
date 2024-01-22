@@ -21,7 +21,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                    private val sendCIOutput: (group: Byte, data: List<Byte>) -> Unit,
                    private val sendMidiMessageReport: (protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
 ) {
-    val initiator by lazy { MidiCIInitiator(this, config.initiator, sendCIOutput) }
+    val initiator by lazy { MidiCIInitiator(this, config, sendCIOutput) }
     val responder by lazy { MidiCIResponder(this, config.responder, sendCIOutput, sendMidiMessageReport) }
 
     val device: MidiCIDeviceInfo
@@ -91,11 +91,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     fun sendDiscovery(msg: Message.DiscoveryInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(msg.group, CIFactory.midiCIDiscovery(
-            buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.device.manufacturer, msg.device.family, msg.device.modelNumber,
-            msg.device.softwareRevisionLevel, msg.ciCategorySupported, msg.receivableMaxSysExSize, msg.outputPathId
-        ))
+        sendCIOutput(msg.group, msg.serialize(config))
     }
 
     fun sendNakForUnknownCIMessage(group: Byte, data: List<Byte>) {
@@ -120,9 +116,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     fun sendNakForError(msg: Message.Nak) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(msg.group, CIFactory.midiCIAckNak(buf, true, msg.address, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID,
-            msg.originalSubId, msg.statusCode, msg.statusData, msg.details, msg.message))
+        sendCIOutput(msg.group, msg.serialize(config))
     }
 
     fun invalidateMUID(address: Byte, group: Byte, targetMUID: Int, message: String) {
@@ -133,8 +127,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     fun invalidateMUID(msg: Message.InvalidateMUID) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(msg.group, CIFactory.midiCIDiscoveryInvalidateMuid(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.targetMUID))
+        sendCIOutput(msg.group, msg.serialize(config))
     }
 
     // Input handlers
@@ -161,15 +154,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     // to Discovery (responder)
     val sendDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(msg.group,
-            CIFactory.midiCIDiscoveryReply(
-                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID,
-                msg.device.manufacturer, msg.device.family, msg.device.modelNumber, msg.device.softwareRevisionLevel,
-                config.capabilityInquirySupported, config.receivableMaxSysExSize,
-                msg.outputPathId, msg.functionBlock
-            )
-        )
+        sendCIOutput(msg.group, msg.serialize(config))
     }
     val getDiscoveryReplyForInquiry: (request: Message.DiscoveryInquiry) -> Message.DiscoveryReply = { request ->
         val deviceDetails = DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId)
@@ -186,11 +171,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     val sendEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(msg.group,
-            CIFactory.midiCIEndpointMessageReply(
-                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, msg.sourceMUID, msg.destinationMUID, msg.status, msg.data)
-        )
+        sendCIOutput(msg.group, msg.serialize(config))
     }
     val getEndpointReplyForInquiry: (msg: Message.EndpointInquiry) -> Message.EndpointReply = { msg ->
         val prodId = config.productInstanceId
@@ -273,11 +254,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     val sendProfileReply: (msg: Message.ProfileReply) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(msg.group, CIFactory.midiCIProfileInquiryReply(dst, msg.address, msg.sourceMUID, msg.destinationMUID,
-            msg.enabledProfiles,
-            msg.disabledProfiles)
-        )
+        sendCIOutput(msg.group, msg.serialize(config))
     }
 
     private fun getAllAddresses(address: Byte) = sequence {
@@ -353,8 +330,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     }
 
     fun sendProfileDetailsReply(msg: Message.ProfileDetailsReply) {
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(msg.group, CIFactory.midiCIProfileDetailsReply(dst, msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.target, msg.data))
+        sendCIOutput(msg.group, msg.serialize(config))
     }
     private fun getProfileDetailsReplyForInquiry(msg: Message.ProfileDetailsInquiry, data: List<Byte>) =
         Message.ProfileDetailsReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),

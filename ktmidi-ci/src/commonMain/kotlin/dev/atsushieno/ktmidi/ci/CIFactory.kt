@@ -121,11 +121,11 @@ object CIFactory {
         return dst.take(16 + informationData.size)
     }
 
-    fun midiCIDiscoveryInvalidateMuid(
+    fun midiCIInvalidateMuid(
         dst: MutableList<Byte>,
         versionAndFormat: Byte, sourceMUID: Int, targetMUID: Int
     ) : List<Byte> {
-        midiCIMessageCommon(dst, MidiCIConstants.WHOLE_FUNCTION_BLOCK, CISubId2.INVALIDATE_MUID, versionAndFormat, sourceMUID, 0x7F7F7F7F)
+        midiCIMessageCommon(dst, MidiCIConstants.WHOLE_FUNCTION_BLOCK, CISubId2.INVALIDATE_MUID, versionAndFormat, sourceMUID, MidiCIConstants.BROADCAST_MUID_32)
         midiCiDirectUint32At(dst, 13, targetMUID)
         return dst.take(17)
     }
@@ -312,7 +312,7 @@ object CIFactory {
             dst[i + dstOffset] = src[i]
     }
 
-    fun midiCIPropertyPacketCommon(dst: MutableList<Byte>, subId: Byte, sourceMUID: Int, destinationMUID: Int,
+    private fun midiCIPropertyPacketCommon(dst: MutableList<Byte>, subId: Byte, sourceMUID: Int, destinationMUID: Int,
                                     requestId: Byte, header: List<Byte>,
                                     numChunks: Short, chunkIndex1Based: Short,
                                     data: List<Byte>) : List<Byte> {

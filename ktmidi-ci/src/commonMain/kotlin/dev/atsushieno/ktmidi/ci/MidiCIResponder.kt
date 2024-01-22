@@ -79,11 +79,7 @@ class MidiCIResponder(
     // Notify end of subscription updates
     fun sendPropertySubscription(msg: Message.SubscribeProperty) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        CIFactory.midiCIPropertyChunks(
-            dst, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE,
-            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
-        ).forEach {
+        msg.serialize(parent.config).forEach {
             sendOutput(msg.group, it)
         }
     }
@@ -104,9 +100,7 @@ class MidiCIResponder(
     // Should this also delegate to property service...?
     fun sendPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIPropertyGetCapabilities(dst, msg.address, true,
-            msg.sourceMUID, msg.destinationMUID, msg.maxSimultaneousRequests))
+        sendOutput(msg.group, msg.serialize(parent.config))
     }
     val getPropertyCapabilitiesReplyFor: (msg: Message.PropertyGetCapabilities) -> Message.PropertyGetCapabilitiesReply = { msg ->
         val establishedMaxSimultaneousPropertyRequests =
@@ -124,11 +118,7 @@ class MidiCIResponder(
 
     fun sendPropertyGetDataReply(msg: Message.GetPropertyDataReply) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        CIFactory.midiCIPropertyChunks(
-            dst, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_REPLY,
-            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
-        ).forEach {
+        msg.serialize(parent.config).forEach {
             sendOutput(msg.group, it)
         }
     }
@@ -145,11 +135,7 @@ class MidiCIResponder(
 
     fun sendPropertySetDataReply(msg: Message.SetPropertyDataReply) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        CIFactory.midiCIPropertyChunks(
-            dst, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_REPLY,
-            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, listOf()
-        ).forEach {
+        msg.serialize(parent.config).forEach {
             sendOutput(msg.group, it)
         }
     }
@@ -165,11 +151,7 @@ class MidiCIResponder(
 
     fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        CIFactory.midiCIPropertyChunks(
-            dst, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
-            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
-        ).forEach {
+        msg.serialize(parent.config).forEach {
             sendOutput(msg.group, it)
         }
     }
@@ -193,12 +175,10 @@ class MidiCIResponder(
 
     fun getProcessInquiryReplyFor(msg: Message.ProcessInquiry) =
         Message.ProcessInquiryReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
-            config.processInquirySupportedFeatures)
+            parent.config.processInquirySupportedFeatures)
     fun sendProcessProcessInquiryReply(msg: Message.ProcessInquiryReply) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIProcessInquiryCapabilitiesReply(
-            dst, msg.sourceMUID, msg.destinationMUID, msg.supportedFeatures))
+        sendOutput(msg.group, msg.serialize(parent.config))
     }
     var processProcessInquiry: (msg: Message.ProcessInquiry) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)
@@ -208,22 +188,18 @@ class MidiCIResponder(
 
     fun getMidiMessageReportReplyFor(msg: Message.MidiMessageReportInquiry) =
         Message.MidiMessageReportReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
-            msg.systemMessages and config.midiMessageReportSystemMessages,
-            msg.channelControllerMessages and config.midiMessageReportChannelControllerMessages,
-            msg.noteDataMessages and config.midiMessageReportNoteDataMessages)
+            msg.systemMessages and parent.config.midiMessageReportSystemMessages,
+            msg.channelControllerMessages and parent.config.midiMessageReportChannelControllerMessages,
+            msg.noteDataMessages and parent.config.midiMessageReportNoteDataMessages)
     fun sendMidiMessageReportReply(msg: Message.MidiMessageReportReply) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIMidiMessageReportReply(dst, msg.address,
-            msg.sourceMUID, msg.destinationMUID,
-            msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
+        sendOutput(msg.group, msg.serialize(parent.config))
     }
     fun getEndOfMidiMessageReportFor(msg: Message.MidiMessageReportInquiry) =
         Message.MidiMessageReportNotifyEnd(Message.Common(muid, msg.sourceMUID, msg.address, msg.group))
     fun sendEndOfMidiMessageReport(msg: Message.MidiMessageReportNotifyEnd) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIEndOfMidiMessage(dst, msg.address, msg.sourceMUID, msg.destinationMUID))
+        sendOutput(msg.group, msg.serialize(parent.config))
     }
     fun defaultProcessMidiMessageReport(msg: Message.MidiMessageReportInquiry) {
         sendMidiMessageReportReply(getMidiMessageReportReplyFor(msg))
@@ -232,10 +208,10 @@ class MidiCIResponder(
         midiMessageReporter.reportMidiMessages(
             msg.group,
             msg.address,
-            config.midiMessageReportMessageDataControl,
-            config.midiMessageReportSystemMessages,
-            config.midiMessageReportChannelControllerMessages,
-            config.midiMessageReportNoteDataMessages
+            parent.config.midiMessageReportMessageDataControl,
+            parent.config.midiMessageReportSystemMessages,
+            parent.config.midiMessageReportChannelControllerMessages,
+            parent.config.midiMessageReportNoteDataMessages
         ).forEach {
             sendMidiMessageReport(midiMessageReporter.midiTransportProtocol, it)
         }

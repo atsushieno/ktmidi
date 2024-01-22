@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 
 class MidiCIInitiator(
     val parent: MidiCIDevice,
-    val config: MidiCIInitiatorConfiguration,
+    val config: MidiCIDeviceConfiguration,
     private val sendOutput: (group: Byte, data: List<Byte>) -> Unit
 ) {
     val muid by parent::muid
@@ -45,7 +45,7 @@ class MidiCIInitiator(
         val device: DeviceDetails,
         var maxSimultaneousPropertyRequests: Byte = 0,
         var productInstanceId: String = "",
-        val propertyClient: MidiCIPropertyClient = CommonRulesPropertyClient(parent.logger, parent.muid) { msg -> parent.sendGetPropertyData(msg) }
+        val propertyClient: MidiCIPropertyClient = CommonRulesPropertyClient(parent.logger, parent.muid)
     ) {
 
         val profiles = ObservableProfileList(mutableListOf())
@@ -154,9 +154,7 @@ class MidiCIInitiator(
 
     fun sendEndpointMessage(msg: Message.EndpointInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIEndpointMessage(buf, MidiCIConstants.CI_VERSION_AND_FORMAT,
-            msg.sourceMUID, msg.destinationMUID, msg.status))
+        sendOutput(msg.group, msg.serialize(config))
     }
 
     // Profile Configuration
@@ -166,20 +164,17 @@ class MidiCIInitiator(
 
     fun requestProfiles(msg: Message.ProfileInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIProfileInquiry(buf, msg.address, msg.sourceMUID, msg.destinationMUID))
+        sendOutput(msg.group, msg.serialize(config))
     }
 
     fun setProfileOn(msg: Message.SetProfileOn) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIProfileSet(buf, msg.address, true, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.numChannelsRequested))
+        sendOutput(msg.group, msg.serialize(config))
     }
 
     fun setProfileOff(msg: Message.SetProfileOff) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIProfileSet(buf, msg.address, false, msg.sourceMUID, msg.destinationMUID, msg.profile, 0))
+        sendOutput(msg.group, msg.serialize(config))
     }
 
     fun requestProfileDetails(group: Byte, address: Byte, targetMUID: Int, profile: MidiCIProfileId, target: Byte) =
@@ -188,8 +183,7 @@ class MidiCIInitiator(
 
     fun requestProfileDetails(msg: Message.ProfileDetailsInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIProfileDetails(buf, msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, 0))
+        sendOutput(msg.group, msg.serialize(config))
     }
 
     // Property Exchange
@@ -201,15 +195,7 @@ class MidiCIInitiator(
 
     fun requestPropertyExchangeCapabilities(msg: Message.PropertyGetCapabilities) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIPropertyGetCapabilities(
-            buf,
-            msg.address,
-            false,
-            msg.sourceMUID,
-            msg.destinationMUID,
-            msg.maxSimultaneousRequests
-        ))
+        sendOutput(msg.group, msg.serialize(config))
     }
 
     fun sendGetPropertyData(group: Byte, destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
@@ -231,11 +217,7 @@ class MidiCIInitiator(
         logger.logMessage(msg, MessageDirection.Out)
         val conn = connections[msg.destinationMUID]
         conn?.addPendingRequest(msg)
-        val buf = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        CIFactory.midiCIPropertyChunks(buf, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_INQUIRY,
-            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, listOf()).forEach {
-            sendOutput(msg.group, it)
-        }
+        msg.serialize(config).forEach { sendOutput(msg.group, it) }
     }
 
     fun sendSetPropertyData(group: Byte, destinationMUID: Int, resource: String, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
@@ -252,11 +234,7 @@ class MidiCIInitiator(
 
     fun sendSetPropertyData(msg: Message.SetPropertyData) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        CIFactory.midiCIPropertyChunks(buf, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_INQUIRY,
-            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body).forEach {
-            sendOutput(msg.group, it)
-        }
+        msg.serialize(config).forEach { sendOutput(msg.group, it) }
     }
 
     fun sendSubscribeProperty(group: Byte, destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
@@ -288,13 +266,7 @@ class MidiCIInitiator(
 
     fun sendSubscribeProperty(msg: Message.SubscribeProperty) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        CIFactory.midiCIPropertyChunks(
-            dst, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE,
-            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
-        ).forEach {
-            sendOutput(msg.group, it)
-        }
+        msg.serialize(config).forEach { sendOutput(msg.group, it) }
     }
 
     // Process Inquiry
@@ -303,8 +275,7 @@ class MidiCIInitiator(
 
     fun sendProcessInquiry(msg: Message.ProcessInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIProcessInquiryCapabilities(buf, msg.sourceMUID, msg.destinationMUID))
+        sendOutput(msg.group, msg.serialize(config))
     }
 
     fun sendMidiMessageReportInquiry(group: Byte, address: Byte, destinationMUID: Int,
@@ -318,9 +289,7 @@ class MidiCIInitiator(
 
     fun sendMidiMessageReportInquiry(msg: Message.MidiMessageReportInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
-        val buf = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        sendOutput(msg.group, CIFactory.midiCIMidiMessageReport(buf, msg.address, msg.sourceMUID, msg.destinationMUID,
-            msg.messageDataControl, msg.systemMessages, msg.channelControllerMessages, msg.noteDataMessages))
+        sendOutput(msg.group, msg.serialize(config))
     }
 
     // Miscellaneous
@@ -332,7 +301,7 @@ class MidiCIInitiator(
     // Protocol Negotiation is deprecated. We do not send any of them anymore.
 
     // Profile Configuration
-    val defaultProcessProfileReply = { msg: Message.ProfileReply ->
+    fun defaultProcessProfileReply(msg: Message.ProfileReply) {
         val conn = connections[msg.sourceMUID]
         msg.enabledProfiles.forEach { conn?.profiles?.add(MidiCIProfile(it, msg.group, msg.address, true, if (msg.address >= 0x7E) 0 else 1)) }
         msg.disabledProfiles.forEach { conn?.profiles?.add(MidiCIProfile(it, msg.group, msg.address, false, if (msg.address >= 0x7E) 0 else 1)) }
@@ -343,7 +312,7 @@ class MidiCIInitiator(
         defaultProcessProfileReply(msg)
     }
 
-    val defaultProcessProfileAddedReport: (msg: Message.ProfileAdded) -> Unit = { msg ->
+    fun defaultProcessProfileAddedReport(msg: Message.ProfileAdded) {
         val conn = connections[msg.sourceMUID]
         conn?.profiles?.add(MidiCIProfile(msg.profile, msg.group, msg.address, false, if (msg.address >= 0x7E) 0 else 1))
     }
@@ -353,7 +322,7 @@ class MidiCIInitiator(
         defaultProcessProfileAddedReport(msg)
     }
 
-    val defaultProcessProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
+    fun defaultProcessProfileRemovedReport(msg: Message.ProfileRemoved) {
         val conn = connections[msg.sourceMUID]
         conn?.profiles?.remove(MidiCIProfile(msg.profile, msg.group, msg.address, false, 0))
     }
@@ -389,15 +358,14 @@ class MidiCIInitiator(
     }
 
     // Property Exchange
-    @OptIn(DelicateCoroutinesApi::class)
-    val defaultProcessPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
+    fun defaultProcessPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
         val conn = connections[msg.sourceMUID]
         if (conn != null) {
             conn.maxSimultaneousPropertyRequests = msg.maxSimultaneousRequests
 
             // proceed to query resource list
             if (config.autoSendGetResourceList)
-                conn.propertyClient.requestPropertyList(msg.group, msg.sourceMUID, requestIdSerial++)
+                sendGetPropertyData(conn.propertyClient.getPropertyListRequest(msg.group, msg.sourceMUID, requestIdSerial++))
         }
         else
             parent.sendNakForUnknownMUID(Message.Common(muid, msg.sourceMUID, msg.group, msg.address),
@@ -409,7 +377,7 @@ class MidiCIInitiator(
         defaultProcessPropertyCapabilitiesReply(msg)
     }
 
-    val defaultProcessGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->
+    fun defaultProcessGetDataReply(msg: Message.GetPropertyDataReply) {
         connections[msg.sourceMUID]?.updateProperty(msg)
     }
 
@@ -427,13 +395,7 @@ class MidiCIInitiator(
 
     fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
         logger.logMessage(msg, MessageDirection.Out)
-        val dst = MutableList<Byte>(parent.config.receivableMaxSysExSize) { 0 }
-        CIFactory.midiCIPropertyChunks(
-            dst, parent.config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
-            msg.sourceMUID, msg.destinationMUID, msg.requestId, msg.header, msg.body
-        ).forEach {
-            sendOutput(msg.group, it)
-        }
+        msg.serialize(config).forEach { sendOutput(msg.group, it) }
     }
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)

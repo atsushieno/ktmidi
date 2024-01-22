@@ -10,8 +10,6 @@ abstract class Message(protected val common: Common) {
     val destinationMUID: Int
         get() = common.destinationMUID
 
-    // FIXME: maybe we should implement serialize() and deserialize() in each class
-
     companion object {
         const val COMMON_HEADER_SIZE = 13
         private const val MAX_TO_STRING_LENGTH = 1024
@@ -96,28 +94,58 @@ abstract class Message(protected val common: Common) {
         : Message(common) {
         override val label = "DiscoveryInquiry"
         override val bodyString = "device=${device}, ciCategorySupported=$ciCategorySupported, receivableMaxSysExSize=$receivableMaxSysExSize, outputPathId=$outputPathId"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIDiscovery(
+                buf, MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, device.manufacturer, device.family, device.modelNumber,
+                device.softwareRevisionLevel, ciCategorySupported, receivableMaxSysExSize, outputPathId
+            )
+        }
     }
     class DiscoveryReply(common: Common, val device: DeviceDetails, val ciCategorySupported: Byte,  val receivableMaxSysExSize: Int, val outputPathId: Byte, val functionBlock: Byte)
         : Message(common) {
         override val label = "DiscoveryReply"
         override val bodyString = "ciCategorySupported=$ciCategorySupported, receivableMaxSysExSize=$receivableMaxSysExSize, outputPathId=$outputPathId, functionBlock=$functionBlock"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIDiscoveryReply(
+                dst, MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID,
+                device.manufacturer, device.family, device.modelNumber, device.softwareRevisionLevel,
+                config.capabilityInquirySupported, config.receivableMaxSysExSize,
+                outputPathId, functionBlock
+            )
+        }
     }
 
     class EndpointInquiry(common: Common, val status: Byte)
         : Message(common) {
         override val label = "EndpointInquiry"
         override val bodyString = "status=${status}"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIEndpointMessage(dst, MidiCIConstants.CI_VERSION_AND_FORMAT,
+                sourceMUID, destinationMUID, status)
+        }
     }
     class EndpointReply(common: Common, val status: Byte, val data: List<Byte>)
         : Message(common) {
         override val label = "EndpointReply"
         override val bodyString = "status=${status}, data = ${data.dataString})"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIEndpointMessageReply(dst,
+                MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID, status, data)
+        }
     }
 
     class InvalidateMUID(common: Common, val targetMUID: Int)
         : Message(common) {
         override val label = "InvalidateMUID"
         override val bodyString = "targetMUID=${targetMUID.muidString})"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIInvalidateMuid(buf, MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, targetMUID)
+        }
     }
 
     class Nak(common: Common,
@@ -125,6 +153,11 @@ abstract class Message(protected val common: Common) {
         : Message(common) {
         override val label = "Nak"
         override val bodyString = "originalSubId=$originalSubId, statusCode=$statusCode, statusData=$statusData, details=${details.dataString}, message=$message"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIAckNak(buf, true, address, MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID,
+                originalSubId, statusCode, statusData, details, message)
+        }
     }
 
     // Profile Configuration
@@ -132,11 +165,20 @@ abstract class Message(protected val common: Common) {
         : Message(common) {
         override val label = "ProfileInquiry"
         override val bodyString = ""
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIProfileInquiry(dst, address, sourceMUID, destinationMUID)
+        }
     }
     class ProfileReply(common: Common, val enabledProfiles: List<MidiCIProfileId>, val disabledProfiles: List<MidiCIProfileId>)
         : Message(common) {
         override val label = "ProfileReply"
         override val bodyString = "enabledProfiles=[${enabledProfiles.joinToString { it.toString() }}],  disabledProfiles=[${disabledProfiles.joinToString { it.toString() }}]"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIProfileInquiryReply(dst, address, sourceMUID, destinationMUID,
+                enabledProfiles, disabledProfiles)
+        }
     }
     class ProfileAdded(common: Common, val profile: MidiCIProfileId)
         : Message(common) {
@@ -152,11 +194,19 @@ abstract class Message(protected val common: Common) {
         : Message(common) {
         override val label = "SetProfileOn"
         override val bodyString = "profile=$profile, numChannelsRequested=$numChannelsRequested"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIProfileSet(buf, address, true, sourceMUID, destinationMUID, profile, numChannelsRequested)
+        }
     }
     class SetProfileOff(common: Common, val profile: MidiCIProfileId)
         : Message(common) {
         override val label = "SetProfileOff"
         override val bodyString = "profile=$profile"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIProfileSet(buf, address, false, sourceMUID, destinationMUID, profile, 0)
+        }
     }
     class ProfileEnabled(common: Common, val profile: MidiCIProfileId, val numChannelsRequested: Short)
         : Message(common) {
@@ -172,11 +222,19 @@ abstract class Message(protected val common: Common) {
         : Message(common) {
         override val label = "ProfileDetailsInquiry"
         override val bodyString = "profile=$profile, target=$target"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIProfileDetails(buf, address, sourceMUID, destinationMUID, profile, target)
+        }
     }
     class ProfileDetailsReply(common: Common, val profile: MidiCIProfileId, val target: Byte, val data: List<Byte>)
         : Message(common) {
         override val label = "ProfileDetailsReply"
         override val bodyString = "profile=$profile, target=$target, data=${data.dataString}"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIProfileDetailsReply(dst, address, sourceMUID, destinationMUID, profile, target, data)
+        }
     }
     class ProfileSpecificData(common: Common, val profile: MidiCIProfileId, val data: List<Byte>)
         : Message(common) {
@@ -189,11 +247,21 @@ abstract class Message(protected val common: Common) {
         : Message(common) {
         override val label = "PropertyGetCapabilities"
         override val bodyString = "maxSimultaneousRequests=${maxSimultaneousRequests}"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIPropertyGetCapabilities(buf, address, false,
+                sourceMUID, destinationMUID, maxSimultaneousRequests)
+        }
     }
     class PropertyGetCapabilitiesReply(common: Common, val maxSimultaneousRequests: Byte)
         : Message(common) {
         override val label = "PropertyGetCapabilitiesReply"
         override val bodyString = "maxSimultaneousRequests=${maxSimultaneousRequests}"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIPropertyGetCapabilities(dst, address, true,
+                sourceMUID, destinationMUID, maxSimultaneousRequests)
+        }
     }
     abstract class PropertyMessage(common: Common, val requestId: Byte, val header: List<Byte>, val body: List<Byte>)
         : Message(common) {
@@ -202,26 +270,65 @@ abstract class Message(protected val common: Common) {
     class GetPropertyData(common: Common, requestId: Byte, header: List<Byte>)
         : PropertyMessage(common, requestId, header, listOf()) {
         override val label = "GetPropertyData"
+        fun serialize(config: MidiCIDeviceConfiguration): Sequence<List<Byte>> {
+            val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIPropertyChunks(buf, config.maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_INQUIRY,
+                sourceMUID, destinationMUID, requestId, header, listOf()).asSequence()
+        }
     }
     class GetPropertyDataReply(common: Common, requestId: Byte, header: List<Byte>, body: List<Byte>)
         : PropertyMessage(common, requestId, header, body) {
         override val label = "GetPropertyDataReply"
+        fun serialize(config: MidiCIDeviceConfiguration): Sequence<List<Byte>> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIPropertyChunks(
+                dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_GET_DATA_REPLY,
+                sourceMUID, destinationMUID, requestId, header, body
+            ).asSequence()
+        }
     }
     class SetPropertyData(common: Common, requestId: Byte, header: List<Byte>, body: List<Byte>)
         : PropertyMessage(common, requestId, header, body) {
         override val label = "SetPropertyData"
+        fun serialize(config: MidiCIDeviceConfiguration): Sequence<List<Byte>> {
+            val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIPropertyChunks(buf, config.maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_INQUIRY,
+                sourceMUID, destinationMUID, requestId, header, body).asSequence()
+        }
     }
     class SetPropertyDataReply(common: Common, requestId: Byte, header: List<Byte>)
         : PropertyMessage(common, requestId, header, listOf()) {
         override val label = "SetPropertyDataReply"
+
+        fun serialize(config: MidiCIDeviceConfiguration): Sequence<List<Byte>> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIPropertyChunks(
+                dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_SET_DATA_REPLY,
+                sourceMUID, destinationMUID, requestId, header, listOf()
+            ).asSequence()
+        }
     }
     class SubscribeProperty(common: Common, requestId: Byte, header: List<Byte>, body: List<Byte>)
         : PropertyMessage(common, requestId, header, body) {
         override val label = "SubscribeProperty"
+        fun serialize(config: MidiCIDeviceConfiguration): Sequence<List<Byte>> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIPropertyChunks(
+                dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE,
+                sourceMUID, destinationMUID, requestId, header, body
+            ).asSequence()
+        }
     }
     class SubscribePropertyReply(common: Common, requestId: Byte, header: List<Byte>, body: List<Byte>)
         : PropertyMessage(common, requestId, header, body) {
         override val label = "SubscribePropertyReply"
+        fun serialize(config: MidiCIDeviceConfiguration): Sequence<List<Byte>> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIPropertyChunks(
+                dst, config.maxPropertyChunkSize, CISubId2.PROPERTY_SUBSCRIBE_REPLY,
+                sourceMUID, destinationMUID, requestId, header, body
+            ).asSequence()
+        }
     }
     class PropertyNotify(common: Common, requestId: Byte, header: List<Byte>, body: List<Byte>)
         : PropertyMessage(common, requestId, header, body) {
@@ -233,11 +340,20 @@ abstract class Message(protected val common: Common) {
         : Message(common) {
         override val label = "ProcessInquiry"
         override val bodyString = ""
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIProcessInquiryCapabilities(buf, sourceMUID, destinationMUID)
+        }
     }
     class ProcessInquiryReply(common: Common, val supportedFeatures: Byte)
         : Message(common) {
         override val label = "ProcessInquiryReply"
         override val bodyString = "supportedFeatures=$supportedFeatures"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIProcessInquiryCapabilitiesReply(
+                dst, sourceMUID, destinationMUID, supportedFeatures)
+        }
     }
     class MidiMessageReportInquiry(common: Common,
                                    val messageDataControl: Byte,
@@ -247,6 +363,11 @@ abstract class Message(protected val common: Common) {
         : Message(common) {
         override val label = "MidiMessageReportInquiry"
         override val bodyString = "messageDataControl=$messageDataControl, systemMessages=$systemMessages, channelControllerMessages=$channelControllerMessages, noteDataMessages=$noteDataMessages"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val buf = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIMidiMessageReport(buf, address, sourceMUID, destinationMUID,
+                messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
+        }
     }
     class MidiMessageReportReply(common: Common,
                                  val systemMessages: Byte,
@@ -255,10 +376,19 @@ abstract class Message(protected val common: Common) {
         : Message(common) {
         override val label = "MidiMessageReportReply"
         override val bodyString = "systemMessages = $systemMessages, channelControllerMessages = $channelControllerMessages, noteDataMessages = $noteDataMessages"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIMidiMessageReportReply(dst, address, sourceMUID, destinationMUID,
+                systemMessages, channelControllerMessages, noteDataMessages)
+        }
     }
     class MidiMessageReportNotifyEnd(common: Common)
         : Message(common) {
         override val label = "MidiMessageReportNotifyEnd"
         override val bodyString = ""
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIEndOfMidiMessage(dst, address, sourceMUID, destinationMUID)
+        }
     }
 }

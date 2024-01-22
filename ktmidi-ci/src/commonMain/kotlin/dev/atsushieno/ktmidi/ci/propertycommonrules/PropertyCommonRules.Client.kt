@@ -4,7 +4,7 @@ import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
 
-class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private val sendGetPropertyData: (msg: Message.GetPropertyData) -> Unit) :
+class CommonRulesPropertyClient(logger: Logger, private val muid: Int) :
     CommonRulesPropertyHelper(logger), MidiCIPropertyClient {
     override fun createDataRequestHeader(propertyId: String, fields: Map<String, Any?>): List<Byte> =
         createRequestHeaderBytes(propertyId, fields)
@@ -16,8 +16,8 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
 
     override fun getMetadataList(): List<PropertyMetadata> = resourceList
 
-    override fun requestPropertyList(group: Byte, destinationMUID: Int, requestId: Byte) =
-        requestResourceList(group, destinationMUID, requestId)
+    override fun getPropertyListRequest(group: Byte, destinationMUID: Int, requestId: Byte) =
+        getResourceListRequest(group, destinationMUID, requestId)
 
     override fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
         // If the reply message is about ResourceList, then store the list internally.
@@ -109,11 +109,10 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, private v
     private val resourceList = mutableListOf<PropertyMetadata>()
     val subscriptions = mutableListOf<SubscriptionEntry>()
 
-    private fun requestResourceList(group: Byte, destinationMUID: Int, requestId: Byte) {
+    private fun getResourceListRequest(group: Byte, destinationMUID: Int, requestId: Byte): Message.GetPropertyData {
         val requestASCIIBytes = getResourceListRequestBytes()
-        val msg = Message.GetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+        return Message.GetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
             requestId, requestASCIIBytes)
-        sendGetPropertyData(msg)
     }
 
     private fun getMetadataListForMessage(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply): List<PropertyMetadata>? {

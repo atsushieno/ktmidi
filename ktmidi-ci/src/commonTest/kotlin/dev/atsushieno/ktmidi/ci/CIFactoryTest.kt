@@ -49,7 +49,7 @@ class CIFactoryTest {
             0x10, 0x10, 0x10, 0x10, 0x7F, 0x7F, 0x7F, 0x7F, 0x20, 0x20, 0x20, 0x20
         )
         val actual3 = MutableList<Byte>(17) { 0 }
-        CIFactory.midiCIDiscoveryInvalidateMuid(actual3, 1, 0x10101010, 0x20202020)
+        CIFactory.midiCIInvalidateMuid(actual3, 1, 0x10101010, 0x20202020)
         assertEquals(expected3, actual3)
 
         // NAK

@@ -18,7 +18,7 @@ interface MidiCIPropertyClient {
 
     fun getMetadataList(): List<PropertyMetadata>?
 
-    fun requestPropertyList(group: Byte, destinationMUID: Int, requestId: Byte)
+    fun getPropertyListRequest(group: Byte, destinationMUID: Int, requestId: Byte): Message.GetPropertyData
 
     fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply)
 

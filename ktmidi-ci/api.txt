@@ -8,12 +8,12 @@ package dev.atsushieno.ktmidi.ci {
     method public java.util.List<java.lang.Byte> midiCIAckNak(java.util.List<java.lang.Byte> dst, boolean isNak, byte address, byte versionAndFormat, int sourceMUID, int destinationMUID, byte originalSubId, byte statusCode, byte statusData, java.util.List<java.lang.Byte> nakDetails, java.util.List<java.lang.Byte> messageTextData);
     method public java.util.List<java.lang.Byte> midiCIDiscovery(java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize, byte initiatorOutputPathId);
     method public void midiCIDiscoveryCommon(java.util.List<java.lang.Byte> dst, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer3Bytes, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize, byte initiatorOutputPathId);
-    method public java.util.List<java.lang.Byte> midiCIDiscoveryInvalidateMuid(java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int targetMUID);
     method public java.util.List<java.lang.Byte> midiCIDiscoveryNak(java.util.List<java.lang.Byte> dst, byte address, byte versionAndFormat, int sourceMUID, int destinationMUID);
     method public java.util.List<java.lang.Byte> midiCIDiscoveryReply(java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int destinationMUID, int deviceManufacturer, short deviceFamily, short deviceFamilyModelNumber, int softwareRevisionLevel, byte ciCategorySupported, int receivableMaxSysExSize, byte initiatorOutputPathId, byte functionBlock);
     method public java.util.List<java.lang.Byte> midiCIEndOfMidiMessage(java.util.List<java.lang.Byte> dst, byte address, int sourceMUID, int destinationMUID);
     method public java.util.List<java.lang.Byte> midiCIEndpointMessage(java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int destinationMUID, byte status);
     method public java.util.List<java.lang.Byte> midiCIEndpointMessageReply(java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int destinationMUID, byte status, java.util.List<java.lang.Byte> informationData);
+    method public java.util.List<java.lang.Byte> midiCIInvalidateMuid(java.util.List<java.lang.Byte> dst, byte versionAndFormat, int sourceMUID, int targetMUID);
     method public void midiCIMessageCommon(java.util.List<java.lang.Byte> dst, byte address, byte sysexSubId2, byte versionAndFormat, int sourceMUID, int destinationMUID);
     method public java.util.List<java.lang.Byte> midiCIMidiMessageReport(java.util.List<java.lang.Byte> dst, byte address, int sourceMUID, int destinationMUID, byte messageDataControl, byte systemMessages, byte channelControllerMessages, byte noteDataMessages);
     method public java.util.List<java.lang.Byte> midiCIMidiMessageReportReply(java.util.List<java.lang.Byte> dst, byte address, int sourceMUID, int destinationMUID, byte systemMessages, byte channelControllerMessages, byte noteDataMessages);
@@ -31,7 +31,6 @@ package dev.atsushieno.ktmidi.ci {
     method public java.util.List<java.util.List<java.lang.Byte>> midiCIPropertyChunks(java.util.List<java.lang.Byte> dst, int maxDataLengthInPacket, byte subId, int sourceMUID, int destinationMUID, byte requestId, java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> data);
     method public void midiCIPropertyCommon(java.util.List<java.lang.Byte> dst, byte address, byte messageTypeSubId2, int sourceMUID, int destinationMUID, byte requestId, java.util.List<java.lang.Byte> header, short numChunks, short chunkIndex, java.util.List<java.lang.Byte> data);
     method public java.util.List<java.lang.Byte> midiCIPropertyGetCapabilities(java.util.List<java.lang.Byte> dst, byte address, boolean isReply, int sourceMUID, int destinationMUID, byte maxSimulutaneousRequests);
-    method public java.util.List<java.lang.Byte> midiCIPropertyPacketCommon(java.util.List<java.lang.Byte> dst, byte subId, int sourceMUID, int destinationMUID, byte requestId, java.util.List<java.lang.Byte> header, short numChunks, short chunkIndex1Based, java.util.List<java.lang.Byte> data);
     method public void midiCiDirectInt16At(java.util.List<java.lang.Byte> dst, int offset, short v);
     method public void midiCiDirectUint32At(java.util.List<java.lang.Byte> dst, int offset, int v);
     field public static final dev.atsushieno.ktmidi.ci.CIFactory INSTANCE;
@@ -252,6 +251,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getLabel();
     method public byte getOutputPathId();
     method public int getReceivableMaxSysExSize();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public final byte ciCategorySupported;
     property public final dev.atsushieno.ktmidi.ci.DeviceDetails device;
@@ -269,6 +269,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getLabel();
     method public byte getOutputPathId();
     method public int getReceivableMaxSysExSize();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public final byte ciCategorySupported;
     property public final dev.atsushieno.ktmidi.ci.DeviceDetails device;
@@ -283,6 +284,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getBodyString();
     method public String getLabel();
     method public byte getStatus();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public String label;
     property public final byte status;
@@ -294,6 +296,7 @@ package dev.atsushieno.ktmidi.ci {
     method public java.util.List<java.lang.Byte> getData();
     method public String getLabel();
     method public byte getStatus();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public final java.util.List<java.lang.Byte> data;
     property public String label;
@@ -303,12 +306,14 @@ package dev.atsushieno.ktmidi.ci {
   public static final class Message.GetPropertyData extends dev.atsushieno.ktmidi.ci.Message.PropertyMessage {
     ctor public Message.GetPropertyData(dev.atsushieno.ktmidi.ci.Message.Common common, byte requestId, java.util.List<java.lang.Byte> header);
     method public String getLabel();
+    method public kotlin.sequences.Sequence<java.util.List<java.lang.Byte>> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String label;
   }
 
   public static final class Message.GetPropertyDataReply extends dev.atsushieno.ktmidi.ci.Message.PropertyMessage {
     ctor public Message.GetPropertyDataReply(dev.atsushieno.ktmidi.ci.Message.Common common, byte requestId, java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> body);
     method public String getLabel();
+    method public kotlin.sequences.Sequence<java.util.List<java.lang.Byte>> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String label;
   }
 
@@ -317,6 +322,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getBodyString();
     method public String getLabel();
     method public int getTargetMUID();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public String label;
     property public final int targetMUID;
@@ -330,6 +336,7 @@ package dev.atsushieno.ktmidi.ci {
     method public byte getMessageDataControl();
     method public byte getNoteDataMessages();
     method public byte getSystemMessages();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public final byte channelControllerMessages;
     property public String label;
@@ -342,6 +349,7 @@ package dev.atsushieno.ktmidi.ci {
     ctor public Message.MidiMessageReportNotifyEnd(dev.atsushieno.ktmidi.ci.Message.Common common);
     method public String getBodyString();
     method public String getLabel();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public String label;
   }
@@ -353,6 +361,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getLabel();
     method public byte getNoteDataMessages();
     method public byte getSystemMessages();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public final byte channelControllerMessages;
     property public String label;
@@ -369,6 +378,7 @@ package dev.atsushieno.ktmidi.ci {
     method public byte getOriginalSubId();
     method public byte getStatusCode();
     method public byte getStatusData();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public final java.util.List<java.lang.Byte> details;
     property public String label;
@@ -382,6 +392,7 @@ package dev.atsushieno.ktmidi.ci {
     ctor public Message.ProcessInquiry(dev.atsushieno.ktmidi.ci.Message.Common common);
     method public String getBodyString();
     method public String getLabel();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public String label;
   }
@@ -391,6 +402,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getBodyString();
     method public String getLabel();
     method public byte getSupportedFeatures();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public String label;
     property public final byte supportedFeatures;
@@ -412,6 +424,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getLabel();
     method public dev.atsushieno.ktmidi.ci.MidiCIProfileId getProfile();
     method public byte getTarget();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public String label;
     property public final dev.atsushieno.ktmidi.ci.MidiCIProfileId profile;
@@ -425,6 +438,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getLabel();
     method public dev.atsushieno.ktmidi.ci.MidiCIProfileId getProfile();
     method public byte getTarget();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public final java.util.List<java.lang.Byte> data;
     property public String label;
@@ -460,6 +474,7 @@ package dev.atsushieno.ktmidi.ci {
     ctor public Message.ProfileInquiry(dev.atsushieno.ktmidi.ci.Message.Common common);
     method public String getBodyString();
     method public String getLabel();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public String label;
   }
@@ -480,6 +495,7 @@ package dev.atsushieno.ktmidi.ci {
     method public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> getDisabledProfiles();
     method public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> getEnabledProfiles();
     method public String getLabel();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> disabledProfiles;
     property public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfileId> enabledProfiles;
@@ -503,6 +519,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getBodyString();
     method public String getLabel();
     method public byte getMaxSimultaneousRequests();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public String label;
     property public final byte maxSimultaneousRequests;
@@ -513,6 +530,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getBodyString();
     method public String getLabel();
     method public byte getMaxSimultaneousRequests();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public String label;
     property public final byte maxSimultaneousRequests;
@@ -541,6 +559,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getBodyString();
     method public String getLabel();
     method public dev.atsushieno.ktmidi.ci.MidiCIProfileId getProfile();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public String label;
     property public final dev.atsushieno.ktmidi.ci.MidiCIProfileId profile;
@@ -552,6 +571,7 @@ package dev.atsushieno.ktmidi.ci {
     method public String getLabel();
     method public short getNumChannelsRequested();
     method public dev.atsushieno.ktmidi.ci.MidiCIProfileId getProfile();
+    method public java.util.List<java.lang.Byte> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String bodyString;
     property public String label;
     property public final short numChannelsRequested;
@@ -561,24 +581,28 @@ package dev.atsushieno.ktmidi.ci {
   public static final class Message.SetPropertyData extends dev.atsushieno.ktmidi.ci.Message.PropertyMessage {
     ctor public Message.SetPropertyData(dev.atsushieno.ktmidi.ci.Message.Common common, byte requestId, java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> body);
     method public String getLabel();
+    method public kotlin.sequences.Sequence<java.util.List<java.lang.Byte>> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String label;
   }
 
   public static final class Message.SetPropertyDataReply extends dev.atsushieno.ktmidi.ci.Message.PropertyMessage {
     ctor public Message.SetPropertyDataReply(dev.atsushieno.ktmidi.ci.Message.Common common, byte requestId, java.util.List<java.lang.Byte> header);
     method public String getLabel();
+    method public kotlin.sequences.Sequence<java.util.List<java.lang.Byte>> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String label;
   }
 
   public static final class Message.SubscribeProperty extends dev.atsushieno.ktmidi.ci.Message.PropertyMessage {
     ctor public Message.SubscribeProperty(dev.atsushieno.ktmidi.ci.Message.Common common, byte requestId, java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> body);
     method public String getLabel();
+    method public kotlin.sequences.Sequence<java.util.List<java.lang.Byte>> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String label;
   }
 
   public static final class Message.SubscribePropertyReply extends dev.atsushieno.ktmidi.ci.Message.PropertyMessage {
     ctor public Message.SubscribePropertyReply(dev.atsushieno.ktmidi.ci.Message.Common common, byte requestId, java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> body);
     method public String getLabel();
+    method public kotlin.sequences.Sequence<java.util.List<java.lang.Byte>> serialize(dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config);
     property public String label;
   }
 
@@ -803,6 +827,7 @@ package dev.atsushieno.ktmidi.ci {
   @kotlinx.serialization.Serializable public final class MidiCIDeviceConfiguration {
     ctor public MidiCIDeviceConfiguration(dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo device);
     method public boolean getAutoSendEndpointInquiry();
+    method public boolean getAutoSendGetResourceList();
     method public boolean getAutoSendProfileInquiry();
     method public boolean getAutoSendPropertyExchangeCapabilitiesInquiry();
     method public byte getCapabilityInquirySupported();
@@ -812,11 +837,17 @@ package dev.atsushieno.ktmidi.ci {
     method public java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfile> getLocalProfiles();
     method public int getMaxPropertyChunkSize();
     method public byte getMaxSimultaneousPropertyRequests();
+    method public byte getMidiMessageReportChannelControllerMessages();
+    method public byte getMidiMessageReportMessageDataControl();
+    method public byte getMidiMessageReportNoteDataMessages();
+    method public byte getMidiMessageReportSystemMessages();
     method public byte getOutputPathId();
+    method public byte getProcessInquirySupportedFeatures();
     method public String getProductInstanceId();
     method public int getReceivableMaxSysExSize();
     method public dev.atsushieno.ktmidi.ci.MidiCIResponderConfiguration getResponder();
     method public void setAutoSendEndpointInquiry(boolean);
+    method public void setAutoSendGetResourceList(boolean);
     method public void setAutoSendProfileInquiry(boolean);
     method public void setAutoSendPropertyExchangeCapabilitiesInquiry(boolean);
     method public void setCapabilityInquirySupported(byte);
@@ -824,10 +855,16 @@ package dev.atsushieno.ktmidi.ci {
     method public void setFunctionBlock(byte);
     method public void setMaxPropertyChunkSize(int);
     method public void setMaxSimultaneousPropertyRequests(byte);
+    method public void setMidiMessageReportChannelControllerMessages(byte);
+    method public void setMidiMessageReportMessageDataControl(byte);
+    method public void setMidiMessageReportNoteDataMessages(byte);
+    method public void setMidiMessageReportSystemMessages(byte);
     method public void setOutputPathId(byte);
+    method public void setProcessInquirySupportedFeatures(byte);
     method public void setProductInstanceId(String);
     method public void setReceivableMaxSysExSize(int);
     property public final boolean autoSendEndpointInquiry;
+    property public final boolean autoSendGetResourceList;
     property public final boolean autoSendProfileInquiry;
     property public final boolean autoSendPropertyExchangeCapabilitiesInquiry;
     property public final byte capabilityInquirySupported;
@@ -837,7 +874,12 @@ package dev.atsushieno.ktmidi.ci {
     property public final java.util.List<dev.atsushieno.ktmidi.ci.MidiCIProfile> localProfiles;
     property public final int maxPropertyChunkSize;
     property public final byte maxSimultaneousPropertyRequests;
+    property public final byte midiMessageReportChannelControllerMessages;
+    property public final byte midiMessageReportMessageDataControl;
+    property public final byte midiMessageReportNoteDataMessages;
+    property public final byte midiMessageReportSystemMessages;
     property public final byte outputPathId;
+    property public final byte processInquirySupportedFeatures;
     property public final String productInstanceId;
     property public final int receivableMaxSysExSize;
     property public final dev.atsushieno.ktmidi.ci.MidiCIResponderConfiguration responder;
@@ -889,18 +931,18 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   public final class MidiCIInitiator {
-    ctor public MidiCIInitiator(dev.atsushieno.ktmidi.ci.MidiCIDevice parent, dev.atsushieno.ktmidi.ci.MidiCIInitiatorConfiguration config, kotlin.jvm.functions.Function2<? super java.lang.Byte,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendOutput);
+    ctor public MidiCIInitiator(dev.atsushieno.ktmidi.ci.MidiCIDevice parent, dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config, kotlin.jvm.functions.Function2<? super java.lang.Byte,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendOutput);
+    method public void defaultProcessGetDataReply(dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply msg);
+    method public void defaultProcessProfileAddedReport(dev.atsushieno.ktmidi.ci.Message.ProfileAdded msg);
     method public void defaultProcessProfileDisabledReport(dev.atsushieno.ktmidi.ci.Message.ProfileDisabled msg);
     method public void defaultProcessProfileEnabledReport(dev.atsushieno.ktmidi.ci.Message.ProfileEnabled msg);
+    method public void defaultProcessProfileRemovedReport(dev.atsushieno.ktmidi.ci.Message.ProfileRemoved msg);
+    method public void defaultProcessProfileReply(dev.atsushieno.ktmidi.ci.Message.ProfileReply msg);
+    method public void defaultProcessPropertyCapabilitiesReply(dev.atsushieno.ktmidi.ci.Message.PropertyGetCapabilitiesReply msg);
     method public void defaultProcessSubscribePropertyReply(dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply msg);
-    method public dev.atsushieno.ktmidi.ci.MidiCIInitiatorConfiguration getConfig();
+    method public dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration getConfig();
     method public java.util.Map<java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIInitiator.ClientConnection> getConnections();
     method public java.util.List<kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.ConnectionChange,dev.atsushieno.ktmidi.ci.MidiCIInitiator.ClientConnection,kotlin.Unit>> getConnectionsChanged();
-    method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply,kotlin.Unit> getDefaultProcessGetDataReply();
-    method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileAdded,kotlin.Unit> getDefaultProcessProfileAddedReport();
-    method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileRemoved,kotlin.Unit> getDefaultProcessProfileRemovedReport();
-    method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileReply,kotlin.Unit> getDefaultProcessProfileReply();
-    method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.PropertyGetCapabilitiesReply,kotlin.Unit> getDefaultProcessPropertyCapabilitiesReply();
     method public dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo getDevice();
     method public dev.atsushieno.ktmidi.ci.MidiCIDevice.Events getEvents();
     method public dev.atsushieno.ktmidi.ci.Logger getLogger();
@@ -956,14 +998,9 @@ package dev.atsushieno.ktmidi.ci {
     method public void setProcessSubscribePropertyReply(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply,kotlin.Unit>);
     method public void setProfileOff(dev.atsushieno.ktmidi.ci.Message.SetProfileOff msg);
     method public void setProfileOn(dev.atsushieno.ktmidi.ci.Message.SetProfileOn msg);
-    property public final dev.atsushieno.ktmidi.ci.MidiCIInitiatorConfiguration config;
+    property public final dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config;
     property public final java.util.Map<java.lang.Integer,dev.atsushieno.ktmidi.ci.MidiCIInitiator.ClientConnection> connections;
     property public final java.util.List<kotlin.jvm.functions.Function2<dev.atsushieno.ktmidi.ci.ConnectionChange,dev.atsushieno.ktmidi.ci.MidiCIInitiator.ClientConnection,kotlin.Unit>> connectionsChanged;
-    property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply,kotlin.Unit> defaultProcessGetDataReply;
-    property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileAdded,kotlin.Unit> defaultProcessProfileAddedReport;
-    property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileRemoved,kotlin.Unit> defaultProcessProfileRemovedReport;
-    property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.ProfileReply,kotlin.Unit> defaultProcessProfileReply;
-    property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.PropertyGetCapabilitiesReply,kotlin.Unit> defaultProcessPropertyCapabilitiesReply;
     property public final dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo device;
     property public final dev.atsushieno.ktmidi.ci.MidiCIDevice.Events events;
     property public final dev.atsushieno.ktmidi.ci.Logger logger;
@@ -1047,10 +1084,7 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   @kotlinx.serialization.Serializable public final class MidiCIInitiatorConfiguration {
-    ctor public MidiCIInitiatorConfiguration(optional boolean autoSendGetResourceList);
-    method public boolean getAutoSendGetResourceList();
-    method public void setAutoSendGetResourceList(boolean);
-    property public final boolean autoSendGetResourceList;
+    ctor public MidiCIInitiatorConfiguration();
   }
 
   public final class MidiCIInitiatorTest {
@@ -1118,11 +1152,11 @@ package dev.atsushieno.ktmidi.ci {
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata>? getMetadataList();
     method public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> getPropertyCatalogUpdated();
     method public String getPropertyIdForHeader(java.util.List<java.lang.Byte> header);
+    method public dev.atsushieno.ktmidi.ci.Message.GetPropertyData getPropertyListRequest(byte group, int destinationMUID, byte requestId);
     method public String? getSubscribedProperty(dev.atsushieno.ktmidi.ci.Message.SubscribeProperty msg);
     method public kotlin.Pair<java.lang.Boolean,java.util.List<java.lang.Byte>> getUpdatedValue(dev.atsushieno.ktmidi.ci.PropertyValue? existing, boolean isPartial, String mediaType, java.util.List<java.lang.Byte> body);
     method public void onGetPropertyDataReply(dev.atsushieno.ktmidi.ci.Message.GetPropertyData request, dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply reply);
     method public void processPropertySubscriptionResult(Object subscriptionContext, dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply msg);
-    method public void requestPropertyList(byte group, int destinationMUID, byte requestId);
     property public abstract java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> propertyCatalogUpdated;
   }
 
@@ -1209,23 +1243,8 @@ package dev.atsushieno.ktmidi.ci {
 
   @kotlinx.serialization.Serializable public final class MidiCIResponderConfiguration {
     ctor public MidiCIResponderConfiguration();
-    method public byte getMidiMessageReportChannelControllerMessages();
-    method public byte getMidiMessageReportMessageDataControl();
-    method public byte getMidiMessageReportNoteDataMessages();
-    method public byte getMidiMessageReportSystemMessages();
-    method public byte getProcessInquirySupportedFeatures();
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> getPropertyMetadataList();
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyValue> getPropertyValues();
-    method public void setMidiMessageReportChannelControllerMessages(byte);
-    method public void setMidiMessageReportMessageDataControl(byte);
-    method public void setMidiMessageReportNoteDataMessages(byte);
-    method public void setMidiMessageReportSystemMessages(byte);
-    method public void setProcessInquirySupportedFeatures(byte);
-    property public final byte midiMessageReportChannelControllerMessages;
-    property public final byte midiMessageReportMessageDataControl;
-    property public final byte midiMessageReportNoteDataMessages;
-    property public final byte midiMessageReportSystemMessages;
-    property public final byte processInquirySupportedFeatures;
     property public final java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> propertyMetadataList;
     property public final java.util.List<dev.atsushieno.ktmidi.ci.PropertyValue> propertyValues;
   }
@@ -1602,7 +1621,7 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
   }
 
   public final class CommonRulesPropertyClient extends dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyHelper implements dev.atsushieno.ktmidi.ci.MidiCIPropertyClient {
-    ctor public CommonRulesPropertyClient(dev.atsushieno.ktmidi.ci.Logger logger, int muid, kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.ci.Message.GetPropertyData,kotlin.Unit> sendGetPropertyData);
+    ctor public CommonRulesPropertyClient(dev.atsushieno.ktmidi.ci.Logger logger, int muid);
     method public java.util.List<java.lang.Byte> createDataRequestHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
     method public java.util.List<java.lang.Byte> createStatusHeader(int status);
     method public java.util.List<java.lang.Byte> createSubscriptionHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
@@ -1611,12 +1630,12 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> getMetadataList();
     method public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> getPropertyCatalogUpdated();
     method public String getPropertyIdForHeader(java.util.List<java.lang.Byte> header);
+    method public dev.atsushieno.ktmidi.ci.Message.GetPropertyData getPropertyListRequest(byte group, int destinationMUID, byte requestId);
     method public String? getSubscribedProperty(dev.atsushieno.ktmidi.ci.Message.SubscribeProperty msg);
     method public java.util.List<dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry> getSubscriptions();
     method public kotlin.Pair<java.lang.Boolean,java.util.List<java.lang.Byte>> getUpdatedValue(dev.atsushieno.ktmidi.ci.PropertyValue? existing, boolean isPartial, String mediaType, java.util.List<java.lang.Byte> body);
     method public void onGetPropertyDataReply(dev.atsushieno.ktmidi.ci.Message.GetPropertyData request, dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply reply);
     method public void processPropertySubscriptionResult(Object subscriptionContext, dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply msg);
-    method public void requestPropertyList(byte group, int destinationMUID, byte requestId);
     property public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> propertyCatalogUpdated;
     property public final java.util.List<dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry> subscriptions;
   }
@@ -1653,7 +1672,6 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     method public java.util.Map<java.lang.String,java.util.List<java.lang.Byte>> getLinkedResources();
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> getMetadataList();
     method public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> getPropertyCatalogUpdated();
-    method public kotlin.Pair<dev.atsushieno.ktmidi.ci.json.Json.JsonValue,java.util.List<java.lang.Byte>> getPropertyData(dev.atsushieno.ktmidi.ci.json.Json.JsonValue headerJson);
     method public Object getPropertyData(dev.atsushieno.ktmidi.ci.Message.GetPropertyData msg);
     method public String getPropertyIdForHeader(java.util.List<java.lang.Byte> header);
     method public java.util.List<dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry> getSubscriptions();

@@ -18,6 +18,7 @@ class MidiCIDeviceConfiguration(var device: MidiCIDeviceInfo) {
     var autoSendEndpointInquiry: Boolean = true
     var autoSendProfileInquiry: Boolean = true
     var autoSendPropertyExchangeCapabilitiesInquiry: Boolean = true
+    var autoSendGetResourceList: Boolean = true
 
     // discovery responder
     var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK
@@ -25,11 +26,17 @@ class MidiCIDeviceConfiguration(var device: MidiCIDeviceInfo) {
 
     // Profile Configuration
     val localProfiles: MutableList<MidiCIProfile> = mutableListOf()
+
+    // Process Inquiry responder
+    var processInquirySupportedFeatures: Byte = MidiCIProcessInquiryFeatures.MIDI_MESSAGE_REPORT
+    var midiMessageReportMessageDataControl: Byte = MidiMessageReportDataControl.Full
+    var midiMessageReportSystemMessages: Byte = MidiMessageReportSystemMessagesFlags.All
+    var midiMessageReportChannelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All
+    var midiMessageReportNoteDataMessages: Byte = MidiMessageReportNoteDataFlags.All
 }
 
 @Serializable
 class MidiCIInitiatorConfiguration(
-    var autoSendGetResourceList: Boolean = true,
 )
 
 @Serializable
@@ -38,11 +45,4 @@ class MidiCIResponderConfiguration {
     // Property Exchange
     val propertyValues: MutableList<PropertyValue> = mutableListOf()
     val propertyMetadataList: MutableList<PropertyMetadata> = mutableListOf()
-
-    // Process Inquiry
-    var processInquirySupportedFeatures: Byte = MidiCIProcessInquiryFeatures.MIDI_MESSAGE_REPORT
-    var midiMessageReportMessageDataControl: Byte = MidiMessageReportDataControl.Full
-    var midiMessageReportSystemMessages: Byte = MidiMessageReportSystemMessagesFlags.All
-    var midiMessageReportChannelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All
-    var midiMessageReportNoteDataMessages: Byte = MidiMessageReportNoteDataFlags.All
 }
