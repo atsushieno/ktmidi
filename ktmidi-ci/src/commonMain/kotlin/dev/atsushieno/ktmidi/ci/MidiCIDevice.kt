@@ -284,7 +284,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     private val defaultProcessSetProfile = { group: Byte, address: Byte, initiatorMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, numChannelsRequested: Short, enabled: Boolean ->
         val newEntry = MidiCIProfile(profile, group, address, enabled, numChannelsRequested)
-        val existing = localProfiles.profiles.firstOrNull { it.profile == profile }
+        val existing = localProfiles.profiles.firstOrNull { it.profile == profile && it.address == address }
         if (existing != null)
             localProfiles.remove(existing)
         localProfiles.add(newEntry)
