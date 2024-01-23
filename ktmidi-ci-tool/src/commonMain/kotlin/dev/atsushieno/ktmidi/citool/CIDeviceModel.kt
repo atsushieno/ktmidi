@@ -42,7 +42,7 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
                 parent.owner.log(msg, direction)
             }
 
-            initiator.connectionsChanged.add { change, conn ->
+            connectionsChanged.add { change, conn ->
                 val cml = this@CIDeviceModel.connections
                 when (change) {
                     ConnectionChange.Added -> this@CIDeviceModel.connections.add(ClientConnectionModel(this@CIDeviceModel, conn).apply {
@@ -165,6 +165,15 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
         device.localProfiles.profileEnabledChanged.add { profile ->
             val dst = localProfileStates.first { it.profile == profile.profile && it.address.value == profile.address }
             dst.enabled.value = profile.enabled
+        }
+    }
+
+    init {
+        device.connectionsChanged.add { change, conn ->
+            when (change) {
+                ConnectionChange.Added -> connections.add(ClientConnectionModel(this, conn))
+                ConnectionChange.Removed -> connections.removeAll { it.conn == conn }
+            }
         }
     }
 }

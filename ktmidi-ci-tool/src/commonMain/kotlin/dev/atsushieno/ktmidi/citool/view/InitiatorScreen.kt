@@ -13,11 +13,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.atsushieno.ktmidi.ci.ClientConnection
 import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 import dev.atsushieno.ktmidi.ci.MidiCIConstants
-import dev.atsushieno.ktmidi.ci.MidiCIInitiator
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
 import dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState
+import dev.atsushieno.ktmidi.citool.MidiCIProfileState
 
 @Composable
 fun InitiatorScreen(vm: InitiatorViewModel) {
@@ -56,7 +57,7 @@ fun ClientConnection(vm: ConnectionViewModel) {
             val selectedProfile by remember { vm.selectedProfile }
             val sp = selectedProfile
             if (sp != null)
-                ClientProfileDetails(vm, sp)
+                ClientProfileDetails(vm, vm.conn.profiles.filter { it.profile == sp }, sp)
         }
 
         Text("Properties", fontSize = 24.sp, fontWeight = FontWeight.Bold)
@@ -122,7 +123,7 @@ private fun ClientConnectionInfo(vm: ConnectionViewModel) {
 }
 
 @Composable
-private fun InitiatorDestinationSelector(connections: Map<Int, MidiCIInitiator.ClientConnection>,
+private fun InitiatorDestinationSelector(connections: Map<Int, ClientConnection>,
                                          destinationMUID: Int,
                                          onChange: (Int) -> Unit) {
     var dialogState by remember { mutableStateOf(false) }
@@ -180,7 +181,7 @@ fun ClientProfileListEntry(profileId: MidiCIProfileId, isSelected: Boolean, sele
 }
 
 @Composable
-fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
+fun ClientProfileDetails(vm: ConnectionViewModel, profiles: List<MidiCIProfileState>, profile: MidiCIProfileId) {
     Column {
         Text("Details Inquiry")
         var profileDetailsInquiryAddress by remember { mutableStateOf(MidiCIConstants.ADDRESS_FUNCTION_BLOCK) }
@@ -204,8 +205,7 @@ fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
             }
         }
         Text("Set Profile [Grp. / Ch.] ")
-        val entries = vm.conn.profiles.filter { it.profile.toString() == profile.toString() }
-        entries.forEach {
+        profiles.forEach {
             var numChannelsRequestedString by remember { mutableStateOf(it.numChannelsRequested.value.toString()) }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("[${it.group.value} / ")
@@ -220,13 +220,7 @@ fun ClientProfileDetails(vm: ConnectionViewModel, profile: MidiCIProfileId) {
                 Text("]", Modifier.padding(10.dp))
                 Switch(checked = it.enabled.value, onCheckedChange = { newEnabled ->
                     try {
-                        vm.setProfile(
-                            vm.conn.conn.targetMUID,
-                            it.address.value,
-                            it.profile,
-                            newEnabled,
-                            numChannelsRequestedString.toShort()
-                        )
+                        vm.setProfile(it.address.value, it.profile, newEnabled, numChannelsRequestedString.toShort())
                     } catch (_: NumberFormatException) {
                     }
                 }, Modifier.padding(10.dp))

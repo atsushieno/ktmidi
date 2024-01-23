@@ -70,11 +70,13 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     val logger = Logger()
 
-    val connections = mutableMapOf<Int, MidiCIInitiator.ClientConnection>()
-    val connectionsChanged = mutableListOf<(change: ConnectionChange, connection: MidiCIInitiator.ClientConnection) -> Unit>()
+    val connections = mutableMapOf<Int, ClientConnection>()
+    val connectionsChanged = mutableListOf<(change: ConnectionChange, connection: ClientConnection) -> Unit>()
 
-    var profileService: MidiCIProfileService = CommonRulesProfileService()
+    private var profileService: MidiCIProfileService = CommonRulesProfileService()
     val localProfiles = ObservableProfileList(config.localProfiles)
+    // These events are invoked when it received Set Profile On/Off request from Initiator.
+    val onProfileSet = mutableListOf<(profile: MidiCIProfile) -> Unit>()
 
     // Request sender
 
@@ -152,13 +154,13 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     }
 
     // to Discovery (responder)
-    val sendDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
+    fun sendDiscoveryReply(msg: Message.DiscoveryReply) {
         logger.logMessage(msg, MessageDirection.Out)
         sendCIOutput(msg.group, msg.serialize(config))
     }
-    val getDiscoveryReplyForInquiry: (request: Message.DiscoveryInquiry) -> Message.DiscoveryReply = { request ->
+    fun getDiscoveryReplyForInquiry(request: Message.DiscoveryInquiry): Message.DiscoveryReply {
         val deviceDetails = DeviceDetails(device.manufacturerId, device.familyId, device.modelId, device.versionId)
-        Message.DiscoveryReply(Message.Common(muid, request.sourceMUID, request.address, request.group),
+        return Message.DiscoveryReply(Message.Common(muid, request.sourceMUID, request.address, request.group),
             deviceDetails, config.capabilityInquirySupported,
             config.receivableMaxSysExSize, request.outputPathId, config.functionBlock)
     }
@@ -169,15 +171,15 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         sendDiscoveryReply(reply)
     }
 
-    val sendEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
+    fun sendEndpointReply(msg: Message.EndpointReply) {
         logger.logMessage(msg, MessageDirection.Out)
         sendCIOutput(msg.group, msg.serialize(config))
     }
-    val getEndpointReplyForInquiry: (msg: Message.EndpointInquiry) -> Message.EndpointReply = { msg ->
+    fun getEndpointReplyForInquiry(msg: Message.EndpointInquiry): Message.EndpointReply {
         val prodId = config.productInstanceId
         if (prodId.length > 16 || prodId.any { it.code < 0x20 || it.code > 0x7E })
             throw IllegalStateException("productInstanceId shall not be any longer than 16 bytes in size and must be all in ASCII code between 32 and 126")
-        Message.EndpointReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+        return Message.EndpointReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
             msg.status,
             if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID && prodId.isNotBlank()) prodId.toASCIIByteArray().toList() else listOf()
         )
@@ -190,9 +192,9 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     }
 
     // to Reply to Discovery (initiator)
-    val handleNewEndpoint = { msg: Message.DiscoveryReply ->
+    fun handleNewEndpoint(msg: Message.DiscoveryReply) {
         // If successfully discovered, continue to endpoint inquiry
-        val connection = MidiCIInitiator.ClientConnection(initiator, msg.sourceMUID, msg.device)
+        val connection = ClientConnection(initiator, msg.sourceMUID, msg.device)
         val existing = connections[msg.sourceMUID]
         if (existing != null) {
             connections.remove(msg.sourceMUID)
@@ -202,10 +204,10 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         connectionsChanged.forEach { it(ConnectionChange.Added, connection) }
 
         if (config.autoSendEndpointInquiry)
-            initiator.sendEndpointMessage(msg.group, msg.sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
+            sendEndpointMessage(msg.group, msg.sourceMUID, MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID)
 
         if (config.autoSendProfileInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROFILE_CONFIGURATION.toInt()) != 0)
-            initiator.requestProfiles(msg.group, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, msg.sourceMUID)
+            requestProfiles(msg.group, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, msg.sourceMUID)
         if (config.autoSendPropertyExchangeCapabilitiesInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROPERTY_EXCHANGE.toInt()) != 0)
             initiator.requestPropertyExchangeCapabilities(msg.group, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, msg.sourceMUID, config.maxSimultaneousPropertyRequests)
     }
@@ -232,7 +234,15 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     }
     var processNak = defaultProcessNak
 
-    val defaultProcessEndpointReply = { msg: Message.EndpointReply ->
+
+    fun sendEndpointMessage(group: Byte, targetMuid: Int, status: Byte = MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID) =
+        sendEndpointMessage(Message.EndpointInquiry(Message.Common(muid, targetMuid, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group), status))
+    fun sendEndpointMessage(msg: Message.EndpointInquiry) {
+        logger.logMessage(msg, MessageDirection.Out)
+        sendCIOutput(msg.group, msg.serialize(config))
+    }
+
+    fun defaultProcessEndpointReply(msg: Message.EndpointReply) {
         val conn = connections[msg.sourceMUID]
         if (conn != null) {
             if (msg.status == MidiCIConstants.ENDPOINT_STATUS_PRODUCT_INSTANCE_ID) {
@@ -250,9 +260,73 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         defaultProcessEndpointReply(msg)
     }
 
+    // Remote Profile Configuration
+
+    // FIXME: most of them should move into ProfileClient
+
+    fun requestProfiles(group: Byte, address: Byte, destinationMUID: Int) =
+        sendProfileInquiry(Message.ProfileInquiry(Message.Common(muid, destinationMUID, address, group)))
+    internal fun sendProfileInquiry(msg: Message.ProfileInquiry) {
+        logger.logMessage(msg, MessageDirection.Out)
+        sendCIOutput(msg.group, msg.serialize(config))
+    }
+
+    fun requestProfileDetails(group: Byte, address: Byte, targetMUID: Int, profile: MidiCIProfileId, target: Byte) =
+        sendProfileDetailsInquiry(Message.ProfileDetailsInquiry(Message.Common(muid, targetMUID, address, group),
+            profile, target))
+    internal fun sendProfileDetailsInquiry(msg: Message.ProfileDetailsInquiry) {
+        logger.logMessage(msg, MessageDirection.Out)
+        sendCIOutput(msg.group, msg.serialize(config))
+    }
+
+    internal fun sendSetProfileOn(msg: Message.SetProfileOn) {
+        logger.logMessage(msg, MessageDirection.Out)
+        sendCIOutput(msg.group, msg.serialize(config))
+    }
+
+    internal fun sendSetProfileOff(msg: Message.SetProfileOff) {
+        logger.logMessage(msg, MessageDirection.Out)
+        sendCIOutput(msg.group, msg.serialize(config))
+    }
+
+    var processProfileReply = { msg: Message.ProfileReply ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.profileInquiryReplyReceived.forEach { it(msg) }
+        continueOnClient(msg, CISubId2.PROFILE_INQUIRY_REPLY) { it.profileClient.processProfileReply(msg) }
+    }
+
+    var processProfileAddedReport = { msg: Message.ProfileAdded ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.profileAddedReceived.forEach { it(msg) }
+        continueOnClient(msg, CISubId2.PROFILE_ADDED_REPORT) { it.profileClient.processProfileAddedReport(msg) }
+    }
+
+    var processProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.profileRemovedReceived.forEach { it(msg) }
+        continueOnClient(msg, CISubId2.PROFILE_REMOVED_REPORT) { it.profileClient.processProfileRemovedReport(msg) }
+    }
+
+    var processProfileEnabledReport: (msg: Message.ProfileEnabled) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.profileEnabledReceived.forEach { it(msg) }
+        continueOnClient(msg, CISubId2.PROFILE_ENABLED_REPORT) { it.profileClient.processProfileEnabledReport(msg) }
+    }
+    var processProfileDisabledReport: (msg: Message.ProfileDisabled) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.profileDisabledReceived.forEach { it(msg) }
+        continueOnClient(msg, CISubId2.PROFILE_DISABLED_REPORT) { it.profileClient.processProfileDisabledReport(msg) }
+    }
+
+    var processProfileDetailsReply: (msg: Message.ProfileDetailsReply) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.profileDetailsReplyReceived.forEach { it(msg) }
+        continueOnClient(msg, CISubId2.PROFILE_DETAILS_REPLY) { it.profileClient.processProfileDetailsReply(msg) }
+    }
+
     // Local Profile Configuration
 
-    val sendProfileReply: (msg: Message.ProfileReply) -> Unit = { msg ->
+    fun sendProfileReply(msg: Message.ProfileReply) {
         logger.logMessage(msg, MessageDirection.Out)
         sendCIOutput(msg.group, msg.serialize(config))
     }
@@ -263,13 +337,11 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         else
             yield(address)
     }
-    val getProfileRepliesForInquiry: (msg: Message.ProfileInquiry) -> Sequence<Message.ProfileReply> = { msg ->
-        sequence {
-            getAllAddresses(msg.address).forEach { address ->
-                yield(Message.ProfileReply(Message.Common(muid, msg.sourceMUID, address, msg.group),
-                    localProfiles.getMatchingProfiles(address, true),
-                    localProfiles.getMatchingProfiles(address, false)))
-            }
+    fun getProfileRepliesForInquiry(msg: Message.ProfileInquiry): Sequence<Message.ProfileReply> = sequence {
+        getAllAddresses(msg.address).forEach { address ->
+            yield(Message.ProfileReply(Message.Common(muid, msg.sourceMUID, address, msg.group),
+                localProfiles.getMatchingProfiles(address, true),
+                localProfiles.getMatchingProfiles(address, false)))
         }
     }
     var processProfileInquiry: (msg: Message.ProfileInquiry) -> Unit = { msg ->
@@ -280,21 +352,13 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         }
     }
 
-    var onProfileSet = mutableListOf<(profile: MidiCIProfile) -> Unit>()
-
-    private val defaultProcessSetProfile = { group: Byte, address: Byte, initiatorMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, numChannelsRequested: Short, enabled: Boolean ->
-        val newEntry = MidiCIProfile(profile, group, address, enabled, numChannelsRequested)
-        val existing = localProfiles.profiles.firstOrNull { it.profile == profile && it.address == address }
-        if (existing != null)
-            localProfiles.remove(existing)
-        localProfiles.add(newEntry)
-        onProfileSet.forEach { it(newEntry) }
-        enabled
+    private fun sendSetProfileEnabled(group: Byte, address: Byte, profile: MidiCIProfileId, numChannelsEnabled: Short) {
+        val msg = Message.ProfileEnabled(Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, address, group), profile, numChannelsEnabled)
+        sendCIOutput(group, msg.serialize(config))
     }
-
-    private fun sendSetProfileReport(group: Byte, address: Byte, profile: MidiCIProfileId, enabled: Boolean) {
-        val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
-        sendCIOutput(group, CIFactory.midiCIProfileReport(dst, address, enabled, muid, profile))
+    private fun sendSetProfileDisabled(group: Byte, address: Byte, profile: MidiCIProfileId, numChannelsDisabled: Short) {
+        val msg = Message.ProfileDisabled(Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, address, group), profile, numChannelsDisabled)
+        sendCIOutput(group, msg.serialize(config))
     }
 
     fun sendProfileAddedReport(group: Byte, profile: MidiCIProfile) {
@@ -307,15 +371,29 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         sendCIOutput(group, CIFactory.midiCIProfileAddedRemoved(dst, profile.address, true, muid, profile.profile))
     }
 
+    private fun defaultProcessSetProfile(group: Byte, address: Byte, profile: MidiCIProfileId, numChannelsRequested: Short, enabled: Boolean): Boolean {
+        val newEntry = MidiCIProfile(profile, group, address, enabled, numChannelsRequested)
+        val existing = localProfiles.profiles.firstOrNull { it.profile == profile && it.address == address }
+        if (existing != null) {
+            if (existing.enabled == enabled)
+                return enabled // do not perform anything and return current state
+            localProfiles.remove(existing)
+        }
+        localProfiles.add(newEntry)
+        onProfileSet.forEach { it(newEntry) }
+        return enabled
+    }
+
     fun defaultProcessSetProfileOn(msg: Message.SetProfileOn) {
         // send Profile Enabled Report only when it is actually enabled
-        if (defaultProcessSetProfile(msg.group, msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, msg.numChannelsRequested, true))
-            sendSetProfileReport(msg.group, msg.address, msg.profile, true)
+        if (defaultProcessSetProfile(msg.group, msg.address, msg.profile, msg.numChannelsRequested, true))
+            sendSetProfileEnabled(msg.group, msg.address, msg.profile, msg.numChannelsRequested)
     }
     fun defaultProcessSetProfileOff(msg: Message.SetProfileOff) {
         // send Profile Disabled Report only when it is actually disabled
-        if (!defaultProcessSetProfile(msg.group, msg.address, msg.sourceMUID, msg.destinationMUID, msg.profile, 0, false))
-            sendSetProfileReport(msg.group, msg.address, msg.profile, false)
+        if (!defaultProcessSetProfile(msg.group, msg.address, msg.profile, 0, false))
+            // FIXME: supply numChannelsDisabled
+            sendSetProfileDisabled(msg.group, msg.address, msg.profile, 1)
     }
 
     var processSetProfileOn = { msg: Message.SetProfileOn ->
@@ -332,16 +410,15 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     fun sendProfileDetailsReply(msg: Message.ProfileDetailsReply) {
         sendCIOutput(msg.group, msg.serialize(config))
     }
-    private fun getProfileDetailsReplyForInquiry(msg: Message.ProfileDetailsInquiry, data: List<Byte>) =
-        Message.ProfileDetailsReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
-            msg.profile, msg.target, data)
     fun defaultProcessProfileDetailsInquiry(msg: Message.ProfileDetailsInquiry) {
         val data = profileService.getProfileDetails(msg.profile, msg.target)
+        val reply = Message.ProfileDetailsReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+            msg.profile, msg.target, data ?: listOf())
         if (data != null)
-            sendProfileDetailsReply(getProfileDetailsReplyForInquiry(msg, data))
+            sendProfileDetailsReply(reply)
         else
             sendNakForError(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
-                CISubId2.PROFILE_DETAILS_INQUIRY, 0, 0,
+                CISubId2.PROFILE_DETAILS_INQUIRY, CINakStatus.ProfileNotSupportedOnTarget, 0,
                 message = "Profile Details Inquiry against unknown target (profile=${msg.profile}, target=${msg.target})")
     }
 
@@ -356,7 +433,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         events.profileSpecificDataReceived.forEach { it(msg) }
     }
 
-    // Property Exchange
+    // Local Property Exchange
 
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
         // It may be either a new subscription, a property update notification, or end of subscription from either side
@@ -393,6 +470,61 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         // no particular things to do. Event handlers should be used if any.
     }
 
+    // Remote Process Inquiry
+    fun sendProcessInquiry(group: Byte, destinationMUID: Int) =
+        sendProcessInquiry(Message.ProcessInquiry(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group)))
+
+    fun sendProcessInquiry(msg: Message.ProcessInquiry) {
+        logger.logMessage(msg, MessageDirection.Out)
+        sendCIOutput(msg.group, msg.serialize(config))
+    }
+
+    fun sendMidiMessageReportInquiry(group: Byte, address: Byte, destinationMUID: Int,
+                                     messageDataControl: Byte,
+                                     systemMessages: Byte,
+                                     channelControllerMessages: Byte,
+                                     noteDataMessages: Byte) =
+        sendMidiMessageReportInquiry(Message.MidiMessageReportInquiry(
+            Message.Common(muid, destinationMUID, address, group),
+            messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
+
+    internal fun sendMidiMessageReportInquiry(msg: Message.MidiMessageReportInquiry) {
+        logger.logMessage(msg, MessageDirection.Out)
+        sendCIOutput(msg.group, msg.serialize(config))
+    }
+
+    var processProcessInquiryReply: (msg: Message.ProcessInquiryReply) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.processInquiryReplyReceived.forEach { it(msg) }
+        // no particular things to do. Event handlers should be used if any.
+    }
+
+    var processMidiMessageReportReply: (msg: Message.MidiMessageReportReply) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.midiMessageReportReplyReceived.forEach { it(msg) }
+        // no particular things to do. Event handlers should be used if any.
+    }
+
+    var processEndOfMidiMessageReport: (msg: Message.MidiMessageReportNotifyEnd) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.endOfMidiMessageReportReceived.forEach { it(msg) }
+        // no particular things to do. Event handlers should be used if any.
+    }
+
+    // processInput()
+
+    private val emptyNakDetails = List<Byte>(5) {0}
+
+    private fun <T> continueOnClient(msg: T, subId2: Byte, func: (conn: ClientConnection)->Unit) where T: Message {
+        val conn = connections[msg.sourceMUID]
+        if (conn != null)
+            func(conn)
+        else
+            sendNakForError(getResponseCommonForInput(msg.common), subId2, CINakStatus.Nak, 0, emptyNakDetails, "Profile Reply from unknown MUID")
+    }
+
+    private fun getResponseCommonForInput(common: Message.Common) =
+        Message.Common(muid, common.sourceMUID, common.address, common.group)
 
     fun processInput(group: Byte, data: List<Byte>) {
         if (data[0] != MidiCIConstants.UNIVERSAL_SYSEX || data[2] != MidiCIConstants.SYSEX_SUB_ID_MIDI_CI)
@@ -405,6 +537,8 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             CIRetrieval.midiCIGetAddressing(data),
             group
             )
+        if (data[4] != MidiCIConstants.CI_VERSION_AND_FORMAT)
+            sendNakForError(getResponseCommonForInput(common), data[3], CINakStatus.CIVersionNotSupported, 0, emptyNakDetails, "")
         if (data.size < (Message.messageSizes[data[3]] ?: Int.MAX_VALUE)) {
             logger.logError("Insufficient message size for ${data[3]}: ${data.size}")
             return // insufficient buffer size for the message
@@ -416,9 +550,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         try {
             processInputUnchecked(common, data)
         } catch(ex: IndexOutOfBoundsException) {
-            val address = CIRetrieval.midiCIGetAddressing(data)
-            val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
-            sendNakForError(Message.Common(muid, sourceMUID, address, group), data[3], CINakStatus.MalformedMessage, 0, List(5) { 0 }, ex.message ?: ex.toString())
+            sendNakForError(getResponseCommonForInput(common), data[3], CINakStatus.MalformedMessage, 0, emptyNakDetails, ex.message ?: ex.toString())
         }
     }
 
@@ -438,7 +570,6 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         }
     }
 
-
     private fun processInputUnchecked(common: Message.Common, data: List<Byte>) {
         when (data[3]) {
             // Protocol Negotiation - we ignore them. Falls back to NAK
@@ -456,7 +587,6 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                     common, device, ciSupported, max, initiatorOutputPath, functionBlock))
             }
             CISubId2.ENDPOINT_MESSAGE_REPLY -> {
-                val sourceMUID = CIRetrieval.midiCIGetSourceMUID(data)
                 val status = data[13]
                 val dataLength = data[14] + (data[15].toInt() shl 7)
                 val dataValue = data.drop(16).take(dataLength)
@@ -496,7 +626,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             // Profile Configuration
             CISubId2.PROFILE_INQUIRY_REPLY -> {
                 val profiles = CIRetrieval.midiCIGetProfileSet(data)
-                initiator.processProfileReply(Message.ProfileReply(
+                processProfileReply(Message.ProfileReply(
                     common,
                     profiles.filter { it.second }.map { it.first },
                     profiles.filter { !it.second }.map { it.first })
@@ -504,29 +634,29 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             }
             CISubId2.PROFILE_ADDED_REPORT -> {
                 val profile = CIRetrieval.midiCIGetProfileId(data)
-                initiator.processProfileAddedReport(Message.ProfileAdded(common, profile))
+                processProfileAddedReport(Message.ProfileAdded(common, profile))
             }
             CISubId2.PROFILE_REMOVED_REPORT -> {
                 val profile = CIRetrieval.midiCIGetProfileId(data)
-                initiator.processProfileRemovedReport(Message.ProfileRemoved(common, profile))
+                processProfileRemovedReport(Message.ProfileRemoved(common, profile))
             }
             CISubId2.PROFILE_DETAILS_REPLY -> {
                 val profile = CIRetrieval.midiCIGetProfileId(data)
                 val target = data[18]
                 val dataSize = data[19] + (data[20] shl 7)
                 val details = data.drop(21).take(dataSize)
-                initiator.processProfileDetailsReply(Message.ProfileDetailsReply(common, profile, target, details))
+                processProfileDetailsReply(Message.ProfileDetailsReply(common, profile, target, details))
             }
 
             CISubId2.PROFILE_ENABLED_REPORT -> {
                 val profile = CIRetrieval.midiCIGetProfileId(data)
                 val channels = (data[18] + (data[19] shl 7)).toShort()
-                initiator.processProfileEnabledReport(Message.ProfileEnabled(common, profile, channels))
+                processProfileEnabledReport(Message.ProfileEnabled(common, profile, channels))
             }
             CISubId2.PROFILE_DISABLED_REPORT -> {
                 val profile = CIRetrieval.midiCIGetProfileId(data)
                 val channels = (data[18] + (data[19] shl 7)).toShort()
-                initiator.processProfileDisabledReport(Message.ProfileDisabled(common, profile, channels))
+                processProfileDisabledReport(Message.ProfileDisabled(common, profile, channels))
             }
 
             // Property Exchange
@@ -587,18 +717,18 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             // Process Inquiry
             CISubId2.PROCESS_INQUIRY_CAPABILITIES_REPLY -> {
                 val supportedFeatures = data[13]
-                initiator.processProcessInquiryReply(Message.ProcessInquiryReply(common, supportedFeatures))
+                processProcessInquiryReply(Message.ProcessInquiryReply(common, supportedFeatures))
             }
             CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY -> {
                 val systemMessages = data[13]
                 // data[14] is reserved
                 val channelControllerMessages = data[15]
                 val noteDataMessages = data[16]
-                initiator.processMidiMessageReportReply(Message.MidiMessageReportReply(
+                processMidiMessageReportReply(Message.MidiMessageReportReply(
                     common, systemMessages, channelControllerMessages, noteDataMessages))
             }
             CISubId2.PROCESS_INQUIRY_END_OF_MIDI_MESSAGE -> {
-                initiator.processEndOfMidiMessageReport(Message.MidiMessageReportNotifyEnd(common))
+                processEndOfMidiMessageReport(Message.MidiMessageReportNotifyEnd(common))
             }
 
             // Responder inputs

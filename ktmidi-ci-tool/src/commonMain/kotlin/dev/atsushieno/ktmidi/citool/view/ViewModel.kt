@@ -7,7 +7,7 @@ import dev.atsushieno.ktmidi.ci.LogEntry
 import dev.atsushieno.ktmidi.citool.*
 import kotlin.random.Random
 
-val ViewModel = RootViewModel(AppModel)
+val ViewModel by lazy { RootViewModel(AppModel) }
 
 class RootViewModel(private val repository: CIToolRepository) {
     val logs = mutableStateListOf<LogEntry>()
@@ -36,7 +36,7 @@ class InitiatorViewModel(val device: CIDeviceModel) {
 
     var selectedRemoteDeviceMUID = mutableStateOf(0)
     val selectedRemoteDevice = derivedStateOf {
-        val conn = ciDeviceManager.initiator.connections.firstOrNull { it.conn.targetMUID == selectedRemoteDeviceMUID.value }
+        val conn = ciDeviceManager.device.connections.firstOrNull { it.conn.targetMUID == selectedRemoteDeviceMUID.value }
         if (conn != null) ConnectionViewModel(conn) else null
     }
 
@@ -46,18 +46,17 @@ class InitiatorViewModel(val device: CIDeviceModel) {
         device.device.connectionsChanged.add { change, item ->
             when (change) {
                 ConnectionChange.Added -> {
-                    val conn = device.initiator.connections.first { it.conn == item }
+                    val conn = device.connections.first { it.conn == item }
                     connections.add(ConnectionViewModel(conn))
+
+                    // When a new entry is appeared and nothing was selected, move to the new entry.
+                    if (selectedRemoteDeviceMUID.value == 0)
+                        selectedRemoteDeviceMUID.value = conn.conn.targetMUID
                 }
                 ConnectionChange.Removed -> {
                     connections.removeAll { it.conn.conn == item }
                 }
             }
-        }
-        // When a new entry is appeared and nothing was selected, move to the new entry.
-        ciDeviceManager.initiator.initiator.connectionsChanged.add { change, conn ->
-            if (selectedRemoteDeviceMUID.value == 0 && change == ConnectionChange.Added)
-                selectedRemoteDeviceMUID.value = conn.targetMUID
         }
     }
 }
@@ -99,12 +98,12 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
         ciDeviceManager.initiator.sendSetPropertyDataRequest(targetMUID, propertyId, bytes, encoding, isPartial)
     }
 
-    fun setProfile(targetMUID: Int, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) {
-        ciDeviceManager.initiator.setProfile(targetMUID, address, profile, newEnabled, newNumChannelsRequested)
+    fun setProfile(address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) {
+        conn.setProfile(address, profile, newEnabled, newNumChannelsRequested)
     }
 
     fun requestMidiMessageReport(address: Byte, targetMUID: Int) {
-        ciDeviceManager.initiator.requestMidiMessageReport(address, targetMUID)
+        conn.requestMidiMessageReport(address, targetMUID)
     }
 }
 

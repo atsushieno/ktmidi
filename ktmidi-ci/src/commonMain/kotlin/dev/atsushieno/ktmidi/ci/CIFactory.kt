@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
+import kotlin.experimental.and
+
 object CIFactory {
     // Assumes the input value is already 7-bit encoded if required.
     fun midiCiDirectInt16At(dst: MutableList<Byte>, offset: Int, v: Short) {
@@ -217,7 +219,8 @@ object CIFactory {
 
     fun midiCIProfileReport(
         dst: MutableList<Byte>, address: Byte, isEnabledReport: Boolean,
-        sourceMUID: Int, profile: MidiCIProfileId
+        sourceMUID: Int, profile: MidiCIProfileId,
+        numChannelsAffected: Short
     ) : List<Byte> {
         midiCIMessageCommon(
             dst, address,
@@ -225,6 +228,7 @@ object CIFactory {
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, 0x7F7F7F7F
         )
         midiCIProfile(dst, 13, profile)
+        midiCI7bitInt14At(dst, 18, numChannelsAffected)
         return dst.take(20)
     }
 
@@ -258,7 +262,7 @@ object CIFactory {
 
     fun midiCIProfileSpecificData(
         dst: MutableList<Byte>, address: Byte,
-        sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, dataSize: Int, data: MutableList<Byte>
+        sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, data: List<Byte>
     ) : List<Byte> {
         midiCIMessageCommon(
             dst, address,
@@ -266,9 +270,9 @@ object CIFactory {
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
         midiCIProfile(dst, 13, profile)
-        midiCiDirectUint32At(dst, 18, dataSize)
-        memcpy(dst, 22, data, dataSize)
-        return dst.take(22 + dataSize)
+        midiCiDirectUint32At(dst, 18, data.size)
+        memcpy(dst, 22, data, data.size)
+        return dst.take(22 + data.size)
     }
 
 

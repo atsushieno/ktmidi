@@ -1,6 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
-abstract class Message(protected val common: Common) {
+abstract class Message(val common: Common) {
     val group: Byte
         get() = common.group
     val address: Byte
@@ -208,15 +208,23 @@ abstract class Message(protected val common: Common) {
             return CIFactory.midiCIProfileSet(buf, address, false, sourceMUID, destinationMUID, profile, 0)
         }
     }
-    class ProfileEnabled(common: Common, val profile: MidiCIProfileId, val numChannelsRequested: Short)
+    class ProfileEnabled(common: Common, val profile: MidiCIProfileId, val numChannelsEnabled: Short)
         : Message(common) {
         override val label = "ProfileEnabled"
-        override val bodyString = "profile=$profile, numChannelsRequested=$numChannelsRequested"
+        override val bodyString = "profile=$profile, numChannelsEnabled=$numChannelsEnabled"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIProfileReport(dst, address, true, common.sourceMUID, profile, numChannelsEnabled)
+        }
     }
-    class ProfileDisabled(common: Common, val profile: MidiCIProfileId, val numChannelsRequested: Short)
+    class ProfileDisabled(common: Common, val profile: MidiCIProfileId, val numChannelsDisabled: Short)
         : Message(common) {
         override val label = "ProfileDisabled"
-        override val bodyString = "profile=$profile, numChannelsRequested=$numChannelsRequested"
+        override val bodyString = "profile=$profile, numChannelsDisabled=$numChannelsDisabled"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIProfileReport(dst, address, false, common.sourceMUID, profile, numChannelsDisabled)
+        }
     }
     class ProfileDetailsInquiry(common: Common, val profile: MidiCIProfileId, val target: Byte)
         : Message(common) {
@@ -236,10 +244,15 @@ abstract class Message(protected val common: Common) {
             return CIFactory.midiCIProfileDetailsReply(dst, address, sourceMUID, destinationMUID, profile, target, data)
         }
     }
+    // FIXME: we should make use ot it at client side, by adding UI for sending file etc.
     class ProfileSpecificData(common: Common, val profile: MidiCIProfileId, val data: List<Byte>)
         : Message(common) {
         override val label = "ProfileSpecificData"
         override val bodyString = "profile=$profile, data=${data.dataString}"
+        fun serialize(config: MidiCIDeviceConfiguration): List<Byte> {
+            val dst = MutableList<Byte>(config.receivableMaxSysExSize) { 0 }
+            return CIFactory.midiCIProfileSpecificData(dst, address, sourceMUID, destinationMUID, profile, data)
+        }
     }
 
     // Property Exchange

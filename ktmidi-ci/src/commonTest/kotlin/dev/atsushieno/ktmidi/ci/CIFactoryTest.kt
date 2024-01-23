@@ -120,22 +120,26 @@ class CIFactoryTest {
         val expected5 = mutableListOf<Byte>(
             0x7E, 5, 0x0D, 0x24, 2,
             0x10, 0x10, 0x10, 0x10, 0x7F, 0x7F, 0x7F, 0x7F,
-            0x7E, 2, 3, 4, 5, 0, 0
+            0x7E, 2, 3, 4, 5, 1, 0,
         )
         val actual5 = MutableList<Byte>(20) { 0 }
         CIFactory.midiCIProfileReport(
             actual5, 5, true, 0x10101010,
-            profiles1[0]
+            profiles1[0], 1
         )
         assertEquals(expected5, actual5)
 
         // Profile Disabled Report
+        val expected6 = mutableListOf<Byte>().apply {
+            addAll(expected5)
+            this[3] = 0x25
+        }
         val actual6 = MutableList<Byte>(20) { 0 }
         CIFactory.midiCIProfileReport(
             actual6, 5, false, 0x10101010,
-            profiles1[0]
+            profiles1[0], 1
         )
-        assertEquals(0x25, actual6[3])
+        assertEquals(expected6, actual6)
 
         // Profile Specific Data
         val expected7 = mutableListOf<Byte>(
@@ -149,7 +153,7 @@ class CIFactoryTest {
         val data = mutableListOf<Byte>(8, 7, 6, 5, 4, 3, 2, 1)
         CIFactory.midiCIProfileSpecificData(
             actual7, 5, 0x10101010, 0x20202020,
-            profiles1[0], 8, data
+            profiles1[0], data
         )
         assertEquals(expected7, actual7)
     }

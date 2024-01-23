@@ -8,32 +8,12 @@ import dev.atsushieno.ktmidi.ci.*
 class CIInitiatorModel(private val device: CIDeviceModel) {
     val initiator by lazy { device.device.initiator }
 
-    val connections = mutableStateListOf<ClientConnectionModel>()
-
     fun sendEndpointMessage(targetMUID: Int) {
-        initiator.sendEndpointMessage(device.defaultSenderGroup, targetMUID)
-    }
-
-    fun setProfile(destinationMUID: Int, address: Byte, profile: MidiCIProfileId, nextEnabled: Boolean, newNumChannelsRequested: Short) {
-        if (nextEnabled) {
-            // FIXME: maybe we should pass number of channels somehow?
-            val msg = Message.SetProfileOn(Message.Common(device.muid, destinationMUID, address, device.defaultSenderGroup), profile,
-                // NOTE: juce_midi_ci has a bug that it expects 1 for 7E and 7F, whereas MIDI-CI v1.2 states:
-                //   "When the Profile Destination field is set to address 0x7E or 0x7F, the number of Channels is determined
-                //    by the width of the Group or Function Block. Set the Number of Channels Requested field to a value of 0x0000."
-                if (address < 0x10 || ImplementationSettings.workaroundJUCEProfileNumChannelsIssue)
-                    { if (newNumChannelsRequested < 1) 1 else newNumChannelsRequested }
-                else newNumChannelsRequested
-            )
-            initiator.setProfileOn(msg)
-        } else {
-            val msg = Message.SetProfileOff(Message.Common(device.muid, destinationMUID, address, device.defaultSenderGroup), profile)
-            initiator.setProfileOff(msg)
-        }
+        device.device.sendEndpointMessage(device.defaultSenderGroup, targetMUID)
     }
 
     fun sendProfileDetailsInquiry(address: Byte, muid: Int, profile: MidiCIProfileId, target: Byte) {
-        initiator.requestProfileDetails(device.defaultSenderGroup, address, muid, profile, target)
+        device.device.requestProfileDetails(device.defaultSenderGroup, address, muid, profile, target)
     }
 
     fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
@@ -48,27 +28,12 @@ class CIInitiatorModel(private val device: CIDeviceModel) {
     fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
         initiator.sendUnsubscribeProperty(device.defaultSenderGroup, destinationMUID, resource, mutualEncoding)
     }
-
-    fun requestMidiMessageReport(address: Byte, targetMUID: Int,
-                                 messageDataControl: Byte = MidiMessageReportDataControl.Full,
-                                 systemMessages: Byte = MidiMessageReportSystemMessagesFlags.All.toByte(),
-                                 channelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All.toByte(),
-                                 noteDataMessages: Byte = MidiMessageReportNoteDataFlags.All.toByte()
-    ) {
-        initiator.sendMidiMessageReportInquiry(device.defaultSenderGroup, address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
-    }
-
-    init {
-        initiator.connectionsChanged.add { change, conn ->
-            connections.add(ClientConnectionModel(device, conn))
-        }
-    }
 }
 
-class ClientConnectionModel(val parent: CIDeviceModel, val conn: MidiCIInitiator.ClientConnection) {
+class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnection) {
 
     val profiles = mutableStateListOf<MidiCIProfileState>().apply {
-        addAll(conn.profiles.profiles.map { MidiCIProfileState(
+        addAll(conn.profileClient.profiles.profiles.map { MidiCIProfileState(
             mutableStateOf(it.group),
             mutableStateOf(it.address),
             it.profile,
@@ -77,6 +42,9 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: MidiCIInitiator
         ) })
     }
 
+    fun setProfile(address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) =
+        conn.profileClient.setProfile(address, parent.defaultSenderGroup, profile, newEnabled, newNumChannelsRequested)
+
     val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.properties.values)}
 
     fun getMetadataList() = conn.propertyClient.getMetadataList()
@@ -84,8 +52,17 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: MidiCIInitiator
     data class SubscriptionState(val propertyId: String, var state: MutableState<MidiCIInitiator.SubscriptionActionState>)
     var subscriptions = mutableStateListOf<SubscriptionState>()
 
+    fun requestMidiMessageReport(address: Byte, targetMUID: Int,
+                                 messageDataControl: Byte = MidiMessageReportDataControl.Full,
+                                 systemMessages: Byte = MidiMessageReportSystemMessagesFlags.All,
+                                 channelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All,
+                                 noteDataMessages: Byte = MidiMessageReportNoteDataFlags.All
+    ) {
+        parent.device.sendMidiMessageReportInquiry(parent.defaultSenderGroup, address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
+    }
+
     init {
-        conn.profiles.profilesChanged.add { change, profile ->
+        conn.profileClient.profiles.profilesChanged.add { change, profile ->
             when (change) {
                 ObservableProfileList.ProfilesChange.Added ->
                     profiles.add(
@@ -101,7 +78,7 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: MidiCIInitiator
                     profiles.removeAll {it.profile == profile.profile && it.group.value == profile.group && it.address.value == profile.address }
             }
         }
-        conn.profiles.profileEnabledChanged.add { profile ->
+        conn.profileClient.profiles.profileEnabledChanged.add { profile ->
             profiles.filter { it.profile == profile.profile && it.group.value == profile.group && it.address.value == profile.address }
                 .forEach {
                     it.enabled.value = profile.enabled
