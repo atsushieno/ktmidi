@@ -109,7 +109,7 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
         PropertyColumn("encodings") { TextField(encodings, { encodings = it }, readOnly = readOnly, minLines = 2) }
         PropertyColumn("schema") {
             Column {
-                TextField(schema, { schema = it }, readOnly = readOnly, minLines = 2)
+                TextField(schema, { schema = it }, readOnly = readOnly, minLines = 2, maxLines = 10)
                 if (schemaParserError.isNotBlank())
                     Text(schemaParserError)
             }
@@ -344,7 +344,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                             showRefreshAndSubscribeButtons()
                         }
                     }
-                    TextField(text, { text = it })
+                    TextField(text, { text = it }, minLines = 2, maxLines = 10)
                     if (isEditable) {
                         Button(onClick = {
                             val jsonString = Json.getEscapedString(partial.ifEmpty { text })
