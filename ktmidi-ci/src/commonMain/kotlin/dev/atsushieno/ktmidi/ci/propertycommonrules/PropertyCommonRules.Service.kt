@@ -193,7 +193,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
     private fun getPropertyDataJson(header: PropertyCommonRequestHeader): Pair<Json.JsonValue, Json.JsonValue> {
         val body = when(header.resource) {
-            PropertyResourceNames.RESOURCE_LIST -> Json.JsonValue(metadataList.map { it.toJsonValue() })
+            PropertyResourceNames.RESOURCE_LIST -> Json.JsonValue(getMetadataList().map { it.toJsonValue() })
             PropertyResourceNames.DEVICE_INFO -> getDeviceInfoJson()
             PropertyResourceNames.CHANNEL_LIST -> channelList
             PropertyResourceNames.JSON_SCHEMA -> jsonSchema
