@@ -85,7 +85,7 @@ fun LocalProfileList(vm: ResponderViewModel) {
         }
         Row {
             val b0 = 0.toByte()
-            val emptyId = MidiCIProfileId(b0, b0, b0, b0, b0)
+            val emptyId = MidiCIProfileId(listOf(b0, b0, b0, b0, b0))
             Button(onClick = {
                 val state = MidiCIProfile(emptyId, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, 0, false, 0)
                 vm.addNewProfile(state)
@@ -98,7 +98,7 @@ fun LocalProfileList(vm: ResponderViewModel) {
                     val splitN = editedProfileName.split(':').map { it.toByteOrNull(16) }
                     if (splitN.size == 5 && splitN.all { it != null }) {
                         val split = splitN.map { it!! }
-                        val newProfileId = MidiCIProfileId(split[0], split[1], split[2], split[3], split[4])
+                        val newProfileId = MidiCIProfileId(listOf(split[0], split[1], split[2], split[3], split[4]))
                         vm.updateProfileName(vm.selectedProfile.value!!, newProfileId)
                     }
                 }) {

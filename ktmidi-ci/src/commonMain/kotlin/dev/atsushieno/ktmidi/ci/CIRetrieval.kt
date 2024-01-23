@@ -59,7 +59,7 @@ object CIRetrieval {
     fun midiCIGetProfileEnabledChannels(sysex: List<Byte>) = sysex[18]  + (sysex[19] shl 7)
 
     private fun midiCIGetProfileIdEntry(sysex: List<Byte>, offset: Int) =
-        MidiCIProfileId(sysex[offset], sysex[offset + 1], sysex[offset + 2], sysex[offset + 3], sysex[offset + 4])
+        MidiCIProfileId(sysex.drop(offset).take(5))
 
     fun midiCIGetProfileSpecificDataSize(sysex: List<Byte>) =
         sysex[17] + (sysex[18] shl 8) + (sysex[19] shl 16) + (sysex[20] shl 24)

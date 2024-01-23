@@ -16,19 +16,9 @@ object ProfileSupportLevel {
 }
 
 object DefaultControlChangesProfile {
-    val profileIdForPartial = MidiCIProfileId(
-        MidiCIConstants.STANDARD_DEFINED_PROFILE,
-        0x21,
-        0,
-        1,
-        0)
+    val profileIdForPartial = MidiCIProfileId(listOf(MidiCIConstants.STANDARD_DEFINED_PROFILE, 0x21, 0, 1, 0))
 
-    val profileId = MidiCIProfileId(
-        MidiCIConstants.STANDARD_DEFINED_PROFILE,
-        0x21,
-        0,
-        1,
-        1)
+    val profileId = MidiCIProfileId(listOf(MidiCIConstants.STANDARD_DEFINED_PROFILE, 0x21, 0, 1, 1))
 }
 
 class CommonRulesProfileService : MidiCIProfileService {

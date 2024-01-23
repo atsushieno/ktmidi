@@ -143,11 +143,7 @@ object CIFactory {
 // Profile Configuration
 
     fun midiCIProfile(dst: MutableList<Byte>, offset: Int, info: MidiCIProfileId) {
-        dst[offset] = info.manuId1OrStandard
-        dst[offset + 1] = info.manuId2OrBank
-        dst[offset + 2] = info.manuId3OrNumber
-        dst[offset + 3] = info.specificInfoOrVersion
-        dst[offset + 4] = info.specificInfoOrLevel
+        memcpy(dst, offset, info.bytes, 5)
     }
 
     fun midiCIProfileInquiry(

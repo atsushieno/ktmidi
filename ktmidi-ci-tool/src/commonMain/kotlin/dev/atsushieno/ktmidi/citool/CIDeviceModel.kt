@@ -71,8 +71,8 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
             onProfileSet.add { profile -> localProfiles.profileEnabledChanged.forEach { it(profile) } }
 
             // FIXME: they are dummy items that should be removed.
-            localProfiles.add(MidiCIProfile(MidiCIProfileId(0, 1, 2, 3, 4), 0, 0x7E, true, 0))
-            localProfiles.add(MidiCIProfile(MidiCIProfileId(5, 6, 7, 8, 9), 0, 0x7F, true, 0))
+            localProfiles.add(MidiCIProfile(MidiCIProfileId(listOf(0, 1, 2, 3, 4)), 0, 0x7E, true, 0))
+            localProfiles.add(MidiCIProfile(MidiCIProfileId(listOf(5, 6, 7, 8, 9)), 0, 0x7F, true, 0))
             localProfiles.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 0, 0, false, 1))
             localProfiles.add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 0, 4, true, 1))
         }

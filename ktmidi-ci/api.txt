@@ -1111,23 +1111,11 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   @kotlinx.serialization.Serializable public final class MidiCIProfileId {
-    ctor public MidiCIProfileId(optional byte manuId1OrStandard, byte manuId2OrBank, byte manuId3OrNumber, byte specificInfoOrVersion, byte specificInfoOrLevel);
-    method public byte component1();
-    method public byte component2();
-    method public byte component3();
-    method public byte component4();
-    method public byte component5();
-    method public dev.atsushieno.ktmidi.ci.MidiCIProfileId copy(byte manuId1OrStandard, byte manuId2OrBank, byte manuId3OrNumber, byte specificInfoOrVersion, byte specificInfoOrLevel);
-    method public byte getManuId1OrStandard();
-    method public byte getManuId2OrBank();
-    method public byte getManuId3OrNumber();
-    method public byte getSpecificInfoOrLevel();
-    method public byte getSpecificInfoOrVersion();
-    property public final byte manuId1OrStandard;
-    property public final byte manuId2OrBank;
-    property public final byte manuId3OrNumber;
-    property public final byte specificInfoOrLevel;
-    property public final byte specificInfoOrVersion;
+    ctor public MidiCIProfileId(java.util.List<java.lang.Byte> bytes);
+    method public java.util.List<java.lang.Byte> component1();
+    method public dev.atsushieno.ktmidi.ci.MidiCIProfileId copy(java.util.List<java.lang.Byte> bytes);
+    method public java.util.List<java.lang.Byte> getBytes();
+    property public final java.util.List<java.lang.Byte> bytes;
   }
 
   public interface MidiCIProfileService {

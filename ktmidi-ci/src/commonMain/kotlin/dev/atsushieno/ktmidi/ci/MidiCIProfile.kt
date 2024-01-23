@@ -4,9 +4,12 @@ import kotlinx.serialization.Serializable
 
 // manufacture ID1,2,3 + manufacturer specific 1,2 ... or ... 0x7E, bank, number, version, level.
 @Serializable
-data class MidiCIProfileId(val manuId1OrStandard: Byte = 0x7E, val manuId2OrBank: Byte, val manuId3OrNumber: Byte, val specificInfoOrVersion: Byte, val specificInfoOrLevel: Byte) {
-    override fun toString() =
-        "${manuId1OrStandard.toString(16)}:${manuId2OrBank.toString(16)}:${manuId3OrNumber.toString(16)}:${specificInfoOrVersion.toString(16)}:${specificInfoOrLevel.toString(16)}"
+data class MidiCIProfileId(val bytes: List<Byte>) {
+    init {
+        if (bytes.size != 5)
+            throw IllegalArgumentException("bytes.size must be 5")
+    }
+    override fun toString() = bytes.map { it.toString(16) }.joinToString(":")
 }
 
 @Serializable

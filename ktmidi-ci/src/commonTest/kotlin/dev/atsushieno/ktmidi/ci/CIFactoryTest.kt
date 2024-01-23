@@ -75,8 +75,8 @@ class CIFactoryTest {
 
         // Profile Inquiry Reply
         val b7E: Byte = 0x7E
-        val profiles1 = mutableListOf(MidiCIProfileId(b7E, 2, 3, 4, 5), MidiCIProfileId(b7E, 7, 8, 9, 10))
-        val profiles2 = mutableListOf(MidiCIProfileId(b7E, 12, 13, 14, 15), MidiCIProfileId(b7E, 17, 18, 19, 20))
+        val profiles1 = mutableListOf(MidiCIProfileId(listOf(b7E, 2, 3, 4, 5)), MidiCIProfileId(listOf(b7E, 7, 8, 9, 10)))
+        val profiles2 = mutableListOf(MidiCIProfileId(listOf(b7E, 12, 13, 14, 15)), MidiCIProfileId(listOf(b7E, 17, 18, 19, 20)))
         val expected2 = mutableListOf(
             0x7E, 5, 0x0D, 0x21, 2,
             0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
