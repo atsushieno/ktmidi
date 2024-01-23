@@ -4,8 +4,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
-import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
-import dev.atsushieno.ktmidi.citool.view.ViewModel
 
 class CIInitiatorModel(private val device: CIDeviceModel) {
     val initiator by lazy { device.device.initiator }
@@ -23,7 +21,7 @@ class CIInitiatorModel(private val device: CIDeviceModel) {
                 // NOTE: juce_midi_ci has a bug that it expects 1 for 7E and 7F, whereas MIDI-CI v1.2 states:
                 //   "When the Profile Destination field is set to address 0x7E or 0x7F, the number of Channels is determined
                 //    by the width of the Group or Function Block. Set the Number of Channels Requested field to a value of 0x0000."
-                if (address < 0x10 || ViewModel.settings.workaroundJUCEProfileNumChannelsIssue.value)
+                if (address < 0x10 || ImplementationSettings.workaroundJUCEProfileNumChannelsIssue)
                     { if (newNumChannelsRequested < 1) 1 else newNumChannelsRequested }
                 else newNumChannelsRequested
             )
@@ -90,13 +88,15 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: MidiCIInitiator
         conn.profiles.profilesChanged.add { change, profile ->
             when (change) {
                 ObservableProfileList.ProfilesChange.Added ->
-                    profiles.add(MidiCIProfileState(
+                    profiles.add(
+                        MidiCIProfileState(
                         mutableStateOf(profile.group),
                         mutableStateOf(profile.address),
                         profile.profile,
                         mutableStateOf(profile.enabled),
                         mutableStateOf(profile.numChannelsRequested)
-                    ))
+                    )
+                    )
                 ObservableProfileList.ProfilesChange.Removed ->
                     profiles.removeAll {it.profile == profile.profile && it.group.value == profile.group && it.address.value == profile.address }
             }

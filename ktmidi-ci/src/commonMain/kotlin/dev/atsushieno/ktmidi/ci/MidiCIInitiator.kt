@@ -159,8 +159,8 @@ class MidiCIInitiator(
 
     // Profile Configuration
 
-    fun requestProfiles(group: Byte, destinationChannelOr7F: Byte, destinationMUID: Int) =
-        requestProfiles(Message.ProfileInquiry(Message.Common(muid, destinationMUID, destinationChannelOr7F, group)))
+    fun requestProfiles(group: Byte, address: Byte, destinationMUID: Int) =
+        requestProfiles(Message.ProfileInquiry(Message.Common(muid, destinationMUID, address, group)))
 
     fun requestProfiles(msg: Message.ProfileInquiry) {
         logger.logMessage(msg, MessageDirection.Out)

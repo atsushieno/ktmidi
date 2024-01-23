@@ -5,7 +5,6 @@ import dev.atsushieno.ktmidi.MidiInput
 import dev.atsushieno.ktmidi.ci.MessageDirection
 import dev.atsushieno.ktmidi.ci.MidiCIConstants
 import dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration
-import dev.atsushieno.ktmidi.citool.view.ViewHelper
 import kotlin.experimental.and
 
 class CIDeviceManager(val owner: CIToolRepository, config: MidiCIDeviceConfiguration, private val midiDeviceManager: MidiDeviceManager) {

@@ -4,7 +4,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.profilecommonrules.DefaultControlChangesProfile
-import dev.atsushieno.ktmidi.citool.view.MidiCIProfileState
 
 class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDeviceConfiguration,
                     private val ciOutputSender: (ciBytes: List<Byte>) -> Unit,
@@ -151,7 +150,8 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
                             mutableStateOf(profile.address),
                             profile.profile,
                             mutableStateOf(profile.enabled),
-                            mutableStateOf(profile.numChannelsRequested)))
+                            mutableStateOf(profile.numChannelsRequested))
+                    )
                 ObservableProfileList.ProfilesChange.Removed ->
                     localProfileStates.removeAll { it.profile == profile.profile && it.address.value == profile.address }
             }

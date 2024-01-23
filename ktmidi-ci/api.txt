@@ -964,7 +964,7 @@ package dev.atsushieno.ktmidi.ci {
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply,kotlin.Unit> getProcessSubscribePropertyReply();
     method public void requestProfileDetails(byte group, byte address, int targetMUID, dev.atsushieno.ktmidi.ci.MidiCIProfileId profile, byte target);
     method public void requestProfileDetails(dev.atsushieno.ktmidi.ci.Message.ProfileDetailsInquiry msg);
-    method public void requestProfiles(byte group, byte destinationChannelOr7F, int destinationMUID);
+    method public void requestProfiles(byte group, byte address, int destinationMUID);
     method public void requestProfiles(dev.atsushieno.ktmidi.ci.Message.ProfileInquiry msg);
     method public void requestPropertyExchangeCapabilities(byte group, byte address, int destinationMUID, byte maxSimultaneousPropertyRequests);
     method public void requestPropertyExchangeCapabilities(dev.atsushieno.ktmidi.ci.Message.PropertyGetCapabilities msg);
