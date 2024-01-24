@@ -77,7 +77,8 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
 
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
-        ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.conn.targetMUID, propertyId, encoding = null, paginateOffset = 0, paginateLimit = 10)
+        val metadata = conn.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == propertyId }
+        ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.conn.targetMUID, propertyId, encoding = metadata?.encodings?.firstOrNull(), paginateOffset = 0, paginateLimit = 10)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
