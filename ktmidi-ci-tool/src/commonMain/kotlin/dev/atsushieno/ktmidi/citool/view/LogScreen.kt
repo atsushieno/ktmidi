@@ -1,14 +1,9 @@
 package dev.atsushieno.ktmidi.citool.view
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -21,7 +16,6 @@ import dev.atsushieno.ktmidi.ci.Message.Companion.addressString
 import dev.atsushieno.ktmidi.ci.Message.Companion.groupString
 import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LogScreen() {
     Column(Modifier.padding(10.dp)) {
@@ -44,7 +38,7 @@ fun LogScreen() {
                     }
                     else {
                         Text("", Modifier.width(150.dp))
-                        TextField(it.data.toString(), {}, readOnly = true, maxLines = 5)
+                        TextField(it.data.toString(), {}, readOnly = true, maxLines = 1)
                     }
                 }
             }
