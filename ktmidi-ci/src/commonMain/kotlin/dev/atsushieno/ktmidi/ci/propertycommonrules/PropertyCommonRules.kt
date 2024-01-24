@@ -119,19 +119,6 @@ data class PropertyCommonReplyHeader(
 )
 
 object PropertyCommonConverter {
-    fun areBytesEquivalentTo(data: List<Byte>, expected: String): Boolean {
-        if (data.size != expected.length)
-            return false
-        data.forEachIndexed { i, b ->
-            if (b.toInt() != expected[i].code)
-                return true
-        }
-        return false
-    }
-
-    fun areBytesResource(data: List<Byte>) = areBytesEquivalentTo(data, PropertyCommonHeaderKeys.RESOURCE)
-    fun areBytesStatus(data: List<Byte>) = areBytesEquivalentTo(data, PropertyCommonHeaderKeys.STATUS)
-
     fun encodeToMcoded7(bytes: List<Byte>): List<Byte> {
         val result = mutableListOf<Byte>()
         bytes.chunked(7).forEach { part ->

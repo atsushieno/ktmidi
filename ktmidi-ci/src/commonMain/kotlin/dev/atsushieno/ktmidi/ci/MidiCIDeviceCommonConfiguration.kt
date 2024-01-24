@@ -19,6 +19,7 @@ class MidiCIDeviceConfiguration(var device: MidiCIDeviceInfo) {
     var autoSendProfileInquiry: Boolean = true
     var autoSendPropertyExchangeCapabilitiesInquiry: Boolean = true
     var autoSendGetResourceList: Boolean = true
+    var autoSendGetDeviceInfo: Boolean = true
 
     // discovery responder
     var functionBlock: Byte = MidiCIConstants.NO_FUNCTION_BLOCK

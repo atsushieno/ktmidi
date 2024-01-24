@@ -4,6 +4,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
+import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyClient
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 
 class CIInitiatorModel(private val device: CIDeviceModel) {
     val initiator by lazy { device.device.initiator }
@@ -44,6 +46,8 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
 
     fun setProfile(address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) =
         conn.profileClient.setProfile(address, parent.defaultSenderGroup, profile, newEnabled, newNumChannelsRequested)
+
+    var deviceInfo = mutableStateOf((conn.propertyClient as CommonRulesPropertyClient).deviceInfo)
 
     val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.properties.values)}
 
@@ -94,6 +98,8 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
                 properties.removeAt(index)
                 properties.add(index, entry)
             }
+            if (entry.id == PropertyResourceNames.DEVICE_INFO)
+                deviceInfo.value = (conn.propertyClient as CommonRulesPropertyClient).deviceInfo
         }
 
         conn.properties.propertiesCatalogUpdated.add {

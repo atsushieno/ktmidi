@@ -10,7 +10,7 @@ class ClientConnection(
     val device: DeviceDetails,
     var maxSimultaneousPropertyRequests: Byte = 0,
     var productInstanceId: String = "",
-    val propertyClient: MidiCIPropertyClient = CommonRulesPropertyClient(parent.logger, parent.muid)
+    val propertyClient: MidiCIPropertyClient = CommonRulesPropertyClient(parent.logger, parent.muid, device)
 ) {
 
     // This is going to be the entry point for all the profile client features foe MidiCIDevice.
@@ -77,16 +77,19 @@ class ClientConnection(
 
     val pendingChunkManager = PropertyChunkManager()
 
-    fun updateProperty(msg: Message.GetPropertyDataReply) {
-        val req = openRequests.firstOrNull { it.requestId == msg.requestId } ?: return
+    fun updateProperty(msg: Message.GetPropertyDataReply): String? {
+        val req = openRequests.firstOrNull { it.requestId == msg.requestId } ?: return null
         openRequests.remove(req)
-        val status = propertyClient.getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS) ?: return
+        val status = propertyClient.getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS) ?: return null
 
         if (status == PropertyExchangeStatus.OK) {
             propertyClient.onGetPropertyDataReply(req, msg)
             val propertyId = propertyClient.getPropertyIdForHeader(req.header)
             properties.updateValue(propertyId, msg)
+            return propertyId
         }
+        else
+            return null
     }
 
     fun updateProperty(ourMUID: Int, msg: Message.SubscribeProperty): Pair<String?, Message.SubscribePropertyReply?> {

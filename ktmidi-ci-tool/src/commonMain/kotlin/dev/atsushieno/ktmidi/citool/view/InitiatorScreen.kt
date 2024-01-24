@@ -110,15 +110,20 @@ private fun ClientConnectionInfo(vm: ConnectionViewModel) {
             DeviceItemCard("max connections")
             Text(conn.maxSimultaneousPropertyRequests.toString(), fontSize = small)
         }
+        val deviceInfo = vm.conn.deviceInfo.value
         Row {
             DeviceItemCard("Manufacturer")
-            Text(conn.device.manufacturer.toString(16), fontSize = small)
+            Text(deviceInfo.manufacturer.ifEmpty { deviceInfo.manufacturerId.toString(16) }, fontSize = small)
             DeviceItemCard("Family")
-            Text(conn.device.family.toString(16), fontSize = small)
+            Text(deviceInfo.family.ifEmpty { deviceInfo.familyId.toString(16) }, fontSize = small)
+        }
+        Row {
             DeviceItemCard("Model")
-            Text(conn.device.modelNumber.toString(16), fontSize = small)
+            Text(deviceInfo.model.ifEmpty { deviceInfo.modelId.toString(16) }, fontSize = small)
             DeviceItemCard("Revision")
-            Text(conn.device.softwareRevisionLevel.toString(16), fontSize = small)
+            Text(deviceInfo.version.ifEmpty { deviceInfo.versionId.toString(16) }, fontSize = small)
+            DeviceItemCard("Serial #")
+            Text(deviceInfo.serialNumber ?: "", fontSize = small)
         }
     }
 }
@@ -138,7 +143,7 @@ private fun InitiatorDestinationSelector(connections: Map<Int, ClientConnection>
         if (connections.any())
             connections.toList().forEach { conn ->
                 DropdownMenuItem(onClick = { onClick(conn.first) }, text = {
-                    Text(modifier = Modifier.padding(12.dp, 0.dp), text = conn.first.toString())
+                    Text(modifier = Modifier.padding(12.dp, 0.dp), text = conn.first.muidString)
                 })
             }
         else
@@ -152,7 +157,7 @@ private fun InitiatorDestinationSelector(connections: Map<Int, ClientConnection>
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
     ) {
         Text(modifier = Modifier.padding(12.dp, 0.dp),
-            text = if (destinationMUID != 0) destinationMUID.toString() else "-- Select CI Device --")
+            text = if (destinationMUID != 0) destinationMUID.muidString else "-- Select CI Device --")
     }
 }
 

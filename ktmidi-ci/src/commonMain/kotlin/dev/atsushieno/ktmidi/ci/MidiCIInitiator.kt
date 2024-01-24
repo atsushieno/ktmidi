@@ -2,6 +2,7 @@ package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyExchangeStatus
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 
 class MidiCIInitiator(
     val parent: MidiCIDevice,
@@ -37,7 +38,8 @@ class MidiCIInitiator(
         sendOutput(msg.group, msg.serialize(config))
     }
 
-    fun sendGetPropertyData(group: Byte, destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
+    // FIXME: too much exposure of Common Rules for PE
+    fun sendGetPropertyData(group: Byte, destinationMUID: Int, resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
         val conn = connections[destinationMUID]
         if (conn != null) {
             val header = conn.propertyClient.createDataRequestHeader(resource, mapOf(
@@ -59,6 +61,7 @@ class MidiCIInitiator(
         msg.serialize(config).forEach { sendOutput(msg.group, it) }
     }
 
+    // FIXME: too much exposure of Common Rules for PE
     fun sendSetPropertyData(group: Byte, destinationMUID: Int, resource: String, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
         val conn = connections[destinationMUID]
         if (conn != null) {
@@ -76,6 +79,7 @@ class MidiCIInitiator(
         msg.serialize(config).forEach { sendOutput(msg.group, it) }
     }
 
+    // FIXME: too much exposure of Common Rules for PE
     fun sendSubscribeProperty(group: Byte, destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
         val conn = connections[destinationMUID]
         if (conn != null) {
@@ -89,6 +93,7 @@ class MidiCIInitiator(
         }
     }
 
+    // FIXME: too much exposure of Common Rules for PE
     fun sendUnsubscribeProperty(group: Byte, destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
         val conn = connections[destinationMUID]
         if (conn != null) {
@@ -139,7 +144,16 @@ class MidiCIInitiator(
     }
 
     fun defaultProcessGetDataReply(msg: Message.GetPropertyDataReply) {
-        connections[msg.sourceMUID]?.updateProperty(msg)
+        val conn = connections[msg.sourceMUID]
+        val propertyId = conn?.updateProperty(msg)
+
+        // If the reply was ResourceList, and the parsed body contained an entry for DeviceInfo, and
+        //  if it is configured as auto-queried, then send another Get Property Data request for it.
+        if (config.autoSendGetDeviceInfo && propertyId == PropertyResourceNames.RESOURCE_LIST) {
+            val def = conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == PropertyResourceNames.DEVICE_INFO }
+            if (def != null)
+                sendGetPropertyData(msg.group, msg.sourceMUID, def.resource, def.encodings.firstOrNull())
+        }
     }
 
     var processGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->

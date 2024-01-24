@@ -141,7 +141,7 @@ package dev.atsushieno.ktmidi.ci {
     method public void promoteSubscriptionAsUnsubscribing(String propertyId, byte newRequestId);
     method public void setMaxSimultaneousPropertyRequests(byte);
     method public void setProductInstanceId(String);
-    method public void updateProperty(dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply msg);
+    method public String? updateProperty(dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply msg);
     method public kotlin.Pair<java.lang.String,dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply> updateProperty(int ourMUID, dev.atsushieno.ktmidi.ci.Message.SubscribeProperty msg);
     property public final dev.atsushieno.ktmidi.ci.DeviceDetails device;
     property public final byte maxSimultaneousPropertyRequests;
@@ -899,6 +899,7 @@ package dev.atsushieno.ktmidi.ci {
   @kotlinx.serialization.Serializable public final class MidiCIDeviceConfiguration {
     ctor public MidiCIDeviceConfiguration(dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo device);
     method public boolean getAutoSendEndpointInquiry();
+    method public boolean getAutoSendGetDeviceInfo();
     method public boolean getAutoSendGetResourceList();
     method public boolean getAutoSendProfileInquiry();
     method public boolean getAutoSendPropertyExchangeCapabilitiesInquiry();
@@ -919,6 +920,7 @@ package dev.atsushieno.ktmidi.ci {
     method public int getReceivableMaxSysExSize();
     method public dev.atsushieno.ktmidi.ci.MidiCIResponderConfiguration getResponder();
     method public void setAutoSendEndpointInquiry(boolean);
+    method public void setAutoSendGetDeviceInfo(boolean);
     method public void setAutoSendGetResourceList(boolean);
     method public void setAutoSendProfileInquiry(boolean);
     method public void setAutoSendPropertyExchangeCapabilitiesInquiry(boolean);
@@ -936,6 +938,7 @@ package dev.atsushieno.ktmidi.ci {
     method public void setProductInstanceId(String);
     method public void setReceivableMaxSysExSize(int);
     property public final boolean autoSendEndpointInquiry;
+    property public final boolean autoSendGetDeviceInfo;
     property public final boolean autoSendGetResourceList;
     property public final boolean autoSendProfileInquiry;
     property public final boolean autoSendPropertyExchangeCapabilitiesInquiry;
@@ -1021,7 +1024,7 @@ package dev.atsushieno.ktmidi.ci {
     method public kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply,kotlin.Unit> getProcessSubscribePropertyReply();
     method public void requestPropertyExchangeCapabilities(byte group, byte address, int destinationMUID, byte maxSimultaneousPropertyRequests);
     method public void requestPropertyExchangeCapabilities(dev.atsushieno.ktmidi.ci.Message.PropertyGetCapabilities msg);
-    method public void sendGetPropertyData(byte group, int destinationMUID, String resource, String? encoding, Integer? paginateOffset, Integer? paginateLimit);
+    method public void sendGetPropertyData(byte group, int destinationMUID, String resource, optional String? encoding, optional Integer? paginateOffset, optional Integer? paginateLimit);
     method public void sendGetPropertyData(dev.atsushieno.ktmidi.ci.Message.GetPropertyData msg);
     method public void sendPropertySubscribeReply(dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply msg);
     method public void sendSetPropertyData(byte group, int destinationMUID, String resource, java.util.List<java.lang.Byte> data, optional String? encoding, optional boolean isPartial);
@@ -1603,12 +1606,13 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
   }
 
   public final class CommonRulesPropertyClient extends dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyHelper implements dev.atsushieno.ktmidi.ci.MidiCIPropertyClient {
-    ctor public CommonRulesPropertyClient(dev.atsushieno.ktmidi.ci.Logger logger, int muid);
+    ctor public CommonRulesPropertyClient(dev.atsushieno.ktmidi.ci.Logger logger, int muid, dev.atsushieno.ktmidi.ci.DeviceDetails deviceDetails);
     method public java.util.List<java.lang.Byte> createDataRequestHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
     method public java.util.List<java.lang.Byte> createStatusHeader(int status);
     method public java.util.List<java.lang.Byte> createSubscriptionHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
     method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
+    method public dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo getDeviceInfo();
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> getMetadataList();
     method public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> getPropertyCatalogUpdated();
     method public String getPropertyIdForHeader(java.util.List<java.lang.Byte> header);
@@ -1618,6 +1622,8 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     method public kotlin.Pair<java.lang.Boolean,java.util.List<java.lang.Byte>> getUpdatedValue(dev.atsushieno.ktmidi.ci.PropertyValue? existing, boolean isPartial, String mediaType, java.util.List<java.lang.Byte> body);
     method public void onGetPropertyDataReply(dev.atsushieno.ktmidi.ci.Message.GetPropertyData request, dev.atsushieno.ktmidi.ci.Message.GetPropertyDataReply reply);
     method public void processPropertySubscriptionResult(Object subscriptionContext, dev.atsushieno.ktmidi.ci.Message.SubscribePropertyReply msg);
+    method public void setDeviceInfo(dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo);
+    property public final dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo deviceInfo;
     property public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> propertyCatalogUpdated;
     property public final java.util.List<dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry> subscriptions;
   }
@@ -1683,9 +1689,6 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
   }
 
   public final class PropertyCommonConverter {
-    method public boolean areBytesEquivalentTo(java.util.List<java.lang.Byte> data, String expected);
-    method public boolean areBytesResource(java.util.List<java.lang.Byte> data);
-    method public boolean areBytesStatus(java.util.List<java.lang.Byte> data);
     method public java.util.List<java.lang.Byte> decodeMcoded7(java.util.List<java.lang.Byte> bytes);
     method public java.util.List<java.lang.Byte> decodeZlib(byte[] bytes);
     method public java.util.List<java.lang.Byte> decodeZlibMcoded7(java.util.List<java.lang.Byte> body);
