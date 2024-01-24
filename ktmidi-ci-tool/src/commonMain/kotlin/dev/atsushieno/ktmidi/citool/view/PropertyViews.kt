@@ -361,12 +361,12 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                     PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding ?: "", onSelectionChange = { selectedEncoding = it.ifEmpty { null } })
                 } else {
                     showRefreshAndSubscribeButtons()
-                    TextField(bodyText, {}, readOnly = true)
+                    TextField(bodyText, {}, readOnly = true, minLines = 2, maxLines = 10)
                 }
             } else {
                 Text("read-only")
                 showRefreshAndSubscribeButtons()
-                TextField(bodyText, {}, readOnly = true)
+                TextField(bodyText, {}, readOnly = true, minLines = 2, maxLines = 10)
             }
         } else {
             Text("MIME type '$mediaType' not supported for editing")
