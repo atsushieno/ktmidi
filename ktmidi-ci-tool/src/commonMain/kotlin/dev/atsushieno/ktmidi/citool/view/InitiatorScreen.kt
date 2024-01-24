@@ -101,8 +101,15 @@ private fun ClientConnectionInfo(vm: ConnectionViewModel) {
     val conn = vm.conn.conn
     Column {
         Text("Device", fontSize = 24.sp, fontWeight = FontWeight.Bold)
-        Text("MUID: ${vm.conn.conn.targetMUID.muidString}")
         val small = 12.sp
+        Row {
+            DeviceItemCard("product instance ID")
+            Text(conn.productInstanceId, fontSize = small)
+            DeviceItemCard("MUID")
+            Text(vm.conn.conn.targetMUID.muidString, fontSize = small)
+            DeviceItemCard("max connections")
+            Text(conn.maxSimultaneousPropertyRequests.toString(), fontSize = small)
+        }
         Row {
             DeviceItemCard("Manufacturer")
             Text(conn.device.manufacturer.toString(16), fontSize = small)
@@ -112,12 +119,6 @@ private fun ClientConnectionInfo(vm: ConnectionViewModel) {
             Text(conn.device.modelNumber.toString(16), fontSize = small)
             DeviceItemCard("Revision")
             Text(conn.device.softwareRevisionLevel.toString(16), fontSize = small)
-        }
-        Row {
-            DeviceItemCard("instance ID")
-            Text(conn.productInstanceId, fontSize = small)
-            DeviceItemCard("max connections")
-            Text("${conn.maxSimultaneousPropertyRequests}")
         }
     }
 }
