@@ -439,7 +439,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         // It may be either a new subscription, a property update notification, or end of subscription from either side
         val command = responder.propertyService.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.COMMAND)
         when (command) {
-            MidiCISubscriptionCommand.START -> initiator.processSubscribeProperty(msg)
+            MidiCISubscriptionCommand.START -> responder.processSubscribeProperty(msg)
             MidiCISubscriptionCommand.FULL,
             MidiCISubscriptionCommand.PARTIAL,
             MidiCISubscriptionCommand.NOTIFY -> responder.processSubscribeProperty(msg)
