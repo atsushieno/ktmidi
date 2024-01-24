@@ -119,6 +119,14 @@ fun LocalProfileList(vm: ResponderViewModel) {
 
             }
         }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("Add test items")
+            Button(onClick = {
+                vm.addTestProfileItems()
+            }, enabled = !vm.isSelectedProfileIdEditing.value) {
+                Image(Icons.Default.Add, "Add test items")
+            }
+        }
     }
 }
 

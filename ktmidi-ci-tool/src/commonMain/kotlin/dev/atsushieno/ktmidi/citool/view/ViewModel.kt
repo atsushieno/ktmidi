@@ -206,6 +206,10 @@ class ResponderViewModel(val model: CIDeviceModel) {
         model.addLocalProfile(state)
     }
 
+    fun addTestProfileItems() {
+        model.addTestProfileItems()
+    }
+
     init {
         responder.properties.propertiesCatalogUpdated.add {
             properties.clear()
