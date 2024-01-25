@@ -286,9 +286,9 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                 Row {
                     if (metadata?.canPaginate == true) {
                         Text("Pagenate? offset: ")
-                        TextField(paginateOffset, { paginateOffset = it })
+                        TextField(paginateOffset, { paginateOffset = it }, Modifier.width(80.dp))
                         Text(" limit: ")
-                        TextField(paginateLimit, { paginateLimit = it })
+                        TextField(paginateLimit, { paginateLimit = it }, Modifier.width(80.dp))
                     }
                 }
             }
