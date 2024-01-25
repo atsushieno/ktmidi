@@ -10,19 +10,22 @@ import org.khronos.webgl.get
 
 fun processRequestMidiAccess(): Unit = js("""{
 navigator.permissions.query({ name: "midi" }).then((result) => {
-console.log("ktmidi-ci-tool: Web MIDI permission query result was: " + result.state);
-    if (result.state !== "denied")
+    switch (result.state) {
+    case "prompt":
+    case "denied":
         navigator.requestMIDIAccess({"sysex": true, "software": true})
             .then((access) => {
                 console.log("ktmidi-ci-tool: Web MIDI Access is ready for ktmidi-ci-tool");
-                document["midiAccess"] = access;
+                document["ktmidi_wasmJs_midiAccess"] = access;
             });
+        break;
+    }
 });
 }""")
 
 private val midiAccess : MIDIAccess?
     get() = getCurrentMidiAccess()
-private fun getCurrentMidiAccess() : MIDIAccess? = js("document['midiAccess']")
+private fun getCurrentMidiAccess() : MIDIAccess? = js("document['ktmidi_wasmJs_midiAccess']")
 
 class WebMidiAccess : MidiAccess() {
     override val name: String
