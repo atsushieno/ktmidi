@@ -692,6 +692,12 @@ package dev.atsushieno.ktmidi.ci {
     field public static final dev.atsushieno.ktmidi.ci.MidiCIConverter INSTANCE;
   }
 
+  public final class MidiCIConverterTest {
+    ctor public MidiCIConverterTest();
+    method public void decodeStringToASCII();
+    method public void encodeStringToASCII();
+  }
+
   public final class MidiCIDevice {
     ctor public MidiCIDevice(int muid, dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config, kotlin.jvm.functions.Function2<? super java.lang.Byte,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendCIOutput, kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.MidiMessageReportProtocol,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendMidiMessageReport);
     method public void defaultProcessEndpointReply(dev.atsushieno.ktmidi.ci.Message.EndpointReply msg);
@@ -1129,7 +1135,7 @@ package dev.atsushieno.ktmidi.ci {
     method public java.util.List<java.lang.Byte> createDataRequestHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
     method public java.util.List<java.lang.Byte> createStatusHeader(int status);
     method public java.util.List<java.lang.Byte> createSubscriptionHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
-    method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
+    method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> body);
     method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public boolean getHeaderFieldBoolean(java.util.List<java.lang.Byte> header, String field);
     method public Integer? getHeaderFieldInteger(java.util.List<java.lang.Byte> header, String field);
@@ -1148,7 +1154,7 @@ package dev.atsushieno.ktmidi.ci {
   public interface MidiCIPropertyService {
     method public void addMetadata(dev.atsushieno.ktmidi.ci.PropertyMetadata property);
     method public java.util.List<java.lang.Byte> createUpdateNotificationHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
-    method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
+    method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> body);
     method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata>? getMetadataList();
     method public java.util.List<kotlin.jvm.functions.Function0<kotlin.Unit>> getPropertyCatalogUpdated();
@@ -1610,7 +1616,7 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     method public java.util.List<java.lang.Byte> createDataRequestHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
     method public java.util.List<java.lang.Byte> createStatusHeader(int status);
     method public java.util.List<java.lang.Byte> createSubscriptionHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
-    method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
+    method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> body);
     method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo getDeviceInfo();
     method public java.util.List<dev.atsushieno.ktmidi.ci.PropertyMetadata> getMetadataList();
@@ -1654,7 +1660,7 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules {
     method public void addMetadata(dev.atsushieno.ktmidi.ci.PropertyMetadata property);
     method public java.util.List<java.lang.Byte> createTerminateNotificationHeader(String subscribeId);
     method public java.util.List<java.lang.Byte> createUpdateNotificationHeader(String propertyId, java.util.Map<java.lang.String,?> fields);
-    method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> data, String? encoding);
+    method public java.util.List<java.lang.Byte> decodeBody(java.util.List<java.lang.Byte> header, java.util.List<java.lang.Byte> body);
     method public java.util.List<java.lang.Byte> encodeBody(java.util.List<java.lang.Byte> data, String? encoding);
     method public dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo getDeviceInfo();
     method public java.util.Map<java.lang.String,java.util.List<java.lang.Byte>> getLinkedResources();

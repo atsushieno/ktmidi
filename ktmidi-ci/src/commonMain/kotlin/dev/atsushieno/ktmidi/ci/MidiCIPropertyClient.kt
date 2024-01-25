@@ -36,8 +36,7 @@ interface MidiCIPropertyClient {
     fun getUpdatedValue(existing: PropertyValue?, isPartial: Boolean, mediaType: String, body: List<Byte>): Pair<Boolean, List<Byte>>
     // FIXME: too much exposure of Common Rules for PE
     fun encodeBody(data: List<Byte>, encoding: String?): List<Byte>
-    // FIXME: too much exposure of Common Rules for PE
-    fun decodeBody(data: List<Byte>, encoding: String?): List<Byte>
+    fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte>
 
     val propertyCatalogUpdated: MutableList<() -> Unit>
 }

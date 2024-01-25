@@ -245,7 +245,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
                 return Result.failure(PropertyExchangeException("Property is readonly: ${PropertyResourceNames.CHANNEL_LIST}"))
         }
 
-        val decodedBody = decodeBody(body, header.mutualEncoding)
+        val decodedBody = decodeBody(header.mutualEncoding, body)
         // Perform partial updates, if applicable
         val existing = values.firstOrNull { it.id == header.resource }
         if (headerJson.getObjectValue(PropertyCommonHeaderKeys.SET_PARTIAL)?.isBooleanTrue == true) {
@@ -287,5 +287,6 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
         createUpdateNotificationHeaderBytes(subscribeId, MidiCISubscriptionCommand.END)
 
     override fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> = encodeBodyInternal(data, encoding)
-    override fun decodeBody(data: List<Byte>, encoding: String?): List<Byte> = decodeBodyInternal(data, encoding)
+    override fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte> = decodeBodyInternal(header, body)
+    private fun decodeBody(mutualEncoding: String?, body: List<Byte>): List<Byte> = decodeBodyInternal(mutualEncoding, body)
 }

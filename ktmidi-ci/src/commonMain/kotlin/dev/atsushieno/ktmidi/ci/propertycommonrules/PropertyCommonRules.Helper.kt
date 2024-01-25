@@ -161,15 +161,17 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         }
     }
 
-    internal fun decodeBodyInternal(data: List<Byte>, encoding: String?): List<Byte> {
+    internal fun decodeBodyInternal(header: List<Byte>, body: List<Byte>): List<Byte> =
+        decodeBodyInternal(getHeaderFieldString(header, PropertyCommonHeaderKeys.MUTUAL_ENCODING), body)
+    internal fun decodeBodyInternal(encoding: String?, body: List<Byte>): List<Byte> {
         return when (encoding) {
-            PropertyDataEncoding.ASCII -> data
-            PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.decodeMcoded7(data)
-            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.decodeZlibMcoded7(data)
-            null -> data
+            PropertyDataEncoding.ASCII -> body
+            PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.decodeMcoded7(body)
+            PropertyDataEncoding.ZLIB_MCODED7 -> PropertyCommonConverter.decodeZlibMcoded7(body)
+            null -> body
             else -> {
                 logger.logError("Unrecognized mutualEncoding is specified: $encoding")
-                data
+                body
             }
         }
     }

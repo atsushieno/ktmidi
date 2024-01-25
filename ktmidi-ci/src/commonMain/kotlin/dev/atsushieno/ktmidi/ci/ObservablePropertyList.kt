@@ -70,9 +70,7 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
     fun updateValue(propertyId: String, reply: Message.GetPropertyDataReply) {
         // FIXME: cosmetic but unnecessary Common Rules for PE exposure
         val mediaType = propertyClient.getHeaderFieldString(reply.header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
-        // FIXME: cosmetic but unnecessary Common Rules for PE exposure
-        val mutualEncoding = propertyClient.getHeaderFieldString(reply.header, PropertyCommonHeaderKeys.MUTUAL_ENCODING) ?: PropertyDataEncoding.ASCII
-        val decodedBody = propertyClient.decodeBody(reply.body, mutualEncoding)
+        val decodedBody = propertyClient.decodeBody(reply.header, reply.body)
         // there is no partial updates in Reply to Get Property Data
         updateValue(propertyId, false, mediaType, decodedBody)
     }
@@ -89,9 +87,7 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
         val isPartial = command == MidiCISubscriptionCommand.PARTIAL
         // FIXME: cosmetic but unnecessary exposure of Common Rules for PE.
         val mediaType = propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
-        // FIXME: cosmetic but unnecessary exposure of Common Rules for PE.
-        val encoding = propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.MUTUAL_ENCODING) ?: PropertyDataEncoding.ASCII
-        val decodedBody = propertyClient.decodeBody(msg.body, encoding)
+        val decodedBody = propertyClient.decodeBody(msg.header, msg.body)
         updateValue(id, isPartial, mediaType, decodedBody)
         return command
     }

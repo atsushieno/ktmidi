@@ -118,7 +118,7 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, deviceDet
     }
 
     override fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> = encodeBodyInternal(data, encoding)
-    override fun decodeBody(data: List<Byte>, encoding: String?): List<Byte> = decodeBodyInternal(data, encoding)
+    override fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte> = decodeBodyInternal(header, body)
 
     override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
 

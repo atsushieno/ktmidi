@@ -261,7 +261,7 @@ fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
                           subscribeClicked: (newValue: Boolean, requestedEncoding: String?) -> Unit,
                           commitChangeClicked: (id: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) -> Unit) {
     Column(Modifier.padding(12.dp)) {
-        val entry = vm.conn.properties.first { it.id == propertyId }
+        val entry = vm.conn.properties.firstOrNull { it.id == propertyId } ?: return
         val def = vm.conn.getMetadataList()?.firstOrNull { it.resource == entry.id }
         PropertyValueEditor(false, entry.mediaType, def, entry.body,
             refreshValueClicked,

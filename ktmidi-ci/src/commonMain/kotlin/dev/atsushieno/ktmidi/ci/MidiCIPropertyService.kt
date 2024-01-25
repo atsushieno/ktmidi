@@ -24,8 +24,7 @@ interface MidiCIPropertyService {
     fun removeMetadata(propertyId: String)
     // FIXME: too much exposure of Common Rules for PE
     fun encodeBody(data: List<Byte>, encoding: String?): List<Byte>
-    // FIXME: too much exposure of Common Rules for PE
-    fun decodeBody(data: List<Byte>, encoding: String?): List<Byte>
+    fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte>
 
     val propertyCatalogUpdated: MutableList<() -> Unit>
 }
