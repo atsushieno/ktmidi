@@ -8,7 +8,7 @@ import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyClient
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 
 class CIInitiatorModel(private val device: CIDeviceModel) {
-    val initiator by lazy { device.device.initiator }
+    private val initiator by lazy { device.device.initiator }
 
     fun sendEndpointMessage(targetMUID: Int) {
         device.device.sendEndpointMessage(device.defaultSenderGroup, targetMUID)

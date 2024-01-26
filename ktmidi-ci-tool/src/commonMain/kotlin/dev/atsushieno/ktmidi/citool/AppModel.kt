@@ -60,11 +60,11 @@ class CIToolRepository {
         getPlatform().saveFileContent(file, Json.encodeToString(savedSettings).toUtf8ByteArray())
     }
 
-    private fun getConfigDefault() = getConfigFromFile((defaultConfigFile))
-    fun loadConfigDefault() = loadConfig(defaultConfigFile)
-    fun saveConfigDefault() = saveConfig(defaultConfigFile)
+    private fun getConfigDefault() = getConfigFromFile((DEFAULT_CONFIG_FILE))
+    fun loadConfigDefault() = loadConfig(DEFAULT_CONFIG_FILE)
+    fun saveConfigDefault() = saveConfig(DEFAULT_CONFIG_FILE)
 
     companion object {
-        const val defaultConfigFile = "ktmidi-ci-tool.settings.json"
+        const val DEFAULT_CONFIG_FILE = "ktmidi-ci-tool.settings.json"
     }
 }

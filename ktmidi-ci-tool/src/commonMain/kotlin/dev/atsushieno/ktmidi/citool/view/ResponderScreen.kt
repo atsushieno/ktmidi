@@ -71,14 +71,13 @@ fun LocalPropertyConfiguration(vm: ResponderViewModel) {
 @Composable
 fun LocalProfileList(vm: ResponderViewModel) {
     Column {
-        var isSelectedProfileEditable by remember { vm.isSelectedProfileIdEditing }
         val profileIds = vm.model.localProfileStates.map { it.profile }.distinct()
         var editedProfileName by remember { mutableStateOf("") }
         Snapshot.withMutableSnapshot {
             profileIds.forEach {
                 LocalProfileListEntry(it, editedProfileName,
                     { s -> editedProfileName = s },
-                    vm.selectedProfile.value == it, isSelectedProfileEditable) {
+                    vm.selectedProfile.value == it, vm.isSelectedProfileIdEditing.value) {
                     profileId -> vm.selectProfile(profileId)
                 }
             }

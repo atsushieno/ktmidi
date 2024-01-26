@@ -29,11 +29,10 @@ fun InitiatorScreen(vm: InitiatorViewModel) {
                 Text("Send Discovery")
             }
         }
-        val conn = vm.selectedRemoteDevice.value
         Row {
             val destinationMUID by remember { vm.selectedRemoteDeviceMUID }
             InitiatorDestinationSelector(
-                vm.device.connections.map { it.conn.targetMUID to it.conn }.toMap(),
+                vm.device.connections.associate { it.conn.targetMUID to it.conn },
                 destinationMUID,
                 onChange = { Snapshot.withMutableSnapshot { vm.selectedRemoteDeviceMUID.value = it } })
         }

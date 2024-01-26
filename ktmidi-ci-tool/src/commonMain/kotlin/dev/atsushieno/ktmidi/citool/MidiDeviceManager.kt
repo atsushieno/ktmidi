@@ -9,8 +9,8 @@ import kotlinx.coroutines.launch
 
 class MidiDeviceManager {
     private val emptyMidiAccess = EmptyMidiAccess()
-    private lateinit var emptyMidiInput: MidiInput
-    private lateinit var emptyMidiOutput: MidiOutput
+    private var emptyMidiInput: MidiInput = EmptyMidiAccess.input
+    private var emptyMidiOutput: MidiOutput = EmptyMidiAccess.output
     private var midiAccessValue: MidiAccess = emptyMidiAccess
 
     var midiAccess: MidiAccess
@@ -76,8 +76,8 @@ class MidiDeviceManager {
     var midiInputOpened = mutableListOf<(input: MidiInput) -> Unit>()
     var midiOutputOpened = mutableListOf<(output: MidiOutput) -> Unit>()
 
-    lateinit var midiInput: MidiInput
-    lateinit var midiOutput: MidiOutput
+    var midiInput: MidiInput
+    var midiOutput: MidiOutput
 
     // Ideally, there should be distinct pair of virtual ports for Initiator
     // and Responder, but on some MidiAccess backends (namely RtMidi) creating
@@ -116,8 +116,6 @@ class MidiDeviceManager {
     }
 
     init {
-        emptyMidiInput = EmptyMidiAccess.input
-        emptyMidiOutput = EmptyMidiAccess.output
         midiInput = EmptyMidiAccess.input
         midiOutput = EmptyMidiAccess.output
     }

@@ -3,8 +3,6 @@ package dev.atsushieno.ktmidi.citool.view
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -23,10 +21,6 @@ fun App() {
     }
 }
 
-object FeatureDescription {
-    const val responderScreen = "It receives MIDI-CI requests on the Virtual In port and sends replies back from the Virtual Out port"
-}
-
 @Composable
 fun MainContent() {
     Column {
@@ -42,10 +36,10 @@ fun MainContent() {
                         onClick = { tabIndex = index },
                         icon = {
                             when (index) {
-                                0 -> Icon(imageVector = Icons.Default.ArrowForward, contentDescription = null)
-                                1 -> Icon(imageVector = Icons.Default.ArrowBack, contentDescription = FeatureDescription.responderScreen)
-                                2 -> Icon(imageVector = Icons.Default.List, contentDescription = null)
-                                3 -> Icon(imageVector = Icons.Default.Settings, contentDescription = null)
+                                0 -> Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Go to Initiator Screen")
+                                1 -> Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Go to Responder Screen")
+                                2 -> Icon(imageVector = Icons.Default.List, contentDescription = "Go to Log Screen")
+                                3 -> Icon(imageVector = Icons.Default.Settings, contentDescription = "Go to Settings Screen")
                             }
                         }
                     )

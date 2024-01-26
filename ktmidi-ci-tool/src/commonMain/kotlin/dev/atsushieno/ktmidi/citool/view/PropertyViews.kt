@@ -16,9 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.atsushieno.ktmidi.ci.*
+import dev.atsushieno.ktmidi.ci.MidiCIConverter
+import dev.atsushieno.ktmidi.ci.PropertyMetadata
 import dev.atsushieno.ktmidi.ci.json.Json
-import dev.atsushieno.ktmidi.ci.json.JsonParserException
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesKnownMimeTypes
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceColumn
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertySetAccess
@@ -285,7 +285,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                 }
                 Row {
                     if (metadata?.canPaginate == true) {
-                        Text("Pagenate? offset: ")
+                        Text("Paginate? offset: ")
                         TextField(paginateOffset, { paginateOffset = it }, Modifier.width(80.dp))
                         Text(" limit: ")
                         TextField(paginateLimit, { paginateLimit = it }, Modifier.width(80.dp))

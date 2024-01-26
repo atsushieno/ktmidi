@@ -27,7 +27,7 @@ class CIDeviceManager(val owner: CIToolRepository, config: MidiCIDeviceConfigura
         }
     }
 
-    internal fun processMidiInput(data: ByteArray, start: Int, length: Int) {
+    fun processMidiInput(data: ByteArray, start: Int, length: Int) {
         ViewHelper.runInUIContext {
             if (data.size > start + 3 &&
                 data[start] == Midi1Status.SYSEX.toByte() &&

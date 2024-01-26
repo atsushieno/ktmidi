@@ -9,7 +9,7 @@ import kotlin.random.Random
 
 val ViewModel by lazy { RootViewModel(AppModel) }
 
-class RootViewModel(private val repository: CIToolRepository) {
+class RootViewModel(repository: CIToolRepository) {
     val logs = mutableStateListOf<LogEntry>()
     fun clearLogs() {
         logs.clear()
@@ -219,7 +219,7 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 }
 
-class DeviceConfigurationViewModel(val repository: CIToolRepository, private val config: MidiCIDeviceConfiguration) {
+class DeviceConfigurationViewModel(private val repository: CIToolRepository, private val config: MidiCIDeviceConfiguration) {
     private val deviceInfo: MidiCIDeviceInfo = config.device
 
     val maxSimultaneousPropertyRequests =
@@ -255,7 +255,7 @@ class DeviceConfigurationViewModel(val repository: CIToolRepository, private val
 }
 
 class ApplicationSettingsViewModel(val repository: CIToolRepository, config: MidiCIDeviceConfiguration) {
-    val defaultConfigFile = CIToolRepository.defaultConfigFile
+    val defaultConfigFile = CIToolRepository.DEFAULT_CONFIG_FILE
     val device = DeviceConfigurationViewModel(repository, config)
 
     val workaroundJUCEMissingSubscriptionIdIssue = mutableStateOf(
