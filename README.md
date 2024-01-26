@@ -34,9 +34,11 @@ In `ktmidi` module:
 
 In `ktmidi-ci` module (the overall API is unstable and subject to change):
 
-- `MidiCIInitiator` and `MidiCIResponder` classes implement MIDI-CI agent models that conforms to MIDI-CI, Common Rules for MIDI-CI Profile Inquiry, and Common Rules for MIDI-CI Property Exchange specifications.
+- `MidiCIDevice` class implements MIDI-CI agent models that conforms to MIDI-CI, Common Rules for MIDI-CI Profile Inquiry, and Common Rules for MIDI-CI Property Exchange specifications.
 - `Message` implements the sturecures for each MIDI-CI message type.
 - primitive MIDI-CI SysEx byte stream processor in `CIFactory` and `CIRetrieval` classes.
+
+See [MIDI-CI design doc](docs/design/MIDI-CI.md) for more details.
 
 There are handful of sample project modules:
 
@@ -88,8 +90,11 @@ For platform MIDI access API, we cover the following APIs:
 
 - `AndroidMidiAccess`: Android MIDI API (in Kotlin)
 - `AlsaMidiAccess`: ALSA sequencer
-- `RtMidiAccess`: RtMidi (which covers Windows, Mac, Linux, and iOS, but iOS is in general excluded in JVM solution. <del>Also note that [rtmidi-jna](https://github.com/atsushieno/rtmidi-jna) contains prebuilt binaries only for those x86_64 desktop targets.</del> Due to the jar packaging issue, we cannot provide automatic native library loading solution. **You are supposed to set up rtmidi 5.0.x locally.**)
+- `RtMidiAccess`: RtMidi (which covers Windows, Mac, Linux, and iOS, but iOS is in general excluded in JVM solution. Note that [rtmidi-javacpp](https://github.com/atsushieno/rtmidi-javacpp) contains prebuilt binaries only for those x86_64 desktop targets. For other platforms, **you are supposed to set up rtmidi 5.0.x locally.**.
+- `RtMidiNativeAccess`: RtMidi access for Kotln/Native implementation. Note tha there is [a static linking issue](https://github.com/atsushieno/ktmidi/issues/39) to be resolved.
 - `JvmMidiAccess`: javax.sound.midi API (with limited feature set).
+- `WebMidiAccess` : Web MIDI API for Kotlin/Wasm target (browser only).
+- `JzzMidiAccess` : Web MIDI API for Kotlin/JS target (browser and nodejs, experimental, untested).
 
 For dependency resolution reason, ALSA implementation and RtMidi implementation are split from `ktmidi-jvm` and formed as `ktmidi-jvm-desktop`.
 
@@ -172,4 +177,3 @@ ktmidi is distributed under the MIT license.
 [rtmidi](https://github.com/thestk/rtmidi/) is included in ktmidi-native-ext package and is distributed under the MIT license. (It is also indirectly referenced via rtmidi-jna, which may be a different version.)
 
 midi-ci-tool uses [Wavesonics/compose-multiplatform-file-picker](https://github.com/Wavesonics/compose-multiplatform-file-picker) which is distributed under the MIT license.
-
