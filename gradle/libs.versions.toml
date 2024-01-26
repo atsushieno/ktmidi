@@ -13,7 +13,7 @@ compose-plugin = "1.6.0-alpha01"
 junit = "4.13.2"
 kotlin = "1.9.21"
 
-alsakt = "0.3.4"
+alsakt = "0.3.5"
 junit-jupiter-api = "5.9.1"
 kotlin-test-junit = "1.9.0"
 kotlinx-coroutines-core = "1.8.0-RC2"
