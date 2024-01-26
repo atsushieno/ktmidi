@@ -10,15 +10,13 @@ import org.khronos.webgl.get
 
 fun processRequestMidiAccess(): Unit = js("""{
 navigator.permissions.query({ name: "midi" }).then((result) => {
-    switch (result.state) {
-    case "prompt":
-    case "denied":
+    console.log("ktmidi-ci-tool: requesting permission for Web MIDI Access: " + result.state);
+    if (result.state == "prompt" || result.state =="granted") {
         navigator.requestMIDIAccess({"sysex": true, "software": true})
             .then((access) => {
                 console.log("ktmidi-ci-tool: Web MIDI Access is ready for ktmidi-ci-tool");
                 document["ktmidi_wasmJs_midiAccess"] = access;
             });
-        break;
     }
 });
 }""")
