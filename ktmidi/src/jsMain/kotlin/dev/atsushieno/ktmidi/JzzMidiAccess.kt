@@ -11,6 +11,8 @@ private suspend fun <T> Promise<T>.await(): T = suspendCoroutine { cont ->
     then({ cont.resumeWith(it.unsafeCast<Result<T>>()) }, { cont.resumeWithException(it) })
 }
 
+// FIXME: we should also create JzzMidi2Access which is based on "JZZ.UMP" ...
+
 class JzzMidiAccess private constructor(val useSysex: Boolean, private val jzz: dynamic) : MidiAccess() {
     override val name: String
         get() = "JZZ"
@@ -36,14 +38,14 @@ class JzzMidiAccess private constructor(val useSysex: Boolean, private val jzz: 
         val details = inputs.firstOrNull { it.id == portId }
             ?: throw IllegalArgumentException("Invalid port ID was requested: $portId")
         val port = jzz.openMidiIn(details.name)
-        return JzzMidiInput(port, details, MidiCIProtocolType.MIDI1)
+        return JzzMidiInput(port, details, MidiTransportProtocol.MIDI1)
     }
 
     override suspend fun openOutput(portId: String): MidiOutput {
         val details = outputs.firstOrNull { it.id == portId }
             ?: throw IllegalArgumentException("Invalid port ID was requested: $portId")
         val port = jzz.openMidiOut(details.name)
-        return JzzMidiOutput(port, details, MidiCIProtocolType.MIDI1)
+        return JzzMidiOutput(port, details, MidiTransportProtocol.MIDI1)
     }
 }
 
@@ -55,11 +57,12 @@ internal class JzzMidiPortDetails(
     override val manufacturer: String? = item.manufacturer
     override val name: String? = item.name
     override val version: String? = item.version
+    override val midiTransportProtocol = 1
 }
 
 internal abstract class JzzMidiPort(
     override val details: MidiPortDetails,
-    override var midiProtocol: Int
+    var midiProtocol: Int
 ) : MidiPort {
     private var state: MidiPortConnectionState = MidiPortConnectionState.OPEN
     override val connectionState

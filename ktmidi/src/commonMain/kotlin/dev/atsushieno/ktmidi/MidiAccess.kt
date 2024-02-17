@@ -3,9 +3,12 @@ package dev.atsushieno.ktmidi
 val emptyMidiAccess = EmptyMidiAccess()
 
 abstract class MidiAccess {
+    /** The name of the MIDI access API (such as ALSA, WinMM, CoreMIDI) for application developers' convenience. */
     abstract val name: String
 
+    /** List of MIDI input devices that application developers can receive inputs. */
     abstract val inputs: Iterable<MidiPortDetails>
+    /** List of MIDI output devices that application developers can send outputs. */
     abstract val outputs: Iterable<MidiPortDetails>
 
     abstract suspend fun openInput(portId: String): MidiInput
@@ -22,6 +25,11 @@ abstract class MidiAccess {
     open suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput {
         throw UnsupportedOperationException()
     }
+
+    /** Indicates whether it supports MIDI 2.0 UMP transports.
+     *  It is useful when you compare multiple MidiAccess APIs and choose one that matches your need.
+     */
+    open val supportsUmpTransport = false
 }
 
 interface MidiPortDetails {
@@ -29,6 +37,7 @@ interface MidiPortDetails {
     val manufacturer: String?
     val name: String?
     val version: String?
+    val midiTransportProtocol: Int
 }
 
 enum class MidiPortConnectionState {
@@ -40,8 +49,6 @@ interface MidiPort {
     val details: MidiPortDetails
     val connectionState: MidiPortConnectionState
     fun close()
-
-    var midiProtocol: Int
 }
 
 fun interface OnMidiReceivedEventListener {
@@ -73,13 +80,6 @@ abstract class SimpleVirtualMidiPort protected constructor(
         onDispose ()
         state = MidiPortConnectionState.CLOSED
     }
-
-    override var midiProtocol: Int
-        get() = MidiCIProtocolType.MIDI1
-        set(value) {
-            if (value != MidiCIProtocolType.MIDI1)
-                throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
-        }
 }
 
 class SimpleVirtualMidiInput(details: MidiPortDetails, onDispose: () -> Unit) : SimpleVirtualMidiPort(
@@ -152,18 +152,13 @@ internal abstract class EmptyMidiPort : MidiPort {
     override fun close() {
         // do nothing.
     }
-
-    private var _midiProtocol: Int = MidiCIProtocolType.MIDI1
-    // take whatever specified
-    override var midiProtocol: Int
-        get() = _midiProtocol
-        set(v) { _midiProtocol = v }
 }
 
 internal class EmptyMidiPortDetails(override val id: String, name: String) : MidiPortDetails {
-    override val manufacturer = "dummy project"
+    override val manufacturer = "ktmidi project"
     override val name: String? = name
     override val version = "0.0"
+    override val midiTransportProtocol = 1
 }
 
 internal class EmptyMidiInput : EmptyMidiPort(), MidiInput {

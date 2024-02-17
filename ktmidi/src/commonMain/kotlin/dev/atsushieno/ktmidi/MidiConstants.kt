@@ -1,5 +1,10 @@
 package dev.atsushieno.ktmidi
 
+object MidiTransportProtocol {
+    const val MIDI1 = 1
+    const val UMP = 2
+}
+
 object MidiMessageType { // MIDI 2.0
     const val UTILITY = 0
     const val SYSTEM = 1
@@ -241,9 +246,9 @@ object MidiCIProtocolBytes { // MIDI 2.0
 }
 
 object MidiCIProtocolType { // MIDI 2.0
-    @Deprecated("Use MidiProtocolVersion.MIDI1")
+    @Deprecated("To identify MIDI 1.0 or 2.0, use MidiProtocolVersion.MIDI1. To identify transport protocol, use MidiTransportProtocol.MIDI1")
     const val MIDI1 = 1
-    @Deprecated("Use MidiProtocolVersion.MIDI2")
+    @Deprecated("To identify MIDI 1.0 or 2.0, use MidiProtocolVersion.MIDI2. To identify transport protocol, use MidiTransportProtocol.UMP")
     const val MIDI2 = 2
 }
 

@@ -1,16 +1,23 @@
 // Signature format: 4.0
 package dev.atsushieno.ktmidi {
 
-  public final class AndroidMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
+  public final class AndroidMidi2Access extends dev.atsushieno.ktmidi.AndroidMidiAccess {
+    ctor public AndroidMidi2Access(android.content.Context applicationContext, optional boolean includeMidi1Transport);
+    property protected java.util.List<dev.atsushieno.ktmidi.MidiPortDetails> ports;
+  }
+
+  public class AndroidMidiAccess extends dev.atsushieno.ktmidi.MidiAccess {
     ctor public AndroidMidiAccess(android.content.Context applicationContext);
     method public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getInputs();
     method public String getName();
     method public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
+    method protected java.util.List<dev.atsushieno.ktmidi.MidiPortDetails> getPorts();
     method public suspend Object? openInput(String portId, kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput>);
     method public suspend Object? openOutput(String portId, kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput>);
     property public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> inputs;
     property public String name;
     property public Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
+    property protected java.util.List<dev.atsushieno.ktmidi.MidiPortDetails> ports;
   }
 
   public enum ByteOrder {
@@ -1166,6 +1173,7 @@ package dev.atsushieno.ktmidi {
     method public abstract String getName();
     method public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> getOutputs();
     method public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> getStateChanged();
+    method public boolean getSupportsUmpTransport();
     method public abstract suspend Object? openInput(String portId, kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiInput>);
     method public abstract suspend Object? openOutput(String portId, kotlin.coroutines.Continuation<? super dev.atsushieno.ktmidi.MidiOutput>);
     method public final void setStateChanged(kotlin.jvm.functions.Function1<? super dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit>);
@@ -1175,6 +1183,7 @@ package dev.atsushieno.ktmidi {
     property public abstract String name;
     property public abstract Iterable<dev.atsushieno.ktmidi.MidiPortDetails> outputs;
     property public final kotlin.jvm.functions.Function1<dev.atsushieno.ktmidi.MidiPortDetails,kotlin.Unit> stateChanged;
+    property public boolean supportsUmpTransport;
   }
 
   public final class MidiAccessKt {
@@ -1644,11 +1653,8 @@ package dev.atsushieno.ktmidi {
     method public void close();
     method public dev.atsushieno.ktmidi.MidiPortConnectionState getConnectionState();
     method public dev.atsushieno.ktmidi.MidiPortDetails getDetails();
-    method public int getMidiProtocol();
-    method public void setMidiProtocol(int);
     property public abstract dev.atsushieno.ktmidi.MidiPortConnectionState connectionState;
     property public abstract dev.atsushieno.ktmidi.MidiPortDetails details;
-    property public abstract int midiProtocol;
   }
 
   public enum MidiPortConnectionState {
@@ -1661,10 +1667,12 @@ package dev.atsushieno.ktmidi {
   public interface MidiPortDetails {
     method public String getId();
     method public String? getManufacturer();
+    method public int getMidiTransportProtocol();
     method public String? getName();
     method public String? getVersion();
     property public abstract String id;
     property public abstract String? manufacturer;
+    property public abstract int midiTransportProtocol;
     property public abstract String? name;
     property public abstract String? version;
   }
@@ -1745,6 +1753,12 @@ package dev.atsushieno.ktmidi {
 
   @Deprecated public static final class MidiTrackSplitter.Companion {
     method @Deprecated public dev.atsushieno.ktmidi.MidiMusic split(java.util.List<dev.atsushieno.ktmidi.MidiMessage> source, byte deltaTimeSpec);
+  }
+
+  public final class MidiTransportProtocol {
+    field public static final dev.atsushieno.ktmidi.MidiTransportProtocol INSTANCE;
+    field public static final int MIDI1 = 1; // 0x1
+    field public static final int UMP = 2; // 0x2
   }
 
   public final class MidiUtilityStatus {
@@ -1859,11 +1873,8 @@ package dev.atsushieno.ktmidi {
     method public void close();
     method public dev.atsushieno.ktmidi.MidiPortConnectionState getConnectionState();
     method public dev.atsushieno.ktmidi.MidiPortDetails getDetails();
-    method public int getMidiProtocol();
-    method public void setMidiProtocol(int);
     property public dev.atsushieno.ktmidi.MidiPortConnectionState connectionState;
     property public dev.atsushieno.ktmidi.MidiPortDetails details;
-    property public int midiProtocol;
   }
 
   public final class SmfParserException extends java.lang.Exception {

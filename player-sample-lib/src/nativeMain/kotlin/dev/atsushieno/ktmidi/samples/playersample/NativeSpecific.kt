@@ -12,9 +12,9 @@ import platform.posix.fread
 import platform.posix.stat
 import kotlin.system.exitProcess
 
-actual fun getMidiAccessApi(api: String?): MidiAccess = when (api) {
+actual fun getMidiAccessApi(api: String?, midiTransportProtocol: Int): MidiAccess = when (api) {
     "EMPTY" -> EmptyMidiAccess()
-    else -> getNativeMidiAccessApi() ?: RtMidiNativeAccess()
+    else -> getNativeMidiAccessApi()
 }
 
 expect fun getNativeMidiAccessApi(): MidiAccess

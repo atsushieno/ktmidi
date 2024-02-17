@@ -6,7 +6,7 @@ import dev.atsushieno.ktmidi.RtMidiAccess
 import java.io.File
 import kotlin.system.exitProcess
 
-actual fun getMidiAccessApi(api: String?) = when (api) {
+actual fun getMidiAccessApi(api: String?, midiTransportProtocol: Int) = when (api) {
     "EMPTY" -> EmptyMidiAccess()
     "JVM" -> JvmMidiAccess()
     else -> RtMidiAccess()

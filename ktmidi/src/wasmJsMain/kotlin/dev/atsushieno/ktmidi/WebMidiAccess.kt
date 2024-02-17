@@ -61,6 +61,8 @@ private class WebMidiPortDetails(val port: MIDIPort) : MidiPortDetails {
         get() = port.name
     override val version: String?
         get() = port.version
+    override val midiTransportProtocol: Int
+        get() = 1
 }
 
 internal abstract class WebMidiPort(final override val details: MidiPortDetails) : MidiPort {
@@ -72,10 +74,6 @@ internal abstract class WebMidiPort(final override val details: MidiPortDetails)
     override fun close() {
         // Web MIDI API does not "close" ports
     }
-
-    override var midiProtocol: Int
-        get() = 1
-        set(value) { TODO("Not implemented") }
 }
 
 private class WebMidiInput(

@@ -93,7 +93,7 @@ class Midi2Player : MidiPlayer {
         messages = music.mergeTracks().tracks[0].messages
         looper = Midi2EventLooper(messages, timer, music.deltaTimeSpec)
         looper.starting = Runnable {
-            if (output.midiProtocol == MidiCIProtocolType.MIDI2) {
+            if (output.details.midiTransportProtocol == MidiTransportProtocol.UMP) {
                 for (group in 0..15) {
                     // all control reset on all channels.
                     for (ch in 0..15) {
@@ -115,21 +115,22 @@ class Midi2Player : MidiPlayer {
 
         val listener = object : OnMidi2EventListener {
             override fun onEvent(e: Ump) {
+                val protocol = output.details.midiTransportProtocol
                 when (e.messageType) {
                     MidiMessageType.SYSEX7 -> {
-                        if (output.midiProtocol != MidiCIProtocolType.MIDI2 && (e.statusCode == Midi2BinaryChunkStatus.START || e.statusCode == Midi2BinaryChunkStatus.COMPLETE_PACKET)) {
+                        if (protocol != MidiTransportProtocol.UMP && (e.statusCode == Midi2BinaryChunkStatus.START || e.statusCode == Midi2BinaryChunkStatus.COMPLETE_PACKET)) {
                             sysexBuffer.clear()
                             sysexBuffer.add(0xF0.toByte())
                         }
 
-                        if (output.midiProtocol != MidiCIProtocolType.MIDI2) {
+                        if (protocol != MidiTransportProtocol.UMP) {
                             // get sysex8 bytes in the right order
                             e.toPlatformBytes(umpConversionBuffer, 0, ByteOrder.BIG_ENDIAN)
                             sysexBuffer.addAll(umpConversionBuffer.drop(2).take(e.sysex7Size))
                         }
                         e.toPlatformBytes(umpConversionBuffer, 0)
 
-                        if (output.midiProtocol == MidiCIProtocolType.MIDI2)
+                        if (protocol == MidiTransportProtocol.UMP)
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                         else if (e.statusCode == Midi2BinaryChunkStatus.END || e.statusCode == Midi2BinaryChunkStatus.COMPLETE_PACKET) {
                             sysexBuffer.add(0xF7.toByte())
@@ -145,7 +146,7 @@ class Midi2Player : MidiPlayer {
                             if (lastMetaEventType >= 0)
                                 sysexBuffer.clear()
                         }
-                        if (lastMetaEventType < 0 && output.midiProtocol != MidiCIProtocolType.MIDI2)
+                        if (lastMetaEventType < 0 && protocol != MidiTransportProtocol.UMP)
                             throw UnsupportedOperationException("MIDI 2.0 SYSEX8/MDS are not supported on devices that only support MIDI 1.0 protocol.")
 
                         if (lastMetaEventType >= 0) {
@@ -167,7 +168,7 @@ class Midi2Player : MidiPlayer {
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                     }
                     MidiMessageType.MIDI2 -> {
-                        if (output.midiProtocol == MidiCIProtocolType.MIDI2) {
+                        if (protocol == MidiTransportProtocol.UMP) {
                             e.toPlatformBytes(umpConversionBuffer, 0)
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                         }
@@ -186,7 +187,7 @@ class Midi2Player : MidiPlayer {
                                     return // ignore messages for the masked channel.
                             }
                         }
-                        if (output.midiProtocol == MidiCIProtocolType.MIDI2) {
+                        if (protocol == MidiTransportProtocol.UMP) {
                             e.toPlatformBytes(umpConversionBuffer, 0)
                             output.send(umpConversionBuffer, 0, e.sizeInBytes, 0)
                         } else {

@@ -45,8 +45,8 @@ private class CoreMidiPortDetails(val endpoint: MIDIEndpointRef)
     override val name = getPropertyString(kMIDIPropertyDisplayName) ?: getPropertyString(kMIDIPropertyName) ?: "(unnamed port)"
     @OptIn(ExperimentalForeignApi::class)
     override val version = getPropertyString(kMIDIPropertyDriverVersion)
-    //@OptIn(ExperimentalForeignApi::class)
-    //override val midiProtocol = getPropertyInt(kMIDIPropertyProtocolID)
+    @OptIn(ExperimentalForeignApi::class)
+    override val midiTransportProtocol = getPropertyInt(kMIDIPropertyProtocolID)
 }
 
 private abstract class CoreMidiPort(override val details: CoreMidiPortDetails) : MidiPort {
@@ -62,10 +62,6 @@ private abstract class CoreMidiPort(override val details: CoreMidiPortDetails) :
         MIDIClientDispose(clientRef)
         closed = true
     }
-
-    override var midiProtocol: Int
-        get() = TODO("Not yet implemented")
-        set(value) = TODO("Not yet implemented")
 }
 
 @OptIn(ExperimentalForeignApi::class)

@@ -33,6 +33,7 @@ class RtMidiAccess() : MidiAccess() {
         override val id: String = portIndex.toString()
         override val manufacturer = "" // N/A by rtmidi
         override val version: String = "" // N/A by rtmidi
+        override val midiTransportProtocol = 1
     }
 
     override val inputs: Iterable<MidiPortDetails>
@@ -75,7 +76,6 @@ class RtMidiAccess() : MidiAccess() {
         RtMidiOutput(portId.toInt())
 
     internal abstract class RtMidiPort : MidiPort {
-        override var midiProtocol: Int = 0 // unspecified
         abstract override val details: MidiPortDetails
         abstract override fun close()
     }
@@ -165,6 +165,7 @@ class RtMidiAccess() : MidiAccess() {
         override val manufacturer: String = context.manufacturer
         override val name: String = context.portName
         override val version: String = context.version
+        override val midiTransportProtocol = 1
     }
 
     internal abstract class RtMidiVirtualPort(context: PortCreatorContext) : MidiPort {
@@ -172,8 +173,6 @@ class RtMidiAccess() : MidiAccess() {
 
         override val details: MidiPortDetails
             get() = detailsImpl
-
-        override var midiProtocol: Int = 0
     }
 
     internal class RtMidiVirtualInput(context: PortCreatorContext) : MidiInput, RtMidiVirtualPort(context) {

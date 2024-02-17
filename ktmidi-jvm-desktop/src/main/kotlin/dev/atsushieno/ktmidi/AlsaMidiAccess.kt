@@ -165,13 +165,6 @@ class AlsaVirtualMidiInput (private val seq: AlsaSequencer, private val portDeta
         onClose()
     }
 
-    override var midiProtocol: Int
-        get() =
-            if (portDetails.portInfo.portType and AlsaPortType.Ump != 0) MidiCIProtocolType.MIDI2
-            else MidiCIProtocolValue.MIDI1
-        set(_) =
-            throw UnsupportedOperationException("AlsaMidiAccess does not support modifying MIDI protocols once it is created.")
-
     init {
         val buffer = ByteArray(0x200)
         val received : (ByteArray, Int, Int) -> Unit = { buf, start, len ->
@@ -197,6 +190,9 @@ class AlsaMidiPortDetails(private val port: AlsaPortInfo) : MidiPortDetails {
 
     override val version: String
         get() = port.version
+
+    override val midiTransportProtocol: Int
+        get() = if (port.portType and AlsaPortType.Ump != 0) MidiTransportProtocol.UMP else MidiTransportProtocol.MIDI1
 }
 
 class AlsaMidiInput(private val seq: AlsaSequencer, private val appPort: AlsaMidiPortDetails, private val sourcePort: AlsaMidiPortDetails) : MidiInput {
@@ -206,13 +202,6 @@ class AlsaMidiInput(private val seq: AlsaSequencer, private val appPort: AlsaMid
         get() = sourcePort
 
     override var connectionState: MidiPortConnectionState = MidiPortConnectionState.OPEN
-
-    override var midiProtocol: Int
-        get() =
-            if (sourcePort.portInfo.portType and AlsaPortType.Ump != 0) MidiCIProtocolType.MIDI2
-            else MidiCIProtocolValue.MIDI1
-        set(_) =
-            throw UnsupportedOperationException("AlsaMidiAccess does not support modifying MIDI protocols once it is created.")
 
     private var messageReceived: OnMidiReceivedEventListener? = null
 
@@ -249,13 +238,6 @@ class AlsaMidiOutput(private val seq: AlsaSequencer, private val appPort: AlsaMi
         get() = targetPort
 
     override var connectionState: MidiPortConnectionState = MidiPortConnectionState.OPEN
-
-    override var midiProtocol: Int
-        get() =
-            if (targetPort.portInfo.portType and AlsaPortType.Ump != 0) MidiCIProtocolType.MIDI2
-            else MidiCIProtocolValue.MIDI1
-        set(_) =
-            throw UnsupportedOperationException("AlsaMidiAccess does not support modifying MIDI protocols once it is created.")
 
     override fun close() {
         // unsubscribe the app port from the MIDI output, and then delete the port.

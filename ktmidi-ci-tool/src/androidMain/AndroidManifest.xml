@@ -30,6 +30,16 @@
             <meta-data android:name="android.media.midi.MidiDeviceService"
                 android:resource="@xml/midi_device_info" />
         </service>
+
+        <service android:name=".KtMidiToolUmpDeviceService"
+            android:exported="true"
+            android:permission="android.permission.BIND_MIDI_DEVICE_SERVICE">
+            <intent-filter>
+                <action android:name="android.media.midi.MidiUmpDeviceService" />
+            </intent-filter>
+            <meta-data android:name="android.media.midi.MidiUmpDeviceService"
+                android:resource="@xml/midi_ump_device_info" />
+        </service>
     </application>
 
 </manifest>

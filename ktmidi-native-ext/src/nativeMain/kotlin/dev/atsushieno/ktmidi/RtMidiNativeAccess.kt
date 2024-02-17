@@ -49,6 +49,7 @@ class RtMidiNativeAccess() : MidiAccess() {
         override val id: String = portIndex.toString()
         override val manufacturer = "" // N/A by rtmidi
         override val version: String = "" // N/A by rtmidi
+        override val midiTransportProtocol = 1
     }
 
     override val inputs: Iterable<MidiPortDetails>
@@ -91,7 +92,6 @@ class RtMidiNativeAccess() : MidiAccess() {
         RtMidiOutput(portId.toUInt())
 
     internal abstract class RtMidiPort : MidiPort {
-        override var midiProtocol: Int = 0 // unspecified
         abstract override val details: MidiPortDetails
         abstract override fun close()
     }
@@ -173,30 +173,18 @@ class RtMidiNativeAccess() : MidiAccess() {
     // Virtual ports
 
     internal class RtMidiVirtualPortDetails(context: PortCreatorContext) : MidiPortDetails {
-        override val id: String
-        override val manufacturer: String
-        override val name: String
-        override val version: String
-
-        init {
-            id = context.portName
-            name = context.portName
-            manufacturer = context.manufacturer
-            version = context.version
-        }
+        override val id: String = context.portName
+        override val manufacturer: String = context.manufacturer
+        override val name: String = context.portName
+        override val version: String = context.version
+        override val midiTransportProtocol = 1
     }
 
     internal abstract class RtMidiVirtualPort(context: PortCreatorContext) : MidiPort {
-        private val detailsImpl: MidiPortDetails
+        private val detailsImpl: MidiPortDetails = RtMidiVirtualPortDetails(context)
 
         override val details: MidiPortDetails
             get() = detailsImpl
-
-        override var midiProtocol: Int = 0
-
-        init {
-            detailsImpl = RtMidiVirtualPortDetails(context)
-        }
     }
 
     @OptIn(kotlinx.cinterop.ExperimentalForeignApi::class)

@@ -3,24 +3,47 @@ package dev.atsushieno.ktmidi
 import android.app.Service
 import android.media.midi.*
 import android.content.Context
+import android.os.Build
+import android.os.Build.VERSION_CODES
 import kotlinx.coroutines.delay
 
-class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
+class AndroidMidi2Access(applicationContext: Context, private val includeMidi1Transport: Boolean = false) : AndroidMidiAccess(applicationContext) {
+    override val ports : List<MidiPortDetails>
+        get() =
+            ports1.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
+            .map { pair -> AndroidPortDetails(pair.first, pair.second, 1) } +
+            ports2.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
+            .map { pair -> AndroidPortDetails(pair.first, pair.second, 2) }
+    private val ports2: List<MidiDeviceInfo>
+        get() =
+            if (Build.VERSION.SDK_INT >= VERSION_CODES.TIRAMISU)
+                manager.getDevicesForTransport(MidiManager.TRANSPORT_UNIVERSAL_MIDI_PACKETS).toList()
+            else
+                manager.devices.toList()
+}
+
+open class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
     override val name: String
         get() = "AndroidSDK"
 
     internal val manager: MidiManager = applicationContext.getSystemService(Service.MIDI_SERVICE) as MidiManager
-    private val ports : List<AndroidPortDetails>
-        get() = manager.devices.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
-            .map { pair -> AndroidPortDetails(pair.first, pair.second) }
-
+    protected open val ports : List<MidiPortDetails>
+        get() = ports1.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
+            .map { pair -> AndroidPortDetails(pair.first, pair.second, 1) }
+    @Suppress("DEPRECATION") // cannot linter track this conditional code while it can detect unguarded invocation?
+    internal val ports1: List<MidiDeviceInfo>
+        get() =
+            if (Build.VERSION.SDK_INT >= VERSION_CODES.TIRAMISU)
+                manager.getDevicesForTransport(MidiManager.TRANSPORT_MIDI_BYTE_STREAM).toList()
+            else
+                manager.devices.toList()
     internal val openDevices = mutableListOf<MidiDevice>()
 
     // Note that "input" and "output" are flip side in Android and javax.sound.midi. We choose saner direction.
     override val inputs: Iterable<MidiPortDetails>
-        get() = ports.filter { p -> p.portInfo.type == MidiDeviceInfo.PortInfo.TYPE_OUTPUT }.asIterable()
+        get() = ports.map { it as AndroidPortDetails }.filter { p -> p.portInfo.type == MidiDeviceInfo.PortInfo.TYPE_OUTPUT }.asIterable()
     override val outputs: Iterable<MidiPortDetails>
-        get() = ports.filter { p -> p.portInfo.type == MidiDeviceInfo.PortInfo.TYPE_INPUT }.asIterable()
+        get() = ports.map { it as AndroidPortDetails }.filter { p -> p.portInfo.type == MidiDeviceInfo.PortInfo.TYPE_INPUT }.asIterable()
 
     override suspend fun openInput(portId: String): MidiInput {
         val ip = inputs.first { i -> i.id == portId } as AndroidPortDetails
@@ -37,7 +60,9 @@ class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
     }
 }
 
-private class AndroidPortDetails(val device: MidiDeviceInfo, val portInfo: MidiDeviceInfo.PortInfo) : MidiPortDetails {
+private class AndroidPortDetails(val device: MidiDeviceInfo, val portInfo: MidiDeviceInfo.PortInfo,
+                                 override val midiTransportProtocol: Int
+) : MidiPortDetails {
     private val significantPortName = if (portInfo.name != "input" && portInfo.name != "output") portInfo.name else null
     override val id: String
         get() = "${this.name}_${portInfo.portNumber}"
@@ -89,10 +114,6 @@ private abstract class AndroidPort(override val details: AndroidPortDetails, pri
         onClose ()
         state = MidiPortConnectionState.CLOSED
     }
-
-    override var midiProtocol: Int
-        get() = MidiCIProtocolValue.MIDI1
-        set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
 }
 
 private class AndroidMidiInput(portDetails: AndroidPortDetails, private val impl: MidiOutputPort)

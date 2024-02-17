@@ -9,7 +9,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import dev.atsushieno.ktmidi.AndroidMidiAccess
+import dev.atsushieno.ktmidi.AndroidMidi2Access
 import dev.atsushieno.ktmidi.citool.view.App
 import kotlin.system.exitProcess
 
@@ -19,7 +19,7 @@ class MainActivity : ComponentActivity() {
 
         androidPlatform = AndroidPlatform(applicationContext)
         initializeAppModel(this)
-        AppModel.midiDeviceManager.midiAccess = AndroidMidiAccess(applicationContext)
+        AppModel.midiDeviceManager.midiAccess = AndroidMidi2Access(applicationContext, true)
 
         setContent {
             App()

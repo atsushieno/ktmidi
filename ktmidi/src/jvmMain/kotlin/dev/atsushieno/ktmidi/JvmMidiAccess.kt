@@ -61,6 +61,7 @@ internal abstract class JvmMidiPortDetails(override val id: String, info: MidiDe
     override val manufacturer: String? = info.vendor
     override val name: String? = info.name
     override val version: String? = info.version
+    override val midiTransportProtocol = 1
 }
 
 private class JvmMidiTransmitterPortDetails(val device: MidiDevice, portIndex: Int, val transmitter: Transmitter) :
@@ -95,10 +96,6 @@ private class JvmMidiInput(val port: JvmMidiTransmitterPortDetails) : MidiInput 
     override fun close() {
         port.transmitter.close()
     }
-
-    override var midiProtocol: Int
-        get() = MidiCIProtocolValue.MIDI1
-        set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
 
     private var listener: OnMidiReceivedEventListener? = null
 
@@ -135,10 +132,6 @@ private class JvmMidiOutput(val port: JvmMidiReceiverPortDetails) : MidiOutput {
 
     override val connectionState: MidiPortConnectionState
         get() = state
-
-    override var midiProtocol: Int
-        get() = MidiCIProtocolValue.MIDI1
-        set(_) = throw UnsupportedOperationException("This MidiPort implementation does not support promoting MIDI protocols")
 
     override fun close() {
         port.receiver.close()

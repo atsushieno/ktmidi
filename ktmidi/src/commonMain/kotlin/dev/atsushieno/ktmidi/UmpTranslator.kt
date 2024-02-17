@@ -12,7 +12,7 @@ import kotlin.experimental.and
  */
 class Midi1ToUmpTranslatorContext(val midi1: List<Byte>,
                                   val allowReorderedDTE: Boolean = false,
-                                  val midiProtocol: Int = MidiCIProtocolType.MIDI2,
+                                  val midiProtocol: Int = MidiTransportProtocol.UMP,
                                   val group: Int,
                                   val useSysex8: Boolean = false,
                                   val isMidi1Smf: Boolean = false) {
@@ -311,7 +311,7 @@ object UmpTranslator {
                 val byte2 = context.midi1[context.midi1Pos + 1].toInt()
                 val byte3 = if (len > 2) context.midi1[context.midi1Pos + 2].toInt() else 0
                 val channel = context.midi1[context.midi1Pos].toInt() and 0xF
-                if (context.midiProtocol == MidiCIProtocolType.MIDI1) {
+                if (context.midiProtocol == MidiTransportProtocol.MIDI1) {
                     // generate MIDI1 UMPs
                     context.output.add(
                         Ump(
