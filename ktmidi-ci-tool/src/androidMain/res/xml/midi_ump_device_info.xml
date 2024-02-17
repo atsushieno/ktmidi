@@ -1,6 +1,5 @@
 <devices>
     <device name="KtMidiCITool-UMP" manufacturer="atsushieno" product="KtMidiCITool-UMP">
-        <input-port name="KtMidiTool-UMP Virtual Out" />
-        <output-port name="KtMidiTool-UMP Virtual In" />
+        <port name="KtMidiTool-UMP Virtual Out" />
     </device>
 </devices>
