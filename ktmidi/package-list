@@ -160,6 +160,8 @@ $dokka.location:dev.atsushieno.ktmidi//umpStreamFormat/dev.atsushieno.ktmidi.Ump
 $dokka.location:dev.atsushieno.ktmidi//write/dev.atsushieno.ktmidi.Midi1Music#kotlin.collections.MutableList[kotlin.Byte]#kotlin.Function3[kotlin.Boolean,dev.atsushieno.ktmidi.Midi1Event,kotlin.collections.MutableList[kotlin.Byte],kotlin.Int]#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/write.html
 $dokka.location:dev.atsushieno.ktmidi//write/dev.atsushieno.ktmidi.Midi2Music#kotlin.collections.MutableList[kotlin.Byte]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/write.html
 $dokka.location:dev.atsushieno.ktmidi//write/dev.atsushieno.ktmidi.MidiMusic#kotlin.collections.MutableList[kotlin.Byte]#kotlin.Function3[kotlin.Boolean,dev.atsushieno.ktmidi.MidiMessage,kotlin.collections.MutableList[kotlin.Byte],kotlin.Int]#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/write.html
+$dokka.location:dev.atsushieno.ktmidi/AndroidMidi2Access///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi2-access/index.html
+$dokka.location:dev.atsushieno.ktmidi/AndroidMidi2Access/AndroidMidi2Access/#android.content.Context#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi2-access/-android-midi2-access.html
 $dokka.location:dev.atsushieno.ktmidi/AndroidMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi-access/index.html
 $dokka.location:dev.atsushieno.ktmidi/AndroidMidiAccess/AndroidMidiAccess/#android.content.Context/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi-access/-android-midi-access.html
 $dokka.location:dev.atsushieno.ktmidi/AndroidMidiAccess/inputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi-access/inputs.html
@@ -920,6 +922,7 @@ $dokka.location:dev.atsushieno.ktmidi/MidiAccess/openInput/#kotlin.String/Pointi
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess/openOutput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/open-output.html
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess/outputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/outputs.html
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess/stateChanged/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/state-changed.html
+$dokka.location:dev.atsushieno.ktmidi/MidiAccess/supportsUmpTransport/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/supports-ump-transport.html
 $dokka.location:dev.atsushieno.ktmidi/MidiBankDefinition///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-bank-definition/index.html
 $dokka.location:dev.atsushieno.ktmidi/MidiBankDefinition/MidiBankDefinition/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-bank-definition/-midi-bank-definition.html
 $dokka.location:dev.atsushieno.ktmidi/MidiBankDefinition/lsb/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-bank-definition/lsb.html
@@ -1211,7 +1214,6 @@ $dokka.location:dev.atsushieno.ktmidi/MidiPort///PointingToDeclaration/ktmidi/d
 $dokka.location:dev.atsushieno.ktmidi/MidiPort/close/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-port/close.html
 $dokka.location:dev.atsushieno.ktmidi/MidiPort/connectionState/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-port/connection-state.html
 $dokka.location:dev.atsushieno.ktmidi/MidiPort/details/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-port/details.html
-$dokka.location:dev.atsushieno.ktmidi/MidiPort/midiProtocol/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-port/midi-protocol.html
 $dokka.location:dev.atsushieno.ktmidi/MidiPortConnectionState.CLOSED///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}ktmidi/dev.atsushieno.ktmidi/-midi-port-connection-state/-c-l-o-s-e-d/index.html
 $dokka.location:dev.atsushieno.ktmidi/MidiPortConnectionState.OPEN///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}ktmidi/dev.atsushieno.ktmidi/-midi-port-connection-state/-o-p-e-n/index.html
 $dokka.location:dev.atsushieno.ktmidi/MidiPortConnectionState///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-port-connection-state/index.html
@@ -1221,6 +1223,7 @@ $dokka.location:dev.atsushieno.ktmidi/MidiPortConnectionState/values/#/PointingT
 $dokka.location:dev.atsushieno.ktmidi/MidiPortDetails///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-port-details/index.html
 $dokka.location:dev.atsushieno.ktmidi/MidiPortDetails/id/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-port-details/id.html
 $dokka.location:dev.atsushieno.ktmidi/MidiPortDetails/manufacturer/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-port-details/manufacturer.html
+$dokka.location:dev.atsushieno.ktmidi/MidiPortDetails/midiTransportProtocol/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-port-details/midi-transport-protocol.html
 $dokka.location:dev.atsushieno.ktmidi/MidiPortDetails/name/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-port-details/name.html
 $dokka.location:dev.atsushieno.ktmidi/MidiPortDetails/version/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-port-details/version.html
 $dokka.location:dev.atsushieno.ktmidi/MidiProgramChangeOptions///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-program-change-options/index.html
@@ -1262,6 +1265,9 @@ $dokka.location:dev.atsushieno.ktmidi/MidiTrackSplitter///PointingToDeclaration/
 $dokka.location:dev.atsushieno.ktmidi/MidiTrackSplitter/MidiTrackSplitter/#kotlin.collections.MutableList[dev.atsushieno.ktmidi.MidiMessage]#kotlin.Byte/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-track-splitter/-midi-track-splitter.html
 $dokka.location:dev.atsushieno.ktmidi/MidiTrackSplitter/getTrackId/#dev.atsushieno.ktmidi.MidiMessage/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-track-splitter/get-track-id.html
 $dokka.location:dev.atsushieno.ktmidi/MidiTrackSplitter/split/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-track-splitter/split.html
+$dokka.location:dev.atsushieno.ktmidi/MidiTransportProtocol///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-transport-protocol/index.html
+$dokka.location:dev.atsushieno.ktmidi/MidiTransportProtocol/MIDI1/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-transport-protocol/-m-i-d-i1.html
+$dokka.location:dev.atsushieno.ktmidi/MidiTransportProtocol/UMP/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-transport-protocol/-u-m-p.html
 $dokka.location:dev.atsushieno.ktmidi/MidiUtilityStatus///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-utility-status/index.html
 $dokka.location:dev.atsushieno.ktmidi/MidiUtilityStatus/DCTPQ/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-utility-status/-d-c-t-p-q.html
 $dokka.location:dev.atsushieno.ktmidi/MidiUtilityStatus/DELTA_CLOCKSTAMP/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-utility-status/-d-e-l-t-a_-c-l-o-c-k-s-t-a-m-p.html
@@ -1325,7 +1331,6 @@ $dokka.location:dev.atsushieno.ktmidi/SimpleVirtualMidiPort///PointingToDeclarat
 $dokka.location:dev.atsushieno.ktmidi/SimpleVirtualMidiPort/close/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-simple-virtual-midi-port/close.html
 $dokka.location:dev.atsushieno.ktmidi/SimpleVirtualMidiPort/connectionState/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-simple-virtual-midi-port/connection-state.html
 $dokka.location:dev.atsushieno.ktmidi/SimpleVirtualMidiPort/details/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-simple-virtual-midi-port/details.html
-$dokka.location:dev.atsushieno.ktmidi/SimpleVirtualMidiPort/midiProtocol/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-simple-virtual-midi-port/midi-protocol.html
 $dokka.location:dev.atsushieno.ktmidi/SmfMetaEventWriter///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-smf-meta-event-writer/index.html
 $dokka.location:dev.atsushieno.ktmidi/SmfParserException///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-smf-parser-exception/index.html
 $dokka.location:dev.atsushieno.ktmidi/SmfParserException/SmfParserException/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-smf-parser-exception/-smf-parser-exception.html
