@@ -14,15 +14,17 @@ In `ktmidi` module:
 
 - MIDI 1.0 bytestream messages and 2.0 UMPs everywhere.
 - `MidiAccess` : MIDI access abstraction API like what Web MIDI API 1.0 provides.
+  - It also supports MIDI 2.0 UMP ports since v0.8.0, if the underlying API supports them. Currently Android 15 (preview API) is supported.
   - There are actual implementations for some platform specific MIDI API within this library, and you can implement your own backend if you need.
   - Unlike `javax.sound.midi` API, this API also covers creating virtual ports wherever possible.
-    - `ktmidi-jvm-desktop` module contains ALSA backend (`AlsaMidiAccess`), as well as [RtMidi](https://github.com/thestk/rtmidi) backend (`RtMidiAccess`) via [atsushieno/rtmidi-javacpp](https://github.com/atsushieno/rtmidi-javacpp) for whatever platforms JavaCPP covers.
+    - `ktmidi-jvm-desktop` module contains ALSA backend (`AlsaMidiAccess`), as well as [RtMidi](https://github.com/thestk/rtmidi) backend (`RtMidiAccess`) via [atsushieno/rtmidi-javacpp](https://github.com/atsushieno/rtmidi-javacpp) for Linux and MacOS 
+      - Windows needs JavaCPP build improvements and left unsupported (it does not matter, WinMM does not support virtual ports either way)
     - `ktmidi-native-ext` module contains RtMidi *native* backend (`RtMidiNativeAccess`) for Kotlin-Native. `player-sample-native` sample app uses it.
-  - For Kotlin/JS, `JzzMidiAccess` which wraps [Jazz-Soft JZZ](https://jazz-soft.net/doc/JZZ/) is included. It should cover both node.js and web browsers.
-  - For Kotlin/Wasm on browsers, `WebMidiAccess` makes use of Web MIDI API directly. (Node/Deno via wasmWasi is not covered yet.)
+  - For Kotlin/JS, `JzzMidiAccess` which wraps [Jazz-Soft JZZ](https://jazz-soft.net/doc/JZZ/) is included in `ktmidi` module. It should cover both node.js and web browsers.
+  - For Kotlin/Wasm on browsers, `WebMidiAccess` in `ktmidi` module makes use of Web MIDI API directly. (Node/Deno via wasmWasi is not covered yet.)
 - `MidiMusic` and `Midi2Music` : represents Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support only partially based on standard; `Midi2Track` follows MIDI Clip File specification but there is no multi-track comparable specification to SMF for MIDI 2.0 yet.)
   - No strongly-typed message types (something like NoteOnMessage, NoteOffMessage, and so on). There is no point of defining strongly-typed messages for each mere MIDI status byte - you wouldn't need message type abstraction.
-    - No worries, there are contants of Int or Byte in `MidiChannelStatus`, `MidiCC`, `MidiRpn`, `MidiMetaType` etc. so that you don't have to remember the actual constant numbers.
+    - No worries, there are constants of Int or Byte in `MidiChannelStatus`, `MidiCC`, `MidiRpn`, `MidiMetaType` etc. so that you don't have to remember the actual constant numbers.
   - `MidiMusic.read()` reads and `MidiMusic.write()` writes to SMF (standard MIDI format) files with MIDI messages, with `Midi1TrackMerger`, `Midi2TrackMerger`, `Midi1TrackSplitter` and `Midi2TrackSplitter` that help you implement sequential event processing for your own MIDI players, or per-track editors if needed.
   - `UmpFactory` and `UmpRetriever` provides various accessors to MIDI 2.0 `Ump` data class.
   - `UmpTranslator` covers the standard conversion between MIDI 1.0 and MIDI 2.0 protocols, with a set of extensive options.

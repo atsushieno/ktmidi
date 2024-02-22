@@ -7,7 +7,7 @@ import java.nio.IntBuffer
 import org.bytedeco.javacpp.IntPointer
 import org.bytedeco.javacpp.Pointer
 
-import dev.atsushieno.rtmidi_javacpp.global.RtMidi as library
+import dev.atsushieno.rtmidi_javacpp.global.rtmidi as library
 
 class RtMidiAccess() : MidiAccess() {
     companion object {

@@ -16,9 +16,8 @@ fun main(args: Array<String>) = application {
     AppModel.midiDeviceManager.midiAccess =
         if (File("/dev/snd/seq").exists()) AlsaMidiAccess()
         else if (args.contains("jvm")) JvmMidiAccess()
-        //else if (System.getProperty("os.name").contains("Mac OS", true) &&
-        //    System.getProperty("os.arch").contains("aarch64")) JvmMidiAccess()
-        else RtMidiAccess()
+        else if (System.getProperty("os.name").contains("Windows")) JvmMidiAccess()
+        else RtMidiAccess() // rtmidi-javacpp does not support Windows build nowadays.
     Window(onCloseRequest = ::exitApplication,
         state = rememberWindowState(),
         title = "midi-ci-tool") {

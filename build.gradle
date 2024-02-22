@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.dokka) apply false
-    alias(libs.plugins.gradleJavacppBuild) apply false
     alias(libs.plugins.gradleJavacppPlatform) apply false
     alias(libs.plugins.metalavaPlugin) apply false
 }
@@ -13,12 +12,6 @@ plugins {
 allprojects {
     group = 'dev.atsushieno'
     version = '0.8.0-pre'
-
-    repositories {
-        google()
-        mavenLocal()
-        mavenCentral()
-    }
 }
 
 apply from: "${rootDir}/publish-root.gradle"

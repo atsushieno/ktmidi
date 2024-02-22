@@ -16,7 +16,9 @@ fun parseCommandLineArgs(args: Array<String>) = CommandLineOptions(
 fun getMidiAccessApi(api: String?) = when (api) {
     "EMPTY" -> EmptyMidiAccess()
     "JVM" -> JvmMidiAccess()
-    else -> RtMidiAccess()
+    else ->
+        if (System.getProperty("os.name").contains("Windows")) JvmMidiAccess()
+        else RtMidiAccess() // rtmidi-javacpp does not support Windows build nowadays.
 }
 
 fun showUsage(api: String?) {
