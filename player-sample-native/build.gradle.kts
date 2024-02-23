@@ -26,10 +26,6 @@ kotlin {
         binaries {
             executable {
                 entryPoint = "main"
-                linkerOpts(
-                    "-L${project.projectDir}/../external/rtmidi/dist-shared/lib",
-                    "-L${project.projectDir}/../external/rtmidi/dist-static/lib",
-                    "-lrtmidi")
             }
         }
     }
