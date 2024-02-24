@@ -55,7 +55,7 @@ class CIDeviceManager(val owner: CIToolRepository, config: MidiCIDeviceConfigura
                     device.chunkedMessages.addAll(data.toList())
                 } else
                 // received some message. No idea why, but log anyway.
-                    owner.log("[received MIDI] " + data.drop(start).take(length), MessageDirection.In)
+                    owner.log("[received MIDI1] " + data.drop(start).take(length), MessageDirection.In)
             }
         }
     }
@@ -113,7 +113,7 @@ class CIDeviceManager(val owner: CIToolRepository, config: MidiCIDeviceConfigura
                     device.chunkedMessages.addAll(ump.toPlatformNativeBytes().toList())
                 } else
                 // received some message. No idea why, but log anyway.
-                    owner.log("[received MIDI] " + data.drop(start).take(length), MessageDirection.In)
+                    owner.log("[received UMP] " + data.drop(start).take(length), MessageDirection.In)
             }
         }
     }
