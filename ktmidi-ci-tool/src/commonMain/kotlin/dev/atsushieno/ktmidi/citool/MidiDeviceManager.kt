@@ -57,22 +57,6 @@ class MidiDeviceManager {
             }
         }
 
-    var midiOutputDeviceId: String?
-        get() = midiOutput.details.id
-        set(id) {
-            // FIXME: it used to be runBlocking(), but replaced for wasmJs support.
-            //  We would probably depend on GUI coroutine context
-            GlobalScope.launch {
-                midiOutput.close()
-                midiOutput = if (id != null) midiAccessValue.openOutput(id) else emptyMidiOutput
-                Snapshot.withMutableSnapshot {
-                    midiOutputError.value = null
-                    virtualMidiOutputError.value = null
-                }
-                midiOutputOpened.forEach { it(midiOutput) }
-            }
-        }
-
     var midiInputOpened = mutableListOf<(input: MidiInput) -> Unit>()
     var midiOutputOpened = mutableListOf<(output: MidiOutput) -> Unit>()
 
@@ -95,8 +79,14 @@ class MidiDeviceManager {
         midiInputDeviceId = id
     }
 
-    fun setOutputDevice(id: String) {
-        midiOutputDeviceId = id
+    suspend fun setOutputDevice(id: String) {
+        midiOutput.close()
+        midiOutput = midiAccessValue.openOutput(id)
+        Snapshot.withMutableSnapshot {
+            midiOutputError.value = null
+            virtualMidiOutputError.value = null
+        }
+        midiOutputOpened.forEach { it(midiOutput) }
     }
 
     fun translateMidi1BytesToUmp(bytes: ByteArray, group: Byte): ByteArray =

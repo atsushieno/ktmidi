@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.atsushieno.ktmidi.MidiPortDetails
 import dev.atsushieno.ktmidi.citool.MidiDeviceManager
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.launch
 
 @Composable
 fun MidiDeviceSelectorSection(midiDeviceManager: MidiDeviceManager) {
@@ -33,9 +35,10 @@ fun MidiDeviceSelectorSection(midiDeviceManager: MidiDeviceManager) {
             }
             Column {
                 Text("To:")
+                val coroutineScope = rememberCoroutineScope()
                 MidiDeviceSelector(false, midiDeviceManager.midiAccess.outputs.toList(), outputDevice, portChanged = { id ->
                     val newDevice = midiDeviceManager.midiAccess.outputs.first { it.id == id }
-                    midiDeviceManager.setOutputDevice(id)
+                    coroutineScope.launch { midiDeviceManager.setOutputDevice(id) }
                     outputDevice = newDevice
                 })
             }
