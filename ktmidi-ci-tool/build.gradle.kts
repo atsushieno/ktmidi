@@ -98,7 +98,6 @@ android {
         applicationId = "dev.atsushieno.ktmidi.citool"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        targetSdkPreview = "VanillaIceCream"
         versionCode = 1
         versionName = "1.0"
     }
