@@ -65,7 +65,7 @@ private class AndroidPortDetails(val device: MidiDeviceInfo, val portInfo: MidiD
 ) : MidiPortDetails {
     private val significantPortName = if (portInfo.name != "input" && portInfo.name != "output") portInfo.name else null
     override val id: String
-        get() = "${this.name}_${portInfo.portNumber}"
+        get() = "${this.name}_${portInfo.type}_${portInfo.portNumber}"
     override val manufacturer
         get() = device.properties.getString(MidiDeviceInfo.PROPERTY_MANUFACTURER)
     override val name: String?
