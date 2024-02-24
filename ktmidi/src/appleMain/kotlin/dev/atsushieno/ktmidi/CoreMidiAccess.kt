@@ -6,6 +6,7 @@ import platform.CoreMIDI.*
 import platform.Foundation.CFBridgingRelease
 import platform.Foundation.CFBridgingRetain
 import platform.posix.alloca
+import kotlin.native.internal.NativePtr
 
 class CoreMidiAccess : MidiAccess() {
     override val name = "CoreMIDI"
@@ -28,11 +29,13 @@ private class CoreMidiPortDetails(val endpoint: MIDIEndpointRef)
 
     @OptIn(ExperimentalForeignApi::class)
     private fun getPropertyString(property: CFStringRef?): String? {
-        val str: CPointer<CFStringRefVar>? = null
-        val status = MIDIObjectGetStringProperty(endpoint, property, str)
-        if (status == 0 || str == null)
-            return null
-        return CFBridgingRelease(CFBridgingRetain(str)) as String?
+        memScoped {
+            val str = alloc<CFStringRefVar>()
+            val status = MIDIObjectGetStringProperty(endpoint, property, str.ptr)
+            if (status == 0 || str == null)
+                return null
+            return CFBridgingRelease(CFBridgingRetain(str)) as String?
+        }
     }
 
     @OptIn(ExperimentalForeignApi::class)
