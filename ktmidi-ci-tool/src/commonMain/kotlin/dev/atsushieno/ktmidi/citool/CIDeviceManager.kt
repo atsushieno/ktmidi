@@ -69,7 +69,8 @@ class CIDeviceManager(val owner: CIToolRepository, config: MidiCIDeviceConfigura
                 when (ump.messageType) {
                     MidiMessageType.SYSEX7 -> {
                         if (ump.statusCode == Midi2BinaryChunkStatus.START &&
-                            ump.int2 == (MidiCIConstants.UNIVERSAL_SYSEX shl 8) + MidiCIConstants.SYSEX_SUB_ID_MIDI_CI) {
+                            ((ump.int1 shr 8) and 0xFF).toByte() == MidiCIConstants.UNIVERSAL_SYSEX &&
+                            (ump.int2 shr 24).toByte() == MidiCIConstants.SYSEX_SUB_ID_MIDI_CI) {
                             // It is a beginning of MIDI-CI SysEx7 message
                             bytes.clear()
                             UmpRetriever.getSysex7Data({
@@ -85,7 +86,8 @@ class CIDeviceManager(val owner: CIToolRepository, config: MidiCIDeviceConfigura
                     MidiMessageType.SYSEX8_MDS -> {
                         // FIXME: we need message chunking mechanism, which should be rather implemented in ktmidi itself
                         if (ump.statusCode == Midi2BinaryChunkStatus.START &&
-                            ump.int2 == (MidiCIConstants.UNIVERSAL_SYSEX shl 8) + MidiCIConstants.SYSEX_SUB_ID_MIDI_CI) {
+                            (ump.int1 shr 24).toByte() == MidiCIConstants.UNIVERSAL_SYSEX &&
+                            (ump.int2 and 0xFF0000) == (MidiCIConstants.SYSEX_SUB_ID_MIDI_CI shl 16)) {
                             // It is a beginning of MIDI-CI SysEx8 message
                             bytes.clear()
                             UmpRetriever.getSysex8Data({
