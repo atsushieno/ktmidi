@@ -289,7 +289,7 @@ object UmpTranslator {
                 val f7Pos = context.midi1.drop(context.midi1Pos).indexOf(0xF7.toByte())
                 if (f7Pos < 0)
                     return UmpTranslationResult.INVALID_SYSEX
-                val sysexSize = f7Pos - context.midi1Pos - 1 // excluding 0xF7
+                val sysexSize = f7Pos - context.midi1Pos
                 if (context.useSysex8)
                     context.output.addAll(
                         UmpFactory.sysex8(
