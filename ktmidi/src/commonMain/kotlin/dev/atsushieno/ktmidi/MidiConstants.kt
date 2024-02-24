@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi
 
+// FIXME: this should become an enum (new in 0.8.0)
 object MidiTransportProtocol {
     const val MIDI1 = 1
     const val UMP = 2
@@ -61,6 +62,8 @@ object Midi2BinaryChunkStatus {
     const val CONTINUE = 0x20
     const val END = 0x30
 
+    // FIXME: I guess my deprecation of those members was rather wrong.
+    //  These names are shorter but does not make sense especially because we have MDS.
     @Deprecated("Use COMPLETE", ReplaceWith("COMPLETE"))
     const val SYSEX_IN_ONE_UMP = 0
     @Deprecated("Use START", ReplaceWith("START"))
