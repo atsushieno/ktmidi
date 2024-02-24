@@ -17,7 +17,7 @@ class MidiCIResponder(
     val parent: MidiCIDevice,
     val config: MidiCIResponderConfiguration,
     private val sendOutput: (group: Byte, data: List<Byte>) -> Unit,
-    private val sendMidiMessageReport: (protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
+    private val sendMidiMessageReport: (group: Byte, protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
 ) {
     val muid by parent::muid
     val device by parent::device
@@ -213,7 +213,7 @@ class MidiCIResponder(
             parent.config.midiMessageReportChannelControllerMessages,
             parent.config.midiMessageReportNoteDataMessages
         ).forEach {
-            sendMidiMessageReport(midiMessageReporter.midiTransportProtocol, it)
+            sendMidiMessageReport(msg.group, midiMessageReporter.midiTransportProtocol, it)
         }
 
         sendEndOfMidiMessageReport(getEndOfMidiMessageReportFor(msg))

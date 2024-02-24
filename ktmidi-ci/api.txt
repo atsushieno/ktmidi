@@ -699,7 +699,7 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   public final class MidiCIDevice {
-    ctor public MidiCIDevice(int muid, dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config, kotlin.jvm.functions.Function2<? super java.lang.Byte,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendCIOutput, kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.MidiMessageReportProtocol,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendMidiMessageReport);
+    ctor public MidiCIDevice(int muid, dev.atsushieno.ktmidi.ci.MidiCIDeviceConfiguration config, kotlin.jvm.functions.Function2<? super java.lang.Byte,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendCIOutput, kotlin.jvm.functions.Function3<? super java.lang.Byte,? super dev.atsushieno.ktmidi.ci.MidiMessageReportProtocol,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendMidiMessageReport);
     method public void defaultProcessEndpointReply(dev.atsushieno.ktmidi.ci.Message.EndpointReply msg);
     method public void defaultProcessInvalidateMUID(dev.atsushieno.ktmidi.ci.Message.InvalidateMUID msg);
     method public void defaultProcessProfileDetailsInquiry(dev.atsushieno.ktmidi.ci.Message.ProfileDetailsInquiry msg);
@@ -1167,7 +1167,7 @@ package dev.atsushieno.ktmidi.ci {
   }
 
   public final class MidiCIResponder {
-    ctor public MidiCIResponder(dev.atsushieno.ktmidi.ci.MidiCIDevice parent, dev.atsushieno.ktmidi.ci.MidiCIResponderConfiguration config, kotlin.jvm.functions.Function2<? super java.lang.Byte,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendOutput, kotlin.jvm.functions.Function2<? super dev.atsushieno.ktmidi.ci.MidiMessageReportProtocol,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendMidiMessageReport);
+    ctor public MidiCIResponder(dev.atsushieno.ktmidi.ci.MidiCIDevice parent, dev.atsushieno.ktmidi.ci.MidiCIResponderConfiguration config, kotlin.jvm.functions.Function2<? super java.lang.Byte,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendOutput, kotlin.jvm.functions.Function3<? super java.lang.Byte,? super dev.atsushieno.ktmidi.ci.MidiMessageReportProtocol,? super java.util.List<java.lang.Byte>,kotlin.Unit> sendMidiMessageReport);
     method public void defaultProcessMidiMessageReport(dev.atsushieno.ktmidi.ci.Message.MidiMessageReportInquiry msg);
     method public dev.atsushieno.ktmidi.ci.MidiCIResponderConfiguration getConfig();
     method public dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo getDevice();

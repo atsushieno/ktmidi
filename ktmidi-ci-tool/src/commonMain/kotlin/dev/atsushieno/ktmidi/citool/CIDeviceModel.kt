@@ -6,8 +6,8 @@ import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.profilecommonrules.DefaultControlChangesProfile
 
 class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDeviceConfiguration,
-                    private val ciOutputSender: (ciBytes: List<Byte>) -> Unit,
-                    private val midiMessageReportOutputSender: (bytes: List<Byte>) -> Unit) {
+                    private val ciOutputSender: (group: Byte, ciBytes: List<Byte>) -> Unit,
+                    private val midiMessageReportOutputSender: (group: Byte, bytes: List<Byte>) -> Unit) {
 
     // FIXME: this means we somehow ignore any group specification wherever this field is used.
     var defaultSenderGroup: Byte = 0
@@ -27,14 +27,14 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
                     "[sent CI SysEx (grp:$group)] " + data.joinToString { it.toUByte().toString(16) },
                     MessageDirection.Out
                 )
-                ciOutputSender(data)
+                ciOutputSender(group, data)
             },
-            sendMidiMessageReport = { protocol, data ->
+            sendMidiMessageReport = { group, protocol, data ->
                 parent.owner.log(
                     "[sent MIDI Message Report (protocol=$protocol)] " + data.joinToString { it.toUByte().toString(16) },
                     MessageDirection.Out
                 )
-                midiMessageReportOutputSender(data)
+                midiMessageReportOutputSender(group, data)
             }
         ).apply {
             // initiator

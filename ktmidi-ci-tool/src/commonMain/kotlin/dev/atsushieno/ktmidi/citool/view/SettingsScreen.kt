@@ -19,7 +19,7 @@ fun SettingsScreen(vm: ApplicationSettingsViewModel) {
     Column(Modifier.verticalScroll(rememberScrollState())
         .padding(10.dp)) {
         LoadAndSave(vm)
-        MidiDeviceSelector(vm.repository.midiDeviceManager)
+        MidiDeviceSelectorSection(vm.repository.midiDeviceManager)
         LocalDeviceConfiguration(vm.device)
         BehavioralSettings(vm)
     }

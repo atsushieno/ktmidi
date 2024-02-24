@@ -99,20 +99,36 @@ class MidiDeviceManager {
         midiOutputDeviceId = id
     }
 
-    fun sendToAll(bytes: ByteArray, timestamp: Long) {
+    fun translateMidi1BytesToUmp(bytes: ByteArray, group: Byte): ByteArray =
+        Midi1ToUmpTranslatorContext(bytes.toList(), group = group.toInt())
+            .also { UmpTranslator.translateMidi1BytesToUmp(it) }
+            .output.map { it.toPlatformNativeBytes() }.flatMap { it.toList() }.toByteArray()
+
+    private fun MidiOutput.send(bytes: ByteArray, timestampInNanoseconds: Long) =
+        send(bytes, 0, bytes.size, timestampInNanoseconds)
+
+    fun sendToAll(group: Byte, bytes: ByteArray, timestampInNanoseconds: Long) {
         try {
-            if (midiOutputError.value == null)
-                midiOutput.send(bytes, 0, bytes.size, timestamp)
+            if (midiOutputError.value == null) {
+                if (midiOutput.details.midiTransportProtocol == MidiTransportProtocol.UMP)
+                    midiOutput.send(translateMidi1BytesToUmp(bytes, group), timestampInNanoseconds)
+                else
+                    midiOutput.send(bytes, 0, bytes.size, timestampInNanoseconds)
+            }
         } catch (ex: Exception) {
             Snapshot.withMutableSnapshot { midiOutputError.value = ex }
         }
         try {
-            if (virtualMidiOutputError.value == null)
-                virtualMidiOutput?.send(bytes, 0, bytes.size, timestamp)
+            if (virtualMidiOutputError.value == null && virtualMidiOutput != null) {
+                if (virtualMidiOutput!!.details.midiTransportProtocol == MidiTransportProtocol.UMP)
+                    virtualMidiOutput!!.send(translateMidi1BytesToUmp(bytes, group), timestampInNanoseconds)
+                else
+                    virtualMidiOutput!!.send(bytes, 0, bytes.size, timestampInNanoseconds)
+            }
         } catch (ex: Exception) {
             Snapshot.withMutableSnapshot { virtualMidiOutputError.value = ex }
         }
-        midiOutputSent.forEach { it(bytes, timestamp) }
+        midiOutputSent.forEach { it(bytes, timestampInNanoseconds) }
     }
 
     init {

@@ -15,7 +15,7 @@ import dev.atsushieno.ktmidi.MidiPortDetails
 import dev.atsushieno.ktmidi.citool.MidiDeviceManager
 
 @Composable
-fun MidiDeviceSelector(midiDeviceManager: MidiDeviceManager) {
+fun MidiDeviceSelectorSection(midiDeviceManager: MidiDeviceManager) {
     Column(Modifier.padding(10.dp)) {
         Text("MIDI Transport Settings", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Text("By default, it receives MIDI-CI requests on the Virtual In port and sends replies back from the Virtual Out port.")
@@ -23,16 +23,22 @@ fun MidiDeviceSelector(midiDeviceManager: MidiDeviceManager) {
         Row {
             var inputDevice by remember { mutableStateOf(midiDeviceManager.midiInput.details) }
             var outputDevice by remember { mutableStateOf(midiDeviceManager.midiOutput.details) }
-            MidiDeviceSelector(true, midiDeviceManager.midiAccess.inputs.toList(), inputDevice, portChanged = { id ->
-                val newDevice = midiDeviceManager.midiAccess.inputs.first { it.id == id }
-                midiDeviceManager.setInputDevice(id)
-                inputDevice = newDevice
-            })
-            MidiDeviceSelector(false, midiDeviceManager.midiAccess.outputs.toList(), outputDevice, portChanged = { id ->
-                val newDevice = midiDeviceManager.midiAccess.outputs.first { it.id == id }
-                midiDeviceManager.setOutputDevice(id)
-                outputDevice = newDevice
-            })
+            Column {
+                Text("From:")
+                MidiDeviceSelector(true, midiDeviceManager.midiAccess.inputs.toList(), inputDevice, portChanged = { id ->
+                    val newDevice = midiDeviceManager.midiAccess.inputs.first { it.id == id }
+                    midiDeviceManager.setInputDevice(id)
+                    inputDevice = newDevice
+                })
+            }
+            Column {
+                Text("To:")
+                MidiDeviceSelector(false, midiDeviceManager.midiAccess.outputs.toList(), outputDevice, portChanged = { id ->
+                    val newDevice = midiDeviceManager.midiAccess.outputs.first { it.id == id }
+                    midiDeviceManager.setOutputDevice(id)
+                    outputDevice = newDevice
+                })
+            }
         }
     }
 }

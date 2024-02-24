@@ -3,7 +3,7 @@ package dev.atsushieno.ktmidi.ci
 class TestCIMediator {
     private val device1Sender: (Byte, List<Byte>)->Unit = { group: Byte, data: List<Byte> -> device2.processInput(group, data) }
     private val device2Sender: (Byte, List<Byte>)->Unit = { group: Byte, data: List<Byte> -> device1.processInput(group, data) }
-    private val midiMessageReportSender = { _: MidiMessageReportProtocol, _: List<Byte> -> }
+    private val midiMessageReportSender = { _: Byte, _: MidiMessageReportProtocol, _: List<Byte> -> }
 
     private val deviceInfo = MidiCIDeviceInfo(0, 0, 0, 0,
         "TestDevice", "TestInitiatorFamily", "TestInitiatorModel", "0.0")

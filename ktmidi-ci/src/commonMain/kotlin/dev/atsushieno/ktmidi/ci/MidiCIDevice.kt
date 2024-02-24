@@ -19,7 +19,7 @@ enum class ConnectionChange {
  */
 class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                    private val sendCIOutput: (group: Byte, data: List<Byte>) -> Unit,
-                   private val sendMidiMessageReport: (protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
+                   private val sendMidiMessageReport: (group: Byte, protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
 ) {
     val initiator by lazy { MidiCIInitiator(this, config, sendCIOutput) }
     val responder by lazy { MidiCIResponder(this, config.responder, sendCIOutput, sendMidiMessageReport) }
