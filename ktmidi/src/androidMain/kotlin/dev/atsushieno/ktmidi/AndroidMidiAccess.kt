@@ -10,7 +10,8 @@ import kotlinx.coroutines.delay
 class AndroidMidi2Access(applicationContext: Context, private val includeMidi1Transport: Boolean = false) : AndroidMidiAccess(applicationContext) {
     override val ports : List<MidiPortDetails>
         get() =
-            ports1.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
+            (if (includeMidi1Transport) ports1 else listOf())
+            .flatMap { d -> d.ports.map { port -> Pair(d, port) } }
             .map { pair -> AndroidPortDetails(pair.first, pair.second, 1) } +
             ports2.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
             .map { pair -> AndroidPortDetails(pair.first, pair.second, 2) }
