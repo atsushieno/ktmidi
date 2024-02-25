@@ -60,13 +60,13 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, deviceDet
     }
 
     override fun processPropertySubscriptionResult(subscriptionContext: Any, msg: Message.SubscribePropertyReply) {
-        val sub = subscriptionContext as MidiCIInitiator.ClientSubscription
+        val sub = subscriptionContext as PropertyExchangeInitiator.ClientSubscription
         val status = getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS)
         if (status != PropertyExchangeStatus.OK)
             return
         val subscribeId = getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID) ?: return
 
-        if (sub.state == MidiCIInitiator.SubscriptionActionState.Unsubscribing)
+        if (sub.state == PropertyExchangeInitiator.SubscriptionActionState.Unsubscribing)
             // should we rather compare subscribeId? Can we subscribe to one property multiple times? (If yes then this code is wrong)
             subscriptions.removeAll { it.resource == sub.propertyId }
         else

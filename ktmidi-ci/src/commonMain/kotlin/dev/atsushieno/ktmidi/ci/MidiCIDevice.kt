@@ -4,6 +4,7 @@ import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 import dev.atsushieno.ktmidi.ci.profilecommonrules.CommonRulesProfileService
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
 import kotlinx.datetime.Clock
+import kotlin.experimental.and
 
 enum class ConnectionChange {
     Added,
@@ -21,8 +22,10 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                    private val sendCIOutput: (group: Byte, data: List<Byte>) -> Unit,
                    private val sendMidiMessageReport: (group: Byte, protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
 ) {
-    val initiator by lazy { MidiCIInitiator(this, config, sendCIOutput) }
-    val responder by lazy { MidiCIResponder(this, config.responder, sendCIOutput, sendMidiMessageReport) }
+    var requestIdSerial: Byte = 1
+
+    val initiator by lazy { PropertyExchangeInitiator(this, config, sendCIOutput) }
+    val responder by lazy { PropertyExchangeResponder(this, config.responder, sendCIOutput) }
 
     val device: MidiCIDeviceInfo
         get() = config.device
@@ -77,6 +80,20 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     val localProfiles = ObservableProfileList(config.localProfiles)
     // These events are invoked when it received Set Profile On/Off request from Initiator.
     val onProfileSet = mutableListOf<(profile: MidiCIProfile) -> Unit>()
+
+    var midiMessageReporter: MidiMessageReporter = object : MidiMessageReporter {
+        // stub implementation
+        override val midiTransportProtocol = MidiMessageReportProtocol.Midi1Stream
+
+        override fun reportMidiMessages(
+            groupAddress: Byte,
+            channelAddress: Byte,
+            messageDataControl: Byte,
+            midiMessageReportSystemMessages: Byte,
+            midiMessageReportChannelControllerMessages: Byte,
+            midiMessageReportNoteDataMessages: Byte
+        ): Sequence<List<Byte>> = sequenceOf()
+    }
 
     // Request sender
 
@@ -488,7 +505,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             Message.Common(muid, destinationMUID, address, group),
             messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
 
-    internal fun sendMidiMessageReportInquiry(msg: Message.MidiMessageReportInquiry) {
+    fun sendMidiMessageReportInquiry(msg: Message.MidiMessageReportInquiry) {
         logger.logMessage(msg, MessageDirection.Out)
         sendCIOutput(msg.group, msg.serialize(config))
     }
@@ -509,6 +526,59 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         logger.logMessage(msg, MessageDirection.In)
         events.endOfMidiMessageReportReceived.forEach { it(msg) }
         // no particular things to do. Event handlers should be used if any.
+    }
+
+    // Local Process Inquiry
+
+    fun getProcessInquiryReplyFor(msg: Message.ProcessInquiry) =
+        Message.ProcessInquiryReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+            config.processInquirySupportedFeatures)
+    fun sendProcessProcessInquiryReply(msg: Message.ProcessInquiryReply) {
+        logger.logMessage(msg, MessageDirection.Out)
+        sendCIOutput(msg.group, msg.serialize(config))
+    }
+    var processProcessInquiry: (msg: Message.ProcessInquiry) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.processInquiryReceived.forEach { it(msg) }
+        sendProcessProcessInquiryReply(getProcessInquiryReplyFor(msg))
+    }
+
+    fun getMidiMessageReportReplyFor(msg: Message.MidiMessageReportInquiry) =
+        Message.MidiMessageReportReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+            msg.systemMessages and config.midiMessageReportSystemMessages,
+            msg.channelControllerMessages and config.midiMessageReportChannelControllerMessages,
+            msg.noteDataMessages and config.midiMessageReportNoteDataMessages)
+    fun sendMidiMessageReportReply(msg: Message.MidiMessageReportReply) {
+        logger.logMessage(msg, MessageDirection.Out)
+        sendCIOutput(msg.group, msg.serialize(config))
+    }
+    fun getEndOfMidiMessageReportFor(msg: Message.MidiMessageReportInquiry) =
+        Message.MidiMessageReportNotifyEnd(Message.Common(muid, msg.sourceMUID, msg.address, msg.group))
+    fun sendEndOfMidiMessageReport(msg: Message.MidiMessageReportNotifyEnd) {
+        logger.logMessage(msg, MessageDirection.Out)
+        sendCIOutput(msg.group, msg.serialize(config))
+    }
+    fun defaultProcessMidiMessageReport(msg: Message.MidiMessageReportInquiry) {
+        sendMidiMessageReportReply(getMidiMessageReportReplyFor(msg))
+
+        // send specified MIDI messages
+        midiMessageReporter.reportMidiMessages(
+            msg.group,
+            msg.address,
+            config.midiMessageReportMessageDataControl,
+            config.midiMessageReportSystemMessages,
+            config.midiMessageReportChannelControllerMessages,
+            config.midiMessageReportNoteDataMessages
+        ).forEach {
+            sendMidiMessageReport(msg.group, midiMessageReporter.midiTransportProtocol, it)
+        }
+
+        sendEndOfMidiMessageReport(getEndOfMidiMessageReportFor(msg))
+    }
+    var processMidiMessageReport: (msg: Message.MidiMessageReportInquiry) -> Unit = { msg ->
+        logger.logMessage(msg, MessageDirection.In)
+        events.midiMessageReportReceived.forEach { it(msg) }
+        defaultProcessMidiMessageReport(msg)
     }
 
     // processInput()
@@ -809,7 +879,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             // CISubId2.PROPERTY_NOTIFY -> implemented earlier
 
             CISubId2.PROCESS_INQUIRY_CAPABILITIES -> {
-                responder.processProcessInquiry(Message.ProcessInquiry(common))
+                processProcessInquiry(Message.ProcessInquiry(common))
             }
 
             CISubId2.PROCESS_INQUIRY_MIDI_MESSAGE_REPORT -> {
@@ -818,7 +888,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                 // data[15] is reserved
                 val channelControllerMessages = data[16]
                 val noteDataMessages = data[17]
-                responder.processMidiMessageReport(Message.MidiMessageReportInquiry(
+                processMidiMessageReport(Message.MidiMessageReportInquiry(
                     common, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
             }
 
@@ -826,5 +896,10 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                 processUnknownCIMessage(common, data)
             }
         }
+    }
+
+    init {
+        if (muid != muid and 0x7F7F7F7F)
+            throw IllegalArgumentException("muid must consist of 7-bit byte values i.e. each 8-bit number must not have the topmost bit as 0. (`muid` must be equivalent to `muid and 0x7F7F7F7F`")
     }
 }

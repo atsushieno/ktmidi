@@ -53,7 +53,7 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
 
     fun getMetadataList() = conn.propertyClient.getMetadataList()
 
-    data class SubscriptionState(val propertyId: String, var state: MutableState<MidiCIInitiator.SubscriptionActionState>)
+    data class SubscriptionState(val propertyId: String, var state: MutableState<PropertyExchangeInitiator.SubscriptionActionState>)
     var subscriptions = mutableStateListOf<SubscriptionState>()
 
     fun requestMidiMessageReport(address: Byte, targetMUID: Int,
@@ -108,12 +108,12 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
         }
 
         conn.subscriptionUpdated.add { sub ->
-            if (sub.state == MidiCIInitiator.SubscriptionActionState.Subscribing)
+            if (sub.state == PropertyExchangeInitiator.SubscriptionActionState.Subscribing)
                 subscriptions.add(SubscriptionState(sub.propertyId, mutableStateOf(sub.state)))
             else {
                 val state = subscriptions.firstOrNull { sub.propertyId == it.propertyId } ?: return@add
                 state.state.value = sub.state
-                if (sub.state == MidiCIInitiator.SubscriptionActionState.Unsubscribed)
+                if (sub.state == PropertyExchangeInitiator.SubscriptionActionState.Unsubscribed)
                     subscriptions.remove(state)
             }
         }

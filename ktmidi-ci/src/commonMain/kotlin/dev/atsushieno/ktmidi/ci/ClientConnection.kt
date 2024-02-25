@@ -5,7 +5,7 @@ import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyExchangeStatus
 
 class ClientConnection(
-    private val parent: MidiCIInitiator,
+    private val parent: PropertyExchangeInitiator,
     val targetMUID: Int,
     val device: DeviceDetails,
     var maxSimultaneousPropertyRequests: Byte = 0,
@@ -72,8 +72,8 @@ class ClientConnection(
     val properties = ClientObservablePropertyList(parent.logger, propertyClient)
 
     private val openRequests = mutableListOf<Message.GetPropertyData>()
-    val subscriptions = mutableListOf<MidiCIInitiator.ClientSubscription>()
-    val subscriptionUpdated = mutableListOf<(sub: MidiCIInitiator.ClientSubscription)->Unit>()
+    val subscriptions = mutableListOf<PropertyExchangeInitiator.ClientSubscription>()
+    val subscriptionUpdated = mutableListOf<(sub: PropertyExchangeInitiator.ClientSubscription)->Unit>()
 
     val pendingChunkManager = PropertyChunkManager()
 
@@ -108,11 +108,11 @@ class ClientConnection(
         openRequests.add(msg)
     }
     fun addPendingSubscription(requestId: Byte, subscriptionId: String?, propertyId: String) {
-        val sub = MidiCIInitiator.ClientSubscription(
+        val sub = PropertyExchangeInitiator.ClientSubscription(
             requestId,
             subscriptionId,
             propertyId,
-            MidiCIInitiator.SubscriptionActionState.Subscribing
+            PropertyExchangeInitiator.SubscriptionActionState.Subscribing
         )
         subscriptions.add(sub)
         subscriptionUpdated.forEach { it(sub) }
@@ -124,12 +124,12 @@ class ClientConnection(
             parent.logger.logError("Cannot unsubscribe property as not found: $propertyId")
             return
         }
-        if (sub.state == MidiCIInitiator.SubscriptionActionState.Unsubscribing) {
+        if (sub.state == PropertyExchangeInitiator.SubscriptionActionState.Unsubscribing) {
             parent.logger.logError("Unsubscription for the property is already underway (property: ${sub.propertyId}, subscriptionId: ${sub.subscriptionId}, state: ${sub.state})")
             return
         }
         sub.pendingRequestId = newRequestId
-        sub.state = MidiCIInitiator.SubscriptionActionState.Unsubscribing
+        sub.state = PropertyExchangeInitiator.SubscriptionActionState.Unsubscribing
         subscriptionUpdated.forEach { it(sub) }
     }
 
@@ -148,8 +148,8 @@ class ClientConnection(
         }
 
         when (sub.state) {
-            MidiCIInitiator.SubscriptionActionState.Subscribed,
-            MidiCIInitiator.SubscriptionActionState.Unsubscribed -> {
+            PropertyExchangeInitiator.SubscriptionActionState.Subscribed,
+            PropertyExchangeInitiator.SubscriptionActionState.Unsubscribed -> {
                 parent.logger.logError("Received Subscription Reply, but it is unexpected (property: ${sub.propertyId}, subscriptionId: ${sub.subscriptionId}, state: ${sub.state})")
                 return
             }
@@ -160,13 +160,13 @@ class ClientConnection(
 
         propertyClient.processPropertySubscriptionResult(sub, msg)
 
-        if (sub.state == MidiCIInitiator.SubscriptionActionState.Unsubscribing) {
+        if (sub.state == PropertyExchangeInitiator.SubscriptionActionState.Unsubscribing) {
             // do unsubscribe
-            sub.state = MidiCIInitiator.SubscriptionActionState.Unsubscribed
+            sub.state = PropertyExchangeInitiator.SubscriptionActionState.Unsubscribed
             subscriptions.remove(sub)
             subscriptionUpdated.forEach { it(sub) }
         } else {
-            sub.state = MidiCIInitiator.SubscriptionActionState.Subscribed
+            sub.state = PropertyExchangeInitiator.SubscriptionActionState.Subscribed
             subscriptionUpdated.forEach { it(sub) }
         }
     }

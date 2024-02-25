@@ -17,7 +17,7 @@ import dev.atsushieno.ktmidi.ci.ClientConnection
 import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 import dev.atsushieno.ktmidi.ci.MidiCIConstants
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
-import dev.atsushieno.ktmidi.ci.MidiCIInitiator.SubscriptionActionState
+import dev.atsushieno.ktmidi.ci.PropertyExchangeInitiator.SubscriptionActionState
 import dev.atsushieno.ktmidi.citool.MidiCIProfileState
 
 @Composable

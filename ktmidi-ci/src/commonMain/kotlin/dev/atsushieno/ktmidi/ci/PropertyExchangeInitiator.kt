@@ -4,15 +4,16 @@ import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyExchangeStatus
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 
-class MidiCIInitiator(
+class PropertyExchangeInitiator(
     val parent: MidiCIDevice,
-    val config: MidiCIDeviceConfiguration,
+    private val config: MidiCIDeviceConfiguration,
     private val sendOutput: (group: Byte, data: List<Byte>) -> Unit
 ) {
     val muid by parent::muid
     val device by parent::device
-    val events by parent::events
+    private val events by parent::events
     val logger by parent::logger
+    private var requestIdSerial by parent::requestIdSerial
 
     enum class SubscriptionActionState {
         Subscribing,
@@ -22,11 +23,7 @@ class MidiCIInitiator(
     }
     data class ClientSubscription(var pendingRequestId: Byte?, var subscriptionId: String?, val propertyId: String, var state: SubscriptionActionState)
 
-    val connections by parent::connections
-
-    // Initiator implementation
-
-    // Property Exchange
+    private val connections by parent::connections
 
     fun requestPropertyExchangeCapabilities(group: Byte, address: Byte, destinationMUID: Int, maxSimultaneousPropertyRequests: Byte) =
 
@@ -113,17 +110,6 @@ class MidiCIInitiator(
         msg.serialize(config).forEach { sendOutput(msg.group, it) }
     }
 
-    // Process Inquiry
-
-    // Miscellaneous
-
-    private var requestIdSerial: Byte = 1
-
-    // Reply handler
-
-    // Protocol Negotiation is deprecated. We do not send any of them anymore.
-
-    // Property Exchange
     fun defaultProcessPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
         val conn = connections[msg.sourceMUID]
         if (conn != null) {
