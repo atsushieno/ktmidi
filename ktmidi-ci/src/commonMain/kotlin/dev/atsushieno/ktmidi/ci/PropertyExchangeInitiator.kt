@@ -10,7 +10,6 @@ class PropertyExchangeInitiator(
 ) {
     val muid by parent::muid
     val device by parent::device
-    private val events by parent::events
     val logger by parent::logger
     private var requestIdSerial by parent::requestIdSerial
 
@@ -26,13 +25,8 @@ class PropertyExchangeInitiator(
 
     fun requestPropertyExchangeCapabilities(group: Byte, address: Byte, destinationMUID: Int, maxSimultaneousPropertyRequests: Byte) =
 
-        requestPropertyExchangeCapabilities(Message.PropertyGetCapabilities(Message.Common(muid, destinationMUID, address, group),
+        parent.send(Message.PropertyGetCapabilities(Message.Common(muid, destinationMUID, address, group),
             maxSimultaneousPropertyRequests))
-
-    fun requestPropertyExchangeCapabilities(msg: Message.PropertyGetCapabilities) {
-        logger.logMessage(msg, MessageDirection.Out)
-        parent.send(msg)
-    }
 
     // FIXME: too much exposure of Common Rules for PE
     fun saveAndSendGetPropertyData(group: Byte, destinationMUID: Int, resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
@@ -112,8 +106,7 @@ class PropertyExchangeInitiator(
                 CISubId2.PROPERTY_CAPABILITIES_REPLY)
     }
     var processPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.propertyCapabilityReplyReceived.forEach { it(msg) }
+        parent.messageReceived.forEach { it(msg) }
         defaultProcessPropertyCapabilitiesReply(msg)
     }
 
@@ -131,20 +124,17 @@ class PropertyExchangeInitiator(
     }
 
     var processGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.getPropertyDataReplyReceived.forEach { it(msg) }
+        parent.messageReceived.forEach { it(msg) }
         defaultProcessGetDataReply(msg)
     }
 
     var processSetDataReply: (msg: Message.SetPropertyDataReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.setPropertyDataReplyReceived.forEach { it(msg) }
+        parent.messageReceived.forEach { it(msg) }
         // nothing to delegate further
     }
 
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.subscribePropertyReceived.forEach { it(msg) }
+        parent.messageReceived.forEach { it(msg) }
         val conn = connections[msg.sourceMUID]
         if (conn != null) {
             val reply = conn.updateProperty(muid, msg)
@@ -171,8 +161,7 @@ class PropertyExchangeInitiator(
         }
     }
     var processSubscribePropertyReply: (msg: Message.SubscribePropertyReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.subscribePropertyReplyReceived.forEach { it(msg) }
+        parent.messageReceived.forEach { it(msg) }
         defaultProcessSubscribePropertyReply(msg)
     }
 }

@@ -10,7 +10,6 @@ class PropertyExchangeResponder(
 ) {
     val muid by parent::muid
     val device by parent::device
-    private val events by parent::events
     val logger by parent::logger
     private var requestIdSerial by parent::requestIdSerial
 
@@ -72,15 +71,13 @@ class PropertyExchangeResponder(
             establishedMaxSimultaneousPropertyRequests)
     }
     var processPropertyCapabilitiesInquiry: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.propertyCapabilityInquiryReceived.forEach { it(msg) }
+        parent.messageReceived.forEach { it(msg) }
         val reply = getPropertyCapabilitiesReplyFor(msg)
         parent.send(reply)
     }
 
     var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.getPropertyDataReceived.forEach { it(msg) }
+        parent.messageReceived.forEach { it(msg) }
         val reply = propertyService.getPropertyData(msg)
         if (reply.isSuccess) {
             parent.send(reply.getOrNull()!!)
@@ -90,8 +87,7 @@ class PropertyExchangeResponder(
     }
 
     var processSetPropertyData: (msg: Message.SetPropertyData) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.setPropertyDataReceived.forEach { it(msg) }
+        parent.messageReceived.forEach { it(msg) }
         val reply = propertyService.setPropertyData(msg)
         if (reply.isSuccess)
             parent.send(reply.getOrNull()!!)
@@ -100,8 +96,7 @@ class PropertyExchangeResponder(
     }
 
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.subscribePropertyReceived.forEach { it(msg) }
+        parent.messageReceived.forEach { it(msg) }
         val reply = propertyService.subscribeProperty(msg)
         if (reply.isSuccess)
             parent.send(reply.getOrNull()!!)
@@ -111,7 +106,6 @@ class PropertyExchangeResponder(
 
     // It receives reply to property notifications
     var processSubscribePropertyReply: (msg: Message.SubscribePropertyReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.subscribePropertyReplyReceived.forEach { it(msg) }
+        parent.messageReceived.forEach { it(msg) }
     }
 }

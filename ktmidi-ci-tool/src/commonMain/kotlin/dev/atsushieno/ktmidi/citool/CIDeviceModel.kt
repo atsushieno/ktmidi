@@ -56,11 +56,11 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
                     else -> {}
                 }
             }
-            events.midiMessageReportReplyReceived.add {
+            messageReceived.add {
                 receivingMidiMessageReports = true
                 midiMessageReportModeChanged.forEach { it() }
             }
-            events.endOfMidiMessageReportReceived.add {
+            messageReceived.add {
                 receivingMidiMessageReports = false
                 midiMessageReportModeChanged.forEach { it() }
             }
@@ -125,7 +125,7 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
         added.forEach { addLocalProfile(it) }
     }
 
-    // Local property configuration
+    // Local property exchange
     fun addLocalProperty(property: PropertyMetadata) {
         device.responder.properties.addMetadata(property)
     }
@@ -169,9 +169,7 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
             val dst = localProfileStates.first { it.profile == profile.profile && it.address.value == profile.address }
             dst.enabled.value = profile.enabled
         }
-    }
 
-    init {
         device.connectionsChanged.add { change, conn ->
             when (change) {
                 ConnectionChange.Added -> connections.add(ClientConnectionModel(this, conn))

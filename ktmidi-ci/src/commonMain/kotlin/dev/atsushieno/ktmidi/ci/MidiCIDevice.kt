@@ -31,45 +31,8 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         get() = config.device
 
 
-    class Events {
-        val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
-
-        val discoveryReceived = mutableListOf<(msg: Message.DiscoveryInquiry) -> Unit>()
-        val discoveryReplyReceived = mutableListOf<(Message.DiscoveryReply) -> Unit>()
-        val endpointInquiryReceived = mutableListOf<(msg: Message.EndpointInquiry) -> Unit>()
-        val endpointReplyReceived = mutableListOf<(Message.EndpointReply) -> Unit>()
-        val invalidateMUIDReceived = mutableListOf<(Message.InvalidateMUID) -> Unit>()
-
-        val profileInquiryReceived = mutableListOf<(msg: Message.ProfileInquiry) -> Unit>()
-        val profileInquiryReplyReceived = mutableListOf<(Message.ProfileReply) -> Unit>()
-        val setProfileOnReceived = mutableListOf<(profile: Message.SetProfileOn) -> Unit>()
-        val setProfileOffReceived = mutableListOf<(profile: Message.SetProfileOff) -> Unit>()
-        val profileAddedReceived = mutableListOf<(Message.ProfileAdded) -> Unit>()
-        val profileRemovedReceived = mutableListOf<(Message.ProfileRemoved) -> Unit>()
-        val profileEnabledReceived = mutableListOf<(Message.ProfileEnabled) -> Unit>()
-        val profileDisabledReceived = mutableListOf<(Message.ProfileDisabled) -> Unit>()
-        val profileDetailsInquiryReceived = mutableListOf<(Message.ProfileDetailsInquiry) -> Unit>()
-        val profileDetailsReplyReceived = mutableListOf<(Message.ProfileDetailsReply) -> Unit>()
-        val profileSpecificDataReceived = mutableListOf<(Message.ProfileSpecificData) -> Unit>()
-
-        val propertyCapabilityInquiryReceived = mutableListOf<(Message.PropertyGetCapabilities) -> Unit>()
-        val propertyCapabilityReplyReceived = mutableListOf<(Message.PropertyGetCapabilitiesReply) -> Unit>()
-        val getPropertyDataReceived = mutableListOf<(msg: Message.GetPropertyData) -> Unit>()
-        val getPropertyDataReplyReceived = mutableListOf<(msg: Message.GetPropertyDataReply) -> Unit>()
-        val setPropertyDataReceived = mutableListOf<(msg: Message.SetPropertyData) -> Unit>()
-        val setPropertyDataReplyReceived = mutableListOf<(msg: Message.SetPropertyDataReply) -> Unit>()
-        val subscribePropertyReplyReceived = mutableListOf<(msg: Message.SubscribePropertyReply) -> Unit>()
-        val subscribePropertyReceived = mutableListOf<(msg: Message.SubscribeProperty) -> Unit>()
-        val propertyNotifyReceived = mutableListOf<(msg: Message.PropertyNotify) -> Unit>()
-
-        val processInquiryReceived = mutableListOf<(msg: Message.ProcessInquiryCapabilities) -> Unit>()
-        val processInquiryReplyReceived = mutableListOf<(msg: Message.ProcessInquiryCapabilitiesReply) -> Unit>()
-        val midiMessageReportReceived = mutableListOf<(msg: Message.MidiMessageReportInquiry) -> Unit>()
-        val midiMessageReportReplyReceived = mutableListOf<(msg: Message.MidiMessageReportReply) -> Unit>()
-        val endOfMidiMessageReportReceived = mutableListOf<(msg: Message.MidiMessageReportNotifyEnd) -> Unit>()
-    }
-
-    val events = Events()
+    val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
+    val messageReceived = mutableListOf<(msg: Message) -> Unit>()
 
     val logger = Logger()
 
@@ -144,7 +107,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     var processUnknownCIMessage: (common: Message.Common, data: List<Byte>) -> Unit = { common, data ->
         logger.nak(common, data, MessageDirection.In)
-        events.unknownMessageReceived.forEach { it(data) }
+        unknownMessageReceived.forEach { it(data) }
         sendNakForUnknownCIMessage(common.group, data)
     }
 
@@ -156,8 +119,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         }
     }
     var processInvalidateMUID: (msg: Message.InvalidateMUID) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.invalidateMUIDReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         defaultProcessInvalidateMUID(msg)
     }
 
@@ -169,8 +131,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             config.receivableMaxSysExSize, request.outputPathId, config.functionBlock)
     }
     var processDiscovery: (msg: Message.DiscoveryInquiry) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.discoveryReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         send(getDiscoveryReplyForInquiry(msg))
     }
 
@@ -184,8 +145,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         )
     }
     var processEndpointMessage: (msg: Message.EndpointInquiry) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.endpointInquiryReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         send(getEndpointReplyForInquiry(msg))
     }
 
@@ -210,8 +170,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             initiator.requestPropertyExchangeCapabilities(msg.group, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, msg.sourceMUID, config.maxSimultaneousPropertyRequests)
     }
     var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.discoveryReplyReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         handleNewEndpoint(msg)
     }
 
@@ -249,8 +208,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         }
     }
     var processEndpointReply: (msg: Message.EndpointReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.endpointReplyReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         defaultProcessEndpointReply(msg)
     }
 
@@ -266,37 +224,31 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             profile, target))
 
     var processProfileReply = { msg: Message.ProfileReply ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.profileInquiryReplyReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         continueOnClient(msg, CISubId2.PROFILE_INQUIRY_REPLY) { it.profileClient.processProfileReply(msg) }
     }
 
     var processProfileAddedReport = { msg: Message.ProfileAdded ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.profileAddedReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         continueOnClient(msg, CISubId2.PROFILE_ADDED_REPORT) { it.profileClient.processProfileAddedReport(msg) }
     }
 
     var processProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.profileRemovedReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         continueOnClient(msg, CISubId2.PROFILE_REMOVED_REPORT) { it.profileClient.processProfileRemovedReport(msg) }
     }
 
     var processProfileEnabledReport: (msg: Message.ProfileEnabled) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.profileEnabledReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         continueOnClient(msg, CISubId2.PROFILE_ENABLED_REPORT) { it.profileClient.processProfileEnabledReport(msg) }
     }
     var processProfileDisabledReport: (msg: Message.ProfileDisabled) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.profileDisabledReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         continueOnClient(msg, CISubId2.PROFILE_DISABLED_REPORT) { it.profileClient.processProfileDisabledReport(msg) }
     }
 
     var processProfileDetailsReply: (msg: Message.ProfileDetailsReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.profileDetailsReplyReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         continueOnClient(msg, CISubId2.PROFILE_DETAILS_REPLY) { it.profileClient.processProfileDetailsReply(msg) }
     }
 
@@ -316,8 +268,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         }
     }
     var processProfileInquiry: (msg: Message.ProfileInquiry) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.profileInquiryReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         getProfileRepliesForInquiry(msg).forEach { reply ->
             send(reply)
         }
@@ -364,13 +315,11 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     }
 
     var processSetProfileOn = { msg: Message.SetProfileOn ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.setProfileOnReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         defaultProcessSetProfileOn(msg)
     }
     var processSetProfileOff = { msg: Message.SetProfileOff ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.setProfileOffReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         defaultProcessSetProfileOff(msg)
     }
 
@@ -387,14 +336,12 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     }
 
     var processProfileDetailsInquiry: (msg: Message.ProfileDetailsInquiry) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.profileDetailsInquiryReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         defaultProcessProfileDetailsInquiry(msg)
     }
 
     var processProfileSpecificData: (msg: Message.ProfileSpecificData) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.profileSpecificDataReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
     }
 
     // Local Property Exchange
@@ -429,8 +376,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     }
 
     var processPropertyNotify: (propertyNotify: Message.PropertyNotify) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.propertyNotifyReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         // no particular things to do. Event handlers should be used if any.
     }
 
@@ -448,20 +394,17 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
             messageDataControl, systemMessages, channelControllerMessages, noteDataMessages))
 
     var processProcessInquiryReply: (msg: Message.ProcessInquiryCapabilitiesReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.processInquiryReplyReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         // no particular things to do. Event handlers should be used if any.
     }
 
     var processMidiMessageReportReply: (msg: Message.MidiMessageReportReply) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.midiMessageReportReplyReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         // no particular things to do. Event handlers should be used if any.
     }
 
     var processEndOfMidiMessageReport: (msg: Message.MidiMessageReportNotifyEnd) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.endOfMidiMessageReportReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         // no particular things to do. Event handlers should be used if any.
     }
 
@@ -471,8 +414,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         Message.ProcessInquiryCapabilitiesReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
             config.processInquirySupportedFeatures)
     var processProcessInquiry: (msg: Message.ProcessInquiryCapabilities) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.processInquiryReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         send(getProcessInquiryReplyFor(msg))
     }
 
@@ -501,8 +443,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         send(getEndOfMidiMessageReportFor(msg))
     }
     var processMidiMessageReport: (msg: Message.MidiMessageReportInquiry) -> Unit = { msg ->
-        logger.logMessage(msg, MessageDirection.In)
-        events.midiMessageReportReceived.forEach { it(msg) }
+        messageReceived.forEach { it(msg) }
         defaultProcessMidiMessageReport(msg)
     }
 
@@ -826,5 +767,6 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     init {
         if (muid != muid and 0x7F7F7F7F)
             throw IllegalArgumentException("muid must consist of 7-bit byte values i.e. each 8-bit number must not have the topmost bit as 0. (`muid` must be equivalent to `muid and 0x7F7F7F7F`")
+        messageReceived.add { logger.logMessage(it, MessageDirection.In) }
     }
 }
