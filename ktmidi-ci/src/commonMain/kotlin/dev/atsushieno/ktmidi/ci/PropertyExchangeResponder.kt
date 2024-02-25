@@ -6,8 +6,7 @@ import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
 
 class PropertyExchangeResponder(
     val parent: MidiCIDevice,
-    private val config: MidiCIResponderConfiguration,
-    private val sendOutput: (group: Byte, data: List<Byte>) -> Unit
+    private val config: MidiCIDeviceConfiguration
 ) {
     val muid by parent::muid
     val device by parent::device
@@ -49,32 +48,22 @@ class PropertyExchangeResponder(
         }
     }
 
-    fun notifyPropertyUpdatesToSubscribers(msg: Message.SubscribeProperty) = sendPropertySubscription(msg)
+    fun notifyPropertyUpdatesToSubscribers(msg: Message.SubscribeProperty) = parent.send(msg)
 
     // Notify end of subscription updates
-    fun sendPropertySubscription(msg: Message.SubscribeProperty) {
-        logger.logMessage(msg, MessageDirection.Out)
-        msg.serialize(parent.config).forEach {
-            sendOutput(msg.group, it)
-        }
-    }
     fun terminateSubscriptions(group: Byte) {
         propertyService.subscriptions.forEach {
             val msg = Message.SubscribeProperty(Message.Common(muid, it.muid, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
                 requestIdSerial++,
                 propertyService.createTerminateNotificationHeader(it.subscribeId), listOf()
             )
-            sendPropertySubscription(msg)
+            parent.send(msg)
         }
     }
 
     // Message handlers
 
     // Should this also delegate to property service...?
-    fun sendPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
-        logger.logMessage(msg, MessageDirection.Out)
-        sendOutput(msg.group, msg.serialize(parent.config))
-    }
     val getPropertyCapabilitiesReplyFor: (msg: Message.PropertyGetCapabilities) -> Message.PropertyGetCapabilitiesReply = { msg ->
         val establishedMaxSimultaneousPropertyRequests =
             if (msg.maxSimultaneousRequests > parent.config.maxSimultaneousPropertyRequests) parent.config.maxSimultaneousPropertyRequests
@@ -86,54 +75,36 @@ class PropertyExchangeResponder(
         logger.logMessage(msg, MessageDirection.In)
         events.propertyCapabilityInquiryReceived.forEach { it(msg) }
         val reply = getPropertyCapabilitiesReplyFor(msg)
-        sendPropertyCapabilitiesReply(reply)
+        parent.send(reply)
     }
 
-    fun sendPropertyGetDataReply(msg: Message.GetPropertyDataReply) {
-        logger.logMessage(msg, MessageDirection.Out)
-        msg.serialize(parent.config).forEach {
-            sendOutput(msg.group, it)
-        }
-    }
     var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)
         events.getPropertyDataReceived.forEach { it(msg) }
         val reply = propertyService.getPropertyData(msg)
         if (reply.isSuccess) {
-            sendPropertyGetDataReply(reply.getOrNull()!!)
+            parent.send(reply.getOrNull()!!)
         }
         else
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming GetPropertyData message resulted in an error")
     }
 
-    fun sendPropertySetDataReply(msg: Message.SetPropertyDataReply) {
-        logger.logMessage(msg, MessageDirection.Out)
-        msg.serialize(parent.config).forEach {
-            sendOutput(msg.group, it)
-        }
-    }
     var processSetPropertyData: (msg: Message.SetPropertyData) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)
         events.setPropertyDataReceived.forEach { it(msg) }
         val reply = propertyService.setPropertyData(msg)
         if (reply.isSuccess)
-            sendPropertySetDataReply(reply.getOrNull()!!)
+            parent.send(reply.getOrNull()!!)
         else
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming SetPropertyData message resulted in an error")
     }
 
-    fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
-        logger.logMessage(msg, MessageDirection.Out)
-        msg.serialize(parent.config).forEach {
-            sendOutput(msg.group, it)
-        }
-    }
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)
         events.subscribePropertyReceived.forEach { it(msg) }
         val reply = propertyService.subscribeProperty(msg)
         if (reply.isSuccess)
-            sendPropertySubscribeReply(reply.getOrNull()!!)
+            parent.send(reply.getOrNull()!!)
         else
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming SubscribeProperty message resulted in an error")
     }

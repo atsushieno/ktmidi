@@ -10,9 +10,6 @@ class MidiCIDeviceConfiguration(var device: MidiCIDeviceInfo) {
     var maxSimultaneousPropertyRequests: Byte = MidiCIConstants.DEFAULT_MAX_SIMULTANEOUS_PROPERTY_REQUESTS
     var maxPropertyChunkSize: Int = MidiCIConstants.DEFAULT_MAX_PROPERTY_CHUNK_SIZE
 
-    val initiator = MidiCIInitiatorConfiguration()
-    val responder = MidiCIResponderConfiguration()
-
     // discovery initiator
     var outputPathId: Byte = 0
     var autoSendEndpointInquiry: Boolean = true
@@ -34,16 +31,8 @@ class MidiCIDeviceConfiguration(var device: MidiCIDeviceInfo) {
     var midiMessageReportSystemMessages: Byte = MidiMessageReportSystemMessagesFlags.All
     var midiMessageReportChannelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All
     var midiMessageReportNoteDataMessages: Byte = MidiMessageReportNoteDataFlags.All
-}
 
-@Serializable
-class MidiCIInitiatorConfiguration(
-)
-
-@Serializable
-class MidiCIResponderConfiguration {
-
-    // Property Exchange
+    // Property Exchange responder
     val propertyValues: MutableList<PropertyValue> = mutableListOf()
     val propertyMetadataList: MutableList<PropertyMetadata> = mutableListOf()
 }

@@ -6,8 +6,7 @@ import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 
 class PropertyExchangeInitiator(
     val parent: MidiCIDevice,
-    private val config: MidiCIDeviceConfiguration,
-    private val sendOutput: (group: Byte, data: List<Byte>) -> Unit
+    private val config: MidiCIDeviceConfiguration
 ) {
     val muid by parent::muid
     val device by parent::device
@@ -32,11 +31,11 @@ class PropertyExchangeInitiator(
 
     fun requestPropertyExchangeCapabilities(msg: Message.PropertyGetCapabilities) {
         logger.logMessage(msg, MessageDirection.Out)
-        sendOutput(msg.group, msg.serialize(config))
+        parent.send(msg)
     }
 
     // FIXME: too much exposure of Common Rules for PE
-    fun sendGetPropertyData(group: Byte, destinationMUID: Int, resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
+    fun saveAndSendGetPropertyData(group: Byte, destinationMUID: Int, resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
         val conn = connections[destinationMUID]
         if (conn != null) {
             val header = conn.propertyClient.createDataRequestHeader(resource, mapOf(
@@ -47,15 +46,14 @@ class PropertyExchangeInitiator(
             ).filter { it.value != null })
             val msg = Message.GetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
                 requestIdSerial++, header)
-            sendGetPropertyData(msg)
+            saveAndSendGetPropertyData(msg)
         }
     }
 
-    fun sendGetPropertyData(msg: Message.GetPropertyData) {
-        logger.logMessage(msg, MessageDirection.Out)
+    fun saveAndSendGetPropertyData(msg: Message.GetPropertyData) {
         val conn = connections[msg.destinationMUID]
         conn?.addPendingRequest(msg)
-        msg.serialize(config).forEach { sendOutput(msg.group, it) }
+        parent.send(msg)
     }
 
     // FIXME: too much exposure of Common Rules for PE
@@ -66,14 +64,9 @@ class PropertyExchangeInitiator(
                 PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
                 PropertyCommonHeaderKeys.SET_PARTIAL to isPartial))
             val encodedBody = conn.propertyClient.encodeBody(data, encoding)
-            sendSetPropertyData(Message.SetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+            parent.send(Message.SetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
                 requestIdSerial++, header, encodedBody))
         }
-    }
-
-    fun sendSetPropertyData(msg: Message.SetPropertyData) {
-        logger.logMessage(msg, MessageDirection.Out)
-        msg.serialize(config).forEach { sendOutput(msg.group, it) }
     }
 
     // FIXME: too much exposure of Common Rules for PE
@@ -86,7 +79,7 @@ class PropertyExchangeInitiator(
             val msg = Message.SubscribeProperty(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
                 requestIdSerial++, header, listOf())
             conn.addPendingSubscription(msg.requestId, subscriptionId, resource)
-            sendSubscribeProperty(msg)
+            parent.send(msg)
         }
     }
 
@@ -101,13 +94,8 @@ class PropertyExchangeInitiator(
             val msg = Message.SubscribeProperty(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
                 newRequestId, header, listOf())
             conn.promoteSubscriptionAsUnsubscribing(resource, newRequestId)
-            sendSubscribeProperty(msg)
+            parent.send(msg)
         }
-    }
-
-    fun sendSubscribeProperty(msg: Message.SubscribeProperty) {
-        logger.logMessage(msg, MessageDirection.Out)
-        msg.serialize(config).forEach { sendOutput(msg.group, it) }
     }
 
     fun defaultProcessPropertyCapabilitiesReply(msg: Message.PropertyGetCapabilitiesReply) {
@@ -117,7 +105,7 @@ class PropertyExchangeInitiator(
 
             // proceed to query resource list
             if (config.autoSendGetResourceList)
-                sendGetPropertyData(conn.propertyClient.getPropertyListRequest(msg.group, msg.sourceMUID, requestIdSerial++))
+                saveAndSendGetPropertyData(conn.propertyClient.getPropertyListRequest(msg.group, msg.sourceMUID, requestIdSerial++))
         }
         else
             parent.sendNakForUnknownMUID(Message.Common(muid, msg.sourceMUID, msg.group, msg.address),
@@ -138,7 +126,7 @@ class PropertyExchangeInitiator(
         if (config.autoSendGetDeviceInfo && propertyId == PropertyResourceNames.RESOURCE_LIST) {
             val def = conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == PropertyResourceNames.DEVICE_INFO }
             if (def != null)
-                sendGetPropertyData(msg.group, msg.sourceMUID, def.resource, def.encodings.firstOrNull())
+                saveAndSendGetPropertyData(msg.group, msg.sourceMUID, def.resource, def.encodings.firstOrNull())
         }
     }
 
@@ -154,10 +142,6 @@ class PropertyExchangeInitiator(
         // nothing to delegate further
     }
 
-    fun sendPropertySubscribeReply(msg: Message.SubscribePropertyReply) {
-        logger.logMessage(msg, MessageDirection.Out)
-        msg.serialize(config).forEach { sendOutput(msg.group, it) }
-    }
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
         logger.logMessage(msg, MessageDirection.In)
         events.subscribePropertyReceived.forEach { it(msg) }
@@ -165,10 +149,10 @@ class PropertyExchangeInitiator(
         if (conn != null) {
             val reply = conn.updateProperty(muid, msg)
             if (reply.second != null)
-                sendPropertySubscribeReply(reply.second!!)
+                parent.send(reply.second!!)
             // If the update was NOTIFY, then it is supposed to send Get Data request.
             if (reply.first == MidiCISubscriptionCommand.NOTIFY)
-                sendGetPropertyData(msg.group, msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header),
+                saveAndSendGetPropertyData(msg.group, msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header),
                     // is there mutualEncoding from SubscribeProperty?
                     encoding = null,
                     paginateOffset = null, paginateLimit = null)
