@@ -2,8 +2,6 @@ package dev.atsushieno.ktmidi.samples.playersample
 
 import dev.atsushieno.ktmidi.EmptyMidiAccess
 import dev.atsushieno.ktmidi.MidiAccess
-import dev.atsushieno.ktmidi.RtMidiNativeAccess
-//import dev.atsushieno.ktmidi.RtMidiNativeAccess
 import kotlinx.cinterop.*
 import platform.posix.S_IRUSR
 import platform.posix.fclose
@@ -21,7 +19,7 @@ expect fun getNativeMidiAccessApi(): MidiAccess
 
 actual fun exitApplication(code: Int): Unit = exitProcess(code)
 
-@OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
+@OptIn(ExperimentalForeignApi::class)
 actual fun canReadFile(file: String): Boolean = memScoped {
     val statObj = alloc<stat>()
     stat(file, statObj.ptr)
@@ -31,7 +29,7 @@ actual fun canReadFile(file: String): Boolean = memScoped {
 actual fun getFileExtension(file: String): String =
     file.lastIndexOf('.').let { index -> if (index < 0) "" else file.substring(index + 1) }
 
-@OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
+@OptIn(ExperimentalForeignApi::class)
 actual fun readFileContents(file: String): List<Byte> {
     val fp = fopen(file, "r") ?: throw IllegalArgumentException("Cannot open '$file'")
     try {

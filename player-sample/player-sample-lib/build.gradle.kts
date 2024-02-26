@@ -7,6 +7,7 @@ buildscript {
 }
 
 plugins {
+    id("application")
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.gradleJavacppPlatform) // required to resolve rtmidi-javacpp-platform appropriately
 }
@@ -18,6 +19,10 @@ kotlin {
         }
         testRuns["test"].executionTask.configure {
             useJUnit()
+        }
+        java {
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
         }
     }
     /* TODO
@@ -43,6 +48,13 @@ kotlin {
         hostOs == "Linux" && !isArm64 -> linuxX64("linuxArm64")
         isMingwX64 -> mingwX64("native")
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    }
+    nativeTarget.apply {
+        binaries {
+            executable {
+                entryPoint = "main"
+            }
+        }
     }
 
     sourceSets {

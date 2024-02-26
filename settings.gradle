@@ -24,9 +24,7 @@ include(":ktmidi-ci")
 include(":ktmidi-jvm-desktop")
 include(":ktmidi-native-ext")
 include(":input-sample")
-include(":player-sample-lib")
 include(":player-sample")
-include(":player-sample-native")
 include(':ktmidi-ci-tool')
 
 gradle.rootProject { ext.javacppVersion = '1.5.9' }
