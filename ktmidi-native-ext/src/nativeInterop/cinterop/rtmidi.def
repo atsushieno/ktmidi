@@ -6,11 +6,7 @@ headers = rtmidi/rtmidi_c.h
 #  (you want both shared and static builds: `binaries {staticLib {} sharedLib {}`)
 #
 staticLibraries = librtmidi.a
-staticLibraries.linux = libasound.a
 libraryPaths = ../external/rtmidi/dist-static/lib
-# This is ugly. Can't we even run standard pkg-config to determine the actual paths??
-libraryPaths.linux = /usr/lib
-userSetupHint = "needs -lasound"
 linkerOpts.osx = -framework CoreMIDI -framework CoreAudio
 # enable it anyway
 compilerOpts.linux = -fPIC
