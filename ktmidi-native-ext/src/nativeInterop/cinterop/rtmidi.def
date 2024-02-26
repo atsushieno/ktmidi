@@ -7,6 +7,7 @@ headers = rtmidi/rtmidi_c.h
 #
 staticLibraries = librtmidi.a
 libraryPaths = ../external/rtmidi/dist-static/lib
+linkerOpts.linux = -lasound2
 linkerOpts.osx = -framework CoreMIDI -framework CoreAudio
 # enable it anyway
 compilerOpts.linux = -fPIC
