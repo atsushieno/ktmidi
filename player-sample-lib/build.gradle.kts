@@ -33,22 +33,17 @@ kotlin {
         nodejs {
         }
     }*/
-    linuxX64()
-    linuxArm64()
-    macosArm64()
-    macosX64()
-    mingwX64()
-    /*
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "PlayerSampleLib"
-            isStatic = true
-        }
-    }*/
+    val hostOs = System.getProperty("os.name")
+    val isArm64 = System.getProperty("os.arch") == "aarch64"
+    val isMingwX64 = hostOs.startsWith("Windows")
+    val nativeTarget = when {
+        hostOs == "Mac OS X" && isArm64 -> macosArm64("macosArm64")
+        hostOs == "Mac OS X" && !isArm64 -> macosX64("macosX64")
+        hostOs == "Linux" && isArm64 -> linuxArm64("linuxX64")
+        hostOs == "Linux" && !isArm64 -> linuxX64("linuxArm64")
+        isMingwX64 -> mingwX64("native")
+        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    }
 
     sourceSets {
         val commonMain by getting {
@@ -95,30 +90,32 @@ kotlin {
         val linuxCommonMain by creating {
             dependsOn(nativeMain)
         }
-        val linuxArm64Main by getting {
-            dependsOn(linuxCommonMain)
-        }
-        val linuxX64Main by getting {
-            dependsOn(linuxCommonMain)
-        }
-        val mingwX64Main by getting {
-            dependsOn(nativeMain)
-        }
         val appleMain by creating {
             dependsOn(nativeMain)
         }
-        val appleTest by creating { dependsOn(nativeTest) }
-        val macosArm64Main by getting { dependsOn(appleMain) }
-        val macosX64Main by getting { dependsOn(appleMain) }
-        /*
-        val iosMain by creating { dependsOn(appleMain) }
-        val iosTest by creating { dependsOn(appleTest) }
-        val iosArm64Main by getting { dependsOn(iosMain) }
-        val iosArm64Test by getting { dependsOn(iosTest) }
-        val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
-        val iosSimulatorArm64Test by getting { dependsOn(iosTest) }
-        val iosX64Main by getting { dependsOn(iosMain) }
-        val iosX64Test by getting { dependsOn(iosTest) }
-         */
+        val appleTest by creating {
+            dependsOn(nativeTest)
+        }
+        when (nativeTarget.name) {
+            "linuxArm64" -> {
+                val linuxArm64Main by getting { dependsOn(linuxCommonMain) }
+            }
+
+            "linuxX64" -> {
+                val linuxX64Main by getting { dependsOn(linuxCommonMain) }
+            }
+
+            "mingwX64" -> {
+                val mingwX64Main by getting { dependsOn(nativeMain) }
+            }
+
+            "macosArm64" -> {
+                val macosArm64Main by getting { dependsOn(appleMain) }
+            }
+
+            "macosX64" -> {
+                val macosX64Main by getting { dependsOn(appleMain) }
+            }
+        }
     }
 }
