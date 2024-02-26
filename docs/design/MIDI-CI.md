@@ -62,3 +62,23 @@ Classes:
   - `dev.atsushieno.ktmidi.citool.view` package contains `@Composable`s.
   - `CIToolRepository` is supposed to work as the repository facade.
   - `SavedSettings` works as the serializable saved configuration. We use kotlinx.Serialization JSON to save the settings.
+
+## Platform support
+
+The state of ktmidi-ci-tool platform support is complicated due to multiple premises:
+
+| Platform | exists? | virtual ports | MIDI2 | Compose |
+|-|-|-|-|-|
+| Windows-javax.sound.midi | o | - | - | o |
+| Mac-rtmidi-javacpp | o | o | - | o |
+| Mac-coremidi4j | - | o | - | o |
+| Linux-alsakt | o | o | WIP | o |
+| Windows-rtmidi (native) | o | o | - | - |
+| Mac-rtmidi (native)  | o | o | - | - |
+| Mac-coremidi (native)  | CoreMidiAccess? | o | o | - |
+| Linux-rtmidi (native)  | o | o | - | - |
+| Linux-alsa (native)  | - | o | o | - |
+| Android | o | o | o | o | 
+| iOS-coremidi | CoreMidiAccess? | - | o | o | o |
+
+
