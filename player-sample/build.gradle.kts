@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
-
 buildscript {
     repositories {
         maven("https://plugins.gradle.org/m2/")

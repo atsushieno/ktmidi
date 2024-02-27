@@ -1,12 +1,13 @@
 package dev.atsushieno.ktmidi
 
 import kotlinx.cinterop.*
-import platform.CoreFoundation.*
+import platform.CoreFoundation.CFStringRef
+import platform.CoreFoundation.CFStringRefVar
 import platform.CoreMIDI.*
 import platform.Foundation.CFBridgingRelease
 import platform.Foundation.CFBridgingRetain
+import platform.darwin.SInt32Var
 import platform.posix.alloca
-import kotlin.native.internal.NativePtr
 
 class CoreMidiAccess : MidiAccess() {
     override val name = "CoreMIDI"
@@ -28,19 +29,22 @@ private class CoreMidiPortDetails(val endpoint: MIDIEndpointRef)
     override val id: String = getPropertyString(kMIDIPropertyUniqueID) ?: endpoint.toInt().toString()
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun getPropertyString(property: CFStringRef?): String? {
-        memScoped {
-            val str = alloc<CFStringRefVar>()
-            val status = MIDIObjectGetStringProperty(endpoint, property, str.ptr)
-            if (status == 0 || str == null)
-                return null
-            return CFBridgingRelease(CFBridgingRetain(str)) as String?
-        }
+    private fun getPropertyString(property: CFStringRef?): String? = memScoped {
+        viaPtr { str ->
+            val status = MIDIObjectGetStringProperty(endpoint, property, str)
+            if (status == 0 || str.rawValue == NativePtr.NULL)
+                return@memScoped null
+        }?.getString()
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun getPropertyInt(property: CFStringRef?): Int =
-        TODO("FIXME: Not implemented")
+    private fun getPropertyInt(property: CFStringRef?): Int {
+        memScoped {
+            val i = cValue<SInt32Var>()
+            MIDIObjectGetIntegerProperty(endpoint, property, i.ptr)
+            return i.ptr[0]
+        }
+    }
 
     @OptIn(ExperimentalForeignApi::class)
     override val manufacturer = getPropertyString(kMIDIPropertyManufacturer)
