@@ -2,7 +2,6 @@ package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesKnownMimeTypes
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
-import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyDataEncoding
 import kotlinx.serialization.Serializable
 
 /**
@@ -46,7 +45,7 @@ abstract class ObservablePropertyList(protected val internalValues: MutableList<
     }
 }
 
-class ClientObservablePropertyList(private val logger: Logger, private val propertyClient: MidiCIPropertyClient)
+class ClientObservablePropertyList(private val logger: Logger, private val propertyClient: MidiCIClientPropertyRules)
     : ObservablePropertyList(mutableListOf()) {
     override fun getMetadataList(): List<PropertyMetadata>? = propertyClient.getMetadataList()
 
@@ -97,7 +96,7 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
     }
 }
 
-class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private val propertyService: MidiCIPropertyService)
+class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private val propertyService: MidiCIServicePropertyRules)
     : ObservablePropertyList(values) {
 
     override fun getMetadataList(): List<PropertyMetadata>? = propertyService.getMetadataList()

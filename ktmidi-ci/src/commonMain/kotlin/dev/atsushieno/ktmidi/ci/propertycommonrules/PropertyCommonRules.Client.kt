@@ -5,7 +5,7 @@ import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
 
 class CommonRulesPropertyClient(logger: Logger, private val muid: Int, deviceDetails: DeviceDetails) :
-    CommonRulesPropertyHelper(logger), MidiCIPropertyClient {
+    CommonRulesPropertyHelper(logger), MidiCIClientPropertyRules {
     override fun createDataRequestHeader(propertyId: String, fields: Map<String, Any?>): List<Byte> =
         createRequestHeaderBytes(propertyId, fields)
 

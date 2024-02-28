@@ -39,7 +39,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     val connections = mutableMapOf<Int, ClientConnection>()
     val connectionsChanged = mutableListOf<(change: ConnectionChange, connection: ClientConnection) -> Unit>()
 
-    private var profileService: MidiCIProfileService = CommonRulesProfileService()
+    private var profileService: MidiCIProfileRules = CommonRulesProfileService()
     val localProfiles = ObservableProfileList(config.localProfiles)
     // These events are invoked when it received Set Profile On/Off request from Initiator.
     val onProfileSet = mutableListOf<(profile: MidiCIProfile) -> Unit>()

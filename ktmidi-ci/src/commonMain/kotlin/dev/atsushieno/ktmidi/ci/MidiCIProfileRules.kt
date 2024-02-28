@@ -1,5 +1,5 @@
 package dev.atsushieno.ktmidi.ci
 
-interface MidiCIProfileService {
+interface MidiCIProfileRules {
     fun getProfileDetails(profile: MidiCIProfileId, target: Byte): List<Byte>?
 }

@@ -13,7 +13,7 @@ package dev.atsushieno.ktmidi.ci
  * set of specifications).
  * Therefore, it is technically important to extract this interface out from CommonPropertyService.
  */
-interface MidiCIPropertyService {
+interface MidiCIServicePropertyRules {
     fun getPropertyIdForHeader(header: List<Byte>): String
     fun createUpdateNotificationHeader(propertyId: String, fields: Map<String, Any?>): List<Byte>
     fun getMetadataList(): List<PropertyMetadata>?

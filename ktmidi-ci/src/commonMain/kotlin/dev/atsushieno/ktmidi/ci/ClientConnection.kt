@@ -10,7 +10,7 @@ class ClientConnection(
     val device: DeviceDetails,
     var maxSimultaneousPropertyRequests: Byte = 0,
     var productInstanceId: String = "",
-    val propertyClient: MidiCIPropertyClient = CommonRulesPropertyClient(parent.logger, parent.muid, device)
+    val propertyClient: MidiCIClientPropertyRules = CommonRulesPropertyClient(parent.logger, parent.muid, device)
 ) {
 
     // This is going to be the entry point for all the profile client features foe MidiCIDevice.

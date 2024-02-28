@@ -53,7 +53,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
                                  private val channelList: Json.JsonValue? = null,
                                  private val jsonSchema: Json.JsonValue? = null
     )
-    : CommonRulesPropertyHelper(logger), MidiCIPropertyService {
+    : CommonRulesPropertyHelper(logger), MidiCIServicePropertyRules {
 
     // MidiCIPropertyService implementation
     override fun getPropertyIdForHeader(header: List<Byte>) = getPropertyIdentifierInternal(header)

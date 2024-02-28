@@ -9,7 +9,7 @@ package dev.atsushieno.ktmidi.ci
  * - When the list of property IDs are acquired, it must be notified as `propertyCatalogUpdated`
  *   - The list acquisition must be automatically detected.
  */
-interface MidiCIPropertyClient {
+interface MidiCIClientPropertyRules {
     fun createDataRequestHeader(propertyId: String, fields: Map<String, Any?>): List<Byte>
 
     fun createSubscriptionHeader(propertyId: String, fields: Map<String, Any?>): List<Byte>
