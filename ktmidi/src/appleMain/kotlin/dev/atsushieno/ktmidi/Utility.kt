@@ -8,6 +8,7 @@ import platform.Foundation.CFBridgingRetain
 import platform.Foundation.NSString
 import platform.darwin.NSObject
 
+// a lot of ideas are taken from r4zzz4k/kmidi so far (it does not seem to work yet though)
 @Suppress("CAST_NEVER_SUCCEEDS")
 fun String.asNSString() = this as NSString
 @Suppress("CAST_NEVER_SUCCEEDS")
@@ -33,7 +34,6 @@ fun NSString.toCFStringRef(): CFStringRef = this.toCFTypeRef()
 @OptIn(ExperimentalForeignApi::class)
 fun String.toCFStringRef() = asNSString().toCFStringRef()
 
-
 @OptIn(ExperimentalForeignApi::class)
 inline fun <reified T: CVariable> viaPtrVar(block: (ptr: CPointer<T>) -> Unit): T = memScoped {
     val result = alloc<T>()
@@ -42,3 +42,7 @@ inline fun <reified T: CVariable> viaPtrVar(block: (ptr: CPointer<T>) -> Unit): 
 }
 @OptIn(ExperimentalForeignApi::class)
 inline fun <T : CPointer<*>> viaPtr(block: (CPointer<CPointerVarOf<T>>) -> Unit): T? = viaPtrVar(block).value
+@OptIn(ExperimentalForeignApi::class)
+inline fun viaPtr(block: (CPointer<IntVarOf<Int>>) -> Unit): Int = viaPtrVar(block).value
+@OptIn(ExperimentalForeignApi::class)
+inline fun viaPtr(block: (CPointer<UIntVarOf<UInt>>) -> Unit): UInt = viaPtrVar(block).value

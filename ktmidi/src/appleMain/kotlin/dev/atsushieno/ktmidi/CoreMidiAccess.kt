@@ -2,20 +2,17 @@ package dev.atsushieno.ktmidi
 
 import kotlinx.cinterop.*
 import platform.CoreFoundation.CFStringRef
-import platform.CoreFoundation.CFStringRefVar
 import platform.CoreMIDI.*
-import platform.Foundation.CFBridgingRelease
-import platform.Foundation.CFBridgingRetain
 import platform.darwin.SInt32Var
 import platform.posix.alloca
 
 class CoreMidiAccess : MidiAccess() {
     override val name = "CoreMIDI"
     override val inputs: Iterable<MidiPortDetails>
-        get() = (0UL until MIDIGetNumberOfSources()).map { CoreMidiPortDetails(MIDIGetSource(it)) }
+        get() = (0UL until MIDIGetNumberOfSources()).map { MIDIGetSource(it) }.filter { it != 0u }.map { CoreMidiPortDetails(it) }
 
     override val outputs: Iterable<MidiPortDetails>
-        get() = (0UL until MIDIGetNumberOfDestinations()).map { CoreMidiPortDetails(MIDIGetDestination(it)) }
+        get() = (0UL until MIDIGetNumberOfDestinations()).map { MIDIGetDestination(it) }.filter { it != 0u }.map { CoreMidiPortDetails(it) }
 
     override suspend fun openInput(portId: String): MidiInput = CoreMidiInput(inputs.first { it.id == portId } as CoreMidiPortDetails)
 
@@ -26,15 +23,16 @@ private class CoreMidiPortDetails(val endpoint: MIDIEndpointRef)
     : MidiPortDetails {
 
     @OptIn(ExperimentalForeignApi::class)
-    override val id: String = getPropertyString(kMIDIPropertyUniqueID) ?: endpoint.toInt().toString()
+    override val id: String
+        get() = getPropertyInt(kMIDIPropertyUniqueID).toString()
 
     @OptIn(ExperimentalForeignApi::class)
     private fun getPropertyString(property: CFStringRef?): String? = memScoped {
-        viaPtr { str ->
+        viaPtr<CFStringRef> { str ->
             val status = MIDIObjectGetStringProperty(endpoint, property, str)
             if (status == 0 || str.rawValue == NativePtr.NULL)
                 return@memScoped null
-        }?.getString()
+        }?.releaseString()
     }
 
     @OptIn(ExperimentalForeignApi::class)
@@ -47,13 +45,17 @@ private class CoreMidiPortDetails(val endpoint: MIDIEndpointRef)
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    override val manufacturer = getPropertyString(kMIDIPropertyManufacturer)
+    override val manufacturer
+        get() = getPropertyString(kMIDIPropertyManufacturer)
     @OptIn(ExperimentalForeignApi::class)
-    override val name = getPropertyString(kMIDIPropertyDisplayName) ?: getPropertyString(kMIDIPropertyName) ?: "(unnamed port)"
+    override val name
+        get() = getPropertyString(kMIDIPropertyDisplayName) ?: getPropertyString(kMIDIPropertyName) ?: "(unnamed port)"
     @OptIn(ExperimentalForeignApi::class)
-    override val version = getPropertyString(kMIDIPropertyDriverVersion)
+    override val version
+        get() = getPropertyString(kMIDIPropertyDriverVersion)
     @OptIn(ExperimentalForeignApi::class)
-    override val midiTransportProtocol = getPropertyInt(kMIDIPropertyProtocolID)
+    override val midiTransportProtocol
+        get() = getPropertyInt(kMIDIPropertyProtocolID)
 }
 
 private abstract class CoreMidiPort(override val details: CoreMidiPortDetails) : MidiPort {
@@ -85,16 +87,11 @@ private class CoreMidiInput(details: CoreMidiPortDetails) : CoreMidiPort(details
     init {
         memScoped {
             val clientName = "KTMidiInputClient"
-            clientName.usePinned { clientNameBuf ->
-                val clientPtr = alloc<MIDIClientRefVar>()
-                MIDIClientCreate(clientNameBuf.addressOf(0).reinterpret(), null, null, clientPtr.reinterpret())
-                client = clientPtr.value
-
+            client = viaPtr { clientPtr: CPointer<MIDIClientRefVar> ->
+                MIDIClientCreate(clientName.toCFStringRef(), null, null, clientPtr)
                 val portName = "KTMidiInputPort"
-                portName.usePinned { portNameBuf ->
-                    val portPtr = alloc<MIDIPortRefVar>()
-                    MIDIInputPortCreate(client, portNameBuf.addressOf(0).reinterpret(), null, null, portPtr.reinterpret())
-                    port = portPtr.value
+                port = viaPtr { portPtr: CPointer<MIDIPortRefVar> ->
+                    MIDIInputPortCreate(client, portName.toCFStringRef(), null, null, portPtr)
                 }
             }
         }
@@ -121,17 +118,12 @@ private class CoreMidiOutput(details: CoreMidiPortDetails) : CoreMidiPort(detail
 
     init {
         memScoped {
-            val clientName = "KTMidiInputClient"
-            clientName.usePinned { clientNameBuf ->
-                val clientPtr = alloc<MIDIClientRefVar>()
-                MIDIClientCreate(clientNameBuf.addressOf(0).reinterpret(), null, null, clientPtr.reinterpret())
-                client = clientPtr.value
-
-                val portName = "KTMidiInputPort"
-                portName.usePinned { portNameBuf ->
-                    val portPtr = alloc<MIDIPortRefVar>()
-                    MIDIInputPortCreate(client, portNameBuf.addressOf(0).reinterpret(), null, null, portPtr.reinterpret())
-                    port = portPtr.value
+            val clientName = "KTMidiOutputClient"
+            client = viaPtr { clientPtr: CPointer<MIDIClientRefVar> ->
+                MIDIClientCreate(clientName.toCFStringRef(), null, null, clientPtr)
+                val portName = "KTMidiOutputPort"
+                port = viaPtr { portPtr: CPointer<MIDIPortRefVar> ->
+                    MIDIOutputPortCreate(client, portName.toCFStringRef(), portPtr)
                 }
             }
         }

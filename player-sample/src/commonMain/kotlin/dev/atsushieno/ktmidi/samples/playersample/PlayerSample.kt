@@ -38,16 +38,19 @@ suspend fun runMain(args: Array<String>) {
 
     // If -2 is specified, then the MidiOutput will receive UMPs. Otherwise, UMPs are converted to MIDI1.
     val access = getMidiAccessApi(opts.api, protocol)
-    val portDetails = access.outputs.firstOrNull { it.id == opts.port }
+    val portDetails = access.outputs.firstOrNull {
+        it.id == opts.port
+    }
         ?: access.outputs.firstOrNull { !it.name!!.contains("Through") }
         ?: access.outputs.firstOrNull()
     if (portDetails == null) {
         println("Could not connect to output device.")
         exitApplication(2)
+        return
     }
 
     lateinit var player: MidiPlayer
-    val midiOutput = access.openOutput(portDetails!!.id)
+    val midiOutput = access.openOutput(portDetails.id)
 
     // load music from file
     if (opts.musicFile != null) {
@@ -79,6 +82,7 @@ suspend fun runMain(args: Array<String>) {
         println("Music file was not specified.")
         showUsage(opts.api, protocol)
         exitApplication(1)
+        return
     }
 
     println("Using ${portDetails.name}")
