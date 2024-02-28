@@ -30,10 +30,10 @@ class ClientConnection(
                     { if (numChannelsRequested < 1) 1 else numChannelsRequested }
                     else numChannelsRequested
                 )
-                device.send(msg)
+                device.messenger.send(msg)
             } else {
                 val msg = Message.SetProfileOff(common, profile)
-                device.send(msg)
+                device.messenger.send(msg)
             }
         }
 

@@ -544,6 +544,98 @@ public final class dev/atsushieno/ktmidi/ci/MessageDirection : java/lang/Enum {
 	public static fun values ()[Ldev/atsushieno/ktmidi/ci/MessageDirection;
 }
 
+public final class dev/atsushieno/ktmidi/ci/Messenger {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)V
+	public final fun defaultProcessEndpointReply (Ldev/atsushieno/ktmidi/ci/Message$EndpointReply;)V
+	public final fun defaultProcessInvalidateMUID (Ldev/atsushieno/ktmidi/ci/Message$InvalidateMUID;)V
+	public final fun defaultProcessMidiMessageReport (Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry;)V
+	public final fun defaultProcessProfileDetailsInquiry (Ldev/atsushieno/ktmidi/ci/Message$ProfileDetailsInquiry;)V
+	public final fun defaultProcessSetProfileOff (Ldev/atsushieno/ktmidi/ci/Message$SetProfileOff;)V
+	public final fun defaultProcessSetProfileOn (Ldev/atsushieno/ktmidi/ci/Message$SetProfileOn;)V
+	public final fun getDiscoveryReplyForInquiry (Ldev/atsushieno/ktmidi/ci/Message$DiscoveryInquiry;)Ldev/atsushieno/ktmidi/ci/Message$DiscoveryReply;
+	public final fun getEndOfMidiMessageReportFor (Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry;)Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportNotifyEnd;
+	public final fun getEndpointReplyForInquiry (Ldev/atsushieno/ktmidi/ci/Message$EndpointInquiry;)Ldev/atsushieno/ktmidi/ci/Message$EndpointReply;
+	public final fun getMidiMessageReportReplyFor (Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry;)Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportReply;
+	public final fun getOnAck ()Lkotlin/jvm/functions/Function8;
+	public final fun getOnNak ()Lkotlin/jvm/functions/Function8;
+	public final fun getProcessAck ()Lkotlin/jvm/functions/Function8;
+	public final fun getProcessDiscovery ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessDiscoveryReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessEndOfMidiMessageReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessEndpointMessage ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessEndpointReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessInquiryReplyFor (Ldev/atsushieno/ktmidi/ci/Message$ProcessInquiryCapabilities;)Ldev/atsushieno/ktmidi/ci/Message$ProcessInquiryCapabilitiesReply;
+	public final fun getProcessInvalidateMUID ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessMidiMessageReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessMidiMessageReportReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessNak ()Lkotlin/jvm/functions/Function8;
+	public final fun getProcessProcessInquiry ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProcessInquiryReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileAddedReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileDetailsInquiry ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileDetailsReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileDisabledReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileEnabledReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileInquiry ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileRemovedReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileSpecificData ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessPropertyNotify ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSetProfileOff ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSetProfileOn ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSubscribeProperty ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSubscribePropertyReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessUnknownCIMessage ()Lkotlin/jvm/functions/Function2;
+	public final fun getProfileRepliesForInquiry (Ldev/atsushieno/ktmidi/ci/Message$ProfileInquiry;)Lkotlin/sequences/Sequence;
+	public final fun handleNewEndpoint (Ldev/atsushieno/ktmidi/ci/Message$DiscoveryReply;)V
+	public final fun invalidateMUID (BBILjava/lang/String;)V
+	public final fun processInput (BLjava/util/List;)V
+	public final fun send (Ldev/atsushieno/ktmidi/ci/Message;)V
+	public final fun sendDiscovery (BB)V
+	public static synthetic fun sendDiscovery$default (Ldev/atsushieno/ktmidi/ci/Messenger;BBILjava/lang/Object;)V
+	public final fun sendEndpointMessage (BIB)V
+	public static synthetic fun sendEndpointMessage$default (Ldev/atsushieno/ktmidi/ci/Messenger;BIBILjava/lang/Object;)V
+	public final fun sendMidiMessageReportInquiry (BBIBBBB)V
+	public final fun sendNakForError (Ldev/atsushieno/ktmidi/ci/Message$Common;BBBLjava/util/List;Ljava/lang/String;)V
+	public static synthetic fun sendNakForError$default (Ldev/atsushieno/ktmidi/ci/Messenger;Ldev/atsushieno/ktmidi/ci/Message$Common;BBBLjava/util/List;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun sendNakForUnknownCIMessage (BLjava/util/List;)V
+	public final fun sendNakForUnknownMUID (Ldev/atsushieno/ktmidi/ci/Message$Common;B)V
+	public final fun sendProcessInquiry (BI)V
+	public final fun sendProfileAddedReport (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun sendProfileDetailsInquiry (BBILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
+	public final fun sendProfileInquiry (BBI)V
+	public final fun sendProfileRemovedReport (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun setOnAck (Lkotlin/jvm/functions/Function8;)V
+	public final fun setOnNak (Lkotlin/jvm/functions/Function8;)V
+	public final fun setProcessAck (Lkotlin/jvm/functions/Function8;)V
+	public final fun setProcessDiscovery (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessDiscoveryReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessEndOfMidiMessageReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessEndpointMessage (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessEndpointReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessInvalidateMUID (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessMidiMessageReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessMidiMessageReportReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessNak (Lkotlin/jvm/functions/Function8;)V
+	public final fun setProcessProcessInquiry (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProcessInquiryReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileAddedReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileDetailsInquiry (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileDetailsReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileDisabledReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileEnabledReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileInquiry (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileRemovedReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileSpecificData (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessPropertyNotify (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSetProfileOff (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSetProfileOn (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSubscribeProperty (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSubscribePropertyReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessUnknownCIMessage (Lkotlin/jvm/functions/Function2;)V
+}
+
 public abstract interface class dev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules {
 	public abstract fun createDataRequestHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
 	public abstract fun createStatusHeader (I)Ljava/util/List;
@@ -591,110 +683,29 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIConverter {
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
 	public fun <init> (ILdev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)V
-	public final fun defaultProcessEndpointReply (Ldev/atsushieno/ktmidi/ci/Message$EndpointReply;)V
-	public final fun defaultProcessInvalidateMUID (Ldev/atsushieno/ktmidi/ci/Message$InvalidateMUID;)V
-	public final fun defaultProcessMidiMessageReport (Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry;)V
-	public final fun defaultProcessProfileDetailsInquiry (Ldev/atsushieno/ktmidi/ci/Message$ProfileDetailsInquiry;)V
-	public final fun defaultProcessSetProfileOff (Ldev/atsushieno/ktmidi/ci/Message$SetProfileOff;)V
-	public final fun defaultProcessSetProfileOn (Ldev/atsushieno/ktmidi/ci/Message$SetProfileOn;)V
+	public final fun addLocalProfile (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
 	public final fun getConfig ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;
 	public final fun getConnections ()Ljava/util/Map;
 	public final fun getConnectionsChanged ()Ljava/util/List;
 	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
-	public final fun getDiscoveryReplyForInquiry (Ldev/atsushieno/ktmidi/ci/Message$DiscoveryInquiry;)Ldev/atsushieno/ktmidi/ci/Message$DiscoveryReply;
-	public final fun getEndOfMidiMessageReportFor (Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry;)Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportNotifyEnd;
-	public final fun getEndpointReplyForInquiry (Ldev/atsushieno/ktmidi/ci/Message$EndpointInquiry;)Ldev/atsushieno/ktmidi/ci/Message$EndpointReply;
 	public final fun getInitiator ()Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator;
 	public final fun getLocalProfiles ()Ldev/atsushieno/ktmidi/ci/ObservableProfileList;
 	public final fun getLogger ()Ldev/atsushieno/ktmidi/ci/Logger;
 	public final fun getMessageReceived ()Ljava/util/List;
-	public final fun getMidiMessageReportReplyFor (Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry;)Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportReply;
 	public final fun getMidiMessageReporter ()Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;
 	public final fun getMuid ()I
-	public final fun getOnAck ()Lkotlin/jvm/functions/Function8;
-	public final fun getOnNak ()Lkotlin/jvm/functions/Function8;
 	public final fun getOnProfileSet ()Ljava/util/List;
-	public final fun getProcessAck ()Lkotlin/jvm/functions/Function8;
-	public final fun getProcessDiscovery ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessDiscoveryReply ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessEndOfMidiMessageReport ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessEndpointMessage ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessEndpointReply ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessInquiryReplyFor (Ldev/atsushieno/ktmidi/ci/Message$ProcessInquiryCapabilities;)Ldev/atsushieno/ktmidi/ci/Message$ProcessInquiryCapabilitiesReply;
-	public final fun getProcessInvalidateMUID ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessMidiMessageReport ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessMidiMessageReportReply ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessNak ()Lkotlin/jvm/functions/Function8;
-	public final fun getProcessProcessInquiry ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessProcessInquiryReply ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessProfileAddedReport ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessProfileDetailsInquiry ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessProfileDetailsReply ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessProfileDisabledReport ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessProfileEnabledReport ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessProfileInquiry ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessProfileRemovedReport ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessProfileReply ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessProfileSpecificData ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessPropertyNotify ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessSetProfileOff ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessSetProfileOn ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessSubscribeProperty ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessSubscribePropertyReply ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessUnknownCIMessage ()Lkotlin/jvm/functions/Function2;
-	public final fun getProfileRepliesForInquiry (Ldev/atsushieno/ktmidi/ci/Message$ProfileInquiry;)Lkotlin/sequences/Sequence;
 	public final fun getRequestIdSerial ()B
 	public final fun getResponder ()Ldev/atsushieno/ktmidi/ci/PropertyExchangeResponder;
 	public final fun getUnknownMessageReceived ()Ljava/util/List;
-	public final fun handleNewEndpoint (Ldev/atsushieno/ktmidi/ci/Message$DiscoveryReply;)V
-	public final fun invalidateMUID (BBILjava/lang/String;)V
 	public final fun processInput (BLjava/util/List;)V
+	public final fun removeLocalProfile (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
+	public final fun requestMidiMessageReport (BBIBBBB)V
 	public final fun requestProfileDetails (BBILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
-	public final fun requestProfiles (BBI)V
-	public final fun send (Ldev/atsushieno/ktmidi/ci/Message;)V
-	public final fun sendDiscovery (BB)V
-	public static synthetic fun sendDiscovery$default (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;BBILjava/lang/Object;)V
-	public final fun sendEndpointMessage (BIB)V
-	public static synthetic fun sendEndpointMessage$default (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;BIBILjava/lang/Object;)V
-	public final fun sendMidiMessageReportInquiry (BBIBBBB)V
-	public final fun sendNakForError (Ldev/atsushieno/ktmidi/ci/Message$Common;BBBLjava/util/List;Ljava/lang/String;)V
-	public static synthetic fun sendNakForError$default (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;Ldev/atsushieno/ktmidi/ci/Message$Common;BBBLjava/util/List;Ljava/lang/String;ILjava/lang/Object;)V
-	public final fun sendNakForUnknownCIMessage (BLjava/util/List;)V
-	public final fun sendNakForUnknownMUID (Ldev/atsushieno/ktmidi/ci/Message$Common;B)V
-	public final fun sendProcessInquiry (BI)V
-	public final fun sendProfileAddedReport (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
-	public final fun sendProfileRemovedReport (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun sendDiscovery (B)V
 	public final fun setMidiMessageReporter (Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;)V
-	public final fun setOnAck (Lkotlin/jvm/functions/Function8;)V
-	public final fun setOnNak (Lkotlin/jvm/functions/Function8;)V
-	public final fun setProcessAck (Lkotlin/jvm/functions/Function8;)V
-	public final fun setProcessDiscovery (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessDiscoveryReply (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessEndOfMidiMessageReport (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessEndpointMessage (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessEndpointReply (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessInvalidateMUID (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessMidiMessageReport (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessMidiMessageReportReply (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessNak (Lkotlin/jvm/functions/Function8;)V
-	public final fun setProcessProcessInquiry (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessProcessInquiryReply (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessProfileAddedReport (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessProfileDetailsInquiry (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessProfileDetailsReply (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessProfileDisabledReport (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessProfileEnabledReport (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessProfileInquiry (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessProfileRemovedReport (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessProfileReply (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessProfileSpecificData (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessPropertyNotify (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessSetProfileOff (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessSetProfileOn (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessSubscribeProperty (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessSubscribePropertyReply (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessUnknownCIMessage (Lkotlin/jvm/functions/Function2;)V
 	public final fun setRequestIdSerial (B)V
+	public final fun updateLocalProfileTarget (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;BBZS)V
 }
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {

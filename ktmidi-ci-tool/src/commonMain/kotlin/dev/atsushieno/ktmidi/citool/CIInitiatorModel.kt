@@ -10,14 +10,6 @@ import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 class CIInitiatorModel(private val device: CIDeviceModel) {
     private val initiator by lazy { device.device.initiator }
 
-    fun sendEndpointMessage(targetMUID: Int) {
-        device.device.sendEndpointMessage(device.defaultSenderGroup, targetMUID)
-    }
-
-    fun sendProfileDetailsInquiry(address: Byte, muid: Int, profile: MidiCIProfileId, target: Byte) {
-        device.device.requestProfileDetails(device.defaultSenderGroup, address, muid, profile, target)
-    }
-
     fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
         initiator.saveAndSendGetPropertyData(device.defaultSenderGroup, destinationMUID, resource, encoding, paginateOffset, paginateLimit)
     }
@@ -62,7 +54,7 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
                                  channelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All,
                                  noteDataMessages: Byte = MidiMessageReportNoteDataFlags.All
     ) {
-        parent.device.sendMidiMessageReportInquiry(parent.defaultSenderGroup, address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
+        parent.device.requestMidiMessageReport(parent.defaultSenderGroup, address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
     }
 
     init {

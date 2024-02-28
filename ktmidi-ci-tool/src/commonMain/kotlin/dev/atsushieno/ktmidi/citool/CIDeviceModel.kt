@@ -99,24 +99,20 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
         device.sendDiscovery(defaultSenderGroup)
     }
 
+    // remote profile configuration
+
+    fun sendProfileDetailsInquiry(address: Byte, muid: Int, profile: MidiCIProfileId, target: Byte) {
+        device.requestProfileDetails(defaultSenderGroup, address, muid, profile, target)
+    }
+
     // local profile configuration
 
-    fun updateLocalProfileTarget(profileState: MidiCIProfileState, address: Byte, enabled: Boolean, numChannelsRequested: Short) {
-        val profile = device.localProfiles.profiles.first { it.address == profileState.address.value && it.profile == profileState.profile }
-        device.localProfiles.update(profile, enabled, address, numChannelsRequested)
-    }
+    fun updateLocalProfileTarget(profileState: MidiCIProfileState, newAddress: Byte, enabled: Boolean, numChannelsRequested: Short) =
+        device.updateLocalProfileTarget(profileState.profile, profileState.address.value, newAddress, enabled, numChannelsRequested)
 
-    fun addLocalProfile(profile: MidiCIProfile) {
-        device.localProfiles.add(profile)
-        device.sendProfileAddedReport(defaultSenderGroup, profile)
-    }
+    fun addLocalProfile(profile: MidiCIProfile) = device.addLocalProfile(defaultSenderGroup, profile)
 
-    fun removeLocalProfile(group: Byte, address: Byte, profileId: MidiCIProfileId) {
-        // create a dummy entry...
-        val profile = MidiCIProfile(profileId, group, address, false, 0)
-        device.localProfiles.remove(profile)
-        device.sendProfileRemovedReport(defaultSenderGroup, profile)
-    }
+    fun removeLocalProfile(group: Byte, address: Byte, profileId: MidiCIProfileId) = device.removeLocalProfile(group, address, profileId)
 
     fun updateLocalProfileName(oldProfile: MidiCIProfileId, newProfile: MidiCIProfileId) {
         val removed = device.localProfiles.profiles.filter { it.profile == oldProfile }

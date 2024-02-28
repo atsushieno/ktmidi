@@ -72,7 +72,7 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
     var selectedProfile = mutableStateOf<MidiCIProfileId?>(null)
 
     fun sendProfileDetailsInquiry(profile: MidiCIProfileId, address: Byte, target: Byte) {
-        ciDeviceManager.initiator.sendProfileDetailsInquiry(address, conn.conn.targetMUID, profile, target)
+        ciDeviceManager.device.sendProfileDetailsInquiry(address, conn.conn.targetMUID, profile, target)
     }
 
     fun selectProperty(propertyId: String) {

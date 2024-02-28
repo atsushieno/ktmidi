@@ -47,7 +47,7 @@ class PropertyExchangeResponder(
         }
     }
 
-    fun notifyPropertyUpdatesToSubscribers(msg: Message.SubscribeProperty) = parent.send(msg)
+    fun notifyPropertyUpdatesToSubscribers(msg: Message.SubscribeProperty) = parent.messenger.send(msg)
 
     // Notify end of subscription updates
     fun terminateSubscriptions(group: Byte) {
@@ -56,7 +56,7 @@ class PropertyExchangeResponder(
                 requestIdSerial++,
                 propertyService.createTerminateNotificationHeader(it.subscribeId), listOf()
             )
-            parent.send(msg)
+            parent.messenger.send(msg)
         }
     }
 
@@ -73,14 +73,14 @@ class PropertyExchangeResponder(
     var processPropertyCapabilitiesInquiry: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
         parent.messageReceived.forEach { it(msg) }
         val reply = getPropertyCapabilitiesReplyFor(msg)
-        parent.send(reply)
+        parent.messenger.send(reply)
     }
 
     var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
         parent.messageReceived.forEach { it(msg) }
         val reply = propertyService.getPropertyData(msg)
         if (reply.isSuccess) {
-            parent.send(reply.getOrNull()!!)
+            parent.messenger.send(reply.getOrNull()!!)
         }
         else
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming GetPropertyData message resulted in an error")
@@ -90,7 +90,7 @@ class PropertyExchangeResponder(
         parent.messageReceived.forEach { it(msg) }
         val reply = propertyService.setPropertyData(msg)
         if (reply.isSuccess)
-            parent.send(reply.getOrNull()!!)
+            parent.messenger.send(reply.getOrNull()!!)
         else
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming SetPropertyData message resulted in an error")
     }
@@ -99,7 +99,7 @@ class PropertyExchangeResponder(
         parent.messageReceived.forEach { it(msg) }
         val reply = propertyService.subscribeProperty(msg)
         if (reply.isSuccess)
-            parent.send(reply.getOrNull()!!)
+            parent.messenger.send(reply.getOrNull()!!)
         else
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming SubscribeProperty message resulted in an error")
     }

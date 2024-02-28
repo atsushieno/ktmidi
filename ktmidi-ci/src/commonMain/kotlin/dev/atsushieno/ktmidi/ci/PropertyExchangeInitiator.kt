@@ -25,7 +25,7 @@ class PropertyExchangeInitiator(
 
     fun requestPropertyExchangeCapabilities(group: Byte, address: Byte, destinationMUID: Int, maxSimultaneousPropertyRequests: Byte) =
 
-        parent.send(Message.PropertyGetCapabilities(Message.Common(muid, destinationMUID, address, group),
+        parent.messenger.send(Message.PropertyGetCapabilities(Message.Common(muid, destinationMUID, address, group),
             maxSimultaneousPropertyRequests))
 
     // FIXME: too much exposure of Common Rules for PE
@@ -47,7 +47,7 @@ class PropertyExchangeInitiator(
     fun saveAndSendGetPropertyData(msg: Message.GetPropertyData) {
         val conn = connections[msg.destinationMUID]
         conn?.addPendingRequest(msg)
-        parent.send(msg)
+        parent.messenger.send(msg)
     }
 
     // FIXME: too much exposure of Common Rules for PE
@@ -58,7 +58,7 @@ class PropertyExchangeInitiator(
                 PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
                 PropertyCommonHeaderKeys.SET_PARTIAL to isPartial))
             val encodedBody = conn.propertyClient.encodeBody(data, encoding)
-            parent.send(Message.SetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+            parent.messenger.send(Message.SetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
                 requestIdSerial++, header, encodedBody))
         }
     }
@@ -73,7 +73,7 @@ class PropertyExchangeInitiator(
             val msg = Message.SubscribeProperty(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
                 requestIdSerial++, header, listOf())
             conn.addPendingSubscription(msg.requestId, subscriptionId, resource)
-            parent.send(msg)
+            parent.messenger.send(msg)
         }
     }
 
@@ -88,7 +88,7 @@ class PropertyExchangeInitiator(
             val msg = Message.SubscribeProperty(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
                 newRequestId, header, listOf())
             conn.promoteSubscriptionAsUnsubscribing(resource, newRequestId)
-            parent.send(msg)
+            parent.messenger.send(msg)
         }
     }
 
@@ -102,7 +102,7 @@ class PropertyExchangeInitiator(
                 saveAndSendGetPropertyData(conn.propertyClient.getPropertyListRequest(msg.group, msg.sourceMUID, requestIdSerial++))
         }
         else
-            parent.sendNakForUnknownMUID(Message.Common(muid, msg.sourceMUID, msg.group, msg.address),
+            parent.messenger.sendNakForUnknownMUID(Message.Common(muid, msg.sourceMUID, msg.group, msg.address),
                 CISubId2.PROPERTY_CAPABILITIES_REPLY)
     }
     var processPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
@@ -139,7 +139,7 @@ class PropertyExchangeInitiator(
         if (conn != null) {
             val reply = conn.updateProperty(muid, msg)
             if (reply.second != null)
-                parent.send(reply.second!!)
+                parent.messenger.send(reply.second!!)
             // If the update was NOTIFY, then it is supposed to send Get Data request.
             if (reply.first == MidiCISubscriptionCommand.NOTIFY)
                 saveAndSendGetPropertyData(msg.group, msg.sourceMUID, conn.propertyClient.getPropertyIdForHeader(msg.header),
@@ -149,7 +149,7 @@ class PropertyExchangeInitiator(
         }
         else
             // Unknown MUID - send back NAK
-            parent.sendNakForUnknownMUID(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+            parent.messenger.sendNakForUnknownMUID(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
                 CISubId2.PROPERTY_SUBSCRIBE)
     }
 
