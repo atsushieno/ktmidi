@@ -1,0 +1,2049 @@
+public final class dev/atsushieno/ktmidi/ByteOrder : java/lang/Enum {
+	public static final field BIG_ENDIAN Ldev/atsushieno/ktmidi/ByteOrder;
+	public static final field Companion Ldev/atsushieno/ktmidi/ByteOrder$Companion;
+	public static final field LITTLE_ENDIAN Ldev/atsushieno/ktmidi/ByteOrder;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ByteOrder;
+	public static fun values ()[Ldev/atsushieno/ktmidi/ByteOrder;
+}
+
+public final class dev/atsushieno/ktmidi/ByteOrder$Companion {
+	public final fun nativeOrder ()Ldev/atsushieno/ktmidi/ByteOrder;
+}
+
+public final class dev/atsushieno/ktmidi/ChordAlterationType {
+	public static final field ADD_DEGREE B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ChordAlterationType;
+	public static final field LOWER_DEGREE B
+	public static final field NO_ALTERATION B
+	public static final field RAISE_DEGREE B
+	public static final field SUBTRACT_DEGREE B
+}
+
+public final class dev/atsushieno/ktmidi/ChordSharpFlatsField {
+	public static final field BASS_NOTE_AS_CHORD_TONIC_NOTE B
+	public static final field DOUBLE_FLAT B
+	public static final field DOUBLE_SHARP B
+	public static final field FLAT B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ChordSharpFlatsField;
+	public static final field NATURAL B
+	public static final field SHARP B
+}
+
+public final class dev/atsushieno/ktmidi/ChordTypeField {
+	public static final field AUGMENTED B
+	public static final field AUGMENTED_7TH B
+	public static final field CLEAR_CHORD B
+	public static final field DIMINISHED B
+	public static final field DIMINISHED_7TH B
+	public static final field DOMINANT B
+	public static final field DOMINANT_11TH B
+	public static final field DOMINANT_13TH B
+	public static final field DOMINANT_9TH B
+	public static final field HALF_DIMINISHED B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ChordTypeField;
+	public static final field MAJOR B
+	public static final field MAJOR_11TH B
+	public static final field MAJOR_13TH B
+	public static final field MAJOR_6TH B
+	public static final field MAJOR_7TH B
+	public static final field MAJOR_9TH B
+	public static final field MAJOR_MINOR B
+	public static final field MINOR B
+	public static final field MINOR_11TH B
+	public static final field MINOR_13TH B
+	public static final field MINOR_6TH B
+	public static final field MINOR_7TH B
+	public static final field MINOR_9TH B
+	public static final field MINOR_MAJOR B
+	public static final field NO_CHORD B
+	public static final field PEDAL B
+	public static final field POWER B
+	public static final field SEVENTH_SUSPENDED_4TH B
+	public static final field SUSPENDED_2ND B
+	public static final field SUSPENDED_4TH B
+}
+
+public final class dev/atsushieno/ktmidi/Dc {
+	public fun <init> (I)V
+	public final fun component1 ()I
+	public final fun copy (I)Ldev/atsushieno/ktmidi/Dc;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/Dc;IILjava/lang/Object;)Ldev/atsushieno/ktmidi/Dc;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getValue ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/DefaultMidiModuleDatabase : dev/atsushieno/ktmidi/MidiModuleDatabase {
+	public static final field Companion Ldev/atsushieno/ktmidi/DefaultMidiModuleDatabase$Companion;
+	public fun <init> ()V
+	public fun all ()Ljava/lang/Iterable;
+	public final fun getModules ()Ljava/util/List;
+	public fun resolve (Ljava/lang/String;)Ldev/atsushieno/ktmidi/MidiModuleDefinition;
+	public final fun resolvePossibleAlias (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/DefaultMidiModuleDatabase$Companion {
+	public final fun getResource (Ljava/lang/String;)Ljava/io/InputStream;
+}
+
+public final class dev/atsushieno/ktmidi/DteTarget : java/lang/Enum {
+	public static final field NRPN Ldev/atsushieno/ktmidi/DteTarget;
+	public static final field RPN Ldev/atsushieno/ktmidi/DteTarget;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/DteTarget;
+	public static fun values ()[Ldev/atsushieno/ktmidi/DteTarget;
+}
+
+public final class dev/atsushieno/ktmidi/EmptyMidiAccess : dev/atsushieno/ktmidi/MidiAccess {
+	public static final field Companion Ldev/atsushieno/ktmidi/EmptyMidiAccess$Companion;
+	public fun <init> ()V
+	public fun getInputs ()Ljava/lang/Iterable;
+	public fun getName ()Ljava/lang/String;
+	public fun getOutputs ()Ljava/lang/Iterable;
+	public fun openInput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun openOutput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/atsushieno/ktmidi/EmptyMidiAccess$Companion {
+	public final fun getInput ()Ldev/atsushieno/ktmidi/MidiInput;
+	public final fun getOutput ()Ldev/atsushieno/ktmidi/MidiOutput;
+}
+
+public final class dev/atsushieno/ktmidi/FlexDataAddress {
+	public static final field CHANNEL_FIELD B
+	public static final field GROUP B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/FlexDataAddress;
+}
+
+public final class dev/atsushieno/ktmidi/FlexDataStatus {
+	public static final field CHORD_NAME B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/FlexDataStatus;
+	public static final field KEY_SIGNATURE B
+	public static final field METRONOME B
+	public static final field TEMPO B
+	public static final field TIME_SIGNATURE B
+}
+
+public final class dev/atsushieno/ktmidi/FlexDataStatusBank {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/FlexDataStatusBank;
+	public static final field METADATA_TEXT B
+	public static final field PERFORMANCE_TEXT B
+	public static final field SETUP_AND_PERFORMANCE B
+}
+
+public final class dev/atsushieno/ktmidi/FunctionBlockDirection {
+	public static final field BIDIRECTIONAL I
+	public static final field INPUT I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/FunctionBlockDirection;
+	public static final field OUTPUT I
+}
+
+public final class dev/atsushieno/ktmidi/FunctionBlockMidi1Bandwidth {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/FunctionBlockMidi1Bandwidth;
+	public static final field NOT_AVAILABLE I
+	public static final field NO_LIMITATION I
+	public static final field UP_TO_31250BPS I
+}
+
+public final class dev/atsushieno/ktmidi/FunctionBlockUiHint {
+	public static final field BOTH I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/FunctionBlockUiHint;
+	public static final field RECEIVER I
+	public static final field SENDER I
+	public static final field UNKNOWN I
+}
+
+public final class dev/atsushieno/ktmidi/GeneralMidi {
+	public static final field Companion Ldev/atsushieno/ktmidi/GeneralMidi$Companion;
+	public fun <init> ()V
+}
+
+public final class dev/atsushieno/ktmidi/GeneralMidi$Companion {
+	public final fun getDRUM_KITS_GM2 ()[Ljava/lang/String;
+	public final fun getINSTRUMENT_CATEGORIES ()[Ljava/lang/String;
+	public final fun getINSTRUMENT_NAMES ()[Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/GeneralMidi$Companion$Instruments {
+	public static final field ACCORDION I
+	public static final field ACOUSTIC_BASS I
+	public static final field ACOUSTIC_GRAND_PIANO I
+	public static final field ACOUSTIC_GUITAR_NYLON I
+	public static final field ACOUSTIC_GUITAR_STEEL I
+	public static final field AGOGO I
+	public static final field ALTO_SAX I
+	public static final field APPLAUSE I
+	public static final field BAGPIPE I
+	public static final field BANJO I
+	public static final field BARITONE_SAX I
+	public static final field BASSOON I
+	public static final field BIRD_TWEET I
+	public static final field BLOWN_BOTTLE I
+	public static final field BRASS_SECTION I
+	public static final field BREATH_NOISE I
+	public static final field BRIGHT_ACOUSTIC_PIANO I
+	public static final field CELESTA I
+	public static final field CELLO I
+	public static final field CHOIR_AAHS I
+	public static final field CHURCH_ORGAN I
+	public static final field CLARINET I
+	public static final field CLAVI I
+	public static final field CONTRABASS I
+	public static final field Companion Ldev/atsushieno/ktmidi/GeneralMidi$Companion$Instruments$Companion;
+	public static final field DISTORTION_GUITAR I
+	public static final field DRAWBAR_ORGAN I
+	public static final field DULCIMER I
+	public static final field ELECTRIC_BASS_FINGER I
+	public static final field ELECTRIC_BASS_PICK I
+	public static final field ELECTRIC_GRAND_PIANO I
+	public static final field ELECTRIC_GUITAR_CLEAN I
+	public static final field ELECTRIC_GUITAR_JAZZ I
+	public static final field ELECTRIC_GUITAR_MUTED I
+	public static final field ELECTRIC_PIANO_1 I
+	public static final field ELECTRIC_PIANO_2 I
+	public static final field ENGLISH_HORN I
+	public static final field FIDDLE I
+	public static final field FLUTE I
+	public static final field FRENCH_HORN I
+	public static final field FRETLESS_BASS I
+	public static final field FX_ATMOSPHERE I
+	public static final field FX_BRIGHTNESS I
+	public static final field FX_CRYSTAL I
+	public static final field FX_ECHOES I
+	public static final field FX_GOBLINS I
+	public static final field FX_RAIN I
+	public static final field FX_SCIFI I
+	public static final field FX_SOUNDTRACK I
+	public static final field GLOCKENSPIEL I
+	public static final field GUITARHARMONICS I
+	public static final field GUITAR_FRET_NOISE I
+	public static final field GUNSHOT I
+	public static final field HARMONICA I
+	public static final field HARPSICHORD I
+	public static final field HELICOPTER I
+	public static final field HONKYTONK_PIANO I
+	public static final field KALIMBA I
+	public static final field KOTO I
+	public static final field LEAD_BASS_AND_LEAD I
+	public static final field LEAD_CALLIOPE I
+	public static final field LEAD_CHARANG I
+	public static final field LEAD_CHIFF I
+	public static final field LEAD_FIFTHS I
+	public static final field LEAD_SAWTOOTH I
+	public static final field LEAD_SQUARE I
+	public static final field LEAD_VOICE I
+	public static final field MARIMBA I
+	public static final field MELODIC_TOM I
+	public static final field MUSIC_BOX I
+	public static final field MUTED_TRUMPET I
+	public static final field OBOE I
+	public static final field OCARINA I
+	public static final field ORCHESTRAL_HARP I
+	public static final field ORCHESTRA_HIT I
+	public static final field OVERDRIVEN_GUITAR I
+	public static final field PAD_BOWED I
+	public static final field PAD_CHOIR I
+	public static final field PAD_HALO I
+	public static final field PAD_METALLIC I
+	public static final field PAD_NEWAGE I
+	public static final field PAD_POLYSYNTH I
+	public static final field PAD_SWEEP I
+	public static final field PAD_WARM I
+	public static final field PAN_FLUTE I
+	public static final field PERCUSSIVE_ORGAN I
+	public static final field PICCOLO I
+	public static final field PIZZICATO_STRINGS I
+	public static final field RECORDER I
+	public static final field REED_ORGAN I
+	public static final field REVERSE_CYMBAL I
+	public static final field ROCK_ORGAN I
+	public static final field SEASHORE I
+	public static final field SHAKUHACHI I
+	public static final field SHAMISEN I
+	public static final field SHANAI I
+	public static final field SITAR I
+	public static final field SLAP_BASS_1 I
+	public static final field SLAP_BASS_2 I
+	public static final field SOPRANO_SAX I
+	public static final field STEEL_DRUMS I
+	public static final field STRING_ENSEMBLE_1 I
+	public static final field STRING_ENSEMBLE_2 I
+	public static final field SYNTH_BASS_1 I
+	public static final field SYNTH_BASS_2 I
+	public static final field SYNTH_BRASS_1 I
+	public static final field SYNTH_BRASS_2 I
+	public static final field SYNTH_DRUM I
+	public static final field SYNTH_STRINGS_1 I
+	public static final field SYNTH_STRINGS_2 I
+	public static final field SYNTH_VOICE I
+	public static final field TAIKO_DRUM I
+	public static final field TANGO_ACCORDION I
+	public static final field TELEPHONE_RING I
+	public static final field TENOR_SAX I
+	public static final field TIMPANI I
+	public static final field TINKLE_BELL I
+	public static final field TREMOLO_STRINGS I
+	public static final field TROMBONE I
+	public static final field TRUMPET I
+	public static final field TUBA I
+	public static final field TUBULAR_BELLS I
+	public static final field VIBRAPHONE I
+	public static final field VIOLA I
+	public static final field VIOLIN I
+	public static final field VOICE_OOHS I
+	public static final field WHISTLE I
+	public static final field WOODBLOCK I
+	public static final field XYLOPHONE I
+	public fun <init> ()V
+}
+
+public final class dev/atsushieno/ktmidi/GeneralMidi$Companion$Instruments$Companion {
+}
+
+public final class dev/atsushieno/ktmidi/GeneralMidi$Companion$Percussions {
+	public static final field ACOUSTIC_BASS_DRUM I
+	public static final field ACOUSTIC_SNARE I
+	public static final field BASS_DRUM_1 I
+	public static final field CABASA I
+	public static final field CHINESE_CYMBAL I
+	public static final field CLAVES I
+	public static final field CLOSED_HI_HAT I
+	public static final field COWBELL I
+	public static final field CRASH_CYMBAL_1 I
+	public static final field CRASH_CYMBAL_2 I
+	public static final field Companion Ldev/atsushieno/ktmidi/GeneralMidi$Companion$Percussions$Companion;
+	public static final field ELECTRIC_SNARE I
+	public static final field HAND_CLAP I
+	public static final field HIGH_AGOGO I
+	public static final field HIGH_FLOOR_TOM I
+	public static final field HIGH_TIMBALE I
+	public static final field HIGH_TOM I
+	public static final field HI_BONGO I
+	public static final field HI_MID_TOM I
+	public static final field HI_WOOD_BLOCK I
+	public static final field LONG_GUIRO I
+	public static final field LONG_WHISTLE I
+	public static final field LOW_AGOGO I
+	public static final field LOW_BONGO I
+	public static final field LOW_CONGA I
+	public static final field LOW_FLOOR_TOM I
+	public static final field LOW_MID_TOM I
+	public static final field LOW_TIMBALE I
+	public static final field LOW_TOM I
+	public static final field LOW_WOOD_BLOCK I
+	public static final field MARACAS I
+	public static final field MUTE_CUICA I
+	public static final field MUTE_HI_CONGA I
+	public static final field MUTE_TRIANGLE I
+	public static final field OPEN_CUICA I
+	public static final field OPEN_HI_CONGA I
+	public static final field OPEN_HI_HAT I
+	public static final field OPEN_TRIANGLE I
+	public static final field PEDAL_HI_HAT I
+	public static final field RIDE_BELL I
+	public static final field RIDE_CYMBAL_1 I
+	public static final field RIDE_CYMBAL_2 I
+	public static final field SHORT_GUIRO I
+	public static final field SHORT_WHISTLE I
+	public static final field SIDE_STICK I
+	public static final field SPLASH_CYMBAL I
+	public static final field TAMBOURINE I
+	public static final field VIBRASLAP I
+	public fun <init> ()V
+}
+
+public final class dev/atsushieno/ktmidi/GeneralMidi$Companion$Percussions$Companion {
+}
+
+public final class dev/atsushieno/ktmidi/GeneralMidi2 {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/GeneralMidi2;
+	public final fun getCategories ()[Ljava/lang/String;
+	public final fun getDrumkits ()[Ljava/lang/String;
+	public final fun getInstrumentNames ()[Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/GeneralMidi2$Instruments {
+	public static final field ACCORDION I
+	public static final field ACOUSTIC_BASS I
+	public static final field ACOUSTIC_GRAND_PIANO I
+	public static final field ACOUSTIC_GUITAR_NYLON I
+	public static final field ACOUSTIC_GUITAR_STEEL I
+	public static final field AGOGO I
+	public static final field ALTO_SAX I
+	public static final field APPLAUSE I
+	public static final field BAGPIPE I
+	public static final field BANJO I
+	public static final field BARITONE_SAX I
+	public static final field BASSOON I
+	public static final field BIRD_TWEET I
+	public static final field BLOWN_BOTTLE I
+	public static final field BRASS_SECTION I
+	public static final field BREATH_NOISE I
+	public static final field BRIGHT_ACOUSTIC_PIANO I
+	public static final field CELESTA I
+	public static final field CELLO I
+	public static final field CHOIR_AAHS I
+	public static final field CHURCH_ORGAN I
+	public static final field CLARINET I
+	public static final field CLAVI I
+	public static final field CONTRABASS I
+	public static final field DISTORTION_GUITAR I
+	public static final field DRAWBAR_ORGAN I
+	public static final field DULCIMER I
+	public static final field ELECTRIC_BASS_FINGER I
+	public static final field ELECTRIC_BASS_PICK I
+	public static final field ELECTRIC_GRAND_PIANO I
+	public static final field ELECTRIC_GUITAR_CLEAN I
+	public static final field ELECTRIC_GUITAR_JAZZ I
+	public static final field ELECTRIC_GUITAR_MUTED I
+	public static final field ELECTRIC_PIANO_1 I
+	public static final field ELECTRIC_PIANO_2 I
+	public static final field ENGLISH_HORN I
+	public static final field FIDDLE I
+	public static final field FLUTE I
+	public static final field FRENCH_HORN I
+	public static final field FRETLESS_BASS I
+	public static final field FX_ATMOSPHERE I
+	public static final field FX_BRIGHTNESS I
+	public static final field FX_CRYSTAL I
+	public static final field FX_ECHOES I
+	public static final field FX_GOBLINS I
+	public static final field FX_RAIN I
+	public static final field FX_SCIFI I
+	public static final field FX_SOUNDTRACK I
+	public static final field GLOCKENSPIEL I
+	public static final field GUITARHARMONICS I
+	public static final field GUITAR_FRET_NOISE I
+	public static final field GUNSHOT I
+	public static final field HARMONICA I
+	public static final field HARPSICHORD I
+	public static final field HELICOPTER I
+	public static final field HONKYTONK_PIANO I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/GeneralMidi2$Instruments;
+	public static final field KALIMBA I
+	public static final field KOTO I
+	public static final field LEAD_BASS_AND_LEAD I
+	public static final field LEAD_CALLIOPE I
+	public static final field LEAD_CHARANG I
+	public static final field LEAD_CHIFF I
+	public static final field LEAD_FIFTHS I
+	public static final field LEAD_SAWTOOTH I
+	public static final field LEAD_SQUARE I
+	public static final field LEAD_VOICE I
+	public static final field MARIMBA I
+	public static final field MELODIC_TOM I
+	public static final field MUSIC_BOX I
+	public static final field MUTED_TRUMPET I
+	public static final field OBOE I
+	public static final field OCARINA I
+	public static final field ORCHESTRAL_HARP I
+	public static final field ORCHESTRA_HIT I
+	public static final field OVERDRIVEN_GUITAR I
+	public static final field PAD_BOWED I
+	public static final field PAD_CHOIR I
+	public static final field PAD_HALO I
+	public static final field PAD_METALLIC I
+	public static final field PAD_NEWAGE I
+	public static final field PAD_POLYSYNTH I
+	public static final field PAD_SWEEP I
+	public static final field PAD_WARM I
+	public static final field PAN_FLUTE I
+	public static final field PERCUSSIVE_ORGAN I
+	public static final field PICCOLO I
+	public static final field PIZZICATO_STRINGS I
+	public static final field RECORDER I
+	public static final field REED_ORGAN I
+	public static final field REVERSE_CYMBAL I
+	public static final field ROCK_ORGAN I
+	public static final field SEASHORE I
+	public static final field SHAKUHACHI I
+	public static final field SHAMISEN I
+	public static final field SHANAI I
+	public static final field SITAR I
+	public static final field SLAP_BASS_1 I
+	public static final field SLAP_BASS_2 I
+	public static final field SOPRANO_SAX I
+	public static final field STEEL_DRUMS I
+	public static final field STRING_ENSEMBLE_1 I
+	public static final field STRING_ENSEMBLE_2 I
+	public static final field SYNTH_BASS_1 I
+	public static final field SYNTH_BASS_2 I
+	public static final field SYNTH_BRASS_1 I
+	public static final field SYNTH_BRASS_2 I
+	public static final field SYNTH_DRUM I
+	public static final field SYNTH_STRINGS_1 I
+	public static final field SYNTH_STRINGS_2 I
+	public static final field SYNTH_VOICE I
+	public static final field TAIKO_DRUM I
+	public static final field TANGO_ACCORDION I
+	public static final field TELEPHONE_RING I
+	public static final field TENOR_SAX I
+	public static final field TIMPANI I
+	public static final field TINKLE_BELL I
+	public static final field TREMOLO_STRINGS I
+	public static final field TROMBONE I
+	public static final field TRUMPET I
+	public static final field TUBA I
+	public static final field TUBULAR_BELLS I
+	public static final field VIBRAPHONE I
+	public static final field VIOLA I
+	public static final field VIOLIN I
+	public static final field VOICE_OOHS I
+	public static final field WHISTLE I
+	public static final field WOODBLOCK I
+	public static final field XYLOPHONE I
+}
+
+public final class dev/atsushieno/ktmidi/GeneralMidi2$Percussions {
+	public static final field ACOUSTIC_BASS_DRUM I
+	public static final field ACOUSTIC_SNARE I
+	public static final field BASS_DRUM_1 I
+	public static final field CABASA I
+	public static final field CHINESE_CYMBAL I
+	public static final field CLAVES I
+	public static final field CLOSED_HI_HAT I
+	public static final field COWBELL I
+	public static final field CRASH_CYMBAL_1 I
+	public static final field CRASH_CYMBAL_2 I
+	public static final field ELECTRIC_SNARE I
+	public static final field HAND_CLAP I
+	public static final field HIGH_AGOGO I
+	public static final field HIGH_FLOOR_TOM I
+	public static final field HIGH_TIMBALE I
+	public static final field HIGH_TOM I
+	public static final field HI_BONGO I
+	public static final field HI_MID_TOM I
+	public static final field HI_WOOD_BLOCK I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/GeneralMidi2$Percussions;
+	public static final field LONG_GUIRO I
+	public static final field LONG_WHISTLE I
+	public static final field LOW_AGOGO I
+	public static final field LOW_BONGO I
+	public static final field LOW_CONGA I
+	public static final field LOW_FLOOR_TOM I
+	public static final field LOW_MID_TOM I
+	public static final field LOW_TIMBALE I
+	public static final field LOW_TOM I
+	public static final field LOW_WOOD_BLOCK I
+	public static final field MARACAS I
+	public static final field MUTE_CUICA I
+	public static final field MUTE_HI_CONGA I
+	public static final field MUTE_TRIANGLE I
+	public static final field OPEN_CUICA I
+	public static final field OPEN_HI_CONGA I
+	public static final field OPEN_HI_HAT I
+	public static final field OPEN_TRIANGLE I
+	public static final field PEDAL_HI_HAT I
+	public static final field RIDE_BELL I
+	public static final field RIDE_CYMBAL_1 I
+	public static final field RIDE_CYMBAL_2 I
+	public static final field SHORT_GUIRO I
+	public static final field SHORT_WHISTLE I
+	public static final field SIDE_STICK I
+	public static final field SPLASH_CYMBAL I
+	public static final field TAMBOURINE I
+	public static final field VIBRASLAP I
+}
+
+public final class dev/atsushieno/ktmidi/JvmMidiAccess : dev/atsushieno/ktmidi/MidiAccess {
+	public fun <init> ()V
+	public fun createVirtualInputSender (Ldev/atsushieno/ktmidi/PortCreatorContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createVirtualOutputReceiver (Ldev/atsushieno/ktmidi/PortCreatorContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getInputs ()Ljava/lang/Iterable;
+	public fun getName ()Ljava/lang/String;
+	public fun getOutputs ()Ljava/lang/Iterable;
+	public fun openInput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun openOutput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/atsushieno/ktmidi/MergedMidiModuleDatabase : dev/atsushieno/ktmidi/MidiModuleDatabase {
+	public fun <init> (Ljava/lang/Iterable;)V
+	public fun all ()Ljava/lang/Iterable;
+	public final fun getList ()Ljava/util/List;
+	public fun resolve (Ljava/lang/String;)Ldev/atsushieno/ktmidi/MidiModuleDefinition;
+}
+
+public final class dev/atsushieno/ktmidi/MetadataTextStatus {
+	public static final field ACCOMPANYING_PERFORMER B
+	public static final field ARRANGER B
+	public static final field AUTHOR B
+	public static final field COMPOSITION_NAME B
+	public static final field COPYRIGHT B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MetadataTextStatus;
+	public static final field LYRICIST B
+	public static final field MIDI_CLIP_NAME B
+	public static final field PRIMARY_PERFORMER B
+	public static final field PROJECT_NAME B
+	public static final field PUBLISHER B
+	public static final field RECORDING_CONCERT_DATE B
+	public static final field RECORDING_CONCERT_LOCATION B
+	public static final field UNKNOWN B
+}
+
+public final class dev/atsushieno/ktmidi/Midi1CompoundMessage : dev/atsushieno/ktmidi/Midi1Message {
+	public fun <init> (III[BII)V
+	public synthetic fun <init> (III[BIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getChannel ()B
+	public fun getEventType ()B
+	public final fun getExtraData ()[B
+	public final fun getExtraDataLength ()I
+	public final fun getExtraDataOffset ()I
+	public fun getLsb ()B
+	public fun getMetaType ()B
+	public fun getMsb ()B
+	public fun getStatusByte ()B
+	public fun getStatusCode ()B
+	public final fun getValue ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/Midi1ControllerCatalog {
+	public fun <init> ()V
+	public fun <init> ([Z[Z)V
+	public synthetic fun <init> ([Z[ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun enableAllNrpnMsbs ()V
+	public final fun getEnabledNrpns ()[Z
+	public final fun getEnabledRpns ()[Z
+}
+
+public final class dev/atsushieno/ktmidi/Midi1Event {
+	public static final field Companion Ldev/atsushieno/ktmidi/Midi1Event$Companion;
+	public fun <init> (ILdev/atsushieno/ktmidi/Midi1Message;)V
+	public final fun getDeltaTime ()I
+	public final fun getEvent ()Ldev/atsushieno/ktmidi/Midi1Message;
+	public final fun getMessage ()Ldev/atsushieno/ktmidi/Midi1Message;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/Midi1Event$Companion {
+	public final fun encode7BitLength (I)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/Midi1Machine {
+	public fun <init> ()V
+	public final fun getChannels ()[Ldev/atsushieno/ktmidi/Midi1MachineChannel;
+	public final fun getControllerCatalog ()Ldev/atsushieno/ktmidi/Midi1ControllerCatalog;
+	public final fun getEventListeners ()Ljava/util/List;
+	public final fun getMessageListeners ()Ljava/util/List;
+	public final fun getSystemCommon ()Ldev/atsushieno/ktmidi/Midi1SystemCommon;
+	public final fun processMessage (Ldev/atsushieno/ktmidi/Midi1Message;)V
+	public final fun setChannels ([Ldev/atsushieno/ktmidi/Midi1MachineChannel;)V
+	public final fun setSystemCommon (Ldev/atsushieno/ktmidi/Midi1SystemCommon;)V
+}
+
+public abstract interface class dev/atsushieno/ktmidi/Midi1Machine$OnMidi1MessageListener {
+	public abstract fun onMessage (Ldev/atsushieno/ktmidi/Midi1Message;)V
+}
+
+public final class dev/atsushieno/ktmidi/Midi1MachineChannel {
+	public fun <init> ()V
+	public final fun getCaf ()B
+	public final fun getControls ()[B
+	public final fun getCurrentNRPN ()I
+	public final fun getCurrentRPN ()I
+	public final fun getDteTarget ()Ldev/atsushieno/ktmidi/DteTarget;
+	public final fun getMonoPolyMode ()Ljava/lang/Boolean;
+	public final fun getNoteOnStatus ()[Z
+	public final fun getNoteVelocity ()[B
+	public final fun getNrpns ()[S
+	public final fun getOmniMode ()Ljava/lang/Boolean;
+	public final fun getPafVelocity ()[B
+	public final fun getPitchbend ()S
+	public final fun getProgram ()B
+	public final fun getRpns ()[S
+	public final fun processDte (BZ)V
+	public final fun processDteDecrement ()V
+	public final fun processDteIncrement ()V
+	public final fun setCaf (B)V
+	public final fun setDteTarget (Ldev/atsushieno/ktmidi/DteTarget;)V
+	public final fun setMonoPolyMode (Ljava/lang/Boolean;)V
+	public final fun setOmniMode (Ljava/lang/Boolean;)V
+	public final fun setPitchbend (S)V
+	public final fun setProgram (B)V
+}
+
+public abstract interface class dev/atsushieno/ktmidi/Midi1Message {
+	public static final field Companion Ldev/atsushieno/ktmidi/Midi1Message$Companion;
+	public abstract fun getChannel ()B
+	public abstract fun getEventType ()B
+	public abstract fun getLsb ()B
+	public abstract fun getMetaType ()B
+	public abstract fun getMsb ()B
+	public abstract fun getStatusByte ()B
+	public abstract fun getStatusCode ()B
+	public abstract fun getValue ()I
+}
+
+public final class dev/atsushieno/ktmidi/Midi1Message$Companion {
+	public final fun convert ([BII)Lkotlin/sequences/Sequence;
+	public final fun fixedDataSize (B)B
+}
+
+public final class dev/atsushieno/ktmidi/Midi1Message$DefaultImpls {
+	public static fun getChannel (Ldev/atsushieno/ktmidi/Midi1Message;)B
+	public static fun getEventType (Ldev/atsushieno/ktmidi/Midi1Message;)B
+	public static fun getLsb (Ldev/atsushieno/ktmidi/Midi1Message;)B
+	public static fun getMetaType (Ldev/atsushieno/ktmidi/Midi1Message;)B
+	public static fun getMsb (Ldev/atsushieno/ktmidi/Midi1Message;)B
+	public static fun getStatusByte (Ldev/atsushieno/ktmidi/Midi1Message;)B
+	public static fun getStatusCode (Ldev/atsushieno/ktmidi/Midi1Message;)B
+}
+
+public final class dev/atsushieno/ktmidi/Midi1Music {
+	public static final field Companion Ldev/atsushieno/ktmidi/Midi1Music$Companion;
+	public static final field DEFAULT_TEMPO I
+	public fun <init> ()V
+	public final fun addTrack (Ldev/atsushieno/ktmidi/Midi1Track;)V
+	public final fun filterEvents (Lkotlin/jvm/functions/Function1;)Ljava/lang/Iterable;
+	public final fun getDeltaTimeSpec ()I
+	public final fun getFormat ()B
+	public final fun getTimePositionInMillisecondsForTick (I)I
+	public final fun getTotalPlayTimeMilliseconds ()I
+	public final fun getTotalTicks ()I
+	public final fun getTracks ()Ljava/util/List;
+	public final fun setDeltaTimeSpec (I)V
+	public final fun setFormat (B)V
+}
+
+public final class dev/atsushieno/ktmidi/Midi1Music$Companion {
+	public final fun filterEvents (Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;)Lkotlin/sequences/Sequence;
+	public final fun getPlayTimeMillisecondsAtTick (Ljava/lang/Iterable;II)I
+	public final fun getSmfBpm ([BI)D
+	public final fun getSmfTempo ([BI)I
+	public final fun getSmpteDurationInSeconds (IIID)D
+	public static synthetic fun getSmpteDurationInSeconds$default (Ldev/atsushieno/ktmidi/Midi1Music$Companion;IIIDILjava/lang/Object;)D
+	public final fun getSmpteTicksForSeconds (IDID)I
+	public static synthetic fun getSmpteTicksForSeconds$default (Ldev/atsushieno/ktmidi/Midi1Music$Companion;IDIDILjava/lang/Object;)I
+	public final fun getSmpteTicksPerSeconds (I)I
+	public final fun getTotalPlayTimeMilliseconds (Ljava/lang/Iterable;I)I
+}
+
+public final class dev/atsushieno/ktmidi/Midi1MusicKt {
+	public static final fun mergeTracks (Ldev/atsushieno/ktmidi/Midi1Music;)Ldev/atsushieno/ktmidi/Midi1Music;
+	public static final fun splitTracksByChannel (Ldev/atsushieno/ktmidi/Midi1Track;B)Ldev/atsushieno/ktmidi/Midi1Music;
+}
+
+public final class dev/atsushieno/ktmidi/Midi1Player : dev/atsushieno/ktmidi/MidiPlayer {
+	public static final field Companion Ldev/atsushieno/ktmidi/Midi1Player$Companion;
+	public fun <init> (Ldev/atsushieno/ktmidi/Midi1Music;Ldev/atsushieno/ktmidi/MidiOutput;Ldev/atsushieno/ktmidi/MidiPlayerTimer;Z)V
+	public synthetic fun <init> (Ldev/atsushieno/ktmidi/Midi1Music;Ldev/atsushieno/ktmidi/MidiOutput;Ldev/atsushieno/ktmidi/MidiPlayerTimer;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun addOnEventListener (Ldev/atsushieno/ktmidi/OnMidi1EventListener;)V
+	public synthetic fun getLooper$ktmidi ()Ldev/atsushieno/ktmidi/MidiEventLooperBase;
+	public fun getPositionInMilliseconds ()J
+	public fun getTotalPlayTimeMilliseconds ()I
+	public final fun removeOnEventListener (Ldev/atsushieno/ktmidi/OnMidi1EventListener;)V
+	public fun seek (I)V
+	public fun setMutedChannels (Ljava/lang/Iterable;)V
+}
+
+public final class dev/atsushieno/ktmidi/Midi1Player$Companion {
+	public final fun create (Ldev/atsushieno/ktmidi/Midi1Music;Ldev/atsushieno/ktmidi/MidiAccess;Ldev/atsushieno/ktmidi/MidiPlayerTimer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun create$default (Ldev/atsushieno/ktmidi/Midi1Player$Companion;Ldev/atsushieno/ktmidi/Midi1Music;Ldev/atsushieno/ktmidi/MidiAccess;Ldev/atsushieno/ktmidi/MidiPlayerTimer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/atsushieno/ktmidi/Midi1ReaderWriterKt {
+	public static final fun read (Ldev/atsushieno/ktmidi/Midi1Music;Ljava/util/List;)V
+	public static final fun write (Ldev/atsushieno/ktmidi/Midi1Music;Ljava/util/List;Lkotlin/jvm/functions/Function3;Z)V
+	public static synthetic fun write$default (Ldev/atsushieno/ktmidi/Midi1Music;Ljava/util/List;Lkotlin/jvm/functions/Function3;ZILjava/lang/Object;)V
+}
+
+public final class dev/atsushieno/ktmidi/Midi1SimpleMessage : dev/atsushieno/ktmidi/Midi1Message {
+	public fun <init> (I)V
+	public fun <init> (III)V
+	public final fun component1 ()I
+	public final fun copy (I)Ldev/atsushieno/ktmidi/Midi1SimpleMessage;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/Midi1SimpleMessage;IILjava/lang/Object;)Ldev/atsushieno/ktmidi/Midi1SimpleMessage;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun getChannel ()B
+	public fun getEventType ()B
+	public fun getLsb ()B
+	public fun getMetaType ()B
+	public fun getMsb ()B
+	public fun getStatusByte ()B
+	public fun getStatusCode ()B
+	public fun getValue ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/Midi1Status {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/Midi1Status;
+	public static final field META I
+	public static final field SYSEX I
+	public static final field SYSEX_END I
+}
+
+public final class dev/atsushieno/ktmidi/Midi1SystemCommon {
+	public fun <init> ()V
+	public final fun getMtcQuarterFrame ()B
+	public final fun getSongPositionPointer ()S
+	public final fun getSongSelect ()B
+	public final fun setMtcQuarterFrame (B)V
+	public final fun setSongPositionPointer (S)V
+	public final fun setSongSelect (B)V
+}
+
+public final class dev/atsushieno/ktmidi/Midi1ToUmpTranslatorContext {
+	public fun <init> (Ljava/util/List;ZIIZZ)V
+	public synthetic fun <init> (Ljava/util/List;ZIIZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAllowReorderedDTE ()Z
+	public final fun getBankState ()I
+	public final fun getDteState ()I
+	public final fun getGroup ()I
+	public final fun getMidi1 ()Ljava/util/List;
+	public final fun getMidi1Pos ()I
+	public final fun getMidiProtocol ()I
+	public final fun getNrpnState ()I
+	public final fun getOutput ()Ljava/util/List;
+	public final fun getRpnState ()I
+	public final fun getTempo ()I
+	public final fun getUseSysex8 ()Z
+	public final fun isMidi1Smf ()Z
+	public final fun setBankState (I)V
+	public final fun setDteState (I)V
+	public final fun setMidi1Pos (I)V
+	public final fun setNrpnState (I)V
+	public final fun setRpnState (I)V
+	public final fun setTempo (I)V
+}
+
+public final class dev/atsushieno/ktmidi/Midi1Track {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getEvents ()Ljava/util/List;
+	public final fun getMessages ()Ljava/util/List;
+}
+
+public class dev/atsushieno/ktmidi/Midi1TrackSplitter {
+	public static final field Companion Ldev/atsushieno/ktmidi/Midi1TrackSplitter$Companion;
+	public fun <init> (Ljava/util/List;B)V
+	public fun getTrackId (Ldev/atsushieno/ktmidi/Midi1Event;)I
+	public final fun split ()Ldev/atsushieno/ktmidi/Midi1Music;
+}
+
+public final class dev/atsushieno/ktmidi/Midi1TrackSplitter$Companion {
+	public final fun split (Ljava/util/List;B)Ldev/atsushieno/ktmidi/Midi1Music;
+}
+
+public final class dev/atsushieno/ktmidi/Midi1WriterExtension {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/Midi1WriterExtension;
+	public final fun getDefaultMetaEventWriter ()Lkotlin/jvm/functions/Function3;
+}
+
+public final class dev/atsushieno/ktmidi/Midi2BinaryChunkFormat {
+	public static final field COMPLETE_PACKET I
+	public static final field CONTINUE I
+	public static final field END I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/Midi2BinaryChunkFormat;
+	public static final field START I
+}
+
+public final class dev/atsushieno/ktmidi/Midi2BinaryChunkStatus {
+	public static final field COMPLETE_PACKET I
+	public static final field CONTINUE I
+	public static final field END I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/Midi2BinaryChunkStatus;
+	public static final field MDS_HEADER I
+	public static final field MDS_PAYLOAD I
+	public static final field START I
+	public static final field SYSEX_CONTINUE I
+	public static final field SYSEX_END I
+	public static final field SYSEX_IN_ONE_UMP I
+	public static final field SYSEX_START I
+}
+
+public final class dev/atsushieno/ktmidi/Midi2Machine {
+	public fun <init> ()V
+	public final fun addListener (Ldev/atsushieno/ktmidi/Midi2Machine$Listener;)V
+	public final fun channel (I)Ldev/atsushieno/ktmidi/Midi2MachineChannel;
+	public final fun getDiagnosticsHandler ()Lkotlin/jvm/functions/Function2;
+	public final fun getEventListeners ()Ljava/util/List;
+	public final fun getSystemCommon ()Ldev/atsushieno/ktmidi/Midi1SystemCommon;
+	public final fun getUsedChannels ()Ljava/lang/Iterable;
+	public final fun processEvent (Ldev/atsushieno/ktmidi/Ump;)V
+	public final fun removeListener (Ldev/atsushieno/ktmidi/Midi2Machine$Listener;)V
+	public final fun setDiagnosticsHandler (Lkotlin/jvm/functions/Function2;)V
+	public final fun setSystemCommon (Ldev/atsushieno/ktmidi/Midi1SystemCommon;)V
+}
+
+public abstract interface class dev/atsushieno/ktmidi/Midi2Machine$Listener {
+	public abstract fun onEvent (Ldev/atsushieno/ktmidi/Ump;)V
+}
+
+public final class dev/atsushieno/ktmidi/Midi2MachineChannel {
+	public fun <init> ()V
+	public final fun getCaf-pVg5ArA ()I
+	public final fun getControls ()[Lkotlin/UInt;
+	public final fun getDteTarget ()Ldev/atsushieno/ktmidi/DteTarget;
+	public final fun getMonoPolyMode ()Ljava/lang/Boolean;
+	public final fun getNoteAttribute ()[Lkotlin/UShort;
+	public final fun getNoteAttributeType ()[Lkotlin/UShort;
+	public final fun getNoteOnStatus ()[Ljava/lang/Boolean;
+	public final fun getNoteVelocity ()[Lkotlin/UShort;
+	public final fun getNrpns ()[Lkotlin/UInt;
+	public final fun getOmniMode ()Ljava/lang/Boolean;
+	public final fun getPafVelocity ()[Lkotlin/UInt;
+	public final fun getPerNoteACC ()[[Lkotlin/UInt;
+	public final fun getPerNotePitchbend ()[Lkotlin/UInt;
+	public final fun getPerNoteRCC ()[[Lkotlin/UInt;
+	public final fun getPitchbend-pVg5ArA ()I
+	public final fun getProgram ()B
+	public final fun getRpns ()[Lkotlin/UInt;
+	public final fun processMidi1Dte (BZ)V
+	public final fun processMidi1DteDecrement ()V
+	public final fun processMidi1DteIncrement ()V
+	public final fun setCaf-WZ4Q5Ns (I)V
+	public final fun setDteTarget (Ldev/atsushieno/ktmidi/DteTarget;)V
+	public final fun setMonoPolyMode (Ljava/lang/Boolean;)V
+	public final fun setOmniMode (Ljava/lang/Boolean;)V
+	public final fun setPitchbend-WZ4Q5Ns (I)V
+	public final fun setProgram (B)V
+}
+
+public final class dev/atsushieno/ktmidi/Midi2Music {
+	public static final field Companion Ldev/atsushieno/ktmidi/Midi2Music$Companion;
+	public fun <init> ()V
+	public final fun addTrack (Ldev/atsushieno/ktmidi/Midi2Track;)V
+	public final fun filterEvents (Lkotlin/jvm/functions/Function1;)Ljava/lang/Iterable;
+	public final fun getDeltaTimeSpec ()I
+	public final fun getFormat ()I
+	public final fun getTimePositionInMillisecondsForTick (I)I
+	public final fun getTotalPlayTimeMilliseconds ()I
+	public final fun getTotalTicks ()I
+	public final fun getTracks ()Ljava/util/List;
+	public final fun isSingleTrack ()Z
+	public final fun setDeltaTimeSpec (I)V
+	public final fun setFormat (I)V
+}
+
+public final class dev/atsushieno/ktmidi/Midi2Music$Companion {
+	public final fun filterEvents (Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;)Lkotlin/sequences/Sequence;
+	public final fun getMetaEventType (Ldev/atsushieno/ktmidi/Ump;)I
+	public final fun getPlayTimeMillisecondsAtTick (Ljava/lang/Iterable;II)I
+	public final fun getTempoValue (Ldev/atsushieno/ktmidi/Ump;)I
+	public final fun getTotalPlayTimeMilliseconds (Ljava/lang/Iterable;I)I
+	public final fun isMetaEventMessage (Ldev/atsushieno/ktmidi/Ump;I)Z
+	public final fun isMetaEventMessageStarter (Ldev/atsushieno/ktmidi/Ump;)Z
+	public final fun isTempoMessage (Ldev/atsushieno/ktmidi/Ump;)Z
+}
+
+public final class dev/atsushieno/ktmidi/Midi2MusicKt {
+	public static final fun convertDeltaTimesToJRTimestamps (Ldev/atsushieno/ktmidi/Midi2Music;)Ldev/atsushieno/ktmidi/Midi2Music;
+	public static final fun mergeTracks (Ldev/atsushieno/ktmidi/Midi2Music;)Ldev/atsushieno/ktmidi/Midi2Music;
+	public static final fun splitTracksByChannel (Ldev/atsushieno/ktmidi/Midi2Track;)Ldev/atsushieno/ktmidi/Midi2Music;
+}
+
+public final class dev/atsushieno/ktmidi/Midi2Player : dev/atsushieno/ktmidi/MidiPlayer {
+	public static final field Companion Ldev/atsushieno/ktmidi/Midi2Player$Companion;
+	public fun <init> (Ldev/atsushieno/ktmidi/Midi2Music;Ldev/atsushieno/ktmidi/MidiOutput;Ldev/atsushieno/ktmidi/MidiPlayerTimer;Z)V
+	public synthetic fun <init> (Ldev/atsushieno/ktmidi/Midi2Music;Ldev/atsushieno/ktmidi/MidiOutput;Ldev/atsushieno/ktmidi/MidiPlayerTimer;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun addOnMessageListener (Ldev/atsushieno/ktmidi/OnMidi2EventListener;)V
+	public synthetic fun getLooper$ktmidi ()Ldev/atsushieno/ktmidi/MidiEventLooperBase;
+	public fun getPositionInMilliseconds ()J
+	public fun getTotalPlayTimeMilliseconds ()I
+	public final fun removeOnMessageListener (Ldev/atsushieno/ktmidi/OnMidi2EventListener;)V
+	public fun seek (I)V
+	public fun setMutedChannels (Ljava/lang/Iterable;)V
+}
+
+public final class dev/atsushieno/ktmidi/Midi2Player$Companion {
+	public final fun create (Ldev/atsushieno/ktmidi/Midi2Music;Ldev/atsushieno/ktmidi/MidiAccess;Ldev/atsushieno/ktmidi/MidiPlayerTimer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun create$default (Ldev/atsushieno/ktmidi/Midi2Player$Companion;Ldev/atsushieno/ktmidi/Midi2Music;Ldev/atsushieno/ktmidi/MidiAccess;Ldev/atsushieno/ktmidi/MidiPlayerTimer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+}
+
+public final class dev/atsushieno/ktmidi/Midi2ReaderWriterKt {
+	public static final fun read (Ldev/atsushieno/ktmidi/Midi2Music;Ljava/util/List;)V
+	public static final fun read (Ldev/atsushieno/ktmidi/Midi2Music;Ljava/util/List;Z)V
+	public static synthetic fun read$default (Ldev/atsushieno/ktmidi/Midi2Music;Ljava/util/List;ZILjava/lang/Object;)V
+	public static final fun write (Ldev/atsushieno/ktmidi/Midi2Music;Ljava/util/List;)V
+}
+
+public final class dev/atsushieno/ktmidi/Midi2Track {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getMessages ()Ljava/util/List;
+}
+
+public class dev/atsushieno/ktmidi/Midi2TrackSplitter {
+	public static final field Companion Ldev/atsushieno/ktmidi/Midi2TrackSplitter$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public fun getTrackId (Ldev/atsushieno/ktmidi/Ump;)I
+	public final fun split ()Ldev/atsushieno/ktmidi/Midi2Music;
+}
+
+public final class dev/atsushieno/ktmidi/Midi2TrackSplitter$Companion {
+	public final fun split (Ljava/util/List;)Ldev/atsushieno/ktmidi/Midi2Music;
+}
+
+public abstract class dev/atsushieno/ktmidi/MidiAccess {
+	public fun <init> ()V
+	public fun createVirtualInputSender (Ldev/atsushieno/ktmidi/PortCreatorContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createVirtualOutputReceiver (Ldev/atsushieno/ktmidi/PortCreatorContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCanCreateVirtualPort ()Z
+	public fun getCanDetectStateChanges ()Z
+	public abstract fun getInputs ()Ljava/lang/Iterable;
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun getOutputs ()Ljava/lang/Iterable;
+	public final fun getStateChanged ()Lkotlin/jvm/functions/Function1;
+	public fun getSupportsUmpTransport ()Z
+	public abstract fun openInput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public abstract fun openOutput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setStateChanged (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiAccessKt {
+	public static final fun getEmptyMidiAccess ()Ldev/atsushieno/ktmidi/EmptyMidiAccess;
+}
+
+public final class dev/atsushieno/ktmidi/MidiBankDefinition {
+	public fun <init> ()V
+	public final fun getLsb ()I
+	public final fun getMsb ()I
+	public final fun getName ()Ljava/lang/String;
+	public final fun setLsb (I)V
+	public final fun setMsb (I)V
+	public final fun setName (Ljava/lang/String;)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiCC {
+	public static final field ALL_NOTES_OFF I
+	public static final field ALL_SOUND_OFF I
+	public static final field BALANCE I
+	public static final field BALANCE_LSB I
+	public static final field BANK_SELECT I
+	public static final field BANK_SELECT_LSB I
+	public static final field BREATH I
+	public static final field BREATH_LSB I
+	public static final field CELESTE I
+	public static final field CSD I
+	public static final field DTE_DECREMENT I
+	public static final field DTE_INCREMENT I
+	public static final field DTE_LSB I
+	public static final field DTE_MSB I
+	public static final field EFFECT_1 I
+	public static final field EFFECT_1_LSB I
+	public static final field EFFECT_2 I
+	public static final field EFFECT_2_LSB I
+	public static final field EFFECT_3 I
+	public static final field EFFECT_4 I
+	public static final field EFFECT_5 I
+	public static final field EFFECT_CONTROL_1 I
+	public static final field EFFECT_CONTROL_2 I
+	public static final field EXPRESSION I
+	public static final field EXPRESSION_LSB I
+	public static final field FOOT I
+	public static final field FOOT_LSB I
+	public static final field GENERAL_1 I
+	public static final field GENERAL_1_LSB I
+	public static final field GENERAL_2 I
+	public static final field GENERAL_2_LSB I
+	public static final field GENERAL_3 I
+	public static final field GENERAL_3_LSB I
+	public static final field GENERAL_4 I
+	public static final field GENERAL_4_LSB I
+	public static final field GENERAL_5 I
+	public static final field GENERAL_6 I
+	public static final field GENERAL_7 I
+	public static final field GENERAL_8 I
+	public static final field HOLD I
+	public static final field HOLD_2 I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiCC;
+	public static final field LEGATO I
+	public static final field LOCAL_CONTROL I
+	public static final field MODULATION I
+	public static final field MODULATION_LSB I
+	public static final field MONO_MODE_ON I
+	public static final field NRPN_LSB I
+	public static final field NRPN_MSB I
+	public static final field OMNI_MODE_OFF I
+	public static final field OMNI_MODE_ON I
+	public static final field PAN I
+	public static final field PAN_LSB I
+	public static final field PHASER I
+	public static final field POLY_MODE_OFF I
+	public static final field POLY_MODE_ON I
+	public static final field PORTAMENTO_CONTROL I
+	public static final field PORTAMENTO_SWITCH I
+	public static final field PORTAMENTO_TIME I
+	public static final field PORTAMENTO_TIME_LSB I
+	public static final field RESET_ALL_CONTROLLERS I
+	public static final field RPN_LSB I
+	public static final field RPN_MSB I
+	public static final field RSD I
+	public static final field SOFT_PEDAL I
+	public static final field SOSTENUTO I
+	public static final field SOUND_CONTROLLER_1 I
+	public static final field SOUND_CONTROLLER_10 I
+	public static final field SOUND_CONTROLLER_2 I
+	public static final field SOUND_CONTROLLER_3 I
+	public static final field SOUND_CONTROLLER_4 I
+	public static final field SOUND_CONTROLLER_5 I
+	public static final field SOUND_CONTROLLER_6 I
+	public static final field SOUND_CONTROLLER_7 I
+	public static final field SOUND_CONTROLLER_8 I
+	public static final field SOUND_CONTROLLER_9 I
+	public static final field TREMOLO I
+	public static final field VOLUME I
+	public static final field VOLUME_LSB I
+}
+
+public final class dev/atsushieno/ktmidi/MidiCIMessageReporterKt {
+	public static final fun reportMidiMessages (Ldev/atsushieno/ktmidi/Midi1Machine;BBBBB)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/MidiCIProtocolBytes {
+	public static final field EXTENSIONS I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiCIProtocolBytes;
+	public static final field TYPE I
+	public static final field VERSION I
+}
+
+public final class dev/atsushieno/ktmidi/MidiCIProtocolExtensions {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiCIProtocolExtensions;
+	public static final field JITTER I
+	public static final field LARGER I
+}
+
+public final class dev/atsushieno/ktmidi/MidiCIProtocolType {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiCIProtocolType;
+	public static final field MIDI1 I
+	public static final field MIDI2 I
+}
+
+public final class dev/atsushieno/ktmidi/MidiCIProtocolValue {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiCIProtocolValue;
+	public static final field MIDI1 I
+	public static final field MIDI2_V1 I
+}
+
+public final class dev/atsushieno/ktmidi/MidiChannelStatus {
+	public static final field CAF I
+	public static final field CC I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiChannelStatus;
+	public static final field NOTE_OFF I
+	public static final field NOTE_ON I
+	public static final field NRPN I
+	public static final field PAF I
+	public static final field PER_NOTE_ACC I
+	public static final field PER_NOTE_MANAGEMENT I
+	public static final field PER_NOTE_PITCH_BEND I
+	public static final field PER_NOTE_RCC I
+	public static final field PITCH_BEND I
+	public static final field PROGRAM I
+	public static final field RELATIVE_NRPN I
+	public static final field RELATIVE_RPN I
+	public static final field RPN I
+}
+
+public final class dev/atsushieno/ktmidi/MidiEvent {
+	public static final field Companion Ldev/atsushieno/ktmidi/MidiEvent$Companion;
+	public fun <init> (I)V
+	public fun <init> (III[BII)V
+	public synthetic fun <init> (III[BIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getChannel ()B
+	public final fun getEventType ()B
+	public final fun getExtraData ()[B
+	public final fun getExtraDataLength ()I
+	public final fun getExtraDataOffset ()I
+	public final fun getLsb ()B
+	public final fun getMetaType ()B
+	public final fun getMsb ()B
+	public final fun getStatusByte ()B
+	public final fun getValue ()I
+	public final fun setValue (I)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/MidiEvent$Companion {
+	public final fun convert ([BII)Lkotlin/sequences/Sequence;
+	public final fun fixedDataSize (B)B
+}
+
+public final class dev/atsushieno/ktmidi/MidiEventType {
+	public static final field CAF B
+	public static final field CC B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiEventType;
+	public static final field NOTE_OFF B
+	public static final field NOTE_ON B
+	public static final field PAF B
+	public static final field PITCH B
+	public static final field PROGRAM B
+}
+
+public abstract interface class dev/atsushieno/ktmidi/MidiInput : dev/atsushieno/ktmidi/MidiPort {
+	public abstract fun setMessageReceivedListener (Ldev/atsushieno/ktmidi/OnMidiReceivedEventListener;)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiInstrumentDefinition {
+	public fun <init> ()V
+	public final fun getDrumMaps ()Ljava/util/ArrayList;
+	public final fun getMaps ()Ljava/util/ArrayList;
+	public final fun setDrumMaps (Ljava/util/ArrayList;)V
+	public final fun setMaps (Ljava/util/ArrayList;)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiInstrumentMap {
+	public fun <init> ()V
+	public final fun getName ()Ljava/lang/String;
+	public final fun getPrograms ()Ljava/util/ArrayList;
+	public final fun setName (Ljava/lang/String;)V
+	public final fun setPrograms (Ljava/util/ArrayList;)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiMachine {
+	public fun <init> ()V
+	public final fun addOnEventReceivedListener (Ldev/atsushieno/ktmidi/OnMidiEventListener;)V
+	public final fun getChannels ()[Ldev/atsushieno/ktmidi/MidiMachineChannel;
+	public final fun processEvent (Ldev/atsushieno/ktmidi/MidiEvent;)V
+	public final fun removeOnEventReceivedListener (Ldev/atsushieno/ktmidi/OnMidiEventListener;)V
+	public final fun setChannels ([Ldev/atsushieno/ktmidi/MidiMachineChannel;)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiMachineChannel {
+	public fun <init> ()V
+	public final fun getCaf ()B
+	public final fun getControls ()[B
+	public final fun getDteTarget ()Ldev/atsushieno/ktmidi/DteTarget;
+	public final fun getNoteVelocity ()[B
+	public final fun getNrpns ()[S
+	public final fun getPafVelocity ()[B
+	public final fun getPitchbend ()S
+	public final fun getProgram ()B
+	public final fun getRpnTarget ()S
+	public final fun getRpns ()[S
+	public final fun processDte (BZ)V
+	public final fun processDteDecrement ()V
+	public final fun processDteIncrement ()V
+	public final fun setCaf (B)V
+	public final fun setDteTarget (Ldev/atsushieno/ktmidi/DteTarget;)V
+	public final fun setPitchbend (S)V
+	public final fun setProgram (B)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiMessage {
+	public static final field Companion Ldev/atsushieno/ktmidi/MidiMessage$Companion;
+	public fun <init> (ILdev/atsushieno/ktmidi/MidiEvent;)V
+	public final fun getDeltaTime ()I
+	public final fun getEvent ()Ldev/atsushieno/ktmidi/MidiEvent;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/MidiMessage$Companion {
+	public final fun encode7BitLength (I)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/MidiMessageReportChannelControllerFlags {
+	public static final field All B
+	public static final field CAf B
+	public static final field CC B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiMessageReportChannelControllerFlags;
+	public static final field Nrpn B
+	public static final field Pitchbend B
+	public static final field Program B
+	public static final field Rpn B
+}
+
+public final class dev/atsushieno/ktmidi/MidiMessageReportDataControl {
+	public static final field Full B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiMessageReportDataControl;
+	public static final field None B
+	public static final field OnlyNonDefaults B
+}
+
+public final class dev/atsushieno/ktmidi/MidiMessageReportNoteDataFlags {
+	public static final field All B
+	public static final field AssignableController B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiMessageReportNoteDataFlags;
+	public static final field Notes B
+	public static final field PAf B
+	public static final field Pitchbend B
+	public static final field RegisteredController B
+}
+
+public final class dev/atsushieno/ktmidi/MidiMessageReportSystemMessagesFlags {
+	public static final field All B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiMessageReportSystemMessagesFlags;
+	public static final field MtcQuarterFrame B
+	public static final field SongPosition B
+	public static final field SongSelect B
+}
+
+public final class dev/atsushieno/ktmidi/MidiMessageType {
+	public static final field FLEX_DATA I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiMessageType;
+	public static final field MIDI1 I
+	public static final field MIDI2 I
+	public static final field SYSEX7 I
+	public static final field SYSEX8_MDS I
+	public static final field SYSTEM I
+	public static final field UMP_STREAM I
+	public static final field UTILITY I
+}
+
+public final class dev/atsushieno/ktmidi/MidiMetaType {
+	public static final field CHANNEL_PREFIX I
+	public static final field COPYRIGHT I
+	public static final field CUE I
+	public static final field END_OF_TRACK I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiMetaType;
+	public static final field INSTRUMENT_NAME I
+	public static final field KEY_SIGNATURE I
+	public static final field LYRIC I
+	public static final field MARKER I
+	public static final field SEQUENCER_SPECIFIC I
+	public static final field SEQUENCE_NUMBER I
+	public static final field SMTPE_OFFSET I
+	public static final field TEMPO I
+	public static final field TEXT I
+	public static final field TIME_SIGNATURE I
+	public static final field TRACK_NAME I
+}
+
+public abstract class dev/atsushieno/ktmidi/MidiModuleDatabase {
+	public fun <init> ()V
+	public abstract fun all ()Ljava/lang/Iterable;
+	public abstract fun resolve (Ljava/lang/String;)Ldev/atsushieno/ktmidi/MidiModuleDefinition;
+}
+
+public final class dev/atsushieno/ktmidi/MidiModuleDatabase_jvmKt {
+	public static final fun getDefaultMidiModuleDatabase ()Ldev/atsushieno/ktmidi/DefaultMidiModuleDatabase;
+}
+
+public final class dev/atsushieno/ktmidi/MidiModuleDefinition {
+	public fun <init> ()V
+	public final fun getInstrument ()Ldev/atsushieno/ktmidi/MidiInstrumentDefinition;
+	public final fun getMatch ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun setInstrument (Ldev/atsushieno/ktmidi/MidiInstrumentDefinition;)V
+	public final fun setMatch (Ljava/lang/String;)V
+	public final fun setName (Ljava/lang/String;)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiMusic {
+	public static final field Companion Ldev/atsushieno/ktmidi/MidiMusic$Companion;
+	public static final field DEFAULT_TEMPO I
+	public static final field META_EVENT I
+	public static final field SYSEX_END I
+	public static final field SYSEX_EVENT I
+	public fun <init> ()V
+	public final fun addTrack (Ldev/atsushieno/ktmidi/MidiTrack;)V
+	public final fun filterEvents (Lkotlin/jvm/functions/Function1;)Ljava/lang/Iterable;
+	public final fun getDeltaTimeSpec ()I
+	public final fun getFormat ()B
+	public final fun getTimePositionInMillisecondsForTick (I)I
+	public final fun getTotalPlayTimeMilliseconds ()I
+	public final fun getTotalTicks ()I
+	public final fun getTracks ()Ljava/util/List;
+	public final fun setDeltaTimeSpec (I)V
+	public final fun setFormat (B)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiMusic$Companion {
+	public final fun filterEvents (Ljava/lang/Iterable;Lkotlin/jvm/functions/Function1;)Lkotlin/sequences/Sequence;
+	public final fun getPlayTimeMillisecondsAtTick (Ljava/lang/Iterable;II)I
+	public final fun getSmfBpm ([BI)D
+	public final fun getSmfTempo ([BI)I
+	public final fun getSmpteDurationInSeconds (IIID)D
+	public static synthetic fun getSmpteDurationInSeconds$default (Ldev/atsushieno/ktmidi/MidiMusic$Companion;IIIDILjava/lang/Object;)D
+	public final fun getSmpteTicksForSeconds (IDID)I
+	public static synthetic fun getSmpteTicksForSeconds$default (Ldev/atsushieno/ktmidi/MidiMusic$Companion;IDIDILjava/lang/Object;)I
+	public final fun getSmpteTicksPerSeconds (I)I
+	public final fun getTotalPlayTimeMilliseconds (Ljava/lang/Iterable;I)I
+}
+
+public final class dev/atsushieno/ktmidi/MidiMusicCommonKt {
+	public static final fun getDc (I)Ldev/atsushieno/ktmidi/Dc;
+}
+
+public final class dev/atsushieno/ktmidi/MidiMusicKt {
+	public static final fun mergeTracks (Ldev/atsushieno/ktmidi/MidiMusic;)Ldev/atsushieno/ktmidi/MidiMusic;
+	public static final fun splitTracksByChannel (Ldev/atsushieno/ktmidi/MidiTrack;B)Ldev/atsushieno/ktmidi/MidiMusic;
+}
+
+public final class dev/atsushieno/ktmidi/MidiNoteAttributeType {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiNoteAttributeType;
+	public static final field MANUFACTURER_SPECIFIC I
+	public static final field NONE I
+	public static final field PROFILE_SPECIFIC I
+	public static final field Pitch7_9 I
+}
+
+public abstract interface class dev/atsushieno/ktmidi/MidiOutput : dev/atsushieno/ktmidi/MidiPort {
+	public abstract fun send ([BIIJ)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiPerNoteManagementFlags {
+	public static final field DETACH I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiPerNoteManagementFlags;
+	public static final field RESET I
+}
+
+public abstract class dev/atsushieno/ktmidi/MidiPlayer {
+	public final fun close ()V
+	public final fun getBpm ()I
+	public final fun getFinished ()Ljava/lang/Runnable;
+	public final fun getPlayDeltaTime ()I
+	public final fun getPlaybackCompletedToEnd ()Ljava/lang/Runnable;
+	public abstract fun getPositionInMilliseconds ()J
+	public final fun getState ()Ldev/atsushieno/ktmidi/PlayerState;
+	public final fun getTempo ()I
+	public final fun getTempoChangeRatio ()D
+	public final fun getTimeSignature ()Ljava/util/List;
+	public abstract fun getTotalPlayTimeMilliseconds ()I
+	public final fun pause ()V
+	public final fun play ()V
+	public abstract fun seek (I)V
+	public final fun setFinished (Ljava/lang/Runnable;)V
+	public abstract fun setMutedChannels (Ljava/lang/Iterable;)V
+	public final fun setPlaybackCompletedToEnd (Ljava/lang/Runnable;)V
+	public final fun setTempo (I)V
+	public final fun setTempoChangeRatio (D)V
+	public final fun stop ()V
+}
+
+public abstract interface class dev/atsushieno/ktmidi/MidiPlayerTimer {
+	public abstract fun stop ()V
+	public abstract fun waitBySeconds (DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class dev/atsushieno/ktmidi/MidiPort {
+	public abstract fun close ()V
+	public abstract fun getConnectionState ()Ldev/atsushieno/ktmidi/MidiPortConnectionState;
+	public abstract fun getDetails ()Ldev/atsushieno/ktmidi/MidiPortDetails;
+}
+
+public final class dev/atsushieno/ktmidi/MidiPortConnectionState : java/lang/Enum {
+	public static final field CLOSED Ldev/atsushieno/ktmidi/MidiPortConnectionState;
+	public static final field OPEN Ldev/atsushieno/ktmidi/MidiPortConnectionState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/MidiPortConnectionState;
+	public static fun values ()[Ldev/atsushieno/ktmidi/MidiPortConnectionState;
+}
+
+public abstract interface class dev/atsushieno/ktmidi/MidiPortDetails {
+	public abstract fun getId ()Ljava/lang/String;
+	public abstract fun getManufacturer ()Ljava/lang/String;
+	public abstract fun getMidiTransportProtocol ()I
+	public abstract fun getName ()Ljava/lang/String;
+	public abstract fun getVersion ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/MidiProgramChangeOptions {
+	public static final field BANK_VALID I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiProgramChangeOptions;
+	public static final field NONE I
+}
+
+public final class dev/atsushieno/ktmidi/MidiProgramDefinition {
+	public fun <init> ()V
+	public final fun getBanks ()Ljava/util/ArrayList;
+	public final fun getIndex ()I
+	public final fun getName ()Ljava/lang/String;
+	public final fun setBanks (Ljava/util/ArrayList;)V
+	public final fun setIndex (I)V
+	public final fun setName (Ljava/lang/String;)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiProtocolVersion {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiProtocolVersion;
+	public static final field MIDI1 I
+	public static final field MIDI2 I
+	public static final field UNSPECIFIED I
+}
+
+public final class dev/atsushieno/ktmidi/MidiReaderWriterKt {
+	public static final fun read (Ldev/atsushieno/ktmidi/MidiMusic;Ljava/util/List;)V
+	public static final fun write (Ldev/atsushieno/ktmidi/MidiMusic;Ljava/util/List;Lkotlin/jvm/functions/Function3;Z)V
+	public static synthetic fun write$default (Ldev/atsushieno/ktmidi/MidiMusic;Ljava/util/List;Lkotlin/jvm/functions/Function3;ZILjava/lang/Object;)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiRpn {
+	public static final field COARSE_TUNING I
+	public static final field FINE_TUNING I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiRpn;
+	public static final field MODULATION_DEPTH I
+	public static final field PITCH_BEND_SENSITIVITY I
+	public static final field TUNING_BANK_SELECT I
+	public static final field TUNING_PROGRAM I
+}
+
+public final class dev/atsushieno/ktmidi/MidiSystemStatus {
+	public static final field ACTIVE_SENSING I
+	public static final field CONTINUE I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiSystemStatus;
+	public static final field MIDI_TIME_CODE I
+	public static final field RESET I
+	public static final field SONG_POSITION I
+	public static final field SONG_SELECT I
+	public static final field START I
+	public static final field STOP I
+	public static final field TIMING_CLOCK I
+	public static final field TUNE_REQUEST I
+}
+
+public final class dev/atsushieno/ktmidi/MidiTrack {
+	public fun <init> ()V
+	public fun <init> (Ljava/util/List;)V
+	public synthetic fun <init> (Ljava/util/List;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getMessages ()Ljava/util/List;
+}
+
+public class dev/atsushieno/ktmidi/MidiTrackSplitter {
+	public static final field Companion Ldev/atsushieno/ktmidi/MidiTrackSplitter$Companion;
+	public fun <init> (Ljava/util/List;B)V
+	public fun getTrackId (Ldev/atsushieno/ktmidi/MidiMessage;)I
+	public final fun split ()Ldev/atsushieno/ktmidi/MidiMusic;
+}
+
+public final class dev/atsushieno/ktmidi/MidiTrackSplitter$Companion {
+	public final fun split (Ljava/util/List;B)Ldev/atsushieno/ktmidi/MidiMusic;
+}
+
+public final class dev/atsushieno/ktmidi/MidiTransportProtocol {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiTransportProtocol;
+	public static final field MIDI1 I
+	public static final field UMP I
+}
+
+public final class dev/atsushieno/ktmidi/MidiUtilityStatus {
+	public static final field DCTPQ I
+	public static final field DELTA_CLOCKSTAMP I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/MidiUtilityStatus;
+	public static final field JR_CLOCK I
+	public static final field JR_TIMESTAMP I
+	public static final field NOP I
+}
+
+public abstract interface class dev/atsushieno/ktmidi/OnMidi1EventListener {
+	public abstract fun onEvent (Ldev/atsushieno/ktmidi/Midi1Event;)V
+}
+
+public abstract interface class dev/atsushieno/ktmidi/OnMidi2EventListener {
+	public abstract fun onEvent (Ldev/atsushieno/ktmidi/Ump;)V
+}
+
+public abstract interface class dev/atsushieno/ktmidi/OnMidiEventListener {
+	public abstract fun onEvent (Ldev/atsushieno/ktmidi/MidiEvent;)V
+}
+
+public abstract interface class dev/atsushieno/ktmidi/OnMidiMessageListener {
+	public abstract fun onMessage (Ldev/atsushieno/ktmidi/MidiMessage;)V
+}
+
+public abstract interface class dev/atsushieno/ktmidi/OnMidiReceivedEventListener {
+	public abstract fun onEventReceived ([BIIJ)V
+}
+
+public final class dev/atsushieno/ktmidi/PerformanceTextStatus {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/PerformanceTextStatus;
+	public static final field LYRICS B
+	public static final field LYRICS_LANGUAGE B
+	public static final field RUBY B
+	public static final field RUBY_LANGUAGE B
+	public static final field UNKNOWN B
+}
+
+public final class dev/atsushieno/ktmidi/PlayerState : java/lang/Enum {
+	public static final field PAUSED Ldev/atsushieno/ktmidi/PlayerState;
+	public static final field PLAYING Ldev/atsushieno/ktmidi/PlayerState;
+	public static final field STOPPED Ldev/atsushieno/ktmidi/PlayerState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/PlayerState;
+	public static fun values ()[Ldev/atsushieno/ktmidi/PlayerState;
+}
+
+public final class dev/atsushieno/ktmidi/PortCreatorContext {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()I
+	public final fun component6 ()I
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;II)Ldev/atsushieno/ktmidi/PortCreatorContext;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/PortCreatorContext;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIILjava/lang/Object;)Ldev/atsushieno/ktmidi/PortCreatorContext;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getApplicationName ()Ljava/lang/String;
+	public final fun getManufacturer ()Ljava/lang/String;
+	public final fun getMidiProtocol ()I
+	public final fun getPortName ()Ljava/lang/String;
+	public final fun getUmpGroup ()I
+	public final fun getVersion ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun setApplicationName (Ljava/lang/String;)V
+	public final fun setManufacturer (Ljava/lang/String;)V
+	public final fun setMidiProtocol (I)V
+	public final fun setPortName (Ljava/lang/String;)V
+	public final fun setUmpGroup (I)V
+	public final fun setVersion (Ljava/lang/String;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/SeekFilterResult : java/lang/Enum {
+	public static final field BLOCK Ldev/atsushieno/ktmidi/SeekFilterResult;
+	public static final field BLOCK_AND_TERMINATE Ldev/atsushieno/ktmidi/SeekFilterResult;
+	public static final field PASS Ldev/atsushieno/ktmidi/SeekFilterResult;
+	public static final field PASS_AND_TERMINATE Ldev/atsushieno/ktmidi/SeekFilterResult;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/SeekFilterResult;
+	public static fun values ()[Ldev/atsushieno/ktmidi/SeekFilterResult;
+}
+
+public abstract interface class dev/atsushieno/ktmidi/SeekProcessor {
+	public abstract fun filterEvent (Ljava/lang/Object;)Ldev/atsushieno/ktmidi/SeekFilterResult;
+}
+
+public final class dev/atsushieno/ktmidi/SimpleAdjustingMidiPlayerTimer : dev/atsushieno/ktmidi/MidiPlayerTimer {
+	public fun <init> ()V
+	public fun <init> (Lkotlin/time/TimeSource;)V
+	public synthetic fun <init> (Lkotlin/time/TimeSource;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun stop ()V
+	public fun waitBySeconds (DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/atsushieno/ktmidi/SimpleVirtualMidiInput : dev/atsushieno/ktmidi/SimpleVirtualMidiPort, dev/atsushieno/ktmidi/MidiInput {
+	public fun <init> (Ldev/atsushieno/ktmidi/MidiPortDetails;Lkotlin/jvm/functions/Function0;)V
+	public fun setMessageReceivedListener (Ldev/atsushieno/ktmidi/OnMidiReceivedEventListener;)V
+}
+
+public final class dev/atsushieno/ktmidi/SimpleVirtualMidiOutput : dev/atsushieno/ktmidi/SimpleVirtualMidiPort, dev/atsushieno/ktmidi/MidiOutput {
+	public fun <init> (Ldev/atsushieno/ktmidi/MidiPortDetails;Lkotlin/jvm/functions/Function0;)V
+	public final fun getOnSend ()Lkotlin/jvm/functions/Function4;
+	public fun send ([BIIJ)V
+	public final fun setOnSend (Lkotlin/jvm/functions/Function4;)V
+}
+
+public abstract class dev/atsushieno/ktmidi/SimpleVirtualMidiPort : dev/atsushieno/ktmidi/MidiPort {
+	protected fun <init> (Ldev/atsushieno/ktmidi/MidiPortDetails;Lkotlin/jvm/functions/Function0;)V
+	public fun close ()V
+	public fun getConnectionState ()Ldev/atsushieno/ktmidi/MidiPortConnectionState;
+	public fun getDetails ()Ldev/atsushieno/ktmidi/MidiPortDetails;
+}
+
+public final class dev/atsushieno/ktmidi/SmfParserException : java/lang/Exception {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Exception;)V
+}
+
+public final class dev/atsushieno/ktmidi/SmfWriterExtension {
+	public static final field Companion Ldev/atsushieno/ktmidi/SmfWriterExtension$Companion;
+	public fun <init> ()V
+}
+
+public final class dev/atsushieno/ktmidi/SmfWriterExtension$Companion {
+	public final fun getDEFAULT_META_EVENT_WRITER ()Lkotlin/jvm/functions/Function3;
+}
+
+public final class dev/atsushieno/ktmidi/Timed {
+	public fun <init> (Ldev/atsushieno/ktmidi/Dc;Ljava/lang/Object;)V
+	public final fun component1 ()Ldev/atsushieno/ktmidi/Dc;
+	public final fun component2 ()Ljava/lang/Object;
+	public final fun copy (Ldev/atsushieno/ktmidi/Dc;Ljava/lang/Object;)Ldev/atsushieno/ktmidi/Timed;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/Timed;Ldev/atsushieno/ktmidi/Dc;Ljava/lang/Object;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/Timed;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDuration ()Ldev/atsushieno/ktmidi/Dc;
+	public final fun getValue ()Ljava/lang/Object;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/TonicNoteField {
+	public static final field A B
+	public static final field B B
+	public static final field C B
+	public static final field D B
+	public static final field E B
+	public static final field F B
+	public static final field G B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/TonicNoteField;
+	public static final field NON_STANDARD B
+	public static final field UNKNOWN B
+}
+
+public final class dev/atsushieno/ktmidi/Ump {
+	public static final field Companion Ldev/atsushieno/ktmidi/Ump$Companion;
+	public fun <init> (IIII)V
+	public synthetic fun <init> (IIIIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (JJ)V
+	public synthetic fun <init> (JJILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()I
+	public final fun copy (IIII)Ldev/atsushieno/ktmidi/Ump;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/Ump;IIIIILjava/lang/Object;)Ldev/atsushieno/ktmidi/Ump;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getInt1 ()I
+	public final fun getInt2 ()I
+	public final fun getInt3 ()I
+	public final fun getInt4 ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/Ump$Companion {
+	public final fun fromBytes ([BII)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/UmpBinaryRetrieverFallback : java/lang/Enum {
+	public static final field Break Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;
+	public static final field Exception Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;
+	public static fun values ()[Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;
+}
+
+public final class dev/atsushieno/ktmidi/UmpException : java/lang/Exception {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Exception;)V
+}
+
+public final class dev/atsushieno/ktmidi/UmpFactory {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/UmpFactory;
+	public final fun chordName-qJuEhvQ (BBBBBBIIIIBBBII)Ldev/atsushieno/ktmidi/Ump;
+	public final fun dctpq-xj2QHRw (S)I
+	public final fun deltaClockstamp (I)I
+	public final fun deviceIdentityNotification (ISSI)Ldev/atsushieno/ktmidi/Ump;
+	public final fun endOfClip ()Ldev/atsushieno/ktmidi/Ump;
+	public final fun endpointDiscovery (BBB)Ldev/atsushieno/ktmidi/Ump;
+	public final fun endpointInfoNotification (BBZBZZZZ)Ldev/atsushieno/ktmidi/Ump;
+	public final fun endpointNameNotification (Ljava/lang/String;)Ljava/util/List;
+	public final fun endpointNameNotification ([B)Ljava/util/List;
+	public final fun flexDataCompleteBinary (BBBBIII)Ldev/atsushieno/ktmidi/Ump;
+	public static synthetic fun flexDataCompleteBinary$default (Ldev/atsushieno/ktmidi/UmpFactory;BBBBIIIILjava/lang/Object;)Ldev/atsushieno/ktmidi/Ump;
+	public final fun flexDataProcess (BBBBB[BLjava/lang/Object;Lkotlin/jvm/functions/Function2;)V
+	public static synthetic fun flexDataProcess$default (Ldev/atsushieno/ktmidi/UmpFactory;BBBBB[BLjava/lang/Object;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public final fun flexDataText (BBBBBLjava/lang/String;)Ljava/util/List;
+	public final fun flexDataText (BBBBB[B)Ljava/util/List;
+	public final fun fromPlatformBytes (Ldev/atsushieno/ktmidi/ByteOrder;Ljava/util/List;)Ljava/lang/Iterable;
+	public final fun fromPlatformNativeBytes (Ljava/util/List;)Ljava/lang/Iterable;
+	public final fun functionBlockDiscovery (BB)Ldev/atsushieno/ktmidi/Ump;
+	public final fun functionBlockInfoNotification (ZBBBBBBBI)Ldev/atsushieno/ktmidi/Ump;
+	public final fun functionBlockNameNotification (BLjava/lang/String;)Ljava/util/List;
+	public final fun jrClock (D)I
+	public final fun jrClock (I)I
+	public final fun jrClock (ID)I
+	public final fun jrClock (II)I
+	public final fun jrTimestamp (D)I
+	public final fun jrTimestamp (I)I
+	public final fun jrTimestamp (ID)I
+	public final fun jrTimestamp (II)I
+	public final fun jrTimestamps (D)Lkotlin/sequences/Sequence;
+	public final fun jrTimestamps (ID)Lkotlin/sequences/Sequence;
+	public final fun jrTimestamps (IJ)Lkotlin/sequences/Sequence;
+	public final fun jrTimestamps (J)Lkotlin/sequences/Sequence;
+	public final fun keySignature (BBBBB)Ldev/atsushieno/ktmidi/Ump;
+	public final fun mds (BLjava/util/List;B)Ljava/util/List;
+	public final fun mds (ILjava/util/List;B)Ljava/util/List;
+	public static synthetic fun mds$default (Ldev/atsushieno/ktmidi/UmpFactory;BLjava/util/List;BILjava/lang/Object;)Ljava/util/List;
+	public static synthetic fun mds$default (Ldev/atsushieno/ktmidi/UmpFactory;ILjava/util/List;BILjava/lang/Object;)Ljava/util/List;
+	public final fun mdsGetChunkCount (I)I
+	public final fun mdsGetHeader (BBIIIIIII)Lkotlin/Pair;
+	public final fun mdsGetPayloadCount (I)I
+	public final fun mdsGetPayloadOf (BBILjava/util/List;I)Lkotlin/Pair;
+	public final fun mdsProcess (BBLjava/util/List;Ljava/lang/Object;Lkotlin/jvm/functions/Function5;)V
+	public static synthetic fun mdsProcess$default (Ldev/atsushieno/ktmidi/UmpFactory;BBLjava/util/List;Ljava/lang/Object;Lkotlin/jvm/functions/Function5;ILjava/lang/Object;)V
+	public final fun metadataText (BBBBLjava/lang/String;)Ljava/util/List;
+	public final fun metadataText (BBBB[B)Ljava/util/List;
+	public final fun metronome (BBBBBBBB)Ldev/atsushieno/ktmidi/Ump;
+	public final fun midi1CAf (IIB)I
+	public final fun midi1CC (IIBB)I
+	public final fun midi1Message (IBIBB)I
+	public final fun midi1NoteOff (IIBB)I
+	public final fun midi1NoteOn (IIBB)I
+	public final fun midi1PAf (IIBB)I
+	public final fun midi1PitchBend (IIS)I
+	public final fun midi1PitchBendDirect (IIS)I
+	public final fun midi1PitchBendSplit (IIBB)I
+	public final fun midi1Program (IIB)I
+	public final fun midi2CAf (IIJ)J
+	public final fun midi2CC (IIIJ)J
+	public final fun midi2ChannelMessage8_8_16_16 (IIIIIII)J
+	public final fun midi2ChannelMessage8_8_32 (IIIIIJ)J
+	public final fun midi2NRPN (IIIIJ)J
+	public final fun midi2NoteOff (IIIBII)J
+	public final fun midi2NoteOn (IIIBII)J
+	public final fun midi2PAf (IIIJ)J
+	public final fun midi2PerNoteACC (IIIIJ)J
+	public final fun midi2PerNoteManagement (IIII)J
+	public final fun midi2PerNotePitchBend (IIIJ)J
+	public final fun midi2PerNotePitchBendDirect (IIIJ)J
+	public final fun midi2PerNoteRCC (IIIIJ)J
+	public final fun midi2PitchBend (IIJ)J
+	public final fun midi2PitchBendDirect (IIJ)J
+	public final fun midi2Program (IIIIII)J
+	public final fun midi2RPN (IIIIJ)J
+	public final fun midi2RelativeNRPN (IIIIJ)J
+	public final fun midi2RelativeRPN (IIIIJ)J
+	public final fun noop ()I
+	public final fun noop (I)I
+	public final fun performanceText (BBBBLjava/lang/String;)Ljava/util/List;
+	public final fun performanceText (BBBB[B)Ljava/util/List;
+	public final fun pitch7_9 (D)I
+	public final fun pitch7_9Split (BD)I
+	public final fun productInstanceNotification (Ljava/lang/String;)Ljava/util/List;
+	public final fun productInstanceNotification ([B)Ljava/util/List;
+	public final fun startOfClip ()Ldev/atsushieno/ktmidi/Ump;
+	public final fun streamConfigNotification (BZZ)Ldev/atsushieno/ktmidi/Ump;
+	public final fun streamConfigRequest (BZZ)Ldev/atsushieno/ktmidi/Ump;
+	public final fun sysex7 (ILjava/util/List;)Ljava/util/List;
+	public final fun sysex7Direct (IBIBBBBBB)J
+	public final fun sysex7GetPacketCount (I)I
+	public final fun sysex7GetPacketOf (IILjava/util/List;I)J
+	public final fun sysex7GetSysexLength (Ljava/util/List;)I
+	public final fun sysex7Process (ILjava/util/List;Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)V
+	public static synthetic fun sysex7Process$default (Ldev/atsushieno/ktmidi/UmpFactory;ILjava/util/List;Ljava/lang/Object;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
+	public final fun sysex8 (ILjava/util/List;B)Ljava/util/List;
+	public static synthetic fun sysex8$default (Ldev/atsushieno/ktmidi/UmpFactory;ILjava/util/List;BILjava/lang/Object;)Ljava/util/List;
+	public final fun sysex8GetPacketCount (I)I
+	public final fun sysex8GetPacketOf (IBILjava/util/List;I)Lkotlin/Pair;
+	public final fun sysex8Process (ILjava/util/List;BLjava/lang/Object;Lkotlin/jvm/functions/Function3;)V
+	public final fun sysex8Process (ILjava/util/List;BLkotlin/jvm/functions/Function3;Ljava/lang/Object;)V
+	public static synthetic fun sysex8Process$default (Ldev/atsushieno/ktmidi/UmpFactory;ILjava/util/List;BLjava/lang/Object;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)V
+	public final fun systemMessage (IBBB)I
+	public final fun tempo (BBI)Ldev/atsushieno/ktmidi/Ump;
+	public final fun timeSignatureDirect-MHIdT_8 (BBBBB)Ldev/atsushieno/ktmidi/Ump;
+	public final fun umpGetNumBytes-WZ4Q5Ns (I)I
+}
+
+public final class dev/atsushieno/ktmidi/UmpFactoryKt {
+	public static final field JR_TIMESTAMP_TICKS_PER_SECOND I
+	public static final field MIDI_2_0_RESERVED B
+}
+
+public final class dev/atsushieno/ktmidi/UmpRetrievalKt {
+	public static final fun getChannelInGroup (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getChordNameAlter1 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getChordNameAlter2 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getChordNameAlter3 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getChordNameAlter4 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getChordNameBassAlter1 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getChordNameBassAlter2 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getChordNameBassChordType (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getChordNameBassNote (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getChordNameBassSharpsFlats (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getChordNameChordTonic (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getChordNameChordType (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getChordNameSharpsFlats (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getDctpq (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getDeltaClockstamp (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getDeviceIdentificationFamily (Ldev/atsushieno/ktmidi/Ump;)S
+	public static final fun getDeviceIdentificationManufacturer (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getDeviceIdentificationModelNumber (Ldev/atsushieno/ktmidi/Ump;)S
+	public static final fun getDeviceIdentificationSoftwareRevisionLevel (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getEndpointDiscoveryFilterBitmap (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getEndpointDiscoveryUmpVersionMajor (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getEndpointDiscoveryUmpVersionMinor (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getEndpointInfoFunctionBlockCount (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getEndpointInfoMidi1Capable (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun getEndpointInfoMidi2Capable (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun getEndpointInfoStaticFunctionBlocks (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun getEndpointInfoSupportsRxJR (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun getEndpointInfoSupportsTxJR (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun getEndpointInfoUmpVersionMajor (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getEndpointInfoUmpVersionMinor (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFlexDataFormat (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFlexDataStatus (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getFlexDataStatusBank (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getFunctionBlockActive (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun getFunctionBlockCIVersion (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFunctionBlockCount (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFunctionBlockDirection (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFunctionBlockDiscoveryFilter (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFunctionBlockFirstGroup (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFunctionBlockGroupCount (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFunctionBlockMaxSysEx8 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFunctionBlockMidi1Port (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFunctionBlockUiHint (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getGroup (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getGroupAndChannel (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getGroupByte (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getJrClock (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getJrTimestamp (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getKeySignatureSharpsFlats (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getKeySignatureTonicNote (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getMdsChunkByteSize (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMdsChunkCount (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMdsChunkIndex (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMdsDeviceId (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMdsId (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMdsManufacturerId (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMdsSubId1 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMdsSubId2 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMessageType (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMetronomeBarAccent1 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMetronomeBarAccent2 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMetronomeBarAccent3 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMetronomeClocksPerPrimaryClick (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMetronomeSubDivisionClick1 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMetronomeSubDivisionClick2 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi1CAf (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi1CCData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi1CCIndex (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi1Lsb (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi1Msb (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi1Note (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi1PAfData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi1PitchBendData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi1Program (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi1Velocity (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2CAfData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2CCData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2CCIndex (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2Note (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2NoteAttributeData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2NoteAttributeType (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2NrpnData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2NrpnLsb (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2NrpnMsb (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2PAfData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2PerNoteACCData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2PerNoteACCIndex (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2PerNoteManagementOptions (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2PerNoteRCCData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2PerNoteRCCIndex (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2PitchBendData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2ProgramBankLsb (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2ProgramBankMsb (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2ProgramOptions (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2ProgramProgram (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2RpnData (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2RpnLsb (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2RpnMsb (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getMidi2Velocity16 (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getSizeInBytes (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getSizeInInts (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getStatusByte (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getStatusCode (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getStreamConfigProtocol (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getStreamConfigSupportsRxJR (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun getStreamConfigSupportsTxJR (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun getSysex7Size (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getSysex8Size (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getSysex8StreamId (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getTempo (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getTimeSignatureDenominator (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getTimeSignatureNumberOf32thNotes (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getTimeSignatureNumerator (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getUmpStreamFormat (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun isChordName (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isDCTPQ (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isDeltaClockstamp (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isEndOfClip (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isFlexData (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isJRClock (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isJRTimestamp (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isKeySignature (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isMetronome (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isStartOfClip (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isTempo (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isTimeSignature (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun isUmpStream (Ldev/atsushieno/ktmidi/Ump;)Z
+	public static final fun toInts (Ldev/atsushieno/ktmidi/Ump;)Ljava/util/List;
+	public static final fun toPlatformBytes (Ldev/atsushieno/ktmidi/Ump;Ldev/atsushieno/ktmidi/ByteOrder;)[B
+	public static final fun toPlatformBytes (Ldev/atsushieno/ktmidi/Ump;[BI)V
+	public static final fun toPlatformBytes (Ldev/atsushieno/ktmidi/Ump;[BILdev/atsushieno/ktmidi/ByteOrder;)V
+	public static final fun toPlatformNativeBytes (Ldev/atsushieno/ktmidi/Ump;)[B
+}
+
+public final class dev/atsushieno/ktmidi/UmpRetriever {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/UmpRetriever;
+	public final fun getEndpointName (Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)Ljava/lang/String;
+	public static synthetic fun getEndpointName$default (Ldev/atsushieno/ktmidi/UmpRetriever;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun getEndpointNameBytes (Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)Ljava/util/List;
+	public static synthetic fun getEndpointNameBytes$default (Ldev/atsushieno/ktmidi/UmpRetriever;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)Ljava/util/List;
+	public final fun getFlexDataText (Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)Ljava/lang/String;
+	public static synthetic fun getFlexDataText$default (Ldev/atsushieno/ktmidi/UmpRetriever;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun getFlexDataTextBytes (Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)Ljava/util/List;
+	public final fun getFlexDataTextBytes (Lkotlin/jvm/functions/Function1;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)V
+	public static synthetic fun getFlexDataTextBytes$default (Ldev/atsushieno/ktmidi/UmpRetriever;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)Ljava/util/List;
+	public static synthetic fun getFlexDataTextBytes$default (Ldev/atsushieno/ktmidi/UmpRetriever;Lkotlin/jvm/functions/Function1;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)V
+	public final fun getFunctionBlockName (Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)Ljava/lang/String;
+	public static synthetic fun getFunctionBlockName$default (Ldev/atsushieno/ktmidi/UmpRetriever;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun getFunctionBlockNameBytes (Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)Ljava/util/List;
+	public static synthetic fun getFunctionBlockNameBytes$default (Ldev/atsushieno/ktmidi/UmpRetriever;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)Ljava/util/List;
+	public final fun getProductInstanceId (Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)Ljava/lang/String;
+	public static synthetic fun getProductInstanceId$default (Ldev/atsushieno/ktmidi/UmpRetriever;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun getProductInstanceIdBytes (Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)Ljava/util/List;
+	public static synthetic fun getProductInstanceIdBytes$default (Ldev/atsushieno/ktmidi/UmpRetriever;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)Ljava/util/List;
+	public final fun getSysex7Data (Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)Ljava/util/List;
+	public final fun getSysex7Data (Lkotlin/jvm/functions/Function1;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)V
+	public static synthetic fun getSysex7Data$default (Ldev/atsushieno/ktmidi/UmpRetriever;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)Ljava/util/List;
+	public static synthetic fun getSysex7Data$default (Ldev/atsushieno/ktmidi/UmpRetriever;Lkotlin/jvm/functions/Function1;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)V
+	public final fun getSysex8Data (Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)Ljava/util/List;
+	public final fun getSysex8Data (Lkotlin/jvm/functions/Function1;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;)V
+	public static synthetic fun getSysex8Data$default (Ldev/atsushieno/ktmidi/UmpRetriever;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)Ljava/util/List;
+	public static synthetic fun getSysex8Data$default (Ldev/atsushieno/ktmidi/UmpRetriever;Lkotlin/jvm/functions/Function1;Ljava/util/Iterator;Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;ILjava/lang/Object;)V
+}
+
+public final class dev/atsushieno/ktmidi/UmpStreamStatus {
+	public static final field DEVICE_IDENTITY_NOTIFICATION B
+	public static final field ENDPOINT_DISCOVERY B
+	public static final field ENDPOINT_INFO_NOTIFICATION B
+	public static final field ENDPOINT_NAME_NOTIFICATION B
+	public static final field END_OF_CLIP B
+	public static final field FUNCTION_BLOCK_DISCOVERY B
+	public static final field FUNCTION_BLOCK_INFO_NOTIFICATION B
+	public static final field FUNCTION_BLOCK_NAME_NOTIFICATION B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/UmpStreamStatus;
+	public static final field PRODUCT_INSTANCE_ID_NOTIFICATION B
+	public static final field START_OF_CLIP B
+	public static final field STREAM_CONFIGURATION B
+	public static final field STREAM_CONFIGURATION_NOTIFICATION B
+}
+
+public final class dev/atsushieno/ktmidi/UmpToMidi1BytesTranslatorContext {
+	public fun <init> ()V
+	public fun <init> (IZZ)V
+	public synthetic fun <init> (IZZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getDeltaTimeMasterClock ()I
+	public final fun getSkipDeltaTime ()Z
+	public final fun getTreatJRTimestampAsSmfDeltaTime ()Z
+}
+
+public final class dev/atsushieno/ktmidi/UmpTranslationResult {
+	public static final field INCOMPLETE_SYSEX7 I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/UmpTranslationResult;
+	public static final field INVALID_DTE_SEQUENCE I
+	public static final field INVALID_STATUS I
+	public static final field INVALID_SYSEX I
+	public static final field OK I
+}
+
+public final class dev/atsushieno/ktmidi/UmpTranslator {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/UmpTranslator;
+	public final fun translateMidi1BytesToUmp (Ldev/atsushieno/ktmidi/Midi1ToUmpTranslatorContext;)I
+	public final fun translateSingleUmpToMidi1Bytes (Ljava/util/List;Ldev/atsushieno/ktmidi/Ump;ILjava/lang/Integer;Ljava/util/List;)I
+	public static synthetic fun translateSingleUmpToMidi1Bytes$default (Ldev/atsushieno/ktmidi/UmpTranslator;Ljava/util/List;Ldev/atsushieno/ktmidi/Ump;ILjava/lang/Integer;Ljava/util/List;ILjava/lang/Object;)I
+	public final fun translateUmpToMidi1Bytes (Ljava/util/List;Lkotlin/sequences/Sequence;Ldev/atsushieno/ktmidi/UmpToMidi1BytesTranslatorContext;)I
+	public static synthetic fun translateUmpToMidi1Bytes$default (Ldev/atsushieno/ktmidi/UmpTranslator;Ljava/util/List;Lkotlin/sequences/Sequence;Ldev/atsushieno/ktmidi/UmpToMidi1BytesTranslatorContext;ILjava/lang/Object;)I
+}
+
+public final class dev/atsushieno/ktmidi/UtilityKt {
+	public static final fun toUtf8ByteArray (Ljava/lang/String;)[B
+}
+
+public class dev/atsushieno/ktmidi/VirtualMidiPlayerTimer : dev/atsushieno/ktmidi/MidiPlayerTimer {
+	public fun <init> ()V
+	public final fun getTotalProceededSeconds ()D
+	public final fun getTotalWaitedSeconds ()D
+	public fun proceedBySeconds (D)V
+	public final fun setTotalProceededSeconds (D)V
+	public final fun setTotalWaitedSeconds (D)V
+	public fun stop ()V
+	public fun waitBySeconds (DLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/atsushieno/ktmidi/WellKnownNames {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/WellKnownNames;
+	public final fun getCcFullNames ()Ljava/util/Map;
+	public final fun getCcNames ()Ljava/util/Map;
+}
+

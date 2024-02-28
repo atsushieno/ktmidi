@@ -6,7 +6,7 @@ plugins {
     alias(libs.plugins.kotlinJvm) apply false
     alias(libs.plugins.dokka) apply false
     alias(libs.plugins.gradleJavacppPlatform) apply false
-    alias(libs.plugins.metalavaPlugin) apply false
+    alias(libs.plugins.binaryCompatibilityValidatorPlugin) apply false
 }
 
 allprojects {

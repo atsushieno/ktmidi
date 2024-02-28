@@ -1,0 +1,1597 @@
+public final class dev/atsushieno/ktmidi/ci/CIFactory {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/CIFactory;
+	public final fun midiCI32to28 (I)I
+	public final fun midiCI7bitInt14At (Ljava/util/List;IS)V
+	public final fun midiCI7bitInt21At (Ljava/util/List;II)V
+	public final fun midiCI7bitInt28At (Ljava/util/List;II)V
+	public final fun midiCIAckNak (Ljava/util/List;ZBBIIBBBLjava/util/List;Ljava/util/List;)Ljava/util/List;
+	public final fun midiCIDiscovery (Ljava/util/List;BIISSIBIB)Ljava/util/List;
+	public final fun midiCIDiscoveryCommon (Ljava/util/List;BBIIISSIBIB)V
+	public final fun midiCIDiscoveryNak (Ljava/util/List;BBII)Ljava/util/List;
+	public final fun midiCIDiscoveryReply (Ljava/util/List;BIIISSIBIBB)Ljava/util/List;
+	public final fun midiCIEndOfMidiMessage (Ljava/util/List;BII)Ljava/util/List;
+	public final fun midiCIEndpointMessage (Ljava/util/List;BIIB)Ljava/util/List;
+	public final fun midiCIEndpointMessageReply (Ljava/util/List;BIIBLjava/util/List;)Ljava/util/List;
+	public final fun midiCIInvalidateMuid (Ljava/util/List;BII)Ljava/util/List;
+	public final fun midiCIMessageCommon (Ljava/util/List;BBBII)V
+	public final fun midiCIMidiMessageReport (Ljava/util/List;BIIBBBB)Ljava/util/List;
+	public final fun midiCIMidiMessageReportReply (Ljava/util/List;BIIBBB)Ljava/util/List;
+	public final fun midiCIProcessInquiryCapabilities (Ljava/util/List;II)Ljava/util/List;
+	public final fun midiCIProcessInquiryCapabilitiesReply (Ljava/util/List;IIB)Ljava/util/List;
+	public final fun midiCIProfile (Ljava/util/List;ILdev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
+	public final fun midiCIProfileAddedRemoved (Ljava/util/List;BZILdev/atsushieno/ktmidi/ci/MidiCIProfileId;)Ljava/util/List;
+	public final fun midiCIProfileDetails (Ljava/util/List;BIILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)Ljava/util/List;
+	public final fun midiCIProfileDetailsReply (Ljava/util/List;BIILdev/atsushieno/ktmidi/ci/MidiCIProfileId;BLjava/util/List;)Ljava/util/List;
+	public final fun midiCIProfileInquiry (Ljava/util/List;BII)Ljava/util/List;
+	public final fun midiCIProfileInquiryReply (Ljava/util/List;BIILjava/util/List;Ljava/util/List;)Ljava/util/List;
+	public final fun midiCIProfileReport (Ljava/util/List;BZILdev/atsushieno/ktmidi/ci/MidiCIProfileId;S)Ljava/util/List;
+	public final fun midiCIProfileSet (Ljava/util/List;BZIILdev/atsushieno/ktmidi/ci/MidiCIProfileId;S)Ljava/util/List;
+	public final fun midiCIProfileSpecificData (Ljava/util/List;BIILdev/atsushieno/ktmidi/ci/MidiCIProfileId;Ljava/util/List;)Ljava/util/List;
+	public final fun midiCIPropertyChunks (Ljava/util/List;IBIIBLjava/util/List;Ljava/util/List;)Ljava/util/List;
+	public final fun midiCIPropertyCommon (Ljava/util/List;BBIIBLjava/util/List;SSLjava/util/List;)V
+	public final fun midiCIPropertyGetCapabilities (Ljava/util/List;BZIIB)Ljava/util/List;
+	public final fun midiCiDirectInt16At (Ljava/util/List;IS)V
+	public final fun midiCiDirectUint32At (Ljava/util/List;II)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/CINakStatus {
+	public static final field CIVersionNotSupported B
+	public static final field ErrorRetrySuggested B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/CINakStatus;
+	public static final field MalformedMessage B
+	public static final field MessageNotSupported B
+	public static final field Nak B
+	public static final field ProfileNotSupportedOnTarget B
+	public static final field PropertyExchangeChunksAreOutOfSequence B
+	public static final field TargetNotInUse B
+	public static final field TerminateInquiry B
+	public static final field Timeout B
+	public static final field TimeoutRetrySuggested I
+}
+
+public final class dev/atsushieno/ktmidi/ci/CIRetrieval {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/CIRetrieval;
+	public final fun midiCIGetAddressing (Ljava/util/List;)B
+	public final fun midiCIGetDestinationMUID (Ljava/util/List;)I
+	public final fun midiCIGetDeviceDetails (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/DeviceDetails;
+	public final fun midiCIGetMUIDToInvalidate (Ljava/util/List;)I
+	public final fun midiCIGetMaxPropertyRequests (Ljava/util/List;)B
+	public final fun midiCIGetProfileEnabledChannels (Ljava/util/List;)I
+	public final fun midiCIGetProfileId (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public final fun midiCIGetProfileSet (Ljava/util/List;)Ljava/util/List;
+	public final fun midiCIGetProfileSpecificDataSize (Ljava/util/List;)I
+	public final fun midiCIGetPropertyBodyInThisChunk (Ljava/util/List;)Ljava/util/List;
+	public final fun midiCIGetPropertyChunkIndex (Ljava/util/List;)S
+	public final fun midiCIGetPropertyHeader (Ljava/util/List;)Ljava/util/List;
+	public final fun midiCIGetPropertyTotalChunks (Ljava/util/List;)S
+	public final fun midiCIGetSourceMUID (Ljava/util/List;)I
+	public final fun midiCIMaxSysExSize (Ljava/util/List;)I
+}
+
+public final class dev/atsushieno/ktmidi/ci/CISubId2 {
+	public static final field ACK B
+	public static final field CONFIRM_NEW_PROTOCOL_ESTABLISHED B
+	public static final field DISCOVERY_INQUIRY B
+	public static final field DISCOVERY_REPLY B
+	public static final field ENDPOINT_MESSAGE_INQUIRY B
+	public static final field ENDPOINT_MESSAGE_REPLY B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/CISubId2;
+	public static final field INVALIDATE_MUID B
+	public static final field NAK B
+	public static final field PROCESS_INQUIRY_CAPABILITIES B
+	public static final field PROCESS_INQUIRY_CAPABILITIES_REPLY B
+	public static final field PROCESS_INQUIRY_END_OF_MIDI_MESSAGE B
+	public static final field PROCESS_INQUIRY_MIDI_MESSAGE_REPORT B
+	public static final field PROCESS_INQUIRY_MIDI_MESSAGE_REPORT_REPLY B
+	public static final field PROFILE_ADDED_REPORT B
+	public static final field PROFILE_DETAILS_INQUIRY B
+	public static final field PROFILE_DETAILS_REPLY B
+	public static final field PROFILE_DISABLED_REPORT B
+	public static final field PROFILE_ENABLED_REPORT B
+	public static final field PROFILE_INQUIRY B
+	public static final field PROFILE_INQUIRY_REPLY B
+	public static final field PROFILE_REMOVED_REPORT B
+	public static final field PROFILE_SPECIFIC_DATA B
+	public static final field PROPERTY_CAPABILITIES_INQUIRY B
+	public static final field PROPERTY_CAPABILITIES_REPLY B
+	public static final field PROPERTY_GET_DATA_INQUIRY B
+	public static final field PROPERTY_GET_DATA_REPLY B
+	public static final field PROPERTY_HAS_DATA_INQUIRY B
+	public static final field PROPERTY_HAS_DATA_REPLY B
+	public static final field PROPERTY_NOTIFY B
+	public static final field PROPERTY_SET_DATA_INQUIRY B
+	public static final field PROPERTY_SET_DATA_REPLY B
+	public static final field PROPERTY_SUBSCRIBE B
+	public static final field PROPERTY_SUBSCRIBE_REPLY B
+	public static final field PROTOCOL_NEGOTIATION_INQUIRY B
+	public static final field PROTOCOL_NEGOTIATION_REPLY B
+	public static final field SET_NEW_PROTOCOL B
+	public static final field SET_PROFILE_OFF B
+	public static final field SET_PROFILE_ON B
+	public static final field TEST_NEW_PROTOCOL_I2R B
+	public static final field TEST_NEW_PROTOCOL_R2I B
+}
+
+public final class dev/atsushieno/ktmidi/ci/ClientConnection {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator;ILdev/atsushieno/ktmidi/ci/DeviceDetails;BLjava/lang/String;Ldev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules;)V
+	public synthetic fun <init> (Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator;ILdev/atsushieno/ktmidi/ci/DeviceDetails;BLjava/lang/String;Ldev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun addPendingRequest (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)V
+	public final fun addPendingSubscription (BLjava/lang/String;Ljava/lang/String;)V
+	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/DeviceDetails;
+	public final fun getMaxSimultaneousPropertyRequests ()B
+	public final fun getPendingChunkManager ()Ldev/atsushieno/ktmidi/ci/PropertyChunkManager;
+	public final fun getProductInstanceId ()Ljava/lang/String;
+	public final fun getProfileClient ()Ldev/atsushieno/ktmidi/ci/ClientConnection$ProfileClient;
+	public final fun getProperties ()Ldev/atsushieno/ktmidi/ci/ClientObservablePropertyList;
+	public final fun getPropertyClient ()Ldev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules;
+	public final fun getSubscriptionUpdated ()Ljava/util/List;
+	public final fun getSubscriptions ()Ljava/util/List;
+	public final fun getTargetMUID ()I
+	public final fun processPropertySubscriptionReply (Ldev/atsushieno/ktmidi/ci/Message$SubscribePropertyReply;)V
+	public final fun promoteSubscriptionAsUnsubscribing (Ljava/lang/String;B)V
+	public final fun setMaxSimultaneousPropertyRequests (B)V
+	public final fun setProductInstanceId (Ljava/lang/String;)V
+	public final fun updateProperty (ILdev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Lkotlin/Pair;
+	public final fun updateProperty (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyDataReply;)Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/ClientConnection$ProfileClient {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/ClientConnection;)V
+	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/MidiCIDevice;
+	public final fun getProfiles ()Ldev/atsushieno/ktmidi/ci/ObservableProfileList;
+	public final fun processProfileAddedReport (Ldev/atsushieno/ktmidi/ci/Message$ProfileAdded;)V
+	public final fun processProfileDetailsReply (Ldev/atsushieno/ktmidi/ci/Message$ProfileDetailsReply;)V
+	public final fun processProfileDisabledReport (Ldev/atsushieno/ktmidi/ci/Message$ProfileDisabled;)V
+	public final fun processProfileEnabledReport (Ldev/atsushieno/ktmidi/ci/Message$ProfileEnabled;)V
+	public final fun processProfileRemovedReport (Ldev/atsushieno/ktmidi/ci/Message$ProfileRemoved;)V
+	public final fun processProfileReply (Ldev/atsushieno/ktmidi/ci/Message$ProfileReply;)V
+	public final fun setProfile (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;ZS)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/ClientObservablePropertyList : dev/atsushieno/ktmidi/ci/ObservablePropertyList {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;Ldev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules;)V
+	public fun getInternalCatalogUpdated ()Ljava/util/List;
+	public fun getMetadataList ()Ljava/util/List;
+	public final fun updateValue (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Ljava/lang/String;
+	public final fun updateValue (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/Message$GetPropertyDataReply;)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/ConnectionChange : java/lang/Enum {
+	public static final field Added Ldev/atsushieno/ktmidi/ci/ConnectionChange;
+	public static final field Removed Ldev/atsushieno/ktmidi/ci/ConnectionChange;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/ConnectionChange;
+	public static fun values ()[Ldev/atsushieno/ktmidi/ci/ConnectionChange;
+}
+
+public final class dev/atsushieno/ktmidi/ci/DeviceDetails {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/DeviceDetails$Companion;
+	public fun <init> ()V
+	public fun <init> (ISSI)V
+	public synthetic fun <init> (ISSIILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()S
+	public final fun component3 ()S
+	public final fun component4 ()I
+	public final fun copy (ISSI)Ldev/atsushieno/ktmidi/ci/DeviceDetails;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/DeviceDetails;ISSIILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/DeviceDetails;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFamily ()S
+	public final fun getManufacturer ()I
+	public final fun getModelNumber ()S
+	public final fun getSoftwareRevisionLevel ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/DeviceDetails$Companion {
+	public final fun getEmpty ()Ldev/atsushieno/ktmidi/ci/DeviceDetails;
+}
+
+public final class dev/atsushieno/ktmidi/ci/ImplementationSettings {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/ImplementationSettings;
+	public final fun getWorkaroundJUCEMissingSubscriptionIdIssue ()Z
+	public final fun getWorkaroundJUCEProfileNumChannelsIssue ()Z
+	public final fun setWorkaroundJUCEMissingSubscriptionIdIssue (Z)V
+	public final fun setWorkaroundJUCEProfileNumChannelsIssue (Z)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/LogEntry {
+	public fun <init> (Lkotlinx/datetime/LocalDateTime;Ldev/atsushieno/ktmidi/ci/MessageDirection;Ljava/lang/Object;)V
+	public final fun component1 ()Lkotlinx/datetime/LocalDateTime;
+	public final fun component2 ()Ldev/atsushieno/ktmidi/ci/MessageDirection;
+	public final fun component3 ()Ljava/lang/Object;
+	public final fun copy (Lkotlinx/datetime/LocalDateTime;Ldev/atsushieno/ktmidi/ci/MessageDirection;Ljava/lang/Object;)Ldev/atsushieno/ktmidi/ci/LogEntry;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/LogEntry;Lkotlinx/datetime/LocalDateTime;Ldev/atsushieno/ktmidi/ci/MessageDirection;Ljava/lang/Object;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/LogEntry;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()Ljava/lang/Object;
+	public final fun getDirection ()Ldev/atsushieno/ktmidi/ci/MessageDirection;
+	public final fun getTimestamp ()Lkotlinx/datetime/LocalDateTime;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Logger {
+	public fun <init> ()V
+	public final fun getLogEventReceived ()Ljava/util/List;
+	public final fun logError (Ljava/lang/String;)V
+	public final fun logMessage (Ljava/lang/Object;Ldev/atsushieno/ktmidi/ci/MessageDirection;)V
+	public final fun nak (Ldev/atsushieno/ktmidi/ci/Message$Common;Ljava/util/List;Ldev/atsushieno/ktmidi/ci/MessageDirection;)V
+}
+
+public abstract class dev/atsushieno/ktmidi/ci/Message {
+	public static final field COMMON_HEADER_SIZE I
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/Message$Companion;
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;)V
+	public final fun getAddress ()B
+	public abstract fun getBodyString ()Ljava/lang/String;
+	public final fun getCommon ()Ldev/atsushieno/ktmidi/ci/Message$Common;
+	public final fun getDestinationMUID ()I
+	public final fun getGroup ()B
+	public abstract fun getLabel ()Ljava/lang/String;
+	public final fun getSourceMUID ()I
+	public abstract fun serializeMulti (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Lkotlin/sequences/Sequence;
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$Common {
+	public fun <init> (IIBB)V
+	public synthetic fun <init> (IIBBILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()I
+	public final fun component3 ()B
+	public final fun component4 ()B
+	public final fun copy (IIBB)Ldev/atsushieno/ktmidi/ci/Message$Common;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/Message$Common;IIBBILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/Message$Common;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getAddress ()B
+	public final fun getDestinationMUID ()I
+	public final fun getGroup ()B
+	public final fun getSourceMUID ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$Companion {
+	public final fun getAddressString (B)Ljava/lang/String;
+	public final fun getBodyString (Ljava/util/List;)Ljava/lang/String;
+	public final fun getDataString (Ljava/util/List;)Ljava/lang/String;
+	public final fun getDynamicallySizedMessageSubId2s ()Ljava/util/List;
+	public final fun getGroupString (B)Ljava/lang/String;
+	public final fun getHeaderString (Ljava/util/List;)Ljava/lang/String;
+	public final fun getMessageSizes ()Ljava/util/Map;
+	public final fun getMuidString (I)Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$DiscoveryInquiry : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ldev/atsushieno/ktmidi/ci/DeviceDetails;BIB)V
+	public fun getBodyString ()Ljava/lang/String;
+	public final fun getCiCategorySupported ()B
+	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/DeviceDetails;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getOutputPathId ()B
+	public final fun getReceivableMaxSysExSize ()I
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$DiscoveryReply : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ldev/atsushieno/ktmidi/ci/DeviceDetails;BIBB)V
+	public fun getBodyString ()Ljava/lang/String;
+	public final fun getCiCategorySupported ()B
+	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/DeviceDetails;
+	public final fun getFunctionBlock ()B
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getOutputPathId ()B
+	public final fun getReceivableMaxSysExSize ()I
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$EndpointInquiry : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;B)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getStatus ()B
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$EndpointReply : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BLjava/util/List;)V
+	public fun getBodyString ()Ljava/lang/String;
+	public final fun getData ()Ljava/util/List;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getStatus ()B
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$GetPropertyData : dev/atsushieno/ktmidi/ci/Message$PropertyMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BLjava/util/List;)V
+	public fun getLabel ()Ljava/lang/String;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$GetPropertyDataReply : dev/atsushieno/ktmidi/ci/Message$PropertyMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BLjava/util/List;Ljava/util/List;)V
+	public fun getLabel ()Ljava/lang/String;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$InvalidateMUID : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;I)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getTargetMUID ()I
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BBBB)V
+	public fun getBodyString ()Ljava/lang/String;
+	public final fun getChannelControllerMessages ()B
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getMessageDataControl ()B
+	public final fun getNoteDataMessages ()B
+	public final fun getSystemMessages ()B
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$MidiMessageReportNotifyEnd : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$MidiMessageReportReply : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BBB)V
+	public fun getBodyString ()Ljava/lang/String;
+	public final fun getChannelControllerMessages ()B
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getNoteDataMessages ()B
+	public final fun getSystemMessages ()B
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$Nak : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BBBLjava/util/List;Ljava/util/List;)V
+	public fun getBodyString ()Ljava/lang/String;
+	public final fun getDetails ()Ljava/util/List;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getMessage ()Ljava/util/List;
+	public final fun getOriginalSubId ()B
+	public final fun getStatusCode ()B
+	public final fun getStatusData ()B
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$ProcessInquiryCapabilities : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$ProcessInquiryCapabilitiesReply : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;B)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getSupportedFeatures ()B
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$ProfileAdded : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getProfile ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$ProfileDetailsInquiry : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getProfile ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public final fun getTarget ()B
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$ProfileDetailsReply : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;BLjava/util/List;)V
+	public fun getBodyString ()Ljava/lang/String;
+	public final fun getData ()Ljava/util/List;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getProfile ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public final fun getTarget ()B
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$ProfileDisabled : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;S)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getNumChannelsDisabled ()S
+	public final fun getProfile ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$ProfileEnabled : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;S)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getNumChannelsEnabled ()S
+	public final fun getProfile ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$ProfileInquiry : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$ProfileRemoved : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getProfile ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$ProfileReply : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ljava/util/List;Ljava/util/List;)V
+	public fun getBodyString ()Ljava/lang/String;
+	public final fun getDisabledProfiles ()Ljava/util/List;
+	public final fun getEnabledProfiles ()Ljava/util/List;
+	public fun getLabel ()Ljava/lang/String;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$ProfileSpecificData : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;Ljava/util/List;)V
+	public fun getBodyString ()Ljava/lang/String;
+	public final fun getData ()Ljava/util/List;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getProfile ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$PropertyGetCapabilities : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;B)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getMaxSimultaneousRequests ()B
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$PropertyGetCapabilitiesReply : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;B)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getMaxSimultaneousRequests ()B
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public abstract class dev/atsushieno/ktmidi/ci/Message$PropertyMessage : dev/atsushieno/ktmidi/ci/Message {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BLjava/util/List;Ljava/util/List;)V
+	public final fun getBody ()Ljava/util/List;
+	public fun getBodyString ()Ljava/lang/String;
+	public final fun getHeader ()Ljava/util/List;
+	public final fun getRequestId ()B
+	public abstract fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Lkotlin/sequences/Sequence;
+	public fun serializeMulti (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$PropertyNotify : dev/atsushieno/ktmidi/ci/Message$PropertyMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BLjava/util/List;Ljava/util/List;)V
+	public fun getLabel ()Ljava/lang/String;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$SetProfileOff : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getProfile ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$SetProfileOn : dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;S)V
+	public fun getBodyString ()Ljava/lang/String;
+	public fun getLabel ()Ljava/lang/String;
+	public final fun getNumChannelsRequested ()S
+	public final fun getProfile ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$SetPropertyData : dev/atsushieno/ktmidi/ci/Message$PropertyMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BLjava/util/List;Ljava/util/List;)V
+	public fun getLabel ()Ljava/lang/String;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$SetPropertyDataReply : dev/atsushieno/ktmidi/ci/Message$PropertyMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BLjava/util/List;)V
+	public fun getLabel ()Ljava/lang/String;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Lkotlin/sequences/Sequence;
+}
+
+public abstract class dev/atsushieno/ktmidi/ci/Message$SinglePacketMessage : dev/atsushieno/ktmidi/ci/Message {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;)V
+	public abstract fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Ljava/util/List;
+	public fun serializeMulti (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$SubscribeProperty : dev/atsushieno/ktmidi/ci/Message$PropertyMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BLjava/util/List;Ljava/util/List;)V
+	public fun getLabel ()Ljava/lang/String;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/ci/Message$SubscribePropertyReply : dev/atsushieno/ktmidi/ci/Message$PropertyMessage {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Message$Common;BLjava/util/List;Ljava/util/List;)V
+	public fun getLabel ()Ljava/lang/String;
+	public fun serialize (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MessageDirection : java/lang/Enum {
+	public static final field In Ldev/atsushieno/ktmidi/ci/MessageDirection;
+	public static final field None Ldev/atsushieno/ktmidi/ci/MessageDirection;
+	public static final field Out Ldev/atsushieno/ktmidi/ci/MessageDirection;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/MessageDirection;
+	public static fun values ()[Ldev/atsushieno/ktmidi/ci/MessageDirection;
+}
+
+public abstract interface class dev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules {
+	public abstract fun createDataRequestHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
+	public abstract fun createStatusHeader (I)Ljava/util/List;
+	public abstract fun createSubscriptionHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
+	public abstract fun decodeBody (Ljava/util/List;Ljava/util/List;)Ljava/util/List;
+	public abstract fun encodeBody (Ljava/util/List;Ljava/lang/String;)Ljava/util/List;
+	public abstract fun getHeaderFieldBoolean (Ljava/util/List;Ljava/lang/String;)Z
+	public abstract fun getHeaderFieldInteger (Ljava/util/List;Ljava/lang/String;)Ljava/lang/Integer;
+	public abstract fun getHeaderFieldString (Ljava/util/List;Ljava/lang/String;)Ljava/lang/String;
+	public abstract fun getMetadataList ()Ljava/util/List;
+	public abstract fun getPropertyCatalogUpdated ()Ljava/util/List;
+	public abstract fun getPropertyIdForHeader (Ljava/util/List;)Ljava/lang/String;
+	public abstract fun getPropertyListRequest (BIB)Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;
+	public abstract fun getSubscribedProperty (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Ljava/lang/String;
+	public abstract fun getUpdatedValue (Ldev/atsushieno/ktmidi/ci/PropertyValue;ZLjava/lang/String;Ljava/util/List;)Lkotlin/Pair;
+	public abstract fun onGetPropertyDataReply (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;Ldev/atsushieno/ktmidi/ci/Message$GetPropertyDataReply;)V
+	public abstract fun processPropertySubscriptionResult (Ljava/lang/Object;Ldev/atsushieno/ktmidi/ci/Message$SubscribePropertyReply;)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIConstants {
+	public static final field ADDRESS_FUNCTION_BLOCK B
+	public static final field ADDRESS_GROUP B
+	public static final field BROADCAST_MUID_28 I
+	public static final field BROADCAST_MUID_32 I
+	public static final field CI_VERSION_AND_FORMAT B
+	public static final field DEFAULT_MAX_PROPERTY_CHUNK_SIZE I
+	public static final field DEFAULT_MAX_SIMULTANEOUS_PROPERTY_REQUESTS B
+	public static final field DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE I
+	public static final field ENDPOINT_STATUS_PRODUCT_INSTANCE_ID B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIConstants;
+	public static final field NO_FUNCTION_BLOCK B
+	public static final field PROPERTY_EXCHANGE_MAJOR_VERSION B
+	public static final field PROPERTY_EXCHANGE_MINOR_VERSION B
+	public static final field STANDARD_DEFINED_PROFILE B
+	public static final field SYSEX_SUB_ID_MIDI_CI B
+	public static final field UNIVERSAL_SYSEX B
+	public static final field WHOLE_FUNCTION_BLOCK B
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIConverter {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIConverter;
+	public final fun decodeASCIIToString (Ljava/lang/String;)Ljava/lang/String;
+	public final fun encodeStringToASCII (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
+	public fun <init> (ILdev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)V
+	public final fun defaultProcessEndpointReply (Ldev/atsushieno/ktmidi/ci/Message$EndpointReply;)V
+	public final fun defaultProcessInvalidateMUID (Ldev/atsushieno/ktmidi/ci/Message$InvalidateMUID;)V
+	public final fun defaultProcessMidiMessageReport (Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry;)V
+	public final fun defaultProcessProfileDetailsInquiry (Ldev/atsushieno/ktmidi/ci/Message$ProfileDetailsInquiry;)V
+	public final fun defaultProcessSetProfileOff (Ldev/atsushieno/ktmidi/ci/Message$SetProfileOff;)V
+	public final fun defaultProcessSetProfileOn (Ldev/atsushieno/ktmidi/ci/Message$SetProfileOn;)V
+	public final fun getConfig ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;
+	public final fun getConnections ()Ljava/util/Map;
+	public final fun getConnectionsChanged ()Ljava/util/List;
+	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public final fun getDiscoveryReplyForInquiry (Ldev/atsushieno/ktmidi/ci/Message$DiscoveryInquiry;)Ldev/atsushieno/ktmidi/ci/Message$DiscoveryReply;
+	public final fun getEndOfMidiMessageReportFor (Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry;)Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportNotifyEnd;
+	public final fun getEndpointReplyForInquiry (Ldev/atsushieno/ktmidi/ci/Message$EndpointInquiry;)Ldev/atsushieno/ktmidi/ci/Message$EndpointReply;
+	public final fun getInitiator ()Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator;
+	public final fun getLocalProfiles ()Ldev/atsushieno/ktmidi/ci/ObservableProfileList;
+	public final fun getLogger ()Ldev/atsushieno/ktmidi/ci/Logger;
+	public final fun getMessageReceived ()Ljava/util/List;
+	public final fun getMidiMessageReportReplyFor (Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry;)Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportReply;
+	public final fun getMidiMessageReporter ()Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;
+	public final fun getMuid ()I
+	public final fun getOnAck ()Lkotlin/jvm/functions/Function8;
+	public final fun getOnNak ()Lkotlin/jvm/functions/Function8;
+	public final fun getOnProfileSet ()Ljava/util/List;
+	public final fun getProcessAck ()Lkotlin/jvm/functions/Function8;
+	public final fun getProcessDiscovery ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessDiscoveryReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessEndOfMidiMessageReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessEndpointMessage ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessEndpointReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessInquiryReplyFor (Ldev/atsushieno/ktmidi/ci/Message$ProcessInquiryCapabilities;)Ldev/atsushieno/ktmidi/ci/Message$ProcessInquiryCapabilitiesReply;
+	public final fun getProcessInvalidateMUID ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessMidiMessageReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessMidiMessageReportReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessNak ()Lkotlin/jvm/functions/Function8;
+	public final fun getProcessProcessInquiry ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProcessInquiryReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileAddedReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileDetailsInquiry ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileDetailsReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileDisabledReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileEnabledReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileInquiry ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileRemovedReport ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessProfileSpecificData ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessPropertyNotify ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSetProfileOff ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSetProfileOn ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSubscribeProperty ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSubscribePropertyReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessUnknownCIMessage ()Lkotlin/jvm/functions/Function2;
+	public final fun getProfileRepliesForInquiry (Ldev/atsushieno/ktmidi/ci/Message$ProfileInquiry;)Lkotlin/sequences/Sequence;
+	public final fun getRequestIdSerial ()B
+	public final fun getResponder ()Ldev/atsushieno/ktmidi/ci/PropertyExchangeResponder;
+	public final fun getUnknownMessageReceived ()Ljava/util/List;
+	public final fun handleNewEndpoint (Ldev/atsushieno/ktmidi/ci/Message$DiscoveryReply;)V
+	public final fun invalidateMUID (BBILjava/lang/String;)V
+	public final fun processInput (BLjava/util/List;)V
+	public final fun requestProfileDetails (BBILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
+	public final fun requestProfiles (BBI)V
+	public final fun send (Ldev/atsushieno/ktmidi/ci/Message;)V
+	public final fun sendDiscovery (BB)V
+	public static synthetic fun sendDiscovery$default (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;BBILjava/lang/Object;)V
+	public final fun sendEndpointMessage (BIB)V
+	public static synthetic fun sendEndpointMessage$default (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;BIBILjava/lang/Object;)V
+	public final fun sendMidiMessageReportInquiry (BBIBBBB)V
+	public final fun sendNakForError (Ldev/atsushieno/ktmidi/ci/Message$Common;BBBLjava/util/List;Ljava/lang/String;)V
+	public static synthetic fun sendNakForError$default (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;Ldev/atsushieno/ktmidi/ci/Message$Common;BBBLjava/util/List;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun sendNakForUnknownCIMessage (BLjava/util/List;)V
+	public final fun sendNakForUnknownMUID (Ldev/atsushieno/ktmidi/ci/Message$Common;B)V
+	public final fun sendProcessInquiry (BI)V
+	public final fun sendProfileAddedReport (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun sendProfileRemovedReport (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun setMidiMessageReporter (Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;)V
+	public final fun setOnAck (Lkotlin/jvm/functions/Function8;)V
+	public final fun setOnNak (Lkotlin/jvm/functions/Function8;)V
+	public final fun setProcessAck (Lkotlin/jvm/functions/Function8;)V
+	public final fun setProcessDiscovery (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessDiscoveryReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessEndOfMidiMessageReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessEndpointMessage (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessEndpointReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessInvalidateMUID (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessMidiMessageReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessMidiMessageReportReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessNak (Lkotlin/jvm/functions/Function8;)V
+	public final fun setProcessProcessInquiry (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProcessInquiryReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileAddedReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileDetailsInquiry (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileDetailsReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileDisabledReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileEnabledReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileInquiry (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileRemovedReport (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessProfileSpecificData (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessPropertyNotify (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSetProfileOff (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSetProfileOn (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSubscribeProperty (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSubscribePropertyReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessUnknownCIMessage (Lkotlin/jvm/functions/Function2;)V
+	public final fun setRequestIdSerial (B)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration$Companion;
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public final fun getAutoSendEndpointInquiry ()Z
+	public final fun getAutoSendGetDeviceInfo ()Z
+	public final fun getAutoSendGetResourceList ()Z
+	public final fun getAutoSendProfileInquiry ()Z
+	public final fun getAutoSendPropertyExchangeCapabilitiesInquiry ()Z
+	public final fun getCapabilityInquirySupported ()B
+	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public final fun getFunctionBlock ()B
+	public final fun getLocalProfiles ()Ljava/util/List;
+	public final fun getMaxPropertyChunkSize ()I
+	public final fun getMaxSimultaneousPropertyRequests ()B
+	public final fun getMidiMessageReportChannelControllerMessages ()B
+	public final fun getMidiMessageReportMessageDataControl ()B
+	public final fun getMidiMessageReportNoteDataMessages ()B
+	public final fun getMidiMessageReportSystemMessages ()B
+	public final fun getOutputPathId ()B
+	public final fun getProcessInquirySupportedFeatures ()B
+	public final fun getProductInstanceId ()Ljava/lang/String;
+	public final fun getPropertyMetadataList ()Ljava/util/List;
+	public final fun getPropertyValues ()Ljava/util/List;
+	public final fun getReceivableMaxSysExSize ()I
+	public final fun setAutoSendEndpointInquiry (Z)V
+	public final fun setAutoSendGetDeviceInfo (Z)V
+	public final fun setAutoSendGetResourceList (Z)V
+	public final fun setAutoSendProfileInquiry (Z)V
+	public final fun setAutoSendPropertyExchangeCapabilitiesInquiry (Z)V
+	public final fun setCapabilityInquirySupported (B)V
+	public final fun setDevice (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public final fun setFunctionBlock (B)V
+	public final fun setMaxPropertyChunkSize (I)V
+	public final fun setMaxSimultaneousPropertyRequests (B)V
+	public final fun setMidiMessageReportChannelControllerMessages (B)V
+	public final fun setMidiMessageReportMessageDataControl (B)V
+	public final fun setMidiMessageReportNoteDataMessages (B)V
+	public final fun setMidiMessageReportSystemMessages (B)V
+	public final fun setOutputPathId (B)V
+	public final fun setProcessInquirySupportedFeatures (B)V
+	public final fun setProductInstanceId (Ljava/lang/String;)V
+	public final fun setReceivableMaxSysExSize (I)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceInfo {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo$Companion;
+	public fun <init> (ISSILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (ISSILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()S
+	public final fun component3 ()S
+	public final fun component4 ()I
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun component8 ()Ljava/lang/String;
+	public final fun component9 ()Ljava/lang/String;
+	public final fun copy (ISSILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;ISSILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun familyIdBytes ()Ljava/util/List;
+	public final fun getFamily ()Ljava/lang/String;
+	public final fun getFamilyId ()S
+	public final fun getManufacturer ()Ljava/lang/String;
+	public final fun getManufacturerId ()I
+	public final fun getModel ()Ljava/lang/String;
+	public final fun getModelId ()S
+	public final fun getSerialNumber ()Ljava/lang/String;
+	public final fun getVersion ()Ljava/lang/String;
+	public final fun getVersionId ()I
+	public fun hashCode ()I
+	public final fun manufacturerIdBytes ()Ljava/util/List;
+	public final fun modelIdBytes ()Ljava/util/List;
+	public final fun setFamily (Ljava/lang/String;)V
+	public final fun setFamilyId (S)V
+	public final fun setManufacturer (Ljava/lang/String;)V
+	public final fun setManufacturerId (I)V
+	public final fun setModel (Ljava/lang/String;)V
+	public final fun setModelId (S)V
+	public final fun setSerialNumber (Ljava/lang/String;)V
+	public final fun setVersion (Ljava/lang/String;)V
+	public final fun setVersionId (I)V
+	public fun toString ()Ljava/lang/String;
+	public final fun versionIdBytes ()Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceInfo$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceInfo$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIException : java/lang/Exception {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Exception;)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIProcessInquiryFeatures {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIProcessInquiryFeatures;
+	public static final field MIDI_MESSAGE_REPORT B
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIProfile {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/MidiCIProfile$Companion;
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;BBZS)V
+	public final fun getAddress ()B
+	public final fun getEnabled ()Z
+	public final fun getGroup ()B
+	public final fun getNumChannelsRequested ()S
+	public final fun getProfile ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public final fun setAddress (B)V
+	public final fun setEnabled (Z)V
+	public final fun setGroup (B)V
+	public final fun setNumChannelsRequested (S)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIProfile$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIProfile$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIProfile;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIProfile$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIProfileId {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/MidiCIProfileId$Companion;
+	public fun <init> (Ljava/util/List;)V
+	public final fun component1 ()Ljava/util/List;
+	public final fun copy (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;Ljava/util/List;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBytes ()Ljava/util/List;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIProfileId$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIProfileId$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIProfileId$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public abstract interface class dev/atsushieno/ktmidi/ci/MidiCIProfileRules {
+	public abstract fun getProfileDetails (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;B)Ljava/util/List;
+}
+
+public abstract interface class dev/atsushieno/ktmidi/ci/MidiCIServicePropertyRules {
+	public abstract fun addMetadata (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
+	public abstract fun createUpdateNotificationHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
+	public abstract fun decodeBody (Ljava/util/List;Ljava/util/List;)Ljava/util/List;
+	public abstract fun encodeBody (Ljava/util/List;Ljava/lang/String;)Ljava/util/List;
+	public abstract fun getMetadataList ()Ljava/util/List;
+	public abstract fun getPropertyCatalogUpdated ()Ljava/util/List;
+	public abstract fun getPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)Ljava/lang/Object;
+	public abstract fun getPropertyIdForHeader (Ljava/util/List;)Ljava/lang/String;
+	public abstract fun removeMetadata (Ljava/lang/String;)V
+	public abstract fun setPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$SetPropertyData;)Ljava/lang/Object;
+	public abstract fun subscribeProperty-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Ljava/lang/Object;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCISubscriptionCommand {
+	public static final field END Ljava/lang/String;
+	public static final field FULL Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCISubscriptionCommand;
+	public static final field NOTIFY Ljava/lang/String;
+	public static final field PARTIAL Ljava/lang/String;
+	public static final field START Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCISupportedCategories {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCISupportedCategories;
+	public static final field NONE B
+	public static final field PROCES_INQUIRY B
+	public static final field PROFILE_CONFIGURATION B
+	public static final field PROPERTY_EXCHANGE B
+	public static final field PROTOCOL_NEGOTIATION B
+	public static final field THREE_P B
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiMessageReportChannelControllerFlags {
+	public static final field All B
+	public static final field CAf B
+	public static final field CC B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiMessageReportChannelControllerFlags;
+	public static final field Nrpn B
+	public static final field Pitchbend B
+	public static final field Program B
+	public static final field Rpn B
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiMessageReportDataControl {
+	public static final field Full B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiMessageReportDataControl;
+	public static final field None B
+	public static final field OnlyNonDefaults B
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiMessageReportNoteDataFlags {
+	public static final field All B
+	public static final field AssignableController B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiMessageReportNoteDataFlags;
+	public static final field Notes B
+	public static final field PAf B
+	public static final field Pitchbend B
+	public static final field RegisteredController B
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiMessageReportProtocol : java/lang/Enum {
+	public static final field Midi1Stream Ldev/atsushieno/ktmidi/ci/MidiMessageReportProtocol;
+	public static final field Ump Ldev/atsushieno/ktmidi/ci/MidiMessageReportProtocol;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/MidiMessageReportProtocol;
+	public static fun values ()[Ldev/atsushieno/ktmidi/ci/MidiMessageReportProtocol;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiMessageReportSystemMessagesFlags {
+	public static final field All B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiMessageReportSystemMessagesFlags;
+	public static final field MtcQuarterFrame B
+	public static final field SongPosition B
+	public static final field SongSelect B
+}
+
+public abstract interface class dev/atsushieno/ktmidi/ci/MidiMessageReporter {
+	public abstract fun getMidiTransportProtocol ()Ldev/atsushieno/ktmidi/ci/MidiMessageReportProtocol;
+	public abstract fun reportMidiMessages (BBBBBB)Lkotlin/sequences/Sequence;
+}
+
+public final class dev/atsushieno/ktmidi/ci/ObservableProfileList {
+	public fun <init> (Ljava/util/List;)V
+	public final fun add (Ldev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun getMatchingProfiles (BZ)Ljava/util/List;
+	public final fun getProfileEnabledChanged ()Ljava/util/List;
+	public final fun getProfileUpdated ()Ljava/util/List;
+	public final fun getProfiles ()Ljava/util/List;
+	public final fun getProfilesChanged ()Ljava/util/List;
+	public final fun remove (Ldev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun setEnabled (ZBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;S)V
+	public final fun update (Ldev/atsushieno/ktmidi/ci/MidiCIProfile;ZBS)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/ObservableProfileList$ProfilesChange : java/lang/Enum {
+	public static final field Added Ldev/atsushieno/ktmidi/ci/ObservableProfileList$ProfilesChange;
+	public static final field Removed Ldev/atsushieno/ktmidi/ci/ObservableProfileList$ProfilesChange;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/ObservableProfileList$ProfilesChange;
+	public static fun values ()[Ldev/atsushieno/ktmidi/ci/ObservableProfileList$ProfilesChange;
+}
+
+public abstract class dev/atsushieno/ktmidi/ci/ObservablePropertyList {
+	public fun <init> (Ljava/util/List;)V
+	public abstract fun getInternalCatalogUpdated ()Ljava/util/List;
+	protected final fun getInternalValues ()Ljava/util/List;
+	public abstract fun getMetadataList ()Ljava/util/List;
+	public final fun getPropertiesCatalogUpdated ()Ljava/util/List;
+	public final fun getProperty (Ljava/lang/String;)Ljava/util/List;
+	public final fun getPropertyValue (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/PropertyValue;
+	public final fun getValueUpdated ()Ljava/util/List;
+	public final fun getValues ()Ljava/util/List;
+	public final fun initializeCatalogUpdatedEvent ()V
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyChunkManager {
+	public fun <init> ()V
+	public final fun addPendingChunk (JIBLjava/util/List;Ljava/util/List;)V
+	public final fun finishPendingChunk (IBLjava/util/List;)Lkotlin/Pair;
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyChunkManager$Chunk {
+	public fun <init> (JIBLjava/util/List;Ljava/util/List;)V
+	public final fun component1 ()J
+	public final fun component2 ()I
+	public final fun component3 ()B
+	public final fun component4 ()Ljava/util/List;
+	public final fun component5 ()Ljava/util/List;
+	public final fun copy (JIBLjava/util/List;Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/PropertyChunkManager$Chunk;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/PropertyChunkManager$Chunk;JIBLjava/util/List;Ljava/util/List;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/PropertyChunkManager$Chunk;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()Ljava/util/List;
+	public final fun getHeader ()Ljava/util/List;
+	public final fun getRequestId ()B
+	public final fun getSourceMUID ()I
+	public final fun getTimestamp ()J
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyExchangeInitiator {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)V
+	public final fun defaultProcessGetDataReply (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyDataReply;)V
+	public final fun defaultProcessPropertyCapabilitiesReply (Ldev/atsushieno/ktmidi/ci/Message$PropertyGetCapabilitiesReply;)V
+	public final fun defaultProcessSubscribePropertyReply (Ldev/atsushieno/ktmidi/ci/Message$SubscribePropertyReply;)V
+	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public final fun getLogger ()Ldev/atsushieno/ktmidi/ci/Logger;
+	public final fun getMuid ()I
+	public final fun getParent ()Ldev/atsushieno/ktmidi/ci/MidiCIDevice;
+	public final fun getProcessGetDataReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessPropertyCapabilitiesReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSetDataReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSubscribeProperty ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSubscribePropertyReply ()Lkotlin/jvm/functions/Function1;
+	public final fun requestPropertyExchangeCapabilities (BBIB)V
+	public final fun saveAndSendGetPropertyData (BILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public final fun saveAndSendGetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)V
+	public static synthetic fun saveAndSendGetPropertyData$default (Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator;BILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
+	public final fun sendSetPropertyData (BILjava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
+	public static synthetic fun sendSetPropertyData$default (Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator;BILjava/lang/String;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)V
+	public final fun sendSubscribeProperty (BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun sendSubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator;BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun sendUnsubscribeProperty (BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun sendUnsubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator;BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun setProcessGetDataReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessPropertyCapabilitiesReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSetDataReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSubscribeProperty (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSubscribePropertyReply (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$ClientSubscription {
+	public fun <init> (Ljava/lang/Byte;Ljava/lang/String;Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;)V
+	public final fun component1 ()Ljava/lang/Byte;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;
+	public final fun copy (Ljava/lang/Byte;Ljava/lang/String;Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;)Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$ClientSubscription;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$ClientSubscription;Ljava/lang/Byte;Ljava/lang/String;Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$ClientSubscription;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getPendingRequestId ()Ljava/lang/Byte;
+	public final fun getPropertyId ()Ljava/lang/String;
+	public final fun getState ()Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;
+	public final fun getSubscriptionId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun setPendingRequestId (Ljava/lang/Byte;)V
+	public final fun setState (Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;)V
+	public final fun setSubscriptionId (Ljava/lang/String;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState : java/lang/Enum {
+	public static final field Subscribed Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;
+	public static final field Subscribing Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;
+	public static final field Unsubscribed Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;
+	public static final field Unsubscribing Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;
+	public static fun values ()[Ldev/atsushieno/ktmidi/ci/PropertyExchangeInitiator$SubscriptionActionState;
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyExchangeResponder {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)V
+	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public final fun getGetPropertyCapabilitiesReplyFor ()Lkotlin/jvm/functions/Function1;
+	public final fun getLogger ()Ldev/atsushieno/ktmidi/ci/Logger;
+	public final fun getMuid ()I
+	public final fun getNotifyPropertyUpdatesToSubscribers ()Lkotlin/jvm/functions/Function4;
+	public final fun getParent ()Ldev/atsushieno/ktmidi/ci/MidiCIDevice;
+	public final fun getProcessGetPropertyData ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessPropertyCapabilitiesInquiry ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSetPropertyData ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSubscribeProperty ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSubscribePropertyReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProperties ()Ldev/atsushieno/ktmidi/ci/ServiceObservablePropertyList;
+	public final fun getPropertyService ()Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyService;
+	public final fun getSubscriptions ()Ljava/util/List;
+	public final fun notifyPropertyUpdatesToSubscribers (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)V
+	public final fun setNotifyPropertyUpdatesToSubscribers (Lkotlin/jvm/functions/Function4;)V
+	public final fun setProcessGetPropertyData (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessPropertyCapabilitiesInquiry (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSetPropertyData (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSubscribeProperty (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSubscribePropertyReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun terminateSubscriptions (B)V
+	public final fun updatePropertyValue (BLjava/lang/String;Ljava/util/List;Z)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyMetadata {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getCanGet ()Z
+	public final fun getCanPaginate ()Z
+	public final fun getCanSet ()Ljava/lang/String;
+	public final fun getCanSubscribe ()Z
+	public final fun getColumns ()Ljava/util/List;
+	public final fun getEncodings ()Ljava/util/List;
+	public final fun getMediaTypes ()Ljava/util/List;
+	public final fun getOriginator ()Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;
+	public final fun getRequireResId ()Z
+	public final fun getResource ()Ljava/lang/String;
+	public final fun getSchema ()Ljava/lang/String;
+	public final fun setCanGet (Z)V
+	public final fun setCanPaginate (Z)V
+	public final fun setCanSet (Ljava/lang/String;)V
+	public final fun setCanSubscribe (Z)V
+	public final fun setColumns (Ljava/util/List;)V
+	public final fun setEncodings (Ljava/util/List;)V
+	public final fun setMediaTypes (Ljava/util/List;)V
+	public final fun setOriginator (Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;)V
+	public final fun setRequireResId (Z)V
+	public final fun setResource (Ljava/lang/String;)V
+	public final fun setSchema (Ljava/lang/String;)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/PropertyMetadata$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/PropertyMetadata;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyMetadata$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyMetadata$Originator : java/lang/Enum {
+	public static final field SYSTEM Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;
+	public static final field USER Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;
+	public static fun values ()[Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyValue {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/PropertyValue$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/PropertyValue;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/PropertyValue;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/PropertyValue;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBody ()Ljava/util/List;
+	public final fun getId ()Ljava/lang/String;
+	public final fun getMediaType ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun setBody (Ljava/util/List;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyValue$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/PropertyValue$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/PropertyValue;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/PropertyValue;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/PropertyValue$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/ServiceObservablePropertyList : dev/atsushieno/ktmidi/ci/ObservablePropertyList {
+	public fun <init> (Ljava/util/List;Ldev/atsushieno/ktmidi/ci/MidiCIServicePropertyRules;)V
+	public final fun addMetadata (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
+	public fun getInternalCatalogUpdated ()Ljava/util/List;
+	public fun getMetadataList ()Ljava/util/List;
+	public final fun removeMetadata (Ljava/lang/String;)V
+	public final fun updateMetadata (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/json/Json {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/json/Json;
+	public final fun getEmptyArray ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun getEmptyMap ()Ljava/util/Map;
+	public final fun getEmptyObject ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun getEmptySequence ()Lkotlin/sequences/Sequence;
+	public final fun getEscapedString (Ljava/lang/String;)Ljava/lang/String;
+	public final fun getFalseValue ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun getNullValue ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun getTrueValue ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun getUnescapedString (Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;)Ljava/lang/String;
+	public final fun getUnescapedString (Ljava/lang/String;)Ljava/lang/String;
+	public final fun parse (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun parseOrNull (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun serialize (Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;)Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/json/Json$JsonToken {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;IIDLkotlin/sequences/Sequence;Ljava/util/Map;)V
+	public synthetic fun <init> (Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;IIDLkotlin/sequences/Sequence;Ljava/util/Map;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;
+	public final fun component2 ()I
+	public final fun component3 ()I
+	public final fun component4 ()D
+	public final fun component5 ()Lkotlin/sequences/Sequence;
+	public final fun component6 ()Ljava/util/Map;
+	public final fun copy (Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;IIDLkotlin/sequences/Sequence;Ljava/util/Map;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonToken;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/json/Json$JsonToken;Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;IIDLkotlin/sequences/Sequence;Ljava/util/Map;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonToken;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLength ()I
+	public final fun getMap ()Ljava/util/Map;
+	public final fun getNumber ()D
+	public final fun getOffset ()I
+	public final fun getSeq ()Lkotlin/sequences/Sequence;
+	public final fun getType ()Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/json/Json$JsonValue {
+	public fun <init> (D)V
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/json/Json$JsonToken;)V
+	public fun <init> (Ljava/util/List;)V
+	public fun <init> (Ljava/util/Map;)V
+	public final fun getAllObjectKeys ()Ljava/util/List;
+	public final fun getArrayValue ()Lkotlin/sequences/Sequence;
+	public final fun getNumberValue ()Ljava/lang/Number;
+	public final fun getObjectValue ()Ljava/util/Map;
+	public final fun getObjectValue (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun getSerializedBytes ()Ljava/util/List;
+	public final fun getSource ()Ljava/lang/String;
+	public final fun getStringValue ()Ljava/lang/String;
+	public final fun getToken ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonToken;
+	public final fun isBooleanFalse ()Z
+	public final fun isBooleanTrue ()Z
+}
+
+public final class dev/atsushieno/ktmidi/ci/json/Json$TokenType : java/lang/Enum {
+	public static final field Array Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;
+	public static final field False Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;
+	public static final field Null Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;
+	public static final field Number Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;
+	public static final field Object Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;
+	public static final field String Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;
+	public static final field True Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;
+	public static fun values ()[Ldev/atsushieno/ktmidi/ci/json/Json$TokenType;
+}
+
+public final class dev/atsushieno/ktmidi/ci/json/JsonParserException : java/lang/Exception {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Exception;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Exception;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/profilecommonrules/CommonProfileDetailsStandardTarget {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/profilecommonrules/CommonProfileDetailsStandardTarget;
+	public static final field NUM_MIDI_CHANNELS B
+}
+
+public final class dev/atsushieno/ktmidi/ci/profilecommonrules/CommonRulesProfileService : dev/atsushieno/ktmidi/ci/MidiCIProfileRules {
+	public fun <init> ()V
+	public fun getProfileDetails (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;B)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/profilecommonrules/DefaultControlChangesProfile {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/profilecommonrules/DefaultControlChangesProfile;
+	public final fun getProfileId ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public final fun getProfileIdForPartial ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+}
+
+public final class dev/atsushieno/ktmidi/ci/profilecommonrules/ProfileSupportLevel {
+	public static final field HIGHEST_POSSIBLE B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/profilecommonrules/ProfileSupportLevel;
+	public static final field MINIMUM_REQUIRED B
+	public static final field PARTIAL B
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesKnownMimeTypes {
+	public static final field APPLICATION_JSON Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesKnownMimeTypes;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyClient : dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyHelper, dev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;ILdev/atsushieno/ktmidi/ci/DeviceDetails;)V
+	public fun createDataRequestHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
+	public fun createStatusHeader (I)Ljava/util/List;
+	public fun createSubscriptionHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
+	public fun decodeBody (Ljava/util/List;Ljava/util/List;)Ljava/util/List;
+	public fun encodeBody (Ljava/util/List;Ljava/lang/String;)Ljava/util/List;
+	public final fun getDeviceInfo ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public fun getMetadataList ()Ljava/util/List;
+	public fun getPropertyCatalogUpdated ()Ljava/util/List;
+	public fun getPropertyIdForHeader (Ljava/util/List;)Ljava/lang/String;
+	public fun getPropertyListRequest (BIB)Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;
+	public fun getSubscribedProperty (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Ljava/lang/String;
+	public final fun getSubscriptions ()Ljava/util/List;
+	public fun getUpdatedValue (Ldev/atsushieno/ktmidi/ci/PropertyValue;ZLjava/lang/String;Ljava/util/List;)Lkotlin/Pair;
+	public fun onGetPropertyDataReply (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;Ldev/atsushieno/ktmidi/ci/Message$GetPropertyDataReply;)V
+	public fun processPropertySubscriptionResult (Ljava/lang/Object;Ldev/atsushieno/ktmidi/ci/Message$SubscribePropertyReply;)V
+	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+}
+
+public abstract class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyHelper {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyHelper$Companion;
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;)V
+	public final fun createRequestHeaderBytes (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
+	public final fun createSubscribeHeaderBytes (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
+	public final fun createUpdateNotificationHeader (Ljava/lang/String;Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun createUpdateNotificationHeaderBytes (Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
+	public final fun getHeaderFieldBoolean (Ljava/util/List;Ljava/lang/String;)Z
+	public final fun getHeaderFieldInteger (Ljava/util/List;Ljava/lang/String;)Ljava/lang/Integer;
+	public final fun getHeaderFieldString (Ljava/util/List;Ljava/lang/String;)Ljava/lang/String;
+	protected final fun getLogger ()Ldev/atsushieno/ktmidi/ci/Logger;
+	public final fun getPropertyIdentifierInternal (Ljava/util/List;)Ljava/lang/String;
+	public final fun getResourceListRequestBytes ()Ljava/util/List;
+	public final fun getResourceListRequestJson ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyHelper$Companion {
+	public final fun generateRandomSubscribeId ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyService : dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyHelper, dev/atsushieno/ktmidi/ci/MidiCIServicePropertyRules {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;ILdev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;Ljava/util/List;Ljava/util/List;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;)V
+	public synthetic fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;ILdev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;Ljava/util/List;Ljava/util/List;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun addMetadata (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
+	public final fun createTerminateNotificationHeader (Ljava/lang/String;)Ljava/util/List;
+	public fun createUpdateNotificationHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
+	public fun decodeBody (Ljava/util/List;Ljava/util/List;)Ljava/util/List;
+	public fun encodeBody (Ljava/util/List;Ljava/lang/String;)Ljava/util/List;
+	public final fun getDeviceInfo ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public final fun getLinkedResources ()Ljava/util/Map;
+	public fun getMetadataList ()Ljava/util/List;
+	public fun getPropertyCatalogUpdated ()Ljava/util/List;
+	public fun getPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)Ljava/lang/Object;
+	public fun getPropertyIdForHeader (Ljava/util/List;)Ljava/lang/String;
+	public final fun getSubscriptions ()Ljava/util/List;
+	public fun removeMetadata (Ljava/lang/String;)V
+	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public fun setPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$SetPropertyData;)Ljava/lang/Object;
+	public final fun setPropertyData-gIAlu-s (Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ljava/util/List;)Ljava/lang/Object;
+	public final fun subscribe (ILdev/atsushieno/ktmidi/ci/json/Json$JsonValue;)Lkotlin/Pair;
+	public fun subscribeProperty-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Ljava/lang/Object;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/DeviceInfoPropertyNames {
+	public static final field FAMILY Ljava/lang/String;
+	public static final field FAMILY_ID Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/DeviceInfoPropertyNames;
+	public static final field MANUFACTURER Ljava/lang/String;
+	public static final field MANUFACTURER_ID Ljava/lang/String;
+	public static final field MODEL Ljava/lang/String;
+	public static final field MODEL_ID Ljava/lang/String;
+	public static final field SERIAL_NUMBER Ljava/lang/String;
+	public static final field VERSION Ljava/lang/String;
+	public static final field VERSION_ID Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonConverter {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonConverter;
+	public final fun decodeMcoded7 (Ljava/util/List;)Ljava/util/List;
+	public final fun decodeZlib ([B)Ljava/util/List;
+	public final fun decodeZlibMcoded7 (Ljava/util/List;)Ljava/util/List;
+	public final fun encodeToMcoded7 (Ljava/util/List;)Ljava/util/List;
+	public final fun encodeToZlibMcoded7 (Ljava/util/List;)Ljava/util/List;
+	public final fun encodeZlib ([B)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonHeaderKeys {
+	public static final field CACHE_TIME Ljava/lang/String;
+	public static final field COMMAND Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonHeaderKeys;
+	public static final field LIMIT Ljava/lang/String;
+	public static final field MEDIA_TYPE Ljava/lang/String;
+	public static final field MESSAGE Ljava/lang/String;
+	public static final field MUTUAL_ENCODING Ljava/lang/String;
+	public static final field OFFSET Ljava/lang/String;
+	public static final field RESOURCE Ljava/lang/String;
+	public static final field RES_ID Ljava/lang/String;
+	public static final field SET_PARTIAL Ljava/lang/String;
+	public static final field STATUS Ljava/lang/String;
+	public static final field SUBSCRIBE_ID Ljava/lang/String;
+	public static final field TOTAL_COUNT Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonReplyHeader {
+	public fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)V
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/Integer;
+	public final fun copy (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonReplyHeader;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonReplyHeader;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonReplyHeader;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCacheTime ()Ljava/lang/String;
+	public final fun getMediaType ()Ljava/lang/String;
+	public final fun getMessage ()Ljava/lang/String;
+	public final fun getMutualEncoding ()Ljava/lang/String;
+	public final fun getStatus ()I
+	public final fun getSubscribeId ()Ljava/lang/String;
+	public final fun getTotalCount ()Ljava/lang/Integer;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRequestHeader {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/Integer;
+	public final fun component6 ()Ljava/lang/Integer;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRequestHeader;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRequestHeader;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRequestHeader;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLimit ()Ljava/lang/Integer;
+	public final fun getMediaType ()Ljava/lang/String;
+	public final fun getMutualEncoding ()Ljava/lang/String;
+	public final fun getOffset ()Ljava/lang/Integer;
+	public final fun getResId ()Ljava/lang/String;
+	public final fun getResource ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRules_ServiceKt {
+	public static final fun toJsonValue (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRules_jvmKt {
+	public static final fun decodeZlibWorkaround ([B)[B
+	public static final fun encodeZlibWorkaround ([B)[B
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyDataEncoding {
+	public static final field ASCII Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyDataEncoding;
+	public static final field MCODED7 Ljava/lang/String;
+	public static final field ZLIB_MCODED7 Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyExchangeException : java/lang/Exception {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Exception;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Exception;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyExchangeStatus {
+	public static final field Accepted I
+	public static final field BadData I
+	public static final field BadRequest I
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyExchangeStatus;
+	public static final field InternalError I
+	public static final field InvalidDataVersion I
+	public static final field NotAllowed I
+	public static final field NotFound I
+	public static final field OK I
+	public static final field PayloadTooLarge I
+	public static final field ResourceUnavailableOrError I
+	public static final field TooManyRequests I
+	public static final field Unauthorized I
+	public static final field UnsupportedMediaType I
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyPartialUpdater {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyPartialUpdater;
+	public final fun applyPartialUpdate (Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun applyPartialUpdate (Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ljava/util/List;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun applyPartialUpdates (Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;)Lkotlin/Pair;
+	public final fun parseJsonPointer (Ljava/lang/String;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn$Companion;
+	public fun <init> ()V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getLink ()Ljava/lang/String;
+	public final fun getProperty ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun setLink (Ljava/lang/String;)V
+	public final fun setProperty (Ljava/lang/String;)V
+	public final fun setTitle (Ljava/lang/String;)V
+	public final fun toJsonValue ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumnFields {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumnFields;
+	public static final field LINK Ljava/lang/String;
+	public static final field PROPERTY Ljava/lang/String;
+	public static final field TITLE Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceFields {
+	public static final field CAN_GET Ljava/lang/String;
+	public static final field CAN_PAGINATE Ljava/lang/String;
+	public static final field CAN_SET Ljava/lang/String;
+	public static final field CAN_SUBSCRIBE Ljava/lang/String;
+	public static final field COLUMNS Ljava/lang/String;
+	public static final field ENCODINGS Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceFields;
+	public static final field MEDIA_TYPE Ljava/lang/String;
+	public static final field REQUIRE_RES_ID Ljava/lang/String;
+	public static final field RESOURCE Ljava/lang/String;
+	public static final field SCHEMA Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceNames {
+	public static final field BASIC_CHANNEL_RX Ljava/lang/String;
+	public static final field BASIC_CHANNEL_TX Ljava/lang/String;
+	public static final field CHANNEL_LIST Ljava/lang/String;
+	public static final field CHANNEL_MODE Ljava/lang/String;
+	public static final field CURRENT_MODE Ljava/lang/String;
+	public static final field DEVICE_INFO Ljava/lang/String;
+	public static final field EXTERNAL_SYNC Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceNames;
+	public static final field JSON_SCHEMA Ljava/lang/String;
+	public static final field LOCAL_ON Ljava/lang/String;
+	public static final field MODE_LIST Ljava/lang/String;
+	public static final field RESOURCE_LIST Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertySetAccess {
+	public static final field FULL Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertySetAccess;
+	public static final field NONE Ljava/lang/String;
+	public static final field PARTIAL Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/SubscriptionEntry {
+	public fun <init> (Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun copy (Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/SubscriptionEntry;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/propertycommonrules/SubscriptionEntry;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/SubscriptionEntry;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEncoding ()Ljava/lang/String;
+	public final fun getMuid ()I
+	public final fun getResource ()Ljava/lang/String;
+	public final fun getSubscribeId ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+

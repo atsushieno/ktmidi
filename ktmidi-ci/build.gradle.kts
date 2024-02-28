@@ -2,13 +2,13 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
-    id("com.android.library")
-    kotlin("multiplatform")
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.binaryCompatibilityValidatorPlugin)
+    alias(libs.plugins.kotlinSerialization)
     id("maven-publish")
     id("signing")
-    alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.metalavaPlugin)
 }
 
 kotlin {
@@ -113,8 +113,6 @@ kotlin {
         val wasmJsTest by getting
     }
 }
-
-metalava {}
 
 android {
     namespace = "dev.atsushieno.ktmidi.ci"
