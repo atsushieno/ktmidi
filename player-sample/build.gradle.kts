@@ -42,20 +42,14 @@ kotlin {
     val nativeTarget = when {
         hostOs == "Mac OS X" && isArm64 -> macosArm64("macosArm64")
         hostOs == "Mac OS X" && !isArm64 -> macosX64("macosX64")
-        hostOs == "Linux" && isArm64 -> linuxArm64("linuxX64").apply {
-            binaries.executable {
-                linkerOpts = mutableListOf("-lasound")
-            }
-        }
-        hostOs == "Linux" && !isArm64 -> linuxX64("linuxArm64").apply {
-            binaries.executable {
-                linkerOpts = mutableListOf("-lasound")
-            }
-        }
+        // I figured Kotlin-Native is not ready enough for linking third-party libraries.
+        // FIXME: revisit it when this issue got resolved https://youtrack.jetbrains.com/issue/KT-47061/Cant-compile-project-with-OpenAL-dependecy-Kotlin-Native#focus=Comments-27-4947040.0-0
+        //hostOs == "Linux" && isArm64 -> linuxArm64("linuxX64")
+        //hostOs == "Linux" && !isArm64 -> linuxX64("linuxArm64")
         isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+        else -> null //throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
-    nativeTarget.apply {
+    nativeTarget?.apply {
         binaries {
             executable {
                 entryPoint = "main"
@@ -114,7 +108,7 @@ kotlin {
         val appleTest by creating {
             dependsOn(nativeTest)
         }
-        when (nativeTarget.name) {
+        when (nativeTarget?.name) {
             "linuxArm64" -> {
                 val linuxArm64Main by getting { dependsOn(linuxCommonMain) }
             }
