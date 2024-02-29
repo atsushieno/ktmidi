@@ -42,8 +42,16 @@ kotlin {
     val nativeTarget = when {
         hostOs == "Mac OS X" && isArm64 -> macosArm64("macosArm64")
         hostOs == "Mac OS X" && !isArm64 -> macosX64("macosX64")
-        hostOs == "Linux" && isArm64 -> linuxArm64("linuxX64")
-        hostOs == "Linux" && !isArm64 -> linuxX64("linuxArm64")
+        hostOs == "Linux" && isArm64 -> linuxArm64("linuxX64").apply {
+            binaries.executable {
+                linkerOpts = mutableListOf("-lasound")
+            }
+        }
+        hostOs == "Linux" && !isArm64 -> linuxX64("linuxArm64").apply {
+            binaries.executable {
+                linkerOpts = mutableListOf("-lasound")
+            }
+        }
         isMingwX64 -> mingwX64("native")
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
