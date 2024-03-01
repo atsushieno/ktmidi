@@ -10,6 +10,4 @@ class TestCIMediator {
     private val deviceConfig = MidiCIDeviceConfiguration(deviceInfo)
     val device1 = MidiCIDevice(19474 and 0x7F7F7F7F, deviceConfig, device1Sender, midiMessageReportSender)
     val device2 = MidiCIDevice(37564 and 0x7F7F7F7F, deviceConfig, device2Sender, midiMessageReportSender)
-    val initiator: PropertyExchangeInitiator = device1.initiator
-    val responder: PropertyExchangeResponder = device2.responder
 }

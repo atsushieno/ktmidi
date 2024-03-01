@@ -19,8 +19,6 @@ class CIDeviceManager(val owner: CIToolRepository, config: MidiCIDeviceConfigura
         )
     }
 
-    val initiator by lazy { device.initiator }
-
     private fun setupInputEventListener(input: MidiInput) {
         input.setMessageReceivedListener { data, start, length, _ ->
             if (input.details.midiTransportProtocol == MidiTransportProtocol.UMP)

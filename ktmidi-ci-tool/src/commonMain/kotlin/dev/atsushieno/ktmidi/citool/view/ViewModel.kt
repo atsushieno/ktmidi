@@ -78,25 +78,25 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
         val metadata = conn.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == propertyId }
-        ciDeviceManager.initiator.sendGetPropertyDataRequest(conn.conn.targetMUID, propertyId, encoding = metadata?.encodings?.firstOrNull(), paginateOffset = 0, paginateLimit = 10)
+        ciDeviceManager.device.sendGetPropertyDataRequest(conn.conn.targetMUID, propertyId, encoding = metadata?.encodings?.firstOrNull(), paginateOffset = 0, paginateLimit = 10)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
 
     fun refreshPropertyValue(targetMUID: Int, propertyId: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
-        ciDeviceManager.initiator.sendGetPropertyDataRequest(targetMUID, propertyId, encoding, paginateOffset, paginateLimit)
+        ciDeviceManager.device.sendGetPropertyDataRequest(targetMUID, propertyId, encoding, paginateOffset, paginateLimit)
     }
 
     fun sendSubscribeProperty(targetMUID: Int, propertyId: String, mutualEncoding: String?) {
-        ciDeviceManager.initiator.sendSubscribeProperty(targetMUID, propertyId, mutualEncoding)
+        ciDeviceManager.device.sendSubscribeProperty(targetMUID, propertyId, mutualEncoding)
     }
 
     fun sendUnsubscribeProperty(targetMUID: Int, propertyId: String, mutualEncoding: String?) {
-        ciDeviceManager.initiator.sendUnsubscribeProperty(targetMUID, propertyId, mutualEncoding)
+        ciDeviceManager.device.sendUnsubscribeProperty(targetMUID, propertyId, mutualEncoding)
     }
 
     fun sendSetPropertyDataRequest(targetMUID: Int, propertyId: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) {
-        ciDeviceManager.initiator.sendSetPropertyDataRequest(targetMUID, propertyId, bytes, encoding, isPartial)
+        ciDeviceManager.device.sendSetPropertyDataRequest(targetMUID, propertyId, bytes, encoding, isPartial)
     }
 
     fun setProfile(address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) {
@@ -123,9 +123,7 @@ class PropertyValueState(val id: MutableState<String>, val mediaType: MutableSta
 }
 
 class ResponderViewModel(val model: CIDeviceModel) {
-    private val ciDeviceManager by model::parent
     private val device by model::device
-    private val responder by device::responder
 
     // Profile Configuration
     fun selectProfile(profile: MidiCIProfileId) {
@@ -147,7 +145,7 @@ class ResponderViewModel(val model: CIDeviceModel) {
         val existing = properties[index]
 
         // update definition
-        ciDeviceManager.device.device.responder.properties.updateMetadata(oldPropertyId, property)
+        model.updatePropertyMetadata(oldPropertyId, property)
 
         // We need to update the property value list state, as the property ID might have changed.
         if (oldPropertyId != property.resource)
@@ -156,11 +154,11 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 
     fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
-        responder.updatePropertyValue(model.defaultSenderGroup, propertyId, data, isPartial)
+        model.updatePropertyValue(propertyId, data, isPartial)
         // It might be partial update, in that case we have to retrieve
         // the partial application result from MidiCIPropertyService processing.
         properties.first { it.id.value == propertyId }.data.value =
-            responder.properties.values.first { it.id == propertyId }.body
+            model.localProperties.getPropertyValue(propertyId)?.body ?: listOf()
     }
 
     fun createNewProperty() {
@@ -176,9 +174,9 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
-    val properties by lazy { mutableStateListOf<PropertyValueState>().apply { addAll(responder.properties.values.map { PropertyValueState(it) }) } }
+    val properties by lazy { mutableStateListOf<PropertyValueState>().apply { addAll(device.localProperties.values.map { PropertyValueState(it) }) } }
     fun getPropertyMetadata(propertyId: String) =
-        responder.propertyService.getMetadataList().firstOrNull { it.resource == propertyId }
+        device.localPropertyMetadataList.firstOrNull { it.resource == propertyId }
 
     fun addNewProfile(state: MidiCIProfile) {
         model.addLocalProfile(state)
@@ -212,14 +210,14 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 
     init {
-        responder.properties.propertiesCatalogUpdated.add {
+        device.localProperties.propertiesCatalogUpdated.add {
             properties.clear()
-            properties.addAll(responder.properties.values.map { PropertyValueState(it) })
+            properties.addAll(device.localProperties.values.map { PropertyValueState(it) })
         }
     }
 }
 
-class DeviceConfigurationViewModel(private val repository: CIToolRepository, private val config: MidiCIDeviceConfiguration) {
+class DeviceConfigurationViewModel(private val device: CIDeviceModel, private val config: MidiCIDeviceConfiguration) {
     private val deviceInfo: MidiCIDeviceInfo = config.device
 
     val maxSimultaneousPropertyRequests =
@@ -241,7 +239,7 @@ class DeviceConfigurationViewModel(private val repository: CIToolRepository, pri
 
     fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
         config.device = deviceInfo
-        repository.ciDeviceManager.device.device.responder.propertyService.deviceInfo = deviceInfo
+        device.updateDeviceInfo(deviceInfo)
         this.manufacturerId.value = deviceInfo.manufacturerId
         this.familyId.value = deviceInfo.familyId
         this.modelId.value = deviceInfo.modelId
@@ -256,7 +254,7 @@ class DeviceConfigurationViewModel(private val repository: CIToolRepository, pri
 
 class ApplicationSettingsViewModel(val repository: CIToolRepository, config: MidiCIDeviceConfiguration) {
     val defaultConfigFile = CIToolRepository.DEFAULT_CONFIG_FILE
-    val device = DeviceConfigurationViewModel(repository, config)
+    val device = DeviceConfigurationViewModel(repository.ciDeviceManager.device, config)
 
     val workaroundJUCEMissingSubscriptionIdIssue = mutableStateOf(
         ImplementationSettings.workaroundJUCEMissingSubscriptionIdIssue)

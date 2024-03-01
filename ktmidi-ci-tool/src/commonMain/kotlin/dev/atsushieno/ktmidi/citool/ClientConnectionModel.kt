@@ -7,23 +7,6 @@ import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyClient
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 
-class CIInitiatorModel(private val device: CIDeviceModel) {
-    private val initiator by lazy { device.device.initiator }
-
-    fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
-        initiator.saveAndSendGetPropertyData(device.defaultSenderGroup, destinationMUID, resource, encoding, paginateOffset, paginateLimit)
-    }
-    fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) {
-        initiator.sendSetPropertyData(device.defaultSenderGroup, destinationMUID, resource, data, encoding, isPartial)
-    }
-    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
-        initiator.sendSubscribeProperty(device.defaultSenderGroup, destinationMUID, resource, mutualEncoding)
-    }
-    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
-        initiator.sendUnsubscribeProperty(device.defaultSenderGroup, destinationMUID, resource, mutualEncoding)
-    }
-}
-
 class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnection) {
 
     val profiles = mutableStateListOf<MidiCIProfileState>().apply {
@@ -45,7 +28,7 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
 
     fun getMetadataList() = conn.propertyClient.getMetadataList()
 
-    data class SubscriptionState(val propertyId: String, var state: MutableState<PropertyExchangeInitiator.SubscriptionActionState>)
+    data class SubscriptionState(val propertyId: String, var state: MutableState<SubscriptionActionState>)
     var subscriptions = mutableStateListOf<SubscriptionState>()
 
     fun requestMidiMessageReport(address: Byte, targetMUID: Int,
@@ -100,12 +83,12 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
         }
 
         conn.subscriptionUpdated.add { sub ->
-            if (sub.state == PropertyExchangeInitiator.SubscriptionActionState.Subscribing)
+            if (sub.state == SubscriptionActionState.Subscribing)
                 subscriptions.add(SubscriptionState(sub.propertyId, mutableStateOf(sub.state)))
             else {
                 val state = subscriptions.firstOrNull { sub.propertyId == it.propertyId } ?: return@add
                 state.state.value = sub.state
-                if (sub.state == PropertyExchangeInitiator.SubscriptionActionState.Unsubscribed)
+                if (sub.state == SubscriptionActionState.Unsubscribed)
                     subscriptions.remove(state)
             }
         }

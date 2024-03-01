@@ -18,15 +18,10 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                    sendCIOutput: (group: Byte, data: List<Byte>) -> Unit,
                    sendMidiMessageReport: (group: Byte, protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
 ) {
-    var requestIdSerial: Byte = 1
-
-    val initiator by lazy { PropertyExchangeInitiator(this, config) }
-    val responder by lazy { PropertyExchangeResponder(this, config) }
-
     val device: MidiCIDeviceInfo
         get() = config.device
 
-    val unknownMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
+    val unknownCIMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
     val messageReceived = mutableListOf<(msg: Message) -> Unit>()
 
     val logger = Logger()
@@ -56,7 +51,8 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         ): Sequence<List<Byte>> = sequenceOf()
     }
 
-    // Messenger (implementation details for normal MIDI-CI app developers)
+    // Messenger
+    // FIXME: expose this implementation details once we defined good API for normal MIDI-CI app developers
     internal val messenger = Messenger(this, sendCIOutput, sendMidiMessageReport)
 
     fun processInput(group: Byte, data: List<Byte>) = messenger.processInput(group, data)
@@ -85,5 +81,30 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     fun requestMidiMessageReport(group: Byte, address: Byte, targetMUID: Int, messageDataControl: Byte, systemMessages: Byte, channelControllerMessages: Byte, noteDataMessages: Byte) =
         messenger.sendMidiMessageReportInquiry(group, address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
+
+    val localProperties by messenger.responder::properties
+    val localPropertyMetadataList
+        get() = messenger.responder.propertyService.getMetadataList()
+    fun addLocalProperty(property: PropertyMetadata) = messenger.responder.properties.addMetadata(property)
+    fun removeLocalProperty(propertyId: String) = messenger.responder.properties.removeMetadata(propertyId)
+    fun updatePropertyMetadata(oldPropertyId: String, property: PropertyMetadata) = messenger.responder.properties.updateMetadata(oldPropertyId, property)
+    // FIXME: examine our overall uses and passing of "group". It is apparently unnecessary for Property Exchange.
+    fun updatePropertyValue(group: Byte, propertyId: String, data: List<Byte>, isPartial: Boolean) = messenger.responder.updatePropertyValue(group, propertyId, data, isPartial)
+
+    private fun conn(destinationMUID: Int): ClientConnection =
+        connections[destinationMUID] ?: throw MidiCIException("Unknown destination MUID: $destinationMUID")
+    fun sendGetPropertyDataRequest(group: Byte, destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
+        conn(destinationMUID).saveAndSendGetPropertyData(group, destinationMUID, resource, encoding, paginateOffset, paginateLimit)
+    fun sendSetPropertyDataRequest(group: Byte, destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) =
+        conn(destinationMUID).sendSetPropertyData(group, destinationMUID, resource, data, encoding, isPartial)
+    fun sendSubscribeProperty(group: Byte, destinationMUID: Int, resource: String, mutualEncoding: String?) =
+        conn(destinationMUID).sendSubscribeProperty(group, destinationMUID, resource, mutualEncoding)
+    fun sendUnsubscribeProperty(group: Byte, destinationMUID: Int, resource: String, mutualEncoding: String?) =
+        conn(destinationMUID).sendUnsubscribeProperty(group, destinationMUID, resource, mutualEncoding)
+
+
+    fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
+        messenger.responder.propertyService.deviceInfo = deviceInfo
+    }
 }
 

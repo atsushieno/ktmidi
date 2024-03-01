@@ -11,7 +11,6 @@ class PropertyExchangeResponder(
     val muid by parent::muid
     val device by parent::device
     val logger by parent::logger
-    private var requestIdSerial by parent::requestIdSerial
 
     val propertyService by lazy { CommonRulesPropertyService(logger, muid, device, config.propertyValues, config.propertyMetadataList) }
     val properties by lazy { ServiceObservablePropertyList(config.propertyValues, propertyService) }
@@ -43,7 +42,7 @@ class PropertyExchangeResponder(
                 PropertyCommonHeaderKeys.SET_PARTIAL to isPartial,
                 PropertyCommonHeaderKeys.MUTUAL_ENCODING to it.encoding))
             yield(Message.SubscribeProperty(Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
-                requestIdSerial++, header, encodedData))
+                parent.messenger.requestIdSerial++, header, encodedData))
         }
     }
 
@@ -53,7 +52,7 @@ class PropertyExchangeResponder(
     fun terminateSubscriptions(group: Byte) {
         propertyService.subscriptions.forEach {
             val msg = Message.SubscribeProperty(Message.Common(muid, it.muid, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
-                requestIdSerial++,
+                parent.messenger.requestIdSerial++,
                 propertyService.createTerminateNotificationHeader(it.subscribeId), listOf()
             )
             parent.messenger.send(msg)

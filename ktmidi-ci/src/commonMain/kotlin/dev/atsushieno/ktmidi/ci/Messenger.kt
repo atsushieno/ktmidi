@@ -2,6 +2,7 @@ package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyExchangeStatus
 import kotlinx.datetime.Clock
 import kotlin.experimental.and
 
@@ -18,8 +19,11 @@ class Messenger(
     private val connections by device::connections
     private val localProfiles by device::localProfiles
     private val messageReceived by device::messageReceived
-    private val initiator by device::initiator
-    private val responder by device::responder
+
+    internal var requestIdSerial: Byte = 1
+
+    // FIXME: temporarily hiding them until we sort out good MIDI-CI end-user API
+    internal val responder by lazy { PropertyExchangeResponder(device, config) }
 
     // Request sender
 
@@ -80,7 +84,7 @@ class Messenger(
 
     var processUnknownCIMessage: (common: Message.Common, data: List<Byte>) -> Unit = { common, data ->
         logger.nak(common, data, MessageDirection.In)
-        device.unknownMessageReceived.forEach { it(data) }
+        device.unknownCIMessageReceived.forEach { it(data) }
         sendNakForUnknownCIMessage(common.group, data)
     }
 
@@ -130,7 +134,7 @@ class Messenger(
     // to Reply to Discovery (initiator)
     fun handleNewEndpoint(msg: Message.DiscoveryReply) {
         // If successfully discovered, continue to endpoint inquiry
-        val connection = ClientConnection(device.initiator, msg.sourceMUID, msg.device)
+        val connection = ClientConnection(device, msg.sourceMUID, msg.device)
         val existing = connections[msg.sourceMUID]
         if (existing != null) {
             connections.remove(msg.sourceMUID)
@@ -145,7 +149,7 @@ class Messenger(
         if (config.autoSendProfileInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROFILE_CONFIGURATION.toInt()) != 0)
             sendProfileInquiry(msg.group, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, msg.sourceMUID)
         if (config.autoSendPropertyExchangeCapabilitiesInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROPERTY_EXCHANGE.toInt()) != 0)
-            device.initiator.requestPropertyExchangeCapabilities(msg.group,
+            requestPropertyExchangeCapabilities(msg.group,
                 MidiCIConstants.ADDRESS_FUNCTION_BLOCK, msg.sourceMUID, config.maxSimultaneousPropertyRequests)
     }
     var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
@@ -361,9 +365,40 @@ class Messenger(
         messageReceived.forEach { it(msg) }
     }
 
-    // Local Property Exchange
+    // Property Exchange
+
+    fun requestPropertyExchangeCapabilities(group: Byte, address: Byte, destinationMUID: Int, maxSimultaneousPropertyRequests: Byte) =
+        send(Message.PropertyGetCapabilities(Message.Common(muid, destinationMUID, address, group),
+            maxSimultaneousPropertyRequests))
+
+    // Local
+
+    private fun conn(msg: Message, subId2: Byte): ClientConnection? {
+        val conn = connections[msg.sourceMUID]
+        if (conn != null)
+            return conn
+        // Unknown MUID - send back NAK
+        sendNakForUnknownMUID(Message.Common(muid, msg.sourceMUID, msg.address, msg.group), subId2)
+        return null
+    }
+
+    var processPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
+        device.messageReceived.forEach { it(msg) }
+        conn(msg, CISubId2.PROPERTY_CAPABILITIES_REPLY)?.processPropertyCapabilitiesReply(msg)
+    }
+
+    var processGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->
+        messageReceived.forEach { it(msg) }
+        conn(msg, CISubId2.PROPERTY_GET_DATA_REPLY)?.processGetDataReply(msg)
+    }
+
+    var processSetDataReply: (msg: Message.SetPropertyDataReply) -> Unit = { msg ->
+        messageReceived.forEach { it(msg) }
+        // nothing to delegate further
+    }
 
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
+        device.messageReceived.forEach { it(msg) }
         // It may be either a new subscription, a property update notification, or end of subscription from either side
         val command = responder.propertyService.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.COMMAND)
         when (command) {
@@ -373,23 +408,26 @@ class Messenger(
             MidiCISubscriptionCommand.NOTIFY -> responder.processSubscribeProperty(msg)
             MidiCISubscriptionCommand.END -> {
                 // We need to identify whether it is sent by the notifier or one of the subscribers
-                // FIXME: select either of the targets
-                initiator.processSubscribeProperty(msg) // for a subscriber
-                responder.processSubscribeProperty(msg) // for the notifier
+                if (connections[msg.sourceMUID] != null)
+                    conn(msg, CISubId2.PROPERTY_SUBSCRIBE)?.processSubscribeProperty(msg) // for a subscriber
+                else
+                    responder.processSubscribeProperty(msg) // for the notifier
             }
         }
     }
 
     var processSubscribePropertyReply: (msg: Message.SubscribePropertyReply) -> Unit = { msg ->
+        device.messageReceived.forEach { it(msg) }
         // It may be a reply to
         // - new subscription (contains new subscribeId) to initiator,
         // - value update (status) to responder
         // - end subscription from either side. We identify by subscriptionId
         //   (whether it is in our listening subscriptions xor it is request to unsubscribe from client)
         // We need to identify whether it is sent by the notifier or one of the subscribers
-        // FIXME: select either of the targets
-        initiator.processSubscribePropertyReply(msg) // for a subscriber
-        responder.processSubscribePropertyReply(msg) // for the notifier
+        if (connections[msg.sourceMUID] != null)
+            conn(msg, CISubId2.PROPERTY_SUBSCRIBE_REPLY)?.processPropertySubscriptionReply(msg) // for a subscriber
+        else
+            responder.processSubscribePropertyReply(msg) // for the notifier
     }
 
     var processPropertyNotify: (propertyNotify: Message.PropertyNotify) -> Unit = { msg ->
@@ -398,7 +436,7 @@ class Messenger(
     }
 
     // Remote Process Inquiry
-    fun sendProcessInquiry(group: Byte, destinationMUID: Int) =
+    fun sendProcessInquiryCapabilitiesRequest(group: Byte, destinationMUID: Int) =
         send(
             Message.ProcessInquiryCapabilities(
                 Message.Common(
@@ -635,7 +673,7 @@ class Messenger(
 
             // Property Exchange
             CISubId2.PROPERTY_CAPABILITIES_REPLY -> {
-                initiator.processPropertyCapabilitiesReply(
+                processPropertyCapabilitiesReply(
                     Message.PropertyGetCapabilitiesReply(
                         common,
                         CIRetrieval.midiCIGetMaxPropertyRequests(data)
@@ -650,7 +688,7 @@ class Messenger(
                 val body = CIRetrieval.midiCIGetPropertyBodyInThisChunk(data)
 
                 handleChunk(common, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
-                    initiator.processGetDataReply(
+                    processGetDataReply(
                         Message.GetPropertyDataReply(
                             common,
                             requestId,
@@ -663,11 +701,7 @@ class Messenger(
             CISubId2.PROPERTY_SET_DATA_REPLY -> {
                 val header = CIRetrieval.midiCIGetPropertyHeader(data)
                 val requestId = data[13]
-                initiator.processSetDataReply(
-                    Message.SetPropertyDataReply(
-                        common, requestId, header
-                    )
-                )
+                processSetDataReply(Message.SetPropertyDataReply(common, requestId, header))
             }
             CISubId2.PROPERTY_SUBSCRIBE -> {
                 val requestId = data[13]

@@ -72,8 +72,6 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
         }
     }
 
-    val initiator = CIInitiatorModel(this)
-
     fun processCIMessage(group: Byte, data: List<Byte>) {
         if (data.isEmpty()) return
         parent.owner.log("[received CI SysEx (grp:$group)] " + data.joinToString { it.toUByte().toString(16) }, MessageDirection.In)
@@ -121,14 +119,28 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
         added.forEach { addLocalProfile(it) }
     }
 
-    // Local property exchange
-    fun addLocalProperty(property: PropertyMetadata) {
-        device.responder.properties.addMetadata(property)
+    // Remote property exchange
+
+    fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
+        device.sendGetPropertyDataRequest(defaultSenderGroup, destinationMUID, resource, encoding, paginateOffset, paginateLimit)
+    }
+    fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) {
+        device.sendSetPropertyDataRequest(defaultSenderGroup, destinationMUID, resource, data, encoding, isPartial)
+    }
+    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
+        device.sendSubscribeProperty(defaultSenderGroup, destinationMUID, resource, mutualEncoding)
+    }
+    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
+        device.sendUnsubscribeProperty(defaultSenderGroup, destinationMUID, resource, mutualEncoding)
     }
 
-    fun removeLocalProperty(propertyId: String) {
-        device.responder.properties.removeMetadata(propertyId)
-    }
+    // Local property exchange
+    fun addLocalProperty(property: PropertyMetadata) = device.addLocalProperty(property)
+
+    fun removeLocalProperty(propertyId: String) = device.removeLocalProperty(propertyId)
+
+    fun updatePropertyMetadata(oldPropertyId: String, property: PropertyMetadata) =
+        device.updatePropertyMetadata(oldPropertyId, property)
 
     fun addTestProfileItems() {
         with(device.localProfiles) {
@@ -138,6 +150,16 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
             add(MidiCIProfile(DefaultControlChangesProfile.profileIdForPartial, 0, 4, true, 1))
         }
     }
+
+    fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
+        device.updatePropertyValue(defaultSenderGroup, propertyId, data, isPartial)
+    }
+
+    fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
+        device.updateDeviceInfo(deviceInfo)
+    }
+
+    val localProperties by device::localProperties
 
     init {
         device.localProfiles.profilesChanged.add { change, profile ->
