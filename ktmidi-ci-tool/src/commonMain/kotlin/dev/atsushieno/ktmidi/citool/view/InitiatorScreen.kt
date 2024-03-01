@@ -225,7 +225,7 @@ fun ClientProfileDetails(vm: ConnectionViewModel, profiles: List<MidiCIProfileSt
                 Text("]", Modifier.padding(10.dp))
                 Switch(checked = it.enabled.value, onCheckedChange = { newEnabled ->
                     try {
-                        vm.setProfile(it.address.value, it.profile, newEnabled, numChannelsRequestedString.toShort())
+                        vm.setProfile(it.group.value, it.address.value, it.profile, newEnabled, numChannelsRequestedString.toShort())
                     } catch (_: NumberFormatException) {
                     }
                 }, Modifier.padding(10.dp))

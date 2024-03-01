@@ -99,8 +99,8 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
         ciDeviceManager.device.sendSetPropertyDataRequest(targetMUID, propertyId, bytes, encoding, isPartial)
     }
 
-    fun setProfile(address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) {
-        conn.setProfile(address, profile, newEnabled, newNumChannelsRequested)
+    fun setProfile(group: Byte, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) {
+        conn.setProfile(group, address, profile, newEnabled, newNumChannelsRequested)
     }
 
     fun requestMidiMessageReport(address: Byte, targetMUID: Int) {

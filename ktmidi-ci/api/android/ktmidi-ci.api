@@ -132,15 +132,15 @@ public final class dev/atsushieno/ktmidi/ci/ClientConnection {
 	public final fun processPropertySubscriptionReply (Ldev/atsushieno/ktmidi/ci/Message$SubscribePropertyReply;)V
 	public final fun processSubscribeProperty (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)V
 	public final fun promoteSubscriptionAsUnsubscribing (Ljava/lang/String;B)V
-	public final fun saveAndSendGetPropertyData (BILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public final fun saveAndSendGetPropertyData (ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
 	public final fun saveAndSendGetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)V
-	public static synthetic fun saveAndSendGetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;BILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
-	public final fun sendSetPropertyData (BILjava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
-	public static synthetic fun sendSetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;BILjava/lang/String;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)V
-	public final fun sendSubscribeProperty (BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun sendSubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
-	public final fun sendUnsubscribeProperty (BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun sendUnsubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;BILjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public static synthetic fun saveAndSendGetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
+	public final fun sendSetPropertyData (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
+	public static synthetic fun sendSetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)V
+	public final fun sendSubscribeProperty (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun sendSubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun sendUnsubscribeProperty (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun sendUnsubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun setMaxSimultaneousPropertyRequests (B)V
 	public final fun setProductInstanceId (Ljava/lang/String;)V
 	public final fun updateLocalProperty (ILdev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Lkotlin/Pair;
@@ -628,17 +628,17 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public final fun requestProcessInquiryCapabilities (BI)V
 	public final fun requestPropertyExchangeCapabilities (BBIB)V
 	public final fun send (Ldev/atsushieno/ktmidi/ci/Message;)V
-	public final fun sendDiscovery (BB)V
-	public static synthetic fun sendDiscovery$default (Ldev/atsushieno/ktmidi/ci/Messenger;BBILjava/lang/Object;)V
+	public final fun sendDiscovery (B)V
+	public static synthetic fun sendDiscovery$default (Ldev/atsushieno/ktmidi/ci/Messenger;BILjava/lang/Object;)V
 	public final fun sendEndpointMessage (BIB)V
 	public static synthetic fun sendEndpointMessage$default (Ldev/atsushieno/ktmidi/ci/Messenger;BIBILjava/lang/Object;)V
-	public final fun sendMidiMessageReportInquiry (BBIBBBB)V
+	public final fun sendMidiMessageReportInquiry (BIBBBB)V
 	public final fun sendNakForError (Ldev/atsushieno/ktmidi/ci/Message$Common;BBBLjava/util/List;Ljava/lang/String;)V
 	public static synthetic fun sendNakForError$default (Ldev/atsushieno/ktmidi/ci/Messenger;Ldev/atsushieno/ktmidi/ci/Message$Common;BBBLjava/util/List;Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun sendNakForUnknownCIMessage (BLjava/util/List;)V
 	public final fun sendNakForUnknownMUID (Ldev/atsushieno/ktmidi/ci/Message$Common;B)V
-	public final fun sendProfileAddedReport (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
-	public final fun sendProfileDetailsInquiry (BBILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
+	public final fun sendProfileAddedReport (Ldev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun sendProfileDetailsInquiry (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
 	public final fun sendProfileInquiry (BBI)V
 	public final fun sendProfileRemovedReport (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
 	public final fun setOnAck (Lkotlin/jvm/functions/Function8;)V
@@ -722,7 +722,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIConverter {
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
 	public fun <init> (ILdev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)V
-	public final fun addLocalProfile (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun addLocalProfile (Ldev/atsushieno/ktmidi/ci/MidiCIProfile;)V
 	public final fun addLocalProperty (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
 	public final fun getConfig ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;
 	public final fun getConnections ()Ljava/util/Map;
@@ -740,18 +740,18 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
 	public final fun processInput (BLjava/util/List;)V
 	public final fun removeLocalProfile (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
 	public final fun removeLocalProperty (Ljava/lang/String;)V
-	public final fun requestMidiMessageReport (BBIBBBB)V
-	public final fun requestProfileDetails (BBILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
-	public final fun sendDiscovery (B)V
-	public final fun sendGetPropertyDataRequest (BILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
-	public final fun sendSetPropertyDataRequest (BILjava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
-	public final fun sendSubscribeProperty (BILjava/lang/String;Ljava/lang/String;)V
-	public final fun sendUnsubscribeProperty (BILjava/lang/String;Ljava/lang/String;)V
+	public final fun requestMidiMessageReport (BIBBBB)V
+	public final fun requestProfileDetails (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
+	public final fun sendDiscovery ()V
+	public final fun sendGetPropertyDataRequest (ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public final fun sendSetPropertyDataRequest (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
+	public final fun sendSubscribeProperty (ILjava/lang/String;Ljava/lang/String;)V
+	public final fun sendUnsubscribeProperty (ILjava/lang/String;Ljava/lang/String;)V
 	public final fun setMidiMessageReporter (Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;)V
 	public final fun updateDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun updateLocalProfileTarget (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;BBZS)V
 	public final fun updatePropertyMetadata (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
-	public final fun updatePropertyValue (BLjava/lang/String;Ljava/util/List;Z)V
+	public final fun updatePropertyValue (Ljava/lang/String;Ljava/util/List;Z)V
 }
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
@@ -766,6 +766,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
 	public final fun getCapabilityInquirySupported ()B
 	public final fun getDeviceInfo ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
 	public final fun getFunctionBlock ()B
+	public final fun getGroup ()B
 	public final fun getLocalProfiles ()Ljava/util/List;
 	public final fun getMaxPropertyChunkSize ()I
 	public final fun getMaxSimultaneousPropertyRequests ()B
@@ -788,6 +789,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
 	public final fun setCapabilityInquirySupported (B)V
 	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun setFunctionBlock (B)V
+	public final fun setGroup (B)V
 	public final fun setMaxPropertyChunkSize (I)V
 	public final fun setMaxSimultaneousPropertyRequests (B)V
 	public final fun setMidiMessageReportChannelControllerMessages (B)V
@@ -1090,7 +1092,7 @@ public final class dev/atsushieno/ktmidi/ci/PropertyExchangeResponder {
 	public final fun getGetPropertyCapabilitiesReplyFor ()Lkotlin/jvm/functions/Function1;
 	public final fun getLogger ()Ldev/atsushieno/ktmidi/ci/Logger;
 	public final fun getMuid ()I
-	public final fun getNotifyPropertyUpdatesToSubscribers ()Lkotlin/jvm/functions/Function4;
+	public final fun getNotifyPropertyUpdatesToSubscribers ()Lkotlin/jvm/functions/Function3;
 	public final fun getParent ()Ldev/atsushieno/ktmidi/ci/MidiCIDevice;
 	public final fun getProcessGetPropertyData ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessPropertyCapabilitiesInquiry ()Lkotlin/jvm/functions/Function1;
@@ -1101,14 +1103,14 @@ public final class dev/atsushieno/ktmidi/ci/PropertyExchangeResponder {
 	public final fun getPropertyService ()Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyService;
 	public final fun getSubscriptions ()Ljava/util/List;
 	public final fun notifyPropertyUpdatesToSubscribers (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)V
-	public final fun setNotifyPropertyUpdatesToSubscribers (Lkotlin/jvm/functions/Function4;)V
+	public final fun setNotifyPropertyUpdatesToSubscribers (Lkotlin/jvm/functions/Function3;)V
 	public final fun setProcessGetPropertyData (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessPropertyCapabilitiesInquiry (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSetPropertyData (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSubscribeProperty (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSubscribePropertyReply (Lkotlin/jvm/functions/Function1;)V
 	public final fun terminateSubscriptions (B)V
-	public final fun updatePropertyValue (BLjava/lang/String;Ljava/util/List;Z)V
+	public final fun updatePropertyValue (Ljava/lang/String;Ljava/util/List;Z)V
 }
 
 public final class dev/atsushieno/ktmidi/ci/PropertyMetadata {

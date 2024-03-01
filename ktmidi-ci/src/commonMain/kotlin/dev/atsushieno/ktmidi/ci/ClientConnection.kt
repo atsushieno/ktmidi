@@ -29,8 +29,8 @@ class ClientConnection(
         val profiles = ObservableProfileList(mutableListOf())
 
         fun setProfile(
-            address: Byte,
             group: Byte,
+            address: Byte,
             profile: MidiCIProfileId,
             enabled: Boolean,
             numChannelsRequested: Short
@@ -194,14 +194,14 @@ class ClientConnection(
     }
 
     // FIXME: too much exposure of Common Rules for PE
-    fun saveAndSendGetPropertyData(group: Byte, destinationMUID: Int, resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
+    fun saveAndSendGetPropertyData(destinationMUID: Int, resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
         val header = propertyClient.createDataRequestHeader(resource, mapOf(
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
             PropertyCommonHeaderKeys.SET_PARTIAL to false,
             PropertyCommonHeaderKeys.OFFSET to paginateOffset,
             PropertyCommonHeaderKeys.LIMIT to paginateLimit
         ).filter { it.value != null })
-        val msg = Message.GetPropertyData(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+        val msg = Message.GetPropertyData(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
             parent.messenger.requestIdSerial++, header)
         saveAndSendGetPropertyData(msg)
     }
@@ -212,31 +212,31 @@ class ClientConnection(
     }
 
     // FIXME: too much exposure of Common Rules for PE
-    fun sendSetPropertyData(group: Byte, destinationMUID: Int, resource: String, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
+    fun sendSetPropertyData(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
         val header = propertyClient.createDataRequestHeader(resource, mapOf(
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
             PropertyCommonHeaderKeys.SET_PARTIAL to isPartial))
         val encodedBody = propertyClient.encodeBody(data, encoding)
-        parent.messenger.send(Message.SetPropertyData(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+        parent.messenger.send(Message.SetPropertyData(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
             parent.messenger.requestIdSerial++, header, encodedBody))
     }
 
-    fun sendSubscribeProperty(group: Byte, destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
+    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
         val header = propertyClient.createSubscriptionHeader(resource, mapOf(
             PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.START,
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to mutualEncoding))
-        val msg = Message.SubscribeProperty(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+        val msg = Message.SubscribeProperty(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
             parent.messenger.requestIdSerial++, header, listOf())
         addPendingSubscription(msg.requestId, subscriptionId, resource)
         parent.messenger.send(msg)
     }
 
-    fun sendUnsubscribeProperty(group: Byte, destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
+    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
         val newRequestId = parent.messenger.requestIdSerial++
         val header = propertyClient.createSubscriptionHeader(resource, mapOf(
             PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.END,
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to mutualEncoding))
-        val msg = Message.SubscribeProperty(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+        val msg = Message.SubscribeProperty(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
             newRequestId, header, listOf())
         promoteSubscriptionAsUnsubscribing(resource, newRequestId)
         parent.messenger.send(msg)
@@ -260,7 +260,7 @@ class ClientConnection(
         if (parent.config.autoSendGetDeviceInfo && propertyId == PropertyResourceNames.RESOURCE_LIST) {
             val def = propertyClient.getMetadataList()?.firstOrNull { it.resource == PropertyResourceNames.DEVICE_INFO }
             if (def != null)
-                saveAndSendGetPropertyData(msg.group, msg.sourceMUID, def.resource, def.encodings.firstOrNull())
+                saveAndSendGetPropertyData(msg.sourceMUID, def.resource, def.encodings.firstOrNull())
         }
     }
 
@@ -270,7 +270,7 @@ class ClientConnection(
             parent.messenger.send(reply.second!!)
         // If the update was NOTIFY, then it is supposed to send Get Data request.
         if (reply.first == MidiCISubscriptionCommand.NOTIFY)
-            saveAndSendGetPropertyData(msg.group, msg.sourceMUID, propertyClient.getPropertyIdForHeader(msg.header),
+            saveAndSendGetPropertyData(msg.sourceMUID, propertyClient.getPropertyIdForHeader(msg.header),
                 // is there mutualEncoding from SubscribeProperty?
                 encoding = null,
                 paginateOffset = null, paginateLimit = null)

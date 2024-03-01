@@ -8,10 +8,6 @@ import dev.atsushieno.ktmidi.ci.profilecommonrules.DefaultControlChangesProfile
 class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDeviceConfiguration,
                     private val ciOutputSender: (group: Byte, ciBytes: List<Byte>) -> Unit,
                     private val midiMessageReportOutputSender: (group: Byte, bytes: List<Byte>) -> Unit) {
-
-    // FIXME: this means we somehow ignore any group specification wherever this field is used.
-    var defaultSenderGroup: Byte = 0
-
     // from CIInitiatorModel
     val connections = mutableStateListOf<ClientConnectionModel>()
 
@@ -94,13 +90,13 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
     // Management message client
 
     fun sendDiscovery() {
-        device.sendDiscovery(defaultSenderGroup)
+        device.sendDiscovery()
     }
 
     // remote profile configuration
 
     fun sendProfileDetailsInquiry(address: Byte, muid: Int, profile: MidiCIProfileId, target: Byte) {
-        device.requestProfileDetails(defaultSenderGroup, address, muid, profile, target)
+        device.requestProfileDetails(address, muid, profile, target)
     }
 
     // local profile configuration
@@ -108,7 +104,7 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
     fun updateLocalProfileTarget(profileState: MidiCIProfileState, newAddress: Byte, enabled: Boolean, numChannelsRequested: Short) =
         device.updateLocalProfileTarget(profileState.profile, profileState.address.value, newAddress, enabled, numChannelsRequested)
 
-    fun addLocalProfile(profile: MidiCIProfile) = device.addLocalProfile(defaultSenderGroup, profile)
+    fun addLocalProfile(profile: MidiCIProfile) = device.addLocalProfile(profile)
 
     fun removeLocalProfile(group: Byte, address: Byte, profileId: MidiCIProfileId) = device.removeLocalProfile(group, address, profileId)
 
@@ -122,16 +118,16 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
     // Remote property exchange
 
     fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
-        device.sendGetPropertyDataRequest(defaultSenderGroup, destinationMUID, resource, encoding, paginateOffset, paginateLimit)
+        device.sendGetPropertyDataRequest(destinationMUID, resource, encoding, paginateOffset, paginateLimit)
     }
     fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) {
-        device.sendSetPropertyDataRequest(defaultSenderGroup, destinationMUID, resource, data, encoding, isPartial)
+        device.sendSetPropertyDataRequest(destinationMUID, resource, data, encoding, isPartial)
     }
     fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
-        device.sendSubscribeProperty(defaultSenderGroup, destinationMUID, resource, mutualEncoding)
+        device.sendSubscribeProperty(destinationMUID, resource, mutualEncoding)
     }
     fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
-        device.sendUnsubscribeProperty(defaultSenderGroup, destinationMUID, resource, mutualEncoding)
+        device.sendUnsubscribeProperty(destinationMUID, resource, mutualEncoding)
     }
 
     // Local property exchange
@@ -152,7 +148,7 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
     }
 
     fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
-        device.updatePropertyValue(defaultSenderGroup, propertyId, data, isPartial)
+        device.updatePropertyValue(propertyId, data, isPartial)
     }
 
     fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {

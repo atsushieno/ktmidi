@@ -19,8 +19,8 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
         ) })
     }
 
-    fun setProfile(address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) =
-        conn.profileClient.setProfile(address, parent.defaultSenderGroup, profile, newEnabled, newNumChannelsRequested)
+    fun setProfile(group: Byte, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) =
+        conn.profileClient.setProfile(group, address, profile, newEnabled, newNumChannelsRequested)
 
     var deviceInfo = mutableStateOf((conn.propertyClient as CommonRulesPropertyClient).deviceInfo)
 
@@ -37,7 +37,7 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
                                  channelControllerMessages: Byte = MidiMessageReportChannelControllerFlags.All,
                                  noteDataMessages: Byte = MidiMessageReportNoteDataFlags.All
     ) {
-        parent.device.requestMidiMessageReport(parent.defaultSenderGroup, address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
+        parent.device.requestMidiMessageReport(address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
     }
 
     init {

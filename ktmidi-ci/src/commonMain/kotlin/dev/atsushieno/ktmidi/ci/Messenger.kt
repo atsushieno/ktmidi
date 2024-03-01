@@ -33,10 +33,10 @@ class Messenger(
         }
     }
 
-    fun sendDiscovery(group: Byte, ciCategorySupported: Byte = MidiCISupportedCategories.THREE_P) =
+    fun sendDiscovery(ciCategorySupported: Byte = MidiCISupportedCategories.THREE_P) =
         send(
             Message.DiscoveryInquiry(
-                Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+                Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, config.group),
                 DeviceDetails(
                     deviceInfo.manufacturerId,
                     deviceInfo.familyId,
@@ -208,10 +208,10 @@ class Messenger(
     fun sendProfileInquiry(group: Byte, address: Byte, destinationMUID: Int) =
         send(Message.ProfileInquiry(Message.Common(muid, destinationMUID, address, group)))
 
-    fun sendProfileDetailsInquiry(group: Byte, address: Byte, targetMUID: Int, profile: MidiCIProfileId, target: Byte) =
+    fun sendProfileDetailsInquiry(address: Byte, targetMUID: Int, profile: MidiCIProfileId, target: Byte) =
         send(
             Message.ProfileDetailsInquiry(
-                Message.Common(muid, targetMUID, address, group),
+                Message.Common(muid, targetMUID, address, config.group),
                 profile, target
             )
         )
@@ -290,10 +290,10 @@ class Messenger(
         )
     }
 
-    fun sendProfileAddedReport(group: Byte, profile: MidiCIProfile) {
+    fun sendProfileAddedReport(profile: MidiCIProfile) {
         send(
             Message.ProfileAdded(
-                Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, profile.address, group),
+                Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, profile.address, config.group),
                 profile.profile
             )
         )
@@ -442,14 +442,14 @@ class Messenger(
             Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group)
         ))
 
-    fun sendMidiMessageReportInquiry(group: Byte, address: Byte, destinationMUID: Int,
+    fun sendMidiMessageReportInquiry(address: Byte, destinationMUID: Int,
                                      messageDataControl: Byte,
                                      systemMessages: Byte,
                                      channelControllerMessages: Byte,
                                      noteDataMessages: Byte) =
         send(
             Message.MidiMessageReportInquiry(
-                Message.Common(muid, destinationMUID, address, group),
+                Message.Common(muid, destinationMUID, address, config.group),
                 messageDataControl, systemMessages, channelControllerMessages, noteDataMessages
             )
         )

@@ -21,6 +21,10 @@ class MidiCIDeviceConfiguration {
     var maxSimultaneousPropertyRequests: Byte = MidiCIConstants.DEFAULT_MAX_SIMULTANEOUS_PROPERTY_REQUESTS
     var maxPropertyChunkSize: Int = MidiCIConstants.DEFAULT_MAX_PROPERTY_CHUNK_SIZE
 
+    // The group number of this device itself.
+    // It will be used when its initiator messages are sent over UMP transport.
+    var group: Byte = 0
+
     // discovery initiator
     var outputPathId: Byte = 0
     var autoSendEndpointInquiry: Boolean = true

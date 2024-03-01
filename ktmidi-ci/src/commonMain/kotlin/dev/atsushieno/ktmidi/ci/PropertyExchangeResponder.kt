@@ -17,17 +17,17 @@ class PropertyExchangeResponder(
     val subscriptions: List<SubscriptionEntry> by propertyService::subscriptions
 
     // update property value. It involves updates to subscribers
-    fun updatePropertyValue(group: Byte, propertyId: String, data: List<Byte>, isPartial: Boolean) {
+    fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
         properties.values.first { it.id == propertyId }.body = data
-        notifyPropertyUpdatesToSubscribers(group, propertyId, data, isPartial)
+        notifyPropertyUpdatesToSubscribers(propertyId, data, isPartial)
     }
 
-    var notifyPropertyUpdatesToSubscribers: (group: Byte, propertyId: String, data: List<Byte>, isPartial: Boolean) -> Unit = { group, propertyId, data, isPartial ->
-        createPropertyNotification(group, propertyId, data, isPartial).forEach { msg ->
+    var notifyPropertyUpdatesToSubscribers: (propertyId: String, data: List<Byte>, isPartial: Boolean) -> Unit = { propertyId, data, isPartial ->
+        createPropertyNotification(propertyId, data, isPartial).forEach { msg ->
             notifyPropertyUpdatesToSubscribers(msg)
         }
     }
-    private fun createPropertyNotification(group: Byte, propertyId: String, data: List<Byte>, isPartial: Boolean): Sequence<Message.SubscribeProperty> = sequence {
+    private fun createPropertyNotification(propertyId: String, data: List<Byte>, isPartial: Boolean): Sequence<Message.SubscribeProperty> = sequence {
         var lastEncoding: String? = null
         var lastEncodedData = data
         subscriptions.filter { it.resource == propertyId }.forEach {
@@ -41,7 +41,7 @@ class PropertyExchangeResponder(
                 PropertyCommonHeaderKeys.SUBSCRIBE_ID to it.subscribeId,
                 PropertyCommonHeaderKeys.SET_PARTIAL to isPartial,
                 PropertyCommonHeaderKeys.MUTUAL_ENCODING to it.encoding))
-            yield(Message.SubscribeProperty(Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+            yield(Message.SubscribeProperty(Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, config.group),
                 parent.messenger.requestIdSerial++, header, encodedData))
         }
     }

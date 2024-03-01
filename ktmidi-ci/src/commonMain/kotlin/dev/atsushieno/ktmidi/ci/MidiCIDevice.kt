@@ -57,11 +57,11 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     fun processInput(group: Byte, data: List<Byte>) = messenger.processInput(group, data)
 
-    fun sendDiscovery(group: Byte) = messenger.sendDiscovery(group)
+    fun sendDiscovery() = messenger.sendDiscovery()
 
-    fun addLocalProfile(group: Byte, profile: MidiCIProfile) {
+    fun addLocalProfile(profile: MidiCIProfile) {
         localProfiles.add(profile)
-        messenger.sendProfileAddedReport(group, profile)
+        messenger.sendProfileAddedReport(profile)
     }
 
     fun removeLocalProfile(group: Byte, address: Byte, profileId: MidiCIProfileId) {
@@ -76,11 +76,11 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         localProfiles.update(profile, enabled, newAddress, numChannelsRequested)
     }
 
-    fun requestProfileDetails(group: Byte, address: Byte, muid: Int, profile: MidiCIProfileId, target: Byte) =
-        messenger.sendProfileDetailsInquiry(group, address, muid, profile, target)
+    fun requestProfileDetails(address: Byte, muid: Int, profile: MidiCIProfileId, target: Byte) =
+        messenger.sendProfileDetailsInquiry(address, muid, profile, target)
 
-    fun requestMidiMessageReport(group: Byte, address: Byte, targetMUID: Int, messageDataControl: Byte, systemMessages: Byte, channelControllerMessages: Byte, noteDataMessages: Byte) =
-        messenger.sendMidiMessageReportInquiry(group, address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
+    fun requestMidiMessageReport(address: Byte, targetMUID: Int, messageDataControl: Byte, systemMessages: Byte, channelControllerMessages: Byte, noteDataMessages: Byte) =
+        messenger.sendMidiMessageReportInquiry(address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
 
     val localProperties by messenger.responder::properties
     val localPropertyMetadataList
@@ -88,19 +88,18 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     fun addLocalProperty(property: PropertyMetadata) = messenger.responder.properties.addMetadata(property)
     fun removeLocalProperty(propertyId: String) = messenger.responder.properties.removeMetadata(propertyId)
     fun updatePropertyMetadata(oldPropertyId: String, property: PropertyMetadata) = messenger.responder.properties.updateMetadata(oldPropertyId, property)
-    // FIXME: examine our overall uses and passing of "group". It is apparently unnecessary for Property Exchange.
-    fun updatePropertyValue(group: Byte, propertyId: String, data: List<Byte>, isPartial: Boolean) = messenger.responder.updatePropertyValue(group, propertyId, data, isPartial)
+    fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) = messenger.responder.updatePropertyValue(propertyId, data, isPartial)
 
     private fun conn(destinationMUID: Int): ClientConnection =
         connections[destinationMUID] ?: throw MidiCIException("Unknown destination MUID: $destinationMUID")
-    fun sendGetPropertyDataRequest(group: Byte, destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
-        conn(destinationMUID).saveAndSendGetPropertyData(group, destinationMUID, resource, encoding, paginateOffset, paginateLimit)
-    fun sendSetPropertyDataRequest(group: Byte, destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) =
-        conn(destinationMUID).sendSetPropertyData(group, destinationMUID, resource, data, encoding, isPartial)
-    fun sendSubscribeProperty(group: Byte, destinationMUID: Int, resource: String, mutualEncoding: String?) =
-        conn(destinationMUID).sendSubscribeProperty(group, destinationMUID, resource, mutualEncoding)
-    fun sendUnsubscribeProperty(group: Byte, destinationMUID: Int, resource: String, mutualEncoding: String?) =
-        conn(destinationMUID).sendUnsubscribeProperty(group, destinationMUID, resource, mutualEncoding)
+    fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
+        conn(destinationMUID).saveAndSendGetPropertyData(destinationMUID, resource, encoding, paginateOffset, paginateLimit)
+    fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) =
+        conn(destinationMUID).sendSetPropertyData(destinationMUID, resource, data, encoding, isPartial)
+    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) =
+        conn(destinationMUID).sendSubscribeProperty(destinationMUID, resource, mutualEncoding)
+    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) =
+        conn(destinationMUID).sendUnsubscribeProperty(destinationMUID, resource, mutualEncoding)
 
 
     fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
