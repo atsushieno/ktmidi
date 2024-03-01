@@ -132,9 +132,9 @@ public final class dev/atsushieno/ktmidi/ci/ClientConnection {
 	public final fun processPropertySubscriptionReply (Ldev/atsushieno/ktmidi/ci/Message$SubscribePropertyReply;)V
 	public final fun processSubscribeProperty (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)V
 	public final fun promoteSubscriptionAsUnsubscribing (Ljava/lang/String;B)V
-	public final fun saveAndSendGetPropertyData (ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public final fun saveAndSendGetCommonRulesPropertyData (ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public static synthetic fun saveAndSendGetCommonRulesPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
 	public final fun saveAndSendGetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)V
-	public static synthetic fun saveAndSendGetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
 	public final fun sendSetPropertyData (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
 	public static synthetic fun sendSetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)V
 	public final fun sendSubscribeProperty (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
@@ -1061,6 +1061,10 @@ public abstract class dev/atsushieno/ktmidi/ci/ObservablePropertyList {
 	public final fun initializeCatalogUpdatedEvent ()V
 }
 
+public final class dev/atsushieno/ktmidi/ci/ObservablePropertyListKt {
+	public static final fun getMediaTypes (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)Ljava/util/List;
+}
+
 public final class dev/atsushieno/ktmidi/ci/PropertyChunkManager {
 	public fun <init> ()V
 	public final fun addPendingChunk (JIBLjava/util/List;Ljava/util/List;)V
@@ -1113,55 +1117,9 @@ public final class dev/atsushieno/ktmidi/ci/PropertyExchangeResponder {
 	public final fun updatePropertyValue (Ljava/lang/String;Ljava/util/List;Z)V
 }
 
-public final class dev/atsushieno/ktmidi/ci/PropertyMetadata {
-	public static final field Companion Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Companion;
-	public fun <init> ()V
-	public fun <init> (Ljava/lang/String;)V
-	public final fun getCanGet ()Z
-	public final fun getCanPaginate ()Z
-	public final fun getCanSet ()Ljava/lang/String;
-	public final fun getCanSubscribe ()Z
-	public final fun getColumns ()Ljava/util/List;
-	public final fun getEncodings ()Ljava/util/List;
-	public final fun getMediaTypes ()Ljava/util/List;
-	public final fun getOriginator ()Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;
-	public final fun getRequireResId ()Z
-	public final fun getResource ()Ljava/lang/String;
-	public final fun getSchema ()Ljava/lang/String;
-	public final fun setCanGet (Z)V
-	public final fun setCanPaginate (Z)V
-	public final fun setCanSet (Ljava/lang/String;)V
-	public final fun setCanSubscribe (Z)V
-	public final fun setColumns (Ljava/util/List;)V
-	public final fun setEncodings (Ljava/util/List;)V
-	public final fun setMediaTypes (Ljava/util/List;)V
-	public final fun setOriginator (Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;)V
-	public final fun setRequireResId (Z)V
-	public final fun setResource (Ljava/lang/String;)V
-	public final fun setSchema (Ljava/lang/String;)V
-}
-
-public final class dev/atsushieno/ktmidi/ci/PropertyMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/PropertyMetadata$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/PropertyMetadata;
-	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
-	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
-	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
-}
-
-public final class dev/atsushieno/ktmidi/ci/PropertyMetadata$Companion {
-	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class dev/atsushieno/ktmidi/ci/PropertyMetadata$Originator : java/lang/Enum {
-	public static final field SYSTEM Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;
-	public static final field USER Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;
-	public static fun values ()[Ldev/atsushieno/ktmidi/ci/PropertyMetadata$Originator;
+public abstract interface class dev/atsushieno/ktmidi/ci/PropertyMetadata {
+	public abstract fun getExtra (Ljava/lang/String;)Ljava/lang/Object;
+	public abstract fun getPropertyId ()Ljava/lang/String;
 }
 
 public final class dev/atsushieno/ktmidi/ci/PropertyValue {
@@ -1360,6 +1318,66 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPrope
 	public final fun generateRandomSubscribeId ()Ljava/lang/String;
 }
 
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata : dev/atsushieno/ktmidi/ci/PropertyMetadata {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$Companion;
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public final fun getCanGet ()Z
+	public final fun getCanPaginate ()Z
+	public final fun getCanSet ()Ljava/lang/String;
+	public final fun getCanSubscribe ()Z
+	public final fun getColumns ()Ljava/util/List;
+	public final fun getEncodings ()Ljava/util/List;
+	public synthetic fun getExtra (Ljava/lang/String;)Ljava/lang/Object;
+	public fun getExtra (Ljava/lang/String;)Ljava/util/List;
+	public final fun getMediaTypes ()Ljava/util/List;
+	public final fun getOriginator ()Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$Originator;
+	public fun getPropertyId ()Ljava/lang/String;
+	public final fun getRequireResId ()Z
+	public final fun getResource ()Ljava/lang/String;
+	public final fun getSchema ()Ljava/lang/String;
+	public final fun setCanGet (Z)V
+	public final fun setCanPaginate (Z)V
+	public final fun setCanSet (Ljava/lang/String;)V
+	public final fun setCanSubscribe (Z)V
+	public final fun setColumns (Ljava/util/List;)V
+	public final fun setEncodings (Ljava/util/List;)V
+	public final fun setMediaTypes (Ljava/util/List;)V
+	public final fun setOriginator (Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$Originator;)V
+	public final fun setRequireResId (Z)V
+	public final fun setResource (Ljava/lang/String;)V
+	public final fun setSchema (Ljava/lang/String;)V
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$Keys {
+	public static final field ENCODINGS Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$Keys;
+	public static final field MEDIA_TYPES Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$Originator : java/lang/Enum {
+	public static final field SYSTEM Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$Originator;
+	public static final field USER Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$Originator;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$Originator;
+	public static fun values ()[Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$Originator;
+}
+
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyService : dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyHelper, dev/atsushieno/ktmidi/ci/MidiCIServicePropertyRules {
 	public fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;ILdev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;Ljava/util/List;Ljava/util/List;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;)V
 	public synthetic fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;ILdev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;Ljava/util/List;Ljava/util/List;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1470,7 +1488,7 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRe
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRules_ServiceKt {
-	public static final fun toJsonValue (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public static final fun toJsonValue (Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRules_jvmKt {

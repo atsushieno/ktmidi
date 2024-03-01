@@ -13,11 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.atsushieno.ktmidi.ci.ClientConnection
+import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
-import dev.atsushieno.ktmidi.ci.MidiCIConstants
-import dev.atsushieno.ktmidi.ci.MidiCIProfileId
-import dev.atsushieno.ktmidi.ci.SubscriptionActionState
+import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyMetadata
 import dev.atsushieno.ktmidi.citool.MidiCIProfileState
 
 @Composable
@@ -261,7 +259,7 @@ fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
                           commitChangeClicked: (id: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         val entry = vm.conn.properties.firstOrNull { it.id == propertyId } ?: return
-        val def = vm.conn.getMetadataList()?.firstOrNull { it.resource == entry.id }
+        val def = vm.conn.getMetadataList()?.firstOrNull { it.propertyId == entry.id } as CommonRulesPropertyMetadata?
         PropertyValueEditor(false, entry.mediaType, def, entry.body,
             refreshValueClicked,
             isSubscribing = vm.conn.subscriptions.firstOrNull { it.propertyId == propertyId }?.state?.value == SubscriptionActionState.Subscribed,

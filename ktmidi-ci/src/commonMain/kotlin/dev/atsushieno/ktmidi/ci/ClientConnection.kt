@@ -1,9 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
-import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyClient
-import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
-import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyExchangeStatus
-import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
+import dev.atsushieno.ktmidi.ci.propertycommonrules.*
 
 enum class SubscriptionActionState {
     Subscribing,
@@ -193,8 +190,7 @@ class ClientConnection(
         }
     }
 
-    // FIXME: too much exposure of Common Rules for PE
-    fun saveAndSendGetPropertyData(destinationMUID: Int, resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
+    fun saveAndSendGetCommonRulesPropertyData(destinationMUID: Int, resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
         val header = propertyClient.createDataRequestHeader(resource, mapOf(
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
             PropertyCommonHeaderKeys.SET_PARTIAL to false,
@@ -258,9 +254,9 @@ class ClientConnection(
         // If the reply was ResourceList, and the parsed body contained an entry for DeviceInfo, and
         //  if it is configured as auto-queried, then send another Get Property Data request for it.
         if (parent.config.autoSendGetDeviceInfo && propertyId == PropertyResourceNames.RESOURCE_LIST) {
-            val def = propertyClient.getMetadataList()?.firstOrNull { it.resource == PropertyResourceNames.DEVICE_INFO }
+            val def = propertyClient.getMetadataList()?.firstOrNull { it.propertyId == PropertyResourceNames.DEVICE_INFO } as CommonRulesPropertyMetadata?
             if (def != null)
-                saveAndSendGetPropertyData(msg.sourceMUID, def.resource, def.encodings.firstOrNull())
+                saveAndSendGetCommonRulesPropertyData(msg.sourceMUID, def.propertyId, def.encodings?.firstOrNull())
         }
     }
 
@@ -270,9 +266,6 @@ class ClientConnection(
             parent.messenger.send(reply.second!!)
         // If the update was NOTIFY, then it is supposed to send Get Data request.
         if (reply.first == MidiCISubscriptionCommand.NOTIFY)
-            saveAndSendGetPropertyData(msg.sourceMUID, propertyClient.getPropertyIdForHeader(msg.header),
-                // is there mutualEncoding from SubscribeProperty?
-                encoding = null,
-                paginateOffset = null, paginateLimit = null)
+            saveAndSendGetCommonRulesPropertyData(msg.sourceMUID, propertyClient.getPropertyIdForHeader(msg.header))
     }
 }

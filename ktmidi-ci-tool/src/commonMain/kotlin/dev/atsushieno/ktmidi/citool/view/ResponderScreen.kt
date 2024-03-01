@@ -15,10 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.atsushieno.ktmidi.ci.MidiCIConstants
-import dev.atsushieno.ktmidi.ci.MidiCIProfile
-import dev.atsushieno.ktmidi.ci.MidiCIProfileId
-import dev.atsushieno.ktmidi.ci.PropertyMetadata
+import dev.atsushieno.ktmidi.ci.*
+import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyMetadata
 
 @Composable
 fun ResponderScreen(vm: ResponderViewModel) {
@@ -56,7 +54,7 @@ fun LocalPropertyConfiguration(vm: ResponderViewModel) {
         val sp = selectedProperty
         if (sp != null) {
             val value = vm.properties.first { it.id.value == sp }
-            val def = vm.getPropertyMetadata(sp)
+            val def = vm.getPropertyMetadata(sp) as CommonRulesPropertyMetadata
             LocalPropertyDetails(def, value,
                 updatePropertyValue = { id, data -> vm.updatePropertyValue(id, data, false) },
                 metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) }
@@ -252,9 +250,9 @@ fun LocalPropertyList(properties: List<String>,
 }
 
 @Composable
-fun LocalPropertyDetails(def: PropertyMetadata?, property: PropertyValueState,
+fun LocalPropertyDetails(def: CommonRulesPropertyMetadata?, property: PropertyValueState,
                          updatePropertyValue: (propertyId: String, bytes: List<Byte>) -> Unit,
-                         metadataUpdateCommitted: (property: PropertyMetadata) -> Unit) {
+                         metadataUpdateCommitted: (property: CommonRulesPropertyMetadata) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         if (def != null) {
             PropertyValueEditor(true, property.mediaType.value, def, property.data.value,
@@ -266,7 +264,7 @@ fun LocalPropertyDetails(def: PropertyMetadata?, property: PropertyValueState,
             PropertyMetadataEditor(
                 def,
                 metadataUpdateCommitted,
-                def.originator == PropertyMetadata.Originator.SYSTEM
+                def.originator == CommonRulesPropertyMetadata.Originator.SYSTEM
             )
         }
         else

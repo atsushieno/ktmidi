@@ -16,8 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyMetadata
 import dev.atsushieno.ktmidi.ci.MidiCIConverter
-import dev.atsushieno.ktmidi.ci.PropertyMetadata
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesKnownMimeTypes
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceColumn
@@ -44,8 +44,8 @@ fun PropertyListEntry(propertyId: String, isSelected: Boolean, selectedPropertyC
 }
 
 @Composable
-fun PropertyMetadataEditor(def: PropertyMetadata,
-                           metadataUpdateCommitted: (PropertyMetadata)->Unit,
+fun PropertyMetadataEditor(def: CommonRulesPropertyMetadata,
+                           metadataUpdateCommitted: (CommonRulesPropertyMetadata)->Unit,
                            readOnly: Boolean) {
 
     Column {
@@ -84,7 +84,7 @@ fun PropertyMetadataEditor(def: PropertyMetadata,
 
         val updateButton = @Composable { if (!readOnly) Button(onClick = {
             schemaParserError = ""
-            metadataUpdateCommitted(PropertyMetadata().also {
+            metadataUpdateCommitted(CommonRulesPropertyMetadata().also {
                 it.resource = resource
                 it.canGet = canGet
                 it.canSet = canSet
@@ -235,7 +235,7 @@ fun PropertySetAccessSelector(canSet: String,
 @Composable
 fun PropertyValueEditor(isLocalEditor: Boolean,
                         mediaType: String,
-                        metadata: PropertyMetadata?,
+                        metadata: CommonRulesPropertyMetadata?,
                         body: List<Byte>,
                         refreshValueClicked: (requestedEncoding: String?, paginateOffset: Int?, paginateLimit: Int?) -> Unit,
                         isSubscribing: Boolean,
@@ -249,7 +249,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         Text("Property Value", fontWeight = FontWeight.Bold, fontSize = 20.sp)
 
         val isEditableByMetadata = metadata?.canSet != null && metadata.canSet != PropertySetAccess.NONE
-        val isEditable = metadata?.originator == PropertyMetadata.Originator.USER && (isLocalEditor || isEditableByMetadata)
+        val isEditable = metadata?.originator == CommonRulesPropertyMetadata.Originator.USER && (isLocalEditor || isEditableByMetadata)
         val isTextRenderable = mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON
         var editing by remember { mutableStateOf(false) }
         val showRefreshAndSubscribeButtons = @Composable {

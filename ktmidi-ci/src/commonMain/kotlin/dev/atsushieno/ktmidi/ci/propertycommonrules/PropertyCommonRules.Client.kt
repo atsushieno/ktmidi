@@ -158,7 +158,7 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, deviceDet
         // list of entries (name: value such as {"resource": "foo", "canSet": "partial"})
         val list = body.token.seq.toList()
         return list.map { entry ->
-            val res = PropertyMetadata()
+            val res = CommonRulesPropertyMetadata()
             entry.token.map.forEach {
                 val v = it.value
                 when (it.key.stringValue) {

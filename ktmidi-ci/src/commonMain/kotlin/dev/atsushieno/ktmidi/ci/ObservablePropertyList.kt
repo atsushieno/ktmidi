@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesKnownMimeTypes
+import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyMetadata
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
 import kotlinx.serialization.Serializable
 
@@ -8,8 +9,21 @@ import kotlinx.serialization.Serializable
  * Observable list of MIDI-CI Properties. Note that each entry is NOT observable.
  */
 
+interface PropertyMetadata {
+    val propertyId: String
+    fun getExtra(key: String): Any
+}
+
 @Serializable
-data class PropertyValue(val id: String, val mediaType: String, var body: List<Byte>)
+data class PropertyValue(
+    val id: String,
+    // FIXME: this is specific to Common Rules for PE, which had better be abstracted away...
+    val mediaType: String,
+    var body: List<Byte>
+)
+
+val PropertyMetadata.mediaTypes: List<String>?
+    get() = if (this is CommonRulesPropertyMetadata) this.mediaTypes else null
 
 abstract class ObservablePropertyList(protected val internalValues: MutableList<PropertyValue>) {
 
@@ -31,11 +45,11 @@ abstract class ObservablePropertyList(protected val internalValues: MutableList<
             val newEntries = mutableListOf<PropertyValue>()
             val list = getMetadataList()
             list?.forEach { entry ->
-                val existing = internalValues.firstOrNull { it.id == entry.resource }
+                val existing = internalValues.firstOrNull { it.id == entry.propertyId }
                 if (existing != null)
                     newEntries.add(existing)
                 else
-                    newEntries.add(PropertyValue(entry.resource, entry.mediaTypes.firstOrNull() ?: "", listOf()))
+                    newEntries.add(PropertyValue(entry.propertyId, entry.mediaTypes?.firstOrNull() ?: "", listOf()))
             }
             internalValues.clear()
             internalValues.addAll(newEntries)
@@ -123,7 +137,7 @@ class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private 
     init {
         initializeCatalogUpdatedEvent()
         internalValues.addAll(propertyService.getMetadataList() ?.map {
-            PropertyValue(it.resource, it.mediaTypes.firstOrNull() ?: "", listOf())
+            PropertyValue(it.propertyId, it.mediaTypes?.firstOrNull() ?: "", listOf())
         } ?: listOf())
     }
 }

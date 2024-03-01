@@ -4,6 +4,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.LogEntry
+import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyMetadata
 import dev.atsushieno.ktmidi.citool.*
 import kotlin.random.Random
 
@@ -77,8 +78,10 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
 
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
-        val metadata = conn.conn.propertyClient.getMetadataList()?.firstOrNull { it.resource == propertyId }
-        ciDeviceManager.device.sendGetPropertyDataRequest(conn.conn.targetMUID, propertyId, encoding = metadata?.encodings?.firstOrNull(), paginateOffset = 0, paginateLimit = 10)
+        val metadata = conn.conn.propertyClient.getMetadataList()?.firstOrNull { it.propertyId == propertyId }
+                as CommonRulesPropertyMetadata
+        ciDeviceManager.device.sendGetPropertyDataRequest(conn.conn.targetMUID, propertyId,
+            encoding = metadata.encodings.firstOrNull(), paginateOffset = 0, paginateLimit = 10)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
@@ -141,16 +144,16 @@ class ResponderViewModel(val model: CIDeviceModel) {
         // With the current implementation, we reuse the same PropertyMetadata instance
         // which means the id is already updated.
         // Since it depends on the implementation, we try both `oldPropertyId` and new id here... (there must not be collision in older id)
-        val index = properties.indexOfFirst { it.id.value == property.resource || it.id.value == oldPropertyId }
+        val index = properties.indexOfFirst { it.id.value == property.propertyId || it.id.value == oldPropertyId }
         val existing = properties[index]
 
         // update definition
         model.updatePropertyMetadata(oldPropertyId, property)
 
         // We need to update the property value list state, as the property ID might have changed.
-        if (oldPropertyId != property.resource)
-            existing.id.value = property.resource
-        selectedProperty.value = property.resource
+        if (oldPropertyId != property.propertyId)
+            existing.id.value = property.propertyId
+        selectedProperty.value = property.propertyId
     }
 
     fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
@@ -162,7 +165,7 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 
     fun createNewProperty() {
-        val property = PropertyMetadata().apply { resource = "X-${Random.nextInt(9999)}" }
+        val property = CommonRulesPropertyMetadata().apply { resource = "X-${Random.nextInt(9999)}" }
         model.addLocalProperty(property)
         selectedProperty.value = property.resource
     }
@@ -176,7 +179,7 @@ class ResponderViewModel(val model: CIDeviceModel) {
     var selectedProperty = mutableStateOf<String?>(null)
     val properties by lazy { mutableStateListOf<PropertyValueState>().apply { addAll(device.localProperties.values.map { PropertyValueState(it) }) } }
     fun getPropertyMetadata(propertyId: String) =
-        device.localPropertyMetadataList.firstOrNull { it.resource == propertyId }
+        device.localPropertyMetadataList.firstOrNull { it.propertyId == propertyId }
 
     fun addNewProfile(state: MidiCIProfile) {
         model.addLocalProfile(state)

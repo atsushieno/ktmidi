@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
+import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyMetadata
 import kotlinx.serialization.Serializable
 import kotlin.random.Random
 
@@ -50,5 +51,7 @@ class MidiCIDeviceConfiguration {
 
     // Property Exchange responder
     val propertyValues: MutableList<PropertyValue> = mutableListOf()
-    val propertyMetadataList: MutableList<PropertyMetadata> = mutableListOf()
+    // FIXME: Common Rules which does not look good for decoupling spec, but we cannot serialize
+    //  MutableList<PropertyMetadata> (list of interface entries) using kotlinx.serialization...
+    val propertyMetadataList: MutableList<CommonRulesPropertyMetadata> = mutableListOf()
 }

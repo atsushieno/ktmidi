@@ -1,17 +1,29 @@
-package dev.atsushieno.ktmidi.ci
+package dev.atsushieno.ktmidi.ci.propertycommonrules
 
-import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesKnownMimeTypes
-import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyDataEncoding
-import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceColumn
-import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertySetAccess
+import dev.atsushieno.ktmidi.ci.PropertyMetadata
 import kotlinx.serialization.Serializable
 
 @Serializable
-class PropertyMetadata() {
+class CommonRulesPropertyMetadata() : PropertyMetadata {
+    object Keys {
+        const val ENCODINGS = "encodings"
+        const val MEDIA_TYPES = "mediaTypes"
+    }
+
     enum class Originator {
         SYSTEM,
         USER
     }
+
+    override val propertyId: String
+        get() = resource
+
+    override fun getExtra(key: String) =
+        when(key) {
+            Keys.MEDIA_TYPES -> mediaTypes
+            Keys.ENCODINGS -> encodings
+            else -> TODO("Not in use yet")
+        }
 
     var resource: String = ""
     var canGet: Boolean = true

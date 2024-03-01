@@ -6,13 +6,13 @@ import dev.atsushieno.ktmidi.ci.json.JsonParserException
 import kotlin.random.Random
 
 private val defaultPropertyList = listOf(
-    PropertyMetadata(PropertyResourceNames.DEVICE_INFO).apply { originator = PropertyMetadata.Originator.SYSTEM },
+    CommonRulesPropertyMetadata(PropertyResourceNames.DEVICE_INFO).apply { originator = CommonRulesPropertyMetadata.Originator.SYSTEM },
     //PropertyResource(PropertyResourceNames.CHANNEL_LIST),
     //PropertyResource(PropertyResourceNames.JSON_SCHEMA)
 )
 
 
-private fun PropertyMetadata.jsonValuePairs() = sequence {
+private fun CommonRulesPropertyMetadata.jsonValuePairs() = sequence {
     yield(Pair(Json.JsonValue(PropertyResourceFields.RESOURCE), Json.JsonValue(resource)))
     if (!canGet)
         yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_GET), if (canGet) Json.TrueValue else Json.FalseValue))
@@ -43,13 +43,13 @@ private fun PropertyMetadata.jsonValuePairs() = sequence {
         ))
 }
 
-fun PropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
+fun CommonRulesPropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
     jsonValuePairs().toMap()
 )
 
 class CommonRulesPropertyService(logger: Logger, private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
                                  private val values: MutableList<PropertyValue>,
-                                 private val metadataList: MutableList<PropertyMetadata> = mutableListOf(),
+                                 private val metadataList: MutableList<CommonRulesPropertyMetadata> = mutableListOf(),
                                  private val channelList: Json.JsonValue? = null,
                                  private val jsonSchema: Json.JsonValue? = null
     )
@@ -119,12 +119,12 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
     }
 
     override fun addMetadata(property: PropertyMetadata) {
-        metadataList.add(property)
+        metadataList.add(property as CommonRulesPropertyMetadata)
         propertyCatalogUpdated.forEach { it() }
     }
 
     override fun removeMetadata(propertyId: String) {
-        metadataList.removeAll { it.resource == propertyId }
+        metadataList.removeAll { it.propertyId == propertyId }
         propertyCatalogUpdated.forEach { it() }
     }
 
@@ -193,7 +193,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
     private fun getPropertyDataJson(header: PropertyCommonRequestHeader): Pair<Json.JsonValue, Json.JsonValue> {
         val body = when(header.resource) {
-            PropertyResourceNames.RESOURCE_LIST -> Json.JsonValue(getMetadataList().map { it.toJsonValue() })
+            PropertyResourceNames.RESOURCE_LIST -> Json.JsonValue(getMetadataList().map { (it as CommonRulesPropertyMetadata).toJsonValue() })
             PropertyResourceNames.DEVICE_INFO -> getDeviceInfoJson()
             PropertyResourceNames.CHANNEL_LIST -> channelList
             PropertyResourceNames.JSON_SCHEMA -> jsonSchema

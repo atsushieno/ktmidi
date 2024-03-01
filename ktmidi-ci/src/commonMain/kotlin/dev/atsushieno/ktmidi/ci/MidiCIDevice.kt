@@ -93,7 +93,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
     private fun conn(destinationMUID: Int): ClientConnection =
         connections[destinationMUID] ?: throw MidiCIException("Unknown destination MUID: $destinationMUID")
     fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
-        conn(destinationMUID).saveAndSendGetPropertyData(destinationMUID, resource, encoding, paginateOffset, paginateLimit)
+        conn(destinationMUID).saveAndSendGetCommonRulesPropertyData(destinationMUID, resource, encoding, paginateOffset, paginateLimit)
     fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) =
         conn(destinationMUID).sendSetPropertyData(destinationMUID, resource, data, encoding, isPartial)
     fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) =
