@@ -2,7 +2,6 @@ package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
-import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyExchangeStatus
 import kotlinx.datetime.Clock
 import kotlin.experimental.and
 
@@ -151,6 +150,8 @@ class Messenger(
         if (config.autoSendPropertyExchangeCapabilitiesInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROPERTY_EXCHANGE.toInt()) != 0)
             requestPropertyExchangeCapabilities(msg.group,
                 MidiCIConstants.ADDRESS_FUNCTION_BLOCK, msg.sourceMUID, config.maxSimultaneousPropertyRequests)
+        if (config.autoSendProcessInquiry && (msg.ciCategorySupported.toInt() and MidiCISupportedCategories.PROCES_INQUIRY.toInt()) != 0)
+            requestProcessInquiryCapabilities(msg.group, msg.sourceMUID)
     }
     var processDiscoveryReply: (msg: Message.DiscoveryReply) -> Unit = { msg ->
         messageReceived.forEach { it(msg) }
@@ -436,17 +437,10 @@ class Messenger(
     }
 
     // Remote Process Inquiry
-    fun sendProcessInquiryCapabilitiesRequest(group: Byte, destinationMUID: Int) =
-        send(
-            Message.ProcessInquiryCapabilities(
-                Message.Common(
-                    muid,
-                    destinationMUID,
-                    MidiCIConstants.ADDRESS_FUNCTION_BLOCK,
-                    group
-                )
-            )
-        )
+    fun requestProcessInquiryCapabilities(group: Byte, destinationMUID: Int) =
+        send(Message.ProcessInquiryCapabilities(
+            Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group)
+        ))
 
     fun sendMidiMessageReportInquiry(group: Byte, address: Byte, destinationMUID: Int,
                                      messageDataControl: Byte,

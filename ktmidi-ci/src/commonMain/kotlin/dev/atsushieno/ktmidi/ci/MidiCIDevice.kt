@@ -19,7 +19,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                    sendMidiMessageReport: (group: Byte, protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
 ) {
     val device: MidiCIDeviceInfo
-        get() = config.device
+        get() = config.deviceInfo
 
     val unknownCIMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
     val messageReceived = mutableListOf<(msg: Message) -> Unit>()

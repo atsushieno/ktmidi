@@ -218,7 +218,7 @@ class ResponderViewModel(val model: CIDeviceModel) {
 }
 
 class DeviceConfigurationViewModel(private val device: CIDeviceModel, private val config: MidiCIDeviceConfiguration) {
-    private val deviceInfo: MidiCIDeviceInfo = config.device
+    private val deviceInfo: MidiCIDeviceInfo = config.deviceInfo
 
     val maxSimultaneousPropertyRequests =
         mutableStateOf(config.maxSimultaneousPropertyRequests)
@@ -238,7 +238,7 @@ class DeviceConfigurationViewModel(private val device: CIDeviceModel, private va
     var serialNumber = mutableStateOf(deviceInfo.serialNumber)
 
     fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
-        config.device = deviceInfo
+        config.deviceInfo = deviceInfo
         device.updateDeviceInfo(deviceInfo)
         this.manufacturerId.value = deviceInfo.manufacturerId
         this.familyId.value = deviceInfo.familyId

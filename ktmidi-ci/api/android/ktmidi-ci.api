@@ -625,6 +625,7 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public final fun handleNewEndpoint (Ldev/atsushieno/ktmidi/ci/Message$DiscoveryReply;)V
 	public final fun invalidateMUID (BBILjava/lang/String;)V
 	public final fun processInput (BLjava/util/List;)V
+	public final fun requestProcessInquiryCapabilities (BI)V
 	public final fun requestPropertyExchangeCapabilities (BBIB)V
 	public final fun send (Ldev/atsushieno/ktmidi/ci/Message;)V
 	public final fun sendDiscovery (BB)V
@@ -636,7 +637,6 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public static synthetic fun sendNakForError$default (Ldev/atsushieno/ktmidi/ci/Messenger;Ldev/atsushieno/ktmidi/ci/Message$Common;BBBLjava/util/List;Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun sendNakForUnknownCIMessage (BLjava/util/List;)V
 	public final fun sendNakForUnknownMUID (Ldev/atsushieno/ktmidi/ci/Message$Common;B)V
-	public final fun sendProcessInquiryCapabilitiesRequest (BI)V
 	public final fun sendProfileAddedReport (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
 	public final fun sendProfileDetailsInquiry (BBILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
 	public final fun sendProfileInquiry (BBI)V
@@ -756,14 +756,15 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
 	public static final field Companion Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration$Companion;
-	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public fun <init> ()V
 	public final fun getAutoSendEndpointInquiry ()Z
 	public final fun getAutoSendGetDeviceInfo ()Z
 	public final fun getAutoSendGetResourceList ()Z
+	public final fun getAutoSendProcessInquiry ()Z
 	public final fun getAutoSendProfileInquiry ()Z
 	public final fun getAutoSendPropertyExchangeCapabilitiesInquiry ()Z
 	public final fun getCapabilityInquirySupported ()B
-	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public final fun getDeviceInfo ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
 	public final fun getFunctionBlock ()B
 	public final fun getLocalProfiles ()Ljava/util/List;
 	public final fun getMaxPropertyChunkSize ()I
@@ -781,10 +782,11 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
 	public final fun setAutoSendEndpointInquiry (Z)V
 	public final fun setAutoSendGetDeviceInfo (Z)V
 	public final fun setAutoSendGetResourceList (Z)V
+	public final fun setAutoSendProcessInquiry (Z)V
 	public final fun setAutoSendProfileInquiry (Z)V
 	public final fun setAutoSendPropertyExchangeCapabilitiesInquiry (Z)V
 	public final fun setCapabilityInquirySupported (B)V
-	public final fun setDevice (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun setFunctionBlock (B)V
 	public final fun setMaxPropertyChunkSize (I)V
 	public final fun setMaxSimultaneousPropertyRequests (B)V
