@@ -16,13 +16,11 @@ class Messenger(
     private val muid by device::muid
     private val deviceInfo by device::device
     private val connections by device::connections
-    private val localProfiles by device::localProfiles
+    private val localProfiles
+        get() = device.profileHost.profiles
     private val messageReceived by device::messageReceived
 
     internal var requestIdSerial: Byte = 1
-
-    // FIXME: temporarily hiding them until we sort out good MIDI-CI end-user API
-    internal val responder by lazy { PropertyExchangeResponder(device, config) }
 
     // Request sender
 
@@ -203,8 +201,6 @@ class Messenger(
 
     // Remote Profile Configuration
 
-    // FIXME: most of them should move into ProfileClient
-
     fun sendProfileInquiry(group: Byte, address: Byte, destinationMUID: Int) =
         send(Message.ProfileInquiry(Message.Common(muid, destinationMUID, address, group)))
 
@@ -213,6 +209,14 @@ class Messenger(
             Message.ProfileDetailsInquiry(
                 Message.Common(muid, targetMUID, address, config.group),
                 profile, target
+            )
+        )
+
+    fun sendProfileSpecificData(address: Byte, targetMUID: Int, profile: MidiCIProfileId, data: List<Byte>) =
+        send(
+            Message.ProfileSpecificData(
+                Message.Common(muid, targetMUID, address, config.group),
+                profile, data
             )
         )
 
@@ -271,7 +275,7 @@ class Messenger(
         }
     }
 
-    private fun sendSetProfileEnabled(group: Byte, address: Byte, profile: MidiCIProfileId, numChannelsEnabled: Short) {
+    fun sendSetProfileEnabled(group: Byte, address: Byte, profile: MidiCIProfileId, numChannelsEnabled: Short) {
         send(
             Message.ProfileEnabled(
                 Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, address, group),
@@ -280,7 +284,7 @@ class Messenger(
             )
         )
     }
-    private fun sendSetProfileDisabled(group: Byte, address: Byte, profile: MidiCIProfileId, numChannelsDisabled: Short) {
+    fun sendSetProfileDisabled(group: Byte, address: Byte, profile: MidiCIProfileId, numChannelsDisabled: Short) {
         send(
             Message.ProfileDisabled(
                 Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, address, group),
@@ -299,38 +303,20 @@ class Messenger(
         )
     }
 
-    fun sendProfileRemovedReport(group: Byte, profile: MidiCIProfile) {
+    fun sendProfileRemovedReport(profile: MidiCIProfile) {
         send(
             Message.ProfileRemoved(
-                Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, profile.address, group),
+                Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, profile.address, config.group),
                 profile.profile
             )
         )
     }
 
-    private fun defaultProcessSetProfile(group: Byte, address: Byte, profile: MidiCIProfileId, numChannelsRequested: Short, enabled: Boolean): Boolean {
-        val newEntry = MidiCIProfile(profile, group, address, enabled, numChannelsRequested)
-        val existing = localProfiles.profiles.firstOrNull { it.profile == profile && it.address == address }
-        if (existing != null) {
-            if (existing.enabled == enabled)
-                return enabled // do not perform anything and return current state
-            localProfiles.remove(existing)
-        }
-        localProfiles.add(newEntry)
-        device.onProfileSet.forEach { it(newEntry) }
-        return enabled
-    }
-
     fun defaultProcessSetProfileOn(msg: Message.SetProfileOn) {
-        // send Profile Enabled Report only when it is actually enabled
-        if (defaultProcessSetProfile(msg.group, msg.address, msg.profile, msg.numChannelsRequested, true))
-            sendSetProfileEnabled(msg.group, msg.address, msg.profile, msg.numChannelsRequested)
+        device.profileHost.enableProfile(msg.group, msg.address, msg.profile, msg.numChannelsRequested)
     }
     fun defaultProcessSetProfileOff(msg: Message.SetProfileOff) {
-        // send Profile Disabled Report only when it is actually disabled
-        if (!defaultProcessSetProfile(msg.group, msg.address, msg.profile, 0, false))
-            // FIXME: supply numChannelsDisabled
-            sendSetProfileDisabled(msg.group, msg.address, msg.profile, 1)
+        device.profileHost.disableProfile(msg.group, msg.address, msg.profile)
     }
 
     var processSetProfileOn = { msg: Message.SetProfileOn ->
@@ -343,7 +329,7 @@ class Messenger(
     }
 
     fun defaultProcessProfileDetailsInquiry(msg: Message.ProfileDetailsInquiry) {
-        val data = device.profileService.getProfileDetails(msg.profile, msg.target)
+        val data = device.profileHost.profileRules.getProfileDetails(msg.profile, msg.target)
         val reply = Message.ProfileDetailsReply(
             Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
             msg.profile, msg.target, data ?: listOf()
@@ -401,18 +387,19 @@ class Messenger(
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
         device.messageReceived.forEach { it(msg) }
         // It may be either a new subscription, a property update notification, or end of subscription from either side
-        val command = responder.propertyService.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.COMMAND)
+        val command = device.propertyHost.propertyService.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.COMMAND)
         when (command) {
-            MidiCISubscriptionCommand.START -> responder.processSubscribeProperty(msg)
+            MidiCISubscriptionCommand.START -> device.propertyHost.processSubscribeProperty(msg)
             MidiCISubscriptionCommand.FULL,
             MidiCISubscriptionCommand.PARTIAL,
-            MidiCISubscriptionCommand.NOTIFY -> responder.processSubscribeProperty(msg)
+            MidiCISubscriptionCommand.NOTIFY ->
+                conn(msg, CISubId2.PROPERTY_SUBSCRIBE)?.processSubscribeProperty(msg) // for a subscriber
             MidiCISubscriptionCommand.END -> {
                 // We need to identify whether it is sent by the notifier or one of the subscribers
                 if (connections[msg.sourceMUID] != null)
                     conn(msg, CISubId2.PROPERTY_SUBSCRIBE)?.processSubscribeProperty(msg) // for a subscriber
                 else
-                    responder.processSubscribeProperty(msg) // for the notifier
+                    device.propertyHost.processSubscribeProperty(msg) // for the notifier
             }
         }
     }
@@ -428,13 +415,28 @@ class Messenger(
         if (connections[msg.sourceMUID] != null)
             conn(msg, CISubId2.PROPERTY_SUBSCRIBE_REPLY)?.processPropertySubscriptionReply(msg) // for a subscriber
         else
-            responder.processSubscribePropertyReply(msg) // for the notifier
+            device.propertyHost.processSubscribePropertyReply(msg) // for the notifier
     }
 
     var processPropertyNotify: (propertyNotify: Message.PropertyNotify) -> Unit = { msg ->
         messageReceived.forEach { it(msg) }
         // no particular things to do. Event handlers should be used if any.
     }
+
+
+    val getPropertyCapabilitiesReplyFor: (msg: Message.PropertyGetCapabilities) -> Message.PropertyGetCapabilitiesReply = { msg ->
+        val establishedMaxSimultaneousPropertyRequests =
+            if (msg.maxSimultaneousRequests > config.maxSimultaneousPropertyRequests) device.config.maxSimultaneousPropertyRequests
+            else msg.maxSimultaneousRequests
+        Message.PropertyGetCapabilitiesReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
+            establishedMaxSimultaneousPropertyRequests)
+    }
+    var processPropertyCapabilitiesInquiry: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
+        device.messageReceived.forEach { it(msg) }
+        val reply = getPropertyCapabilitiesReplyFor(msg)
+        send(reply)
+    }
+
 
     // Remote Process Inquiry
     fun requestProcessInquiryCapabilities(group: Byte, destinationMUID: Int) =
@@ -804,16 +806,13 @@ class Messenger(
 
             CISubId2.PROPERTY_CAPABILITIES_INQUIRY -> {
                 val max = CIRetrieval.midiCIGetMaxPropertyRequests(data)
-
-                responder.processPropertyCapabilitiesInquiry(
-                    Message.PropertyGetCapabilities(common, max)
-                )
+                processPropertyCapabilitiesInquiry(Message.PropertyGetCapabilities(common, max))
             }
 
             CISubId2.PROPERTY_GET_DATA_INQUIRY -> {
                 val requestId = data[13]
                 val header = CIRetrieval.midiCIGetPropertyHeader(data)
-                responder.processGetPropertyData(Message.GetPropertyData(common, requestId, header))
+                device.propertyHost.processGetPropertyData(Message.GetPropertyData(common, requestId, header))
             }
 
             CISubId2.PROPERTY_SET_DATA_INQUIRY -> {
@@ -824,7 +823,7 @@ class Messenger(
                 val body = CIRetrieval.midiCIGetPropertyBodyInThisChunk(data)
 
                 handleChunk(common, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
-                    responder.processSetPropertyData(Message.SetPropertyData(common, requestId, wholeHeader, wholeBody))
+                    device.propertyHost.processSetPropertyData(Message.SetPropertyData(common, requestId, wholeHeader, wholeBody))
                 }
             }
 

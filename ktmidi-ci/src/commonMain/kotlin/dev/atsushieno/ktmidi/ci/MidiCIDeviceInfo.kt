@@ -2,6 +2,13 @@ package dev.atsushieno.ktmidi.ci
 
 import kotlinx.serialization.Serializable
 
+/**
+ * `MidiCIDeviceInfo` represents a `DeviceInfo` resource defined in Common Rules for PE specification.
+ *
+ * There is another similar class `DeviceDetails` which is based on MIDI-CI specification and
+ * only contains integer (`Int` and `Short`) properties.
+ * `DeviceInfo` resource also covers String properties.
+ */
 @Serializable
 data class MidiCIDeviceInfo(
     var manufacturerId: Int,

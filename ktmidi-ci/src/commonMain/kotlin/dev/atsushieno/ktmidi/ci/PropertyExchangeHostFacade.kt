@@ -4,23 +4,46 @@ import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyService
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
 import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
 
-class PropertyExchangeResponder(
-    val parent: MidiCIDevice,
-    private val config: MidiCIDeviceConfiguration
-) {
-    val muid by parent::muid
-    val device by parent::device
-    val logger by parent::logger
+/**
+ * This class provides Profile Configuration *hosting* features primarily to end-user app developers,
+ * You can add or remove properties, update their metadata or value.
+ *
+ * It is NOT for manipulating remote MIDI-CI device properties.
+ * `ClientConnection` offers those features instead.
+ *
+ * Request handlers might also invoke these members.
+ */
 
-    val propertyService by lazy { CommonRulesPropertyService(logger, muid, device, config.propertyValues, config.propertyMetadataList) }
-    val properties by lazy { ServiceObservablePropertyList(config.propertyValues, propertyService) }
-    val subscriptions: List<SubscriptionEntry> by propertyService::subscriptions
+class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
+    private val messenger by device::messenger
 
-    // update property value. It involves updates to subscribers
+    val metadataList
+        get() = propertyService.getMetadataList()
+
+    fun addProperty(property: PropertyMetadata) = properties.addMetadata(property)
+    fun removeProperty(propertyId: String) = properties.removeMetadata(propertyId)
+    fun updatePropertyMetadata(oldPropertyId: String, property: PropertyMetadata) =
+        properties.updateMetadata(oldPropertyId, property)
+
+    // update property value. It involves notifications to subscribers.
     fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
         properties.values.first { it.id == propertyId }.body = data
         notifyPropertyUpdatesToSubscribers(propertyId, data, isPartial)
     }
+
+    fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
+        propertyService.deviceInfo = deviceInfo
+    }
+
+    // These members were moved from `PropertyExchangeResponder` and might be still unsorted.
+
+    private val muid by device::muid
+    private val logger by device::logger
+    private val config by device::config
+
+    internal val propertyService by lazy { CommonRulesPropertyService(logger, muid, device.device, config.propertyValues, config.propertyMetadataList) }
+    val properties by lazy { ServiceObservablePropertyList(config.propertyValues, propertyService) }
+    val subscriptions: List<SubscriptionEntry> by propertyService::subscriptions
 
     var notifyPropertyUpdatesToSubscribers: (propertyId: String, data: List<Byte>, isPartial: Boolean) -> Unit = { propertyId, data, isPartial ->
         createPropertyNotification(propertyId, data, isPartial).forEach { msg ->
@@ -42,69 +65,55 @@ class PropertyExchangeResponder(
                 PropertyCommonHeaderKeys.SET_PARTIAL to isPartial,
                 PropertyCommonHeaderKeys.MUTUAL_ENCODING to it.encoding))
             yield(Message.SubscribeProperty(Message.Common(muid, MidiCIConstants.BROADCAST_MUID_32, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, config.group),
-                parent.messenger.requestIdSerial++, header, encodedData))
+                messenger.requestIdSerial++, header, encodedData))
         }
     }
 
-    fun notifyPropertyUpdatesToSubscribers(msg: Message.SubscribeProperty) = parent.messenger.send(msg)
+    fun notifyPropertyUpdatesToSubscribers(msg: Message.SubscribeProperty) = messenger.send(msg)
 
     // Notify end of subscription updates
     fun terminateSubscriptions(group: Byte) {
         propertyService.subscriptions.forEach {
             val msg = Message.SubscribeProperty(Message.Common(muid, it.muid, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
-                parent.messenger.requestIdSerial++,
+                messenger.requestIdSerial++,
                 propertyService.createTerminateNotificationHeader(it.subscribeId), listOf()
             )
-            parent.messenger.send(msg)
+            messenger.send(msg)
         }
     }
 
     // Message handlers
 
-    // Should this also delegate to property service...?
-    val getPropertyCapabilitiesReplyFor: (msg: Message.PropertyGetCapabilities) -> Message.PropertyGetCapabilitiesReply = { msg ->
-        val establishedMaxSimultaneousPropertyRequests =
-            if (msg.maxSimultaneousRequests > parent.config.maxSimultaneousPropertyRequests) parent.config.maxSimultaneousPropertyRequests
-            else msg.maxSimultaneousRequests
-        Message.PropertyGetCapabilitiesReply(Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
-            establishedMaxSimultaneousPropertyRequests)
-    }
-    var processPropertyCapabilitiesInquiry: (msg: Message.PropertyGetCapabilities) -> Unit = { msg ->
-        parent.messageReceived.forEach { it(msg) }
-        val reply = getPropertyCapabilitiesReplyFor(msg)
-        parent.messenger.send(reply)
-    }
-
     var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
-        parent.messageReceived.forEach { it(msg) }
+        device.messageReceived.forEach { it(msg) }
         val reply = propertyService.getPropertyData(msg)
         if (reply.isSuccess) {
-            parent.messenger.send(reply.getOrNull()!!)
+            messenger.send(reply.getOrNull()!!)
         }
         else
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming GetPropertyData message resulted in an error")
     }
 
     var processSetPropertyData: (msg: Message.SetPropertyData) -> Unit = { msg ->
-        parent.messageReceived.forEach { it(msg) }
+        device.messageReceived.forEach { it(msg) }
         val reply = propertyService.setPropertyData(msg)
         if (reply.isSuccess)
-            parent.messenger.send(reply.getOrNull()!!)
+            messenger.send(reply.getOrNull()!!)
         else
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming SetPropertyData message resulted in an error")
     }
 
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
-        parent.messageReceived.forEach { it(msg) }
+        device.messageReceived.forEach { it(msg) }
         val reply = propertyService.subscribeProperty(msg)
         if (reply.isSuccess)
-            parent.messenger.send(reply.getOrNull()!!)
+            messenger.send(reply.getOrNull()!!)
         else
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming SubscribeProperty message resulted in an error")
     }
 
     // It receives reply to property notifications
     var processSubscribePropertyReply: (msg: Message.SubscribePropertyReply) -> Unit = { msg ->
-        parent.messageReceived.forEach { it(msg) }
+        device.messageReceived.forEach { it(msg) }
     }
 }

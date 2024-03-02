@@ -177,9 +177,9 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
-    val properties by lazy { mutableStateListOf<PropertyValueState>().apply { addAll(device.localProperties.values.map { PropertyValueState(it) }) } }
+    val properties by lazy { mutableStateListOf<PropertyValueState>().apply { addAll(device.propertyHost.properties.values.map { PropertyValueState(it) }) } }
     fun getPropertyMetadata(propertyId: String) =
-        device.localPropertyMetadataList.firstOrNull { it.propertyId == propertyId }
+        device.propertyHost.metadataList.firstOrNull { it.propertyId == propertyId }
 
     fun addNewProfile(state: MidiCIProfile) {
         model.addLocalProfile(state)
@@ -213,9 +213,9 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 
     init {
-        device.localProperties.propertiesCatalogUpdated.add {
+        device.propertyHost.properties.propertiesCatalogUpdated.add {
             properties.clear()
-            properties.addAll(device.localProperties.values.map { PropertyValueState(it) })
+            properties.addAll(device.propertyHost.properties.values.map { PropertyValueState(it) })
         }
     }
 }

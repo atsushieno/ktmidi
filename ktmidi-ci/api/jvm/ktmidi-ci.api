@@ -587,6 +587,7 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public final fun getDiscoveryReplyForInquiry (Ldev/atsushieno/ktmidi/ci/Message$DiscoveryInquiry;)Ldev/atsushieno/ktmidi/ci/Message$DiscoveryReply;
 	public final fun getEndOfMidiMessageReportFor (Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry;)Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportNotifyEnd;
 	public final fun getEndpointReplyForInquiry (Ldev/atsushieno/ktmidi/ci/Message$EndpointInquiry;)Ldev/atsushieno/ktmidi/ci/Message$EndpointReply;
+	public final fun getGetPropertyCapabilitiesReplyFor ()Lkotlin/jvm/functions/Function1;
 	public final fun getMidiMessageReportReplyFor (Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportInquiry;)Ldev/atsushieno/ktmidi/ci/Message$MidiMessageReportReply;
 	public final fun getOnAck ()Lkotlin/jvm/functions/Function8;
 	public final fun getOnNak ()Lkotlin/jvm/functions/Function8;
@@ -613,6 +614,7 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public final fun getProcessProfileRemovedReport ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessProfileReply ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessProfileSpecificData ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessPropertyCapabilitiesInquiry ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessPropertyCapabilitiesReply ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessPropertyNotify ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessSetDataReply ()Lkotlin/jvm/functions/Function1;
@@ -640,7 +642,10 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public final fun sendProfileAddedReport (Ldev/atsushieno/ktmidi/ci/MidiCIProfile;)V
 	public final fun sendProfileDetailsInquiry (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
 	public final fun sendProfileInquiry (BBI)V
-	public final fun sendProfileRemovedReport (BLdev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun sendProfileRemovedReport (Ldev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun sendProfileSpecificData (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;Ljava/util/List;)V
+	public final fun sendSetProfileDisabled (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;S)V
+	public final fun sendSetProfileEnabled (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;S)V
 	public final fun setOnAck (Lkotlin/jvm/functions/Function8;)V
 	public final fun setOnNak (Lkotlin/jvm/functions/Function8;)V
 	public final fun setProcessAck (Lkotlin/jvm/functions/Function8;)V
@@ -665,6 +670,7 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public final fun setProcessProfileRemovedReport (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessProfileReply (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessProfileSpecificData (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessPropertyCapabilitiesInquiry (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessPropertyCapabilitiesReply (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessPropertyNotify (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSetDataReply (Lkotlin/jvm/functions/Function1;)V
@@ -722,36 +728,28 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIConverter {
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
 	public fun <init> (ILdev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)V
-	public final fun addLocalProfile (Ldev/atsushieno/ktmidi/ci/MidiCIProfile;)V
-	public final fun addLocalProperty (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
 	public final fun getConfig ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;
 	public final fun getConnections ()Ljava/util/Map;
 	public final fun getConnectionsChanged ()Ljava/util/List;
 	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
-	public final fun getLocalProfiles ()Ldev/atsushieno/ktmidi/ci/ObservableProfileList;
-	public final fun getLocalProperties ()Ldev/atsushieno/ktmidi/ci/ServiceObservablePropertyList;
-	public final fun getLocalPropertyMetadataList ()Ljava/util/List;
 	public final fun getLogger ()Ldev/atsushieno/ktmidi/ci/Logger;
 	public final fun getMessageReceived ()Ljava/util/List;
 	public final fun getMidiMessageReporter ()Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;
 	public final fun getMuid ()I
-	public final fun getOnProfileSet ()Ljava/util/List;
+	public final fun getProfileHost ()Ldev/atsushieno/ktmidi/ci/ProfileConfigurationHostFacade;
+	public final fun getPropertyHost ()Ldev/atsushieno/ktmidi/ci/PropertyExchangeHostFacade;
 	public final fun getUnknownCIMessageReceived ()Ljava/util/List;
 	public final fun processInput (BLjava/util/List;)V
-	public final fun removeLocalProfile (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
-	public final fun removeLocalProperty (Ljava/lang/String;)V
 	public final fun requestMidiMessageReport (BIBBBB)V
 	public final fun requestProfileDetails (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
+	public final fun requestProfiles (BBI)V
 	public final fun sendDiscovery ()V
 	public final fun sendGetPropertyDataRequest (ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public final fun sendProfileSpecificData (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;Ljava/util/List;)V
 	public final fun sendSetPropertyDataRequest (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
 	public final fun sendSubscribeProperty (ILjava/lang/String;Ljava/lang/String;)V
 	public final fun sendUnsubscribeProperty (ILjava/lang/String;Ljava/lang/String;)V
 	public final fun setMidiMessageReporter (Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;)V
-	public final fun updateDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
-	public final fun updateLocalProfileTarget (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;BBZS)V
-	public final fun updatePropertyMetadata (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
-	public final fun updatePropertyValue (Ljava/lang/String;Ljava/util/List;Z)V
 }
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
@@ -1065,6 +1063,17 @@ public final class dev/atsushieno/ktmidi/ci/ObservablePropertyListKt {
 	public static final fun getMediaTypes (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)Ljava/util/List;
 }
 
+public final class dev/atsushieno/ktmidi/ci/ProfileConfigurationHostFacade {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;)V
+	public final fun addProfile (Ldev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun disableProfile (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
+	public final fun enableProfile (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;S)V
+	public final fun getOnProfileSet ()Ljava/util/List;
+	public final fun getProfiles ()Ldev/atsushieno/ktmidi/ci/ObservableProfileList;
+	public final fun removeProfile (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
+	public final fun updateProfileTarget (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;BBZS)V
+}
+
 public final class dev/atsushieno/ktmidi/ci/PropertyChunkManager {
 	public fun <init> ()V
 	public final fun addPendingChunk (JIBLjava/util/List;Ljava/util/List;)V
@@ -1090,30 +1099,27 @@ public final class dev/atsushieno/ktmidi/ci/PropertyChunkManager$Chunk {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class dev/atsushieno/ktmidi/ci/PropertyExchangeResponder {
-	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)V
-	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
-	public final fun getGetPropertyCapabilitiesReplyFor ()Lkotlin/jvm/functions/Function1;
-	public final fun getLogger ()Ldev/atsushieno/ktmidi/ci/Logger;
-	public final fun getMuid ()I
+public final class dev/atsushieno/ktmidi/ci/PropertyExchangeHostFacade {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;)V
+	public final fun addProperty (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
+	public final fun getMetadataList ()Ljava/util/List;
 	public final fun getNotifyPropertyUpdatesToSubscribers ()Lkotlin/jvm/functions/Function3;
-	public final fun getParent ()Ldev/atsushieno/ktmidi/ci/MidiCIDevice;
 	public final fun getProcessGetPropertyData ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessPropertyCapabilitiesInquiry ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessSetPropertyData ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessSubscribeProperty ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessSubscribePropertyReply ()Lkotlin/jvm/functions/Function1;
 	public final fun getProperties ()Ldev/atsushieno/ktmidi/ci/ServiceObservablePropertyList;
-	public final fun getPropertyService ()Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyService;
 	public final fun getSubscriptions ()Ljava/util/List;
 	public final fun notifyPropertyUpdatesToSubscribers (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)V
+	public final fun removeProperty (Ljava/lang/String;)V
 	public final fun setNotifyPropertyUpdatesToSubscribers (Lkotlin/jvm/functions/Function3;)V
 	public final fun setProcessGetPropertyData (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessPropertyCapabilitiesInquiry (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSetPropertyData (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSubscribeProperty (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSubscribePropertyReply (Lkotlin/jvm/functions/Function1;)V
 	public final fun terminateSubscriptions (B)V
+	public final fun updateDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public final fun updatePropertyMetadata (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
 	public final fun updatePropertyValue (Ljava/lang/String;Ljava/util/List;Z)V
 }
 

@@ -2,7 +2,7 @@ package dev.atsushieno.ktmidi.ci
 
 import kotlin.test.*
 
-class MidiCIInitiatorTest {
+class MidiCIDeviceTest {
     @Test
     fun initialState() {
         val mediator = TestCIMediator()
