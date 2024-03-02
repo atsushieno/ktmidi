@@ -26,17 +26,17 @@ ktmidi has comprehensive MIDI-CI support as well as its dogfooding "ktmidi-ci-to
    - if those "Common Rules" specification or any alternatives are published then those client and hosting features can be upgraded independent of the Core implementation.
 - Transport agnostic: MIDI-CI support resides in its own `ktmidi-ci` module, which does not depend on `ktmidi`.
   - We could make it to send arbitrary SMF (`Midi1Music`) or MIDI Clip File (`Midi2Track` maybe), we just need app implementation...
+- UMP support: we support both MIDI 1.0 bytestream and MIDI 2.0 UMP. Note that the actual platform MIDI access is done via `MidiAccess` and so far only Android is known to work.
 
 ## Known missing features
 
 - Good API design; everything has been messed throughout the development
 - Tests (I am usually test-driven, but I did not come up with good API structure in the first place this time...)
-- UMP support; ktmidi-ci-tool is built upon platform `MidiAccess` API which currently does not support MIDI 2.0 except for ALSA virtual devices.
-- App lifecycle management
-- zlib+Mcoded7 support on some platforms: ubiquitous zlib implementation is currently on hold until ktor-io 3.0.0 comes up on Kotlin/Wasm. Also, I cannot find any implementation that has no issues.
+- App lifecycle management: https://github.com/atsushieno/ktmidi/issues/59
+- zlib+Mcoded7 support on some platforms: ubiquitous zlib implementation is currently on hold until ktor-io 3.0.0 comes up on Kotlin/Wasm. Also, I cannot find any implementation that has no issues. https://github.com/atsushieno/ktmidi/issues/58
 - Profile specific messages (seeing no use at the moment)
 - Any timer based session management (i.e. no timeouts implemented)
-  - Therefore, no request ID management; it simply increments within `Byte`
+  - Therefore, no request ID management; it simply increments within `Byte` https://github.com/atsushieno/ktmidi/issues/57
 
 ## Code Structure
 
@@ -55,9 +55,12 @@ Classes:
 - In `ktmidi-ci` module:
   - `MidiCIDevice` plays the primary role. It works as the facade for most of the MIDI-CI features. It holds `initiator` and `responder` for now, but we have been making significant changes in the structure, so do not count on them to exist.
   - `Message` and all those subclasses represent MIDI-CI SysEx messages. Data model and serialization in most classes (not all)
-  - `ObservableProfileList` and `ObservablePropertyList` holds profile and properties (both values and metadata for now) that can notify listeners. Models in `ktmidi-ci-tool` make use of them.
-  - `MidiCIPropertyClient` and `MidiCIPropertyService` exists to decouple "Common Rules for PE" specific implementation from the core - ideally. They still inject the core API in reality yet.
+  - `Messenger` implements the actual messaging protocol like "send back Reply To Discovery message in reply to Discovery Inquiry message"
+  - `ObservableProfileList` and `ObservablePropertyList` hold profiles and properties (both values and metadata for now) that can notify listeners. Models in `ktmidi-ci-tool` make use of them.
+  - `MidiCIClientPropertyRules` and `MidiCIServicePropertyRules` exist to decouple "Common Rules for PE" specific implementation from the core - ideally.
     - The actual Common Rules for PE implementation lies in `dev.atsushieno.ktmidi.ci.propertycommonrules` package.
+    - Note that `ktmidi-ci-tool` is not intended to decouple the specs; it is strongly tied to the Common Rules. (In `ktmidi-ci` there are still some injection from the Common Rules.)
+  - `MidiMessageReporter` provides end-user developers to handle MIDI Message Report results.
 - In `ktmidi-ci-tool` module:
   - `dev.atsushieno.ktmidi.citool.view` package contains `@Composable`s.
   - `CIToolRepository` is supposed to work as the repository facade.
