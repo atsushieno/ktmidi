@@ -1,7 +1,5 @@
 package dev.atsushieno.ktmidi.ci
 
-import dev.atsushieno.ktmidi.ci.profilecommonrules.CommonRulesProfileService
-
 /**
  * This class provides Profile Configuration features primarily to end-user app developers,
  * You can add or remove profiles, as well as enable or disable each of them.
@@ -15,8 +13,9 @@ class ProfileConfigurationHostFacade(device: MidiCIDevice) {
     private val config by device::config
     private val messenger by device::messenger
 
-    internal var profileRules: MidiCIProfileRules = CommonRulesProfileService()
     val profiles = ObservableProfileList(config.localProfiles)
+
+    val profileDetailsEntries = mutableListOf<MidiCIProfileDetails>()
 
     // These events are invoked when it received Set Profile On/Off request from Initiator.
     val onProfileSet = mutableListOf<(profile: MidiCIProfile) -> Unit>()
@@ -50,6 +49,11 @@ class ProfileConfigurationHostFacade(device: MidiCIDevice) {
     fun addProfile(profile: MidiCIProfile) {
         profiles.add(profile)
         messenger.sendProfileAddedReport(profile)
+        // MIDI-CI section 7.4:
+        // > If the newly added Profile is enabled in the Device, then the Device shall then send a Profile Enabled Report
+        // > message for that Profile immediately following the Profile Added Report.
+        if (profile.enabled)
+            messenger.sendSetProfileEnabled(profile.group, profile.address, profile.profile, profile.numChannelsRequested)
     }
 
     fun removeProfile(group: Byte, address: Byte, profileId: MidiCIProfileId) {
@@ -68,5 +72,10 @@ class ProfileConfigurationHostFacade(device: MidiCIDevice) {
     ) {
         val profile = profiles.profiles.first { it.address == oldAddress && it.profile == profileId }
         profiles.update(profile, enabled, newAddress, numChannelsRequested)
+    }
+
+    fun getProfileDetails(profile: MidiCIProfileId, target: Byte): List<Byte>? {
+        val entry = profileDetailsEntries.firstOrNull { it.profile == profile && it.target == target }
+        return entry?.data
     }
 }

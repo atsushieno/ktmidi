@@ -37,6 +37,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     val profileHost = ProfileConfigurationHostFacade(this)
 
+    // We usually do not need to call it explicitly, unless MidiCIDeviceConfiguration.autoSendProfileInquiry is disabled.
     fun requestProfiles(group: Byte, address: Byte, destinationMUID: Int) =
         messenger.sendProfileInquiry(group, address, destinationMUID)
 

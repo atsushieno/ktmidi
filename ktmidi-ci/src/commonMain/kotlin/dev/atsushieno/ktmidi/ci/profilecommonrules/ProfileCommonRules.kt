@@ -2,7 +2,6 @@ package dev.atsushieno.ktmidi.ci.profilecommonrules
 
 import dev.atsushieno.ktmidi.ci.MidiCIConstants
 import dev.atsushieno.ktmidi.ci.MidiCIProfileId
-import dev.atsushieno.ktmidi.ci.MidiCIProfileRules
 
 
 object CommonProfileDetailsStandardTarget {
@@ -19,14 +18,4 @@ object DefaultControlChangesProfile {
     val profileIdForPartial = MidiCIProfileId(listOf(MidiCIConstants.STANDARD_DEFINED_PROFILE, 0x21, 0, 1, 0))
 
     val profileId = MidiCIProfileId(listOf(MidiCIConstants.STANDARD_DEFINED_PROFILE, 0x21, 0, 1, 1))
-}
-
-// While it is named as Service it would work for both client and service (should we rename it?)
-class CommonRulesProfileService : MidiCIProfileRules {
-    override fun getProfileDetails(profile: MidiCIProfileId, target: Byte): List<Byte>? {
-        if (target != CommonProfileDetailsStandardTarget.NUM_MIDI_CHANNELS)
-            return null
-        // FIXME: implement
-        return listOf()
-    }
 }

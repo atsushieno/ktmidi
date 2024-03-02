@@ -62,7 +62,7 @@ object CIRetrieval {
         MidiCIProfileId(sysex.drop(offset).take(5))
 
     fun midiCIGetProfileSpecificDataSize(sysex: List<Byte>) =
-        sysex[17] + (sysex[18] shl 8) + (sysex[19] shl 16) + (sysex[20] shl 24)
+        sysex[18] + (sysex[19] shl 8) + (sysex[20] shl 16) + (sysex[21] shl 24)
 
     fun midiCIGetMaxPropertyRequests(sysex: List<Byte>) = sysex[13]
     fun midiCIGetPropertyHeader(sysex: List<Byte>): List<Byte> {

@@ -49,6 +49,7 @@ abstract class Message(val common: Common) {
             Pair(CISubId2.PROFILE_DISABLED_REPORT, 20),
             Pair(CISubId2.PROFILE_DETAILS_INQUIRY, 19),
             Pair(CISubId2.PROFILE_DETAILS_REPLY, 22),
+            Pair(CISubId2.PROFILE_SPECIFIC_DATA, 24),
             Pair(CISubId2.PROPERTY_CAPABILITIES_INQUIRY, 13),
             Pair(CISubId2.PROPERTY_CAPABILITIES_REPLY, 14),
             Pair(CISubId2.PROPERTY_GET_DATA_INQUIRY, 22),

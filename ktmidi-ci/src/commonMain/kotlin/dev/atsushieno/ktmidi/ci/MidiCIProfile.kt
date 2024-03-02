@@ -15,3 +15,6 @@ data class MidiCIProfileId(val bytes: List<Byte>) {
 @Serializable
 // Do not use data class. Comparing enabled and numChannelsRequested does not make sense.
 class MidiCIProfile(val profile: MidiCIProfileId, var group: Byte, var address: Byte, var enabled: Boolean, var numChannelsRequested: Short)
+
+// Used for Profile Details Inquiry
+data class MidiCIProfileDetails(val profile: MidiCIProfileId, val target: Byte, val data: List<Byte>)

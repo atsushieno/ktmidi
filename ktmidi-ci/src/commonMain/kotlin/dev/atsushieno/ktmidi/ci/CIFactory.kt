@@ -229,12 +229,13 @@ object CIFactory {
     }
 
     private fun midiCIProfileDetailsCommon(
+        isReply: Boolean,
         dst: MutableList<Byte>, address: Byte,
         sourceMUID: Int, destinationMUID: Int,
         profile: MidiCIProfileId, target: Byte) {
         midiCIMessageCommon(
             dst, address,
-            CISubId2.PROFILE_DETAILS_INQUIRY,
+            if (isReply) CISubId2.PROFILE_DETAILS_REPLY else CISubId2.PROFILE_DETAILS_INQUIRY,
             MidiCIConstants.CI_VERSION_AND_FORMAT, sourceMUID, destinationMUID
         )
         midiCIProfile(dst, 13, profile)
@@ -245,14 +246,14 @@ object CIFactory {
         dst: MutableList<Byte>, address: Byte,
         sourceMUID: Int, destinationMUID: Int,
         profile: MidiCIProfileId, target: Byte): List<Byte> {
-        midiCIProfileDetailsCommon(dst, address, sourceMUID, destinationMUID, profile, target)
+        midiCIProfileDetailsCommon(false, dst, address, sourceMUID, destinationMUID, profile, target)
         return dst.take(19)
     }
 
     fun midiCIProfileDetailsReply(dst: MutableList<Byte>, address: Byte, sourceMUID: Int, destinationMUID: Int, profile: MidiCIProfileId, target: Byte, data: List<Byte>): List<Byte> {
-        midiCIProfileDetailsCommon(dst, address, sourceMUID, destinationMUID, profile, target)
-        midiCI7bitInt14At(dst, 18, data.size.toShort())
-        memcpy(dst, 20, data, data.size)
+        midiCIProfileDetailsCommon(true, dst, address, sourceMUID, destinationMUID, profile, target)
+        midiCI7bitInt14At(dst, 19, data.size.toShort())
+        memcpy(dst, 21, data, data.size)
         return dst.take(21 + data.size)
     }
 

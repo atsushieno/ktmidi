@@ -912,6 +912,21 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIProfile$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
+public final class dev/atsushieno/ktmidi/ci/MidiCIProfileDetails {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;BLjava/util/List;)V
+	public final fun component1 ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public final fun component2 ()B
+	public final fun component3 ()Ljava/util/List;
+	public final fun copy (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;BLjava/util/List;)Ldev/atsushieno/ktmidi/ci/MidiCIProfileDetails;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/MidiCIProfileDetails;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;BLjava/util/List;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/MidiCIProfileDetails;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getData ()Ljava/util/List;
+	public final fun getProfile ()Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public final fun getTarget ()B
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
 public final class dev/atsushieno/ktmidi/ci/MidiCIProfileId {
 	public static final field Companion Ldev/atsushieno/ktmidi/ci/MidiCIProfileId$Companion;
 	public fun <init> (Ljava/util/List;)V
@@ -937,10 +952,6 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIProfileId$$serializer : kotlin
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIProfileId$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public abstract interface class dev/atsushieno/ktmidi/ci/MidiCIProfileRules {
-	public abstract fun getProfileDetails (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;B)Ljava/util/List;
 }
 
 public abstract interface class dev/atsushieno/ktmidi/ci/MidiCIServicePropertyRules {
@@ -1069,6 +1080,8 @@ public final class dev/atsushieno/ktmidi/ci/ProfileConfigurationHostFacade {
 	public final fun disableProfile (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
 	public final fun enableProfile (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;S)V
 	public final fun getOnProfileSet ()Ljava/util/List;
+	public final fun getProfileDetails (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;B)Ljava/util/List;
+	public final fun getProfileDetailsEntries ()Ljava/util/List;
 	public final fun getProfiles ()Ldev/atsushieno/ktmidi/ci/ObservableProfileList;
 	public final fun removeProfile (BBLdev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
 	public final fun updateProfileTarget (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;BBZS)V
@@ -1259,11 +1272,6 @@ public final class dev/atsushieno/ktmidi/ci/json/JsonParserException : java/lang
 public final class dev/atsushieno/ktmidi/ci/profilecommonrules/CommonProfileDetailsStandardTarget {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/profilecommonrules/CommonProfileDetailsStandardTarget;
 	public static final field NUM_MIDI_CHANNELS B
-}
-
-public final class dev/atsushieno/ktmidi/ci/profilecommonrules/CommonRulesProfileService : dev/atsushieno/ktmidi/ci/MidiCIProfileRules {
-	public fun <init> ()V
-	public fun getProfileDetails (Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;B)Ljava/util/List;
 }
 
 public final class dev/atsushieno/ktmidi/ci/profilecommonrules/DefaultControlChangesProfile {

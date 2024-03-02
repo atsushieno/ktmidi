@@ -329,7 +329,7 @@ class Messenger(
     }
 
     fun defaultProcessProfileDetailsInquiry(msg: Message.ProfileDetailsInquiry) {
-        val data = device.profileHost.profileRules.getProfileDetails(msg.profile, msg.target)
+        val data = device.profileHost.getProfileDetails(msg.profile, msg.target)
         val reply = Message.ProfileDetailsReply(
             Message.Common(muid, msg.sourceMUID, msg.address, msg.group),
             msg.profile, msg.target, data ?: listOf()
@@ -543,7 +543,7 @@ class Messenger(
         if (data[4] != MidiCIConstants.CI_VERSION_AND_FORMAT)
             sendNakForError(getResponseCommonForInput(common), data[3],
                 CINakStatus.CIVersionNotSupported, 0, emptyNakDetails, "")
-        if (data.size < (Message.messageSizes[data[3]] ?: Int.MAX_VALUE)) {
+        if (data.size < (Message.messageSizes[data[3]] ?: 0)) {
             logger.logError("Insufficient message size for ${data[3]}: ${data.size}")
             return // insufficient buffer size for the message
         }
@@ -786,7 +786,7 @@ class Messenger(
 
             CISubId2.PROFILE_DETAILS_INQUIRY -> {
                 val profileId = CIRetrieval.midiCIGetProfileId(data)
-                val target = data[13]
+                val target = data[18]
                 processProfileDetailsInquiry(Message.ProfileDetailsInquiry(common, profileId, target))
             }
 
@@ -797,7 +797,7 @@ class Messenger(
                     Message.ProfileSpecificData(
                         common,
                         profileId,
-                        data.drop(21).take(dataLength)
+                        data.drop(22).take(dataLength)
                     )
                 )
             }
