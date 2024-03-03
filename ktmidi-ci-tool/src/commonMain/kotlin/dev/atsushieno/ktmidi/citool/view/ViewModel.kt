@@ -80,35 +80,23 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
         val metadata = conn.conn.propertyClient.getMetadataList()?.firstOrNull { it.propertyId == propertyId }
                 as CommonRulesPropertyMetadata
-        conn.getPropertyData(conn.conn.targetMUID, propertyId,
-            encoding = metadata.encodings.firstOrNull(), paginateOffset = 0, paginateLimit = 10)
+        conn.getPropertyData(propertyId, encoding = metadata.encodings.firstOrNull(), paginateOffset = 0, paginateLimit = 10)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
 
-    fun refreshPropertyValue(targetMUID: Int, propertyId: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
-        conn.getPropertyData(targetMUID, propertyId, encoding, paginateOffset, paginateLimit)
-    }
-
-    fun subscribeProperty(targetMUID: Int, propertyId: String, mutualEncoding: String?) {
-        conn.subscribeProperty(targetMUID, propertyId, mutualEncoding)
-    }
-
-    fun unsubscribeProperty(targetMUID: Int, propertyId: String) {
-        conn.unsubscribeProperty(targetMUID, propertyId)
-    }
-
-    fun sendSetPropertyDataRequest(targetMUID: Int, propertyId: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) {
-        conn.setPropertyData(targetMUID, propertyId, bytes, encoding, isPartial)
-    }
-
-    fun setProfile(group: Byte, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) {
+    fun refreshPropertyValue(propertyId: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
+        conn.getPropertyData(propertyId, encoding, paginateOffset, paginateLimit)
+    fun subscribeProperty(propertyId: String, mutualEncoding: String?) =
+        conn.subscribeProperty(propertyId, mutualEncoding)
+    fun unsubscribeProperty(propertyId: String) =
+        conn.unsubscribeProperty(propertyId)
+    fun sendSetPropertyDataRequest(propertyId: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) =
+        conn.setPropertyData(propertyId, bytes, encoding, isPartial)
+    fun setProfile(group: Byte, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) =
         conn.setProfile(group, address, profile, newEnabled, newNumChannelsRequested)
-    }
-
-    fun requestMidiMessageReport(address: Byte, targetMUID: Int) {
+    fun requestMidiMessageReport(address: Byte, targetMUID: Int) =
         conn.requestMidiMessageReport(address, targetMUID)
-    }
 }
 
 class PropertyValueState(val id: MutableState<String>, val mediaType: MutableState<String>, val data: MutableState<List<Byte>>) {

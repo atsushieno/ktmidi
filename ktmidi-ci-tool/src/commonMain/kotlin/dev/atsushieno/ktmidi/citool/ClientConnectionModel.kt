@@ -4,7 +4,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
-import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyClient
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 
 class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnection) {
@@ -22,7 +21,7 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
     fun setProfile(group: Byte, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) =
         conn.profileClient.setProfile(group, address, profile, newEnabled, newNumChannelsRequested)
 
-    var deviceInfo = mutableStateOf((conn.propertyClient as CommonRulesPropertyClient).deviceInfo)
+    var deviceInfo = mutableStateOf(conn.deviceInfo)
 
     val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.properties.values)}
 
@@ -31,18 +30,14 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
     data class SubscriptionState(val propertyId: String, var state: MutableState<SubscriptionActionState>)
     var subscriptions = mutableStateListOf<SubscriptionState>()
 
-    fun getPropertyData(destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
-        conn.sendGetPropertyData(destinationMUID, resource, encoding, paginateOffset, paginateLimit)
-    }
-    fun setPropertyData(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) {
-        conn.sendSetPropertyData(destinationMUID, resource, data, encoding, isPartial)
-    }
-    fun subscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
-        conn.sendSubscribeProperty(destinationMUID, resource, mutualEncoding)
-    }
-    fun unsubscribeProperty(destinationMUID: Int, resource: String) {
-        conn.sendUnsubscribeProperty(destinationMUID, resource)
-    }
+    fun getPropertyData(resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
+        conn.sendGetPropertyData(resource, encoding, paginateOffset, paginateLimit)
+    fun setPropertyData(resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) =
+        conn.sendSetPropertyData(resource, data, encoding, isPartial)
+    fun subscribeProperty(resource: String, mutualEncoding: String?) =
+        conn.sendSubscribeProperty(resource, mutualEncoding)
+    fun unsubscribeProperty(resource: String) =
+        conn.sendUnsubscribeProperty(resource)
 
     fun requestMidiMessageReport(address: Byte, targetMUID: Int,
                                  messageDataControl: Byte = MidiMessageReportDataControl.Full,
@@ -87,7 +82,7 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
                 properties.add(index, entry)
             }
             if (entry.id == PropertyResourceNames.DEVICE_INFO)
-                deviceInfo.value = (conn.propertyClient as CommonRulesPropertyClient).deviceInfo
+                deviceInfo.value = conn.deviceInfo
         }
 
         conn.properties.propertiesCatalogUpdated.add {

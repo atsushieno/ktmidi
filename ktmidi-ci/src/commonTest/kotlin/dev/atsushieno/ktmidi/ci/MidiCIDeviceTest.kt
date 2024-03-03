@@ -21,7 +21,7 @@ class MidiCIDeviceTest {
         assertEquals(1, device1.connections.size, "connections.size")
         val conn = device1.connections[device2.muid]
         assertNotNull(conn, "conn")
-        assertEquals(device2.deviceInfo.manufacturerId, conn.device.manufacturer, "conn.device.manufacturer")
+        assertEquals(device2.deviceInfo.manufacturerId, conn.deviceInfo.manufacturerId, "conn.device.manufacturer")
     }
 }
 

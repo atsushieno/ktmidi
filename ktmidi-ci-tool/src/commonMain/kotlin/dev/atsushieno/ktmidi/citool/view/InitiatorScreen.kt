@@ -65,14 +65,14 @@ fun ClientConnection(vm: ConnectionViewModel) {
             val sp = selectedProperty
             if (sp != null)
                 ClientPropertyDetails(vm, sp,
-                    refreshValueClicked = { encoding, paginateOffset, paginateLimit -> vm.refreshPropertyValue(vm.conn.conn.targetMUID, sp, encoding, paginateOffset, paginateLimit) },
+                    refreshValueClicked = { encoding, paginateOffset, paginateLimit -> vm.refreshPropertyValue(sp, encoding, paginateOffset, paginateLimit) },
                     subscribeClicked = { newState, encoding ->
                         if (newState)
-                            vm.subscribeProperty(vm.conn.conn.targetMUID, sp, encoding)
+                            vm.subscribeProperty(sp, encoding)
                         else
-                            vm.unsubscribeProperty(vm.conn.conn.targetMUID, sp)
+                            vm.unsubscribeProperty(sp)
                     },
-                    commitChangeClicked = { id, bytes, encoding, isPartial -> vm.sendSetPropertyDataRequest(vm.conn.conn.targetMUID, id, bytes, encoding, isPartial) }
+                    commitChangeClicked = { id, bytes, encoding, isPartial -> vm.sendSetPropertyDataRequest(id, bytes, encoding, isPartial) }
                 )
         }
 

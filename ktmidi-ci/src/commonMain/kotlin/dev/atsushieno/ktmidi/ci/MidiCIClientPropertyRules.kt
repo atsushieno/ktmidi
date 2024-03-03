@@ -18,13 +18,12 @@ interface MidiCIClientPropertyRules {
 
     fun getMetadataList(): List<PropertyMetadata>?
 
-    fun getPropertyListRequest(group: Byte, destinationMUID: Int, requestId: Byte): Message.GetPropertyData
+    fun requestPropertyList(group: Byte)
 
-    fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply)
+    fun propertyValueUpdated(propertyId: String, data: List<Byte>)
 
     fun getHeaderFieldInteger(header: List<Byte>, field: String): Int?
     fun getHeaderFieldString(header: List<Byte>, field: String): String?
-    fun getHeaderFieldBoolean(header: List<Byte>, field: String): Boolean
 
     // To avoid too much Common Rules for PE exposure, we need to cast this Any argument as Subscription in the implementation.
     fun processPropertySubscriptionResult(subscriptionContext: Any, msg: Message.SubscribePropertyReply)

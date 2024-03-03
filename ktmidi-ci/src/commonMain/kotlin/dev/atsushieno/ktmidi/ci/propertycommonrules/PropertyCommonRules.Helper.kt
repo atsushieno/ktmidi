@@ -5,14 +5,8 @@ import dev.atsushieno.ktmidi.ci.MidiCIConverter
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
 import dev.atsushieno.ktmidi.ci.toASCIIByteArray
-import kotlin.random.Random
 
 abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
-
-    companion object {
-        fun generateRandomSubscribeId() = Random.nextInt().toString(16)
-    }
-
     fun getPropertyIdentifierInternal(header: List<Byte>): String {
         val json = try {
             Json.parse(MidiCIConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
@@ -98,7 +92,6 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return requestASCIIBytes
     }
 
-    @Deprecated("Use getHeaderFieldXxx() methods instead")
     private fun getHeaderFieldJson(header: List<Byte>, field: String): Json.JsonValue? {
         val replyString = MidiCIConverter.decodeASCIIToString(header.toByteArray().decodeToString())
         val replyJson = try {
@@ -111,19 +104,11 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return valuePair.second
     }
 
-    @Suppress("DEPRECATION")
-    fun getHeaderFieldBoolean(header: List<Byte>, field: String): Boolean {
-        val json = getHeaderFieldJson(header, field)
-        return json?.token?.type == Json.TokenType.True
-    }
-
-    @Suppress("DEPRECATION")
     fun getHeaderFieldInteger(header: List<Byte>, field: String): Int? {
         val json = getHeaderFieldJson(header, field)
         return if (json?.token?.type == Json.TokenType.Number) json.token.number.toInt() else null
     }
 
-    @Suppress("DEPRECATION")
     fun getHeaderFieldString(header: List<Byte>, field: String): String? {
         val json = getHeaderFieldJson(header, field)
         return if (json?.token?.type == Json.TokenType.String) json.stringValue else null

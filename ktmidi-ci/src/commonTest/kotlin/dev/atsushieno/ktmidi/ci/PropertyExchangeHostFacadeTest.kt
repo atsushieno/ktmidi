@@ -29,24 +29,24 @@ class PropertyExchangeHostFacadeTest {
         // test get property
         val conn = device1.connections[device2.muid]
         assertNotNull(conn)
-        conn.sendGetPropertyData(device2.muid, id)
+        conn.sendGetPropertyData(id)
         assertContentEquals(bytes, conn.properties.getProperty(id), "getProperty")
 
         // test set property
-        conn.sendSetPropertyData(device2.muid, id, bytes2)
+        conn.sendSetPropertyData(id, bytes2)
         assertContentEquals(bytes2, device2.propertyHost.properties.getProperty(id), "getProperty2")
 
         // subscribe -> update value -> notify
-        conn.sendSubscribeProperty(device2.muid, id)
+        conn.sendSubscribeProperty(id)
         assertEquals(1, device2.propertyHost.subscriptions.size, "subscriptions.size after subscription")
         device2.propertyHost.setPropertyValue(id, bytes, false)
         // it should be reflected on the client side
         assertContentEquals(bytes, conn.properties.getProperty(id), "getProperty at client after subscribed property update")
-        conn.sendUnsubscribeProperty(device2.muid, id)
+        conn.sendUnsubscribeProperty(id)
         assertEquals(0, device2.propertyHost.subscriptions.size, "subscriptions.size after unsubscription")
 
         // subscribe again, but this time unsubscribe from host
-        conn.sendSubscribeProperty(device2.muid, id)
+        conn.sendSubscribeProperty(id)
         assertEquals(1, device2.propertyHost.subscriptions.size, "subscriptions.size after subscription, 2nd")
         val sub = device2.propertyHost.subscriptions.first()
         device2.propertyHost.shutdownSubscription(sub.muid, sub.resource)

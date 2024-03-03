@@ -4,8 +4,9 @@ import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
 
-class CommonRulesPropertyClient(logger: Logger, private val muid: Int, deviceDetails: DeviceDetails) :
-    CommonRulesPropertyHelper(logger), MidiCIClientPropertyRules {
+class CommonRulesPropertyClient(private val device: MidiCIDevice, private val conn: ClientConnection) :
+    CommonRulesPropertyHelper(device.logger), MidiCIClientPropertyRules {
+
     override fun createDataRequestHeader(propertyId: String, fields: Map<String, Any?>): List<Byte> =
         createRequestHeaderBytes(propertyId, fields)
 
@@ -16,20 +17,29 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, deviceDet
 
     override fun getMetadataList(): List<PropertyMetadata> = resourceList
 
-    override fun getPropertyListRequest(group: Byte, destinationMUID: Int, requestId: Byte) =
-        getResourceListRequest(group, destinationMUID, requestId)
+    override fun requestPropertyList(group: Byte) {
+        val requestASCIIBytes = getResourceListRequestBytes()
+        val msg = Message.GetPropertyData(
+            Message.Common(device.muid, conn.targetMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+            device.messenger.requestIdSerial++,
+            requestASCIIBytes
+        )
+        device.messenger.send(msg)
+    }
 
-    override fun onGetPropertyDataReply(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply) {
-        when (getPropertyIdForHeader(request.header)) {
+    override fun propertyValueUpdated(propertyId: String, data: List<Byte>) {
+        when (propertyId) {
+            // If it is about ResourceList, then store the list internally.
             PropertyResourceNames.RESOURCE_LIST -> {
-                val list = getMetadataListForMessage(request, reply) ?: return
+                val list = getMetadataListForBody(data)
                 resourceList.clear()
                 resourceList.addAll(list)
                 propertyCatalogUpdated.forEach { it() }
             }
+            // If it is about DeviceInfo, then store the list internally.
             PropertyResourceNames.DEVICE_INFO -> {
-                val json = getBodyJson(reply.body)
-                deviceInfo = MidiCIDeviceInfo(
+                val json = convertApplicationJsonBytesToJson(data)
+                conn.deviceInfo = MidiCIDeviceInfo(
                     json.getObjectValue(DeviceInfoPropertyNames.MANUFACTURER_ID)?.numberValue?.toInt() ?: 0,
                     json.getObjectValue(DeviceInfoPropertyNames.FAMILY_ID)?.numberValue?.toShort() ?: 0,
                     json.getObjectValue(DeviceInfoPropertyNames.MODEL_ID)?.numberValue?.toShort() ?: 0,
@@ -42,7 +52,6 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, deviceDet
                     )
             }
         }
-        // If the reply message is about ResourceList, then store the list internally.
     }
 
     override fun getSubscribedProperty(msg: Message.SubscribeProperty): String? {
@@ -124,29 +133,16 @@ class CommonRulesPropertyClient(logger: Logger, private val muid: Int, deviceDet
 
     // implementation
 
-    private val resourceList = mutableListOf<PropertyMetadata>()
-    var deviceInfo = MidiCIDeviceInfo(
-        deviceDetails.manufacturer, deviceDetails.family, deviceDetails.modelNumber, deviceDetails.softwareRevisionLevel,
-        "", "", "", "", "")
     val subscriptions = mutableListOf<SubscriptionEntry>()
 
-    private fun getResourceListRequest(group: Byte, destinationMUID: Int, requestId: Byte): Message.GetPropertyData {
-        val requestASCIIBytes = getResourceListRequestBytes()
-        return Message.GetPropertyData(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
-            requestId, requestASCIIBytes)
-    }
+    private val resourceList = mutableListOf<PropertyMetadata>()
 
-    private fun getMetadataListForMessage(request: Message.GetPropertyData, reply: Message.GetPropertyDataReply): List<PropertyMetadata>? {
-        val id = getPropertyIdForHeader(request.header)
-        return if (id == PropertyResourceNames.RESOURCE_LIST) getMetadataListForBody(reply.body) else null
-    }
-
-    private fun getBodyJson(body: List<Byte>): Json.JsonValue =
-        Json.parse(MidiCIConverter.decodeASCIIToString(body.toByteArray().decodeToString()))
+    private fun convertApplicationJsonBytesToJson(data: List<Byte>) =
+        Json.parse(MidiCIConverter.decodeASCIIToString(data.toByteArray().decodeToString()))
 
     private fun getMetadataListForBody(body: List<Byte>): List<PropertyMetadata> {
         try {
-            val json = getBodyJson(body)
+            val json = convertApplicationJsonBytesToJson(body)
             return getMetadataListForBody(json)
         } catch(ex: JsonParserException) {
             logger.logError(ex.message!!)

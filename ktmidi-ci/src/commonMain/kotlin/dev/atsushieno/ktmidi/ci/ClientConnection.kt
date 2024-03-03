@@ -13,11 +13,14 @@ data class ClientSubscription(var pendingRequestId: Byte?, var subscriptionId: S
 class ClientConnection(
     private val parent: MidiCIDevice,
     val targetMUID: Int,
-    val device: DeviceDetails,
+    deviceDetails: DeviceDetails,
     var maxSimultaneousPropertyRequests: Byte = 0,
     var productInstanceId: String = "",
-    val propertyClient: MidiCIClientPropertyRules = CommonRulesPropertyClient(parent.logger, parent.muid, device)
 ) {
+    var propertyClient: MidiCIClientPropertyRules = CommonRulesPropertyClient(parent, this)
+    var deviceInfo = MidiCIDeviceInfo(
+        deviceDetails.manufacturer, deviceDetails.family, deviceDetails.modelNumber, deviceDetails.softwareRevisionLevel,
+        "", "", "", "", "")
 
     // This is going to be the entry point for all the profile client features foe MidiCIDevice.
     class ProfileClient(private val conn: ClientConnection) {
@@ -93,22 +96,19 @@ class ClientConnection(
 
     val pendingChunkManager = PropertyChunkManager()
 
-    fun updateRemoteProperty(msg: Message.GetPropertyDataReply): String? {
-        val req = openRequests.firstOrNull { it.requestId == msg.requestId } ?: return null
+    private fun updateRemoteProperty(msg: Message.GetPropertyDataReply) {
+        val req = openRequests.firstOrNull { it.requestId == msg.requestId } ?: return
         openRequests.remove(req)
-        val status = propertyClient.getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS) ?: return null
+        val status = propertyClient.getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS) ?: return
 
         if (status == PropertyExchangeStatus.OK) {
-            propertyClient.onGetPropertyDataReply(req, msg)
             val propertyId = propertyClient.getPropertyIdForHeader(req.header)
+            propertyClient.propertyValueUpdated(propertyId, msg.body)
             properties.updateValue(propertyId, msg)
-            return propertyId
         }
-        else
-            return null
     }
 
-    fun updateLocalProperty(ourMUID: Int, msg: Message.SubscribeProperty): Pair<String?, Message.SubscribePropertyReply?> {
+    private fun updateLocalProperty(ourMUID: Int, msg: Message.SubscribeProperty): Pair<String?, Message.SubscribePropertyReply?> {
         val command = properties.updateValue(msg)
         return Pair(
             command,
@@ -133,10 +133,10 @@ class ClientConnection(
         ))
     }
 
-    fun addPendingRequest(msg: Message.GetPropertyData) {
+    private fun addPendingRequest(msg: Message.GetPropertyData) {
         openRequests.add(msg)
     }
-    fun addPendingSubscription(requestId: Byte, subscriptionId: String?, propertyId: String) {
+    private fun addPendingSubscription(requestId: Byte, subscriptionId: String?, propertyId: String) {
         val sub = ClientSubscription(
             requestId,
             subscriptionId,
@@ -147,7 +147,7 @@ class ClientConnection(
         subscriptionUpdated.forEach { it(sub) }
     }
 
-    fun promoteSubscriptionAsUnsubscribing(propertyId: String, newRequestId: Byte) {
+    private fun promoteSubscriptionAsUnsubscribing(propertyId: String, newRequestId: Byte) {
         val sub = subscriptions.firstOrNull { it.propertyId == propertyId }
         if (sub == null) {
             parent.logger.logError("Cannot unsubscribe property as not found: $propertyId")
@@ -205,49 +205,53 @@ class ClientConnection(
     }
 
     // It is Common Rules specific
-    fun sendGetPropertyData(destinationMUID: Int, resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
+    fun sendGetPropertyData(resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
         val header = propertyClient.createDataRequestHeader(resource, mapOf(
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
             PropertyCommonHeaderKeys.SET_PARTIAL to false,
             PropertyCommonHeaderKeys.OFFSET to paginateOffset,
             PropertyCommonHeaderKeys.LIMIT to paginateLimit
         ).filter { it.value != null })
-        val msg = Message.GetPropertyData(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
+        val msg = Message.GetPropertyData(Message.Common(parent.muid, targetMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
             parent.messenger.requestIdSerial++, header)
         sendGetPropertyData(msg)
     }
 
+    // unlike the other overload, it is not specific to Common Rules for PE
     fun sendGetPropertyData(msg: Message.GetPropertyData) {
         addPendingRequest(msg)
         parent.messenger.send(msg)
     }
 
-    // FIXME: too much exposure of Common Rules for PE
-    fun sendSetPropertyData(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
+    // It is Common Rules specific
+    fun sendSetPropertyData(resource: String, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
         val header = propertyClient.createDataRequestHeader(resource, mapOf(
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
             PropertyCommonHeaderKeys.SET_PARTIAL to isPartial))
         val encodedBody = propertyClient.encodeBody(data, encoding)
-        parent.messenger.send(Message.SetPropertyData(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
-            parent.messenger.requestIdSerial++, header, encodedBody))
+        sendSetPropertyData(header, encodedBody)
     }
+    // unlike the other overload, it is not specific to Common Rules for PE
+    fun sendSetPropertyData(header: List<Byte>, body: List<Byte>) =
+        parent.messenger.send(Message.SetPropertyData(Message.Common(parent.muid, targetMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
+            parent.messenger.requestIdSerial++, header, body))
 
-    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String? = null, subscriptionId: String? = null) {
+    fun sendSubscribeProperty(resource: String, mutualEncoding: String? = null, subscriptionId: String? = null) {
         val header = propertyClient.createSubscriptionHeader(resource, mapOf(
             PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.START,
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to mutualEncoding))
-        val msg = Message.SubscribeProperty(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
+        val msg = Message.SubscribeProperty(Message.Common(parent.muid, targetMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
             parent.messenger.requestIdSerial++, header, listOf())
         addPendingSubscription(msg.requestId, subscriptionId, resource)
         parent.messenger.send(msg)
     }
 
-    fun sendUnsubscribeProperty(destinationMUID: Int, propertyId: String) {
+    fun sendUnsubscribeProperty(propertyId: String) {
         val newRequestId = parent.messenger.requestIdSerial++
         val header = propertyClient.createSubscriptionHeader(propertyId, mapOf(
             PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.END,
             PropertyCommonHeaderKeys.SUBSCRIBE_ID to subscriptions.firstOrNull { it.propertyId == propertyId}?.subscriptionId))
-        val msg = Message.SubscribeProperty(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
+        val msg = Message.SubscribeProperty(Message.Common(parent.muid, targetMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
             newRequestId, header, listOf())
         promoteSubscriptionAsUnsubscribing(propertyId, newRequestId)
         parent.messenger.send(msg)
@@ -260,18 +264,19 @@ class ClientConnection(
 
         // proceed to query resource list
         if (parent.config.autoSendGetResourceList)
-            sendGetPropertyData(propertyClient.getPropertyListRequest(msg.group, msg.sourceMUID, parent.messenger.requestIdSerial++))
+            propertyClient.requestPropertyList(msg.group)
     }
 
     fun processGetDataReply(msg: Message.GetPropertyDataReply) {
-        val propertyId = updateRemoteProperty(msg)
+        updateRemoteProperty(msg)
 
+        val propertyId = propertyClient.getPropertyIdForHeader(msg.header)
         // If the reply was ResourceList, and the parsed body contained an entry for DeviceInfo, and
         //  if it is configured as auto-queried, then send another Get Property Data request for it.
         if (parent.config.autoSendGetDeviceInfo && propertyId == PropertyResourceNames.RESOURCE_LIST) {
             val def = propertyClient.getMetadataList()?.firstOrNull { it.propertyId == PropertyResourceNames.DEVICE_INFO } as CommonRulesPropertyMetadata?
             if (def != null)
-                sendGetPropertyData(msg.sourceMUID, def.propertyId, def.encodings?.firstOrNull())
+                sendGetPropertyData(def.propertyId, def.encodings.firstOrNull())
         }
     }
 
@@ -284,6 +289,6 @@ class ClientConnection(
             parent.messenger.send(reply.second!!)
         // If the update was NOTIFY, then it is supposed to send Get Data request.
         if (reply.first == MidiCISubscriptionCommand.NOTIFY)
-            sendGetPropertyData(msg.sourceMUID, propertyClient.getPropertyIdForHeader(msg.header))
+            sendGetPropertyData(propertyClient.getPropertyIdForHeader(msg.header))
     }
 }

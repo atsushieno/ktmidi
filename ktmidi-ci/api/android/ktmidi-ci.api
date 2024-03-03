@@ -113,11 +113,9 @@ public final class dev/atsushieno/ktmidi/ci/CISubId2 {
 }
 
 public final class dev/atsushieno/ktmidi/ci/ClientConnection {
-	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;ILdev/atsushieno/ktmidi/ci/DeviceDetails;BLjava/lang/String;Ldev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules;)V
-	public synthetic fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;ILdev/atsushieno/ktmidi/ci/DeviceDetails;BLjava/lang/String;Ldev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public final fun addPendingRequest (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)V
-	public final fun addPendingSubscription (BLjava/lang/String;Ljava/lang/String;)V
-	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/DeviceDetails;
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;ILdev/atsushieno/ktmidi/ci/DeviceDetails;BLjava/lang/String;)V
+	public synthetic fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;ILdev/atsushieno/ktmidi/ci/DeviceDetails;BLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getDeviceInfo ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
 	public final fun getMaxSimultaneousPropertyRequests ()B
 	public final fun getPendingChunkManager ()Ldev/atsushieno/ktmidi/ci/PropertyChunkManager;
 	public final fun getProductInstanceId ()Ljava/lang/String;
@@ -131,19 +129,19 @@ public final class dev/atsushieno/ktmidi/ci/ClientConnection {
 	public final fun processPropertyCapabilitiesReply (Ldev/atsushieno/ktmidi/ci/Message$PropertyGetCapabilitiesReply;)V
 	public final fun processPropertySubscriptionReply (Ldev/atsushieno/ktmidi/ci/Message$SubscribePropertyReply;)V
 	public final fun processSubscribeProperty (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)V
-	public final fun promoteSubscriptionAsUnsubscribing (Ljava/lang/String;B)V
-	public final fun sendGetPropertyData (ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
 	public final fun sendGetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)V
-	public static synthetic fun sendGetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
-	public final fun sendSetPropertyData (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
-	public static synthetic fun sendSetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)V
-	public final fun sendSubscribeProperty (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun sendSubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
-	public final fun sendUnsubscribeProperty (ILjava/lang/String;)V
+	public final fun sendGetPropertyData (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public static synthetic fun sendGetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
+	public final fun sendSetPropertyData (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
+	public final fun sendSetPropertyData (Ljava/util/List;Ljava/util/List;)V
+	public static synthetic fun sendSetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)V
+	public final fun sendSubscribeProperty (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public static synthetic fun sendSubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun sendUnsubscribeProperty (Ljava/lang/String;)V
+	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun setMaxSimultaneousPropertyRequests (B)V
 	public final fun setProductInstanceId (Ljava/lang/String;)V
-	public final fun updateLocalProperty (ILdev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Lkotlin/Pair;
-	public final fun updateRemoteProperty (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyDataReply;)Ljava/lang/String;
+	public final fun setPropertyClient (Ldev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules;)V
 }
 
 public final class dev/atsushieno/ktmidi/ci/ClientConnection$ProfileClient {
@@ -690,17 +688,16 @@ public abstract interface class dev/atsushieno/ktmidi/ci/MidiCIClientPropertyRul
 	public abstract fun createSubscriptionHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
 	public abstract fun decodeBody (Ljava/util/List;Ljava/util/List;)Ljava/util/List;
 	public abstract fun encodeBody (Ljava/util/List;Ljava/lang/String;)Ljava/util/List;
-	public abstract fun getHeaderFieldBoolean (Ljava/util/List;Ljava/lang/String;)Z
 	public abstract fun getHeaderFieldInteger (Ljava/util/List;Ljava/lang/String;)Ljava/lang/Integer;
 	public abstract fun getHeaderFieldString (Ljava/util/List;Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun getMetadataList ()Ljava/util/List;
 	public abstract fun getPropertyCatalogUpdated ()Ljava/util/List;
 	public abstract fun getPropertyIdForHeader (Ljava/util/List;)Ljava/lang/String;
-	public abstract fun getPropertyListRequest (BIB)Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;
 	public abstract fun getSubscribedProperty (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Ljava/lang/String;
 	public abstract fun getUpdatedValue (Ldev/atsushieno/ktmidi/ci/PropertyValue;ZLjava/lang/String;Ljava/util/List;)Lkotlin/Pair;
-	public abstract fun onGetPropertyDataReply (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;Ldev/atsushieno/ktmidi/ci/Message$GetPropertyDataReply;)V
 	public abstract fun processPropertySubscriptionResult (Ljava/lang/Object;Ldev/atsushieno/ktmidi/ci/Message$SubscribePropertyReply;)V
+	public abstract fun propertyValueUpdated (Ljava/lang/String;Ljava/util/List;)V
+	public abstract fun requestPropertyList (B)V
 }
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIConstants {
@@ -1291,41 +1288,33 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesKnown
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyClient : dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyHelper, dev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules {
-	public fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;ILdev/atsushieno/ktmidi/ci/DeviceDetails;)V
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;Ldev/atsushieno/ktmidi/ci/ClientConnection;)V
 	public fun createDataRequestHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
 	public fun createStatusHeader (I)Ljava/util/List;
 	public fun createSubscriptionHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
 	public fun decodeBody (Ljava/util/List;Ljava/util/List;)Ljava/util/List;
 	public fun encodeBody (Ljava/util/List;Ljava/lang/String;)Ljava/util/List;
-	public final fun getDeviceInfo ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
 	public fun getMetadataList ()Ljava/util/List;
 	public fun getPropertyCatalogUpdated ()Ljava/util/List;
 	public fun getPropertyIdForHeader (Ljava/util/List;)Ljava/lang/String;
-	public fun getPropertyListRequest (BIB)Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;
 	public fun getSubscribedProperty (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Ljava/lang/String;
 	public final fun getSubscriptions ()Ljava/util/List;
 	public fun getUpdatedValue (Ldev/atsushieno/ktmidi/ci/PropertyValue;ZLjava/lang/String;Ljava/util/List;)Lkotlin/Pair;
-	public fun onGetPropertyDataReply (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;Ldev/atsushieno/ktmidi/ci/Message$GetPropertyDataReply;)V
 	public fun processPropertySubscriptionResult (Ljava/lang/Object;Ldev/atsushieno/ktmidi/ci/Message$SubscribePropertyReply;)V
-	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public fun propertyValueUpdated (Ljava/lang/String;Ljava/util/List;)V
+	public fun requestPropertyList (B)V
 }
 
 public abstract class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyHelper {
-	public static final field Companion Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyHelper$Companion;
 	public fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;)V
 	public final fun createRequestHeaderBytes (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
 	public final fun createSubscribeHeaderBytes (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
-	public final fun getHeaderFieldBoolean (Ljava/util/List;Ljava/lang/String;)Z
 	public final fun getHeaderFieldInteger (Ljava/util/List;Ljava/lang/String;)Ljava/lang/Integer;
 	public final fun getHeaderFieldString (Ljava/util/List;Ljava/lang/String;)Ljava/lang/String;
 	protected final fun getLogger ()Ldev/atsushieno/ktmidi/ci/Logger;
 	public final fun getPropertyIdentifierInternal (Ljava/util/List;)Ljava/lang/String;
 	public final fun getResourceListRequestBytes ()Ljava/util/List;
 	public final fun getResourceListRequestJson ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
-}
-
-public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyHelper$Companion {
-	public final fun generateRandomSubscribeId ()Ljava/lang/String;
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata : dev/atsushieno/ktmidi/ci/PropertyMetadata {
