@@ -71,8 +71,18 @@ class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
 
     fun notifyPropertyUpdatesToSubscribers(msg: Message.SubscribeProperty) = messenger.send(msg)
 
-    // Notify end of subscription updates
-    fun terminateSubscriptions(group: Byte) {
+    fun shutdownSubscription(destinationMUID: Int, propertyId: String) {
+        val sub = propertyService.subscriptions.firstOrNull { it.resource == propertyId } ?: throw MidiCIException("Specified property $propertyId is not at subscribed state")
+        val msg = Message.SubscribeProperty(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, device.config.group),
+            messenger.requestIdSerial++,
+            propertyService.createTerminateNotificationHeader(sub.subscribeId), listOf()
+        )
+        propertyService.subscriptions.remove(sub)
+        messenger.send(msg)
+    }
+
+    // should be invoked when the host is being terminated
+    fun terminateSubscriptionsToAllSubsctibers(group: Byte) {
         propertyService.subscriptions.forEach {
             val msg = Message.SubscribeProperty(Message.Common(muid, it.muid, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
                 messenger.requestIdSerial++,

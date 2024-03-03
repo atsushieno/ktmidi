@@ -55,9 +55,12 @@ fun LocalPropertyConfiguration(vm: ResponderViewModel) {
         if (sp != null) {
             val value = vm.properties.first { it.id.value == sp }
             val def = vm.getPropertyMetadata(sp) as CommonRulesPropertyMetadata
+            val subscribedClients = vm.model.connections.filter { conn -> conn.subscriptions.any { sub -> sub.propertyId == sp } }
             LocalPropertyDetails(def, value,
                 updatePropertyValue = { id, data -> vm.updatePropertyValue(id, data, false) },
-                metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) }
+                metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) },
+                subscribedClients = subscribedClients.map { it.conn.targetMUID.toString() },
+                unsubscribeRequestedByIndex = { idx -> vm.shutdownSubscription(subscribedClients[idx].conn.targetMUID, sp) }
             )
         }
     }
@@ -252,7 +255,9 @@ fun LocalPropertyList(properties: List<String>,
 @Composable
 fun LocalPropertyDetails(def: CommonRulesPropertyMetadata?, property: PropertyValueState,
                          updatePropertyValue: (propertyId: String, bytes: List<Byte>) -> Unit,
-                         metadataUpdateCommitted: (property: CommonRulesPropertyMetadata) -> Unit) {
+                         metadataUpdateCommitted: (property: CommonRulesPropertyMetadata) -> Unit,
+                         subscribedClients: List<String>,
+                         unsubscribeRequestedByIndex: (Int) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         if (def != null) {
             PropertyValueEditor(true, property.mediaType.value, def, property.data.value,
@@ -266,8 +271,55 @@ fun LocalPropertyDetails(def: CommonRulesPropertyMetadata?, property: PropertyVa
                 metadataUpdateCommitted,
                 def.originator == CommonRulesPropertyMetadata.Originator.SYSTEM
             )
+            LocalPropertySubscriptions(subscribedClients, unsubscribeRequestedByIndex)
         }
         else
             Text("(Metadata not available - not in ResourceList)")
+    }
+}
+
+@Composable
+fun LocalPropertySubscriptions(clientNames: List<String>,
+                               unsubscribeRequestedByIndex: (Int) -> Unit) {
+    var dialogState by remember { mutableStateOf(false) }
+    var current by remember { mutableIntStateOf(-1) }
+
+    Text("Subscribed Clients", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+
+    Row {
+        DropdownMenu(expanded = dialogState, onDismissRequest = { dialogState = false }) {
+            val onClick: (Int) -> Unit = {
+                if (it >= 0)
+                    current = it
+                dialogState = false
+            }
+            if (clientNames.any())
+                clientNames.forEachIndexed { index, s ->
+                    DropdownMenuItem(onClick = { onClick(index) }, text = { Text(s) })
+                }
+            else
+                DropdownMenuItem(onClick = { onClick(-1) }, text = { Text("(No subscribed client)") })
+            DropdownMenuItem(onClick = { onClick(-1) }, text = { Text("(Cancel)") })
+        }
+        Card(
+            modifier = Modifier.clickable(onClick = {
+                dialogState = true
+            }).padding(12.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+        ) {
+            Text(
+                modifier = Modifier.padding(12.dp, 0.dp),
+                text = if (current < 0) "-- Select subscribed client --" else clientNames[current]
+            )
+        }
+        Button(onClick = {
+            if (current >= 0) {
+                val index = current
+                current = -1 // do this first, otherwise it could result in index out of bound
+                unsubscribeRequestedByIndex(index)
+            }
+        }) {
+            Text("Unsubscribe")
+        }
     }
 }

@@ -120,6 +120,19 @@ class ClientConnection(
         )
     }
 
+    private fun handleUnsubscriptionNotification(ourMUID: Int, msg: Message.SubscribeProperty): Pair<String?, Message.SubscribePropertyReply?> {
+        val sub = subscriptions.firstOrNull { it.subscriptionId == propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID) } ?:
+            subscriptions.firstOrNull { it.propertyId == propertyClient.getPropertyIdForHeader(msg.header) }
+        if (sub == null)
+            return Pair("subscription ID is not specified in the unsubscription request", null)
+        subscriptions.remove(sub)
+        return Pair(null, Message.SubscribePropertyReply(
+            Message.Common(ourMUID, msg.sourceMUID, msg.address, msg.group),
+            msg.requestId,
+            propertyClient.createStatusHeader(PropertyExchangeStatus.OK), listOf()
+        ))
+    }
+
     fun addPendingRequest(msg: Message.GetPropertyData) {
         openRequests.add(msg)
     }
@@ -154,22 +167,23 @@ class ClientConnection(
             return // FIXME: should we do anything further here?
 
         val subscriptionId = propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID)
-        if (subscriptionId == null) {
-            parent.logger.logError("Subscription ID is missing in the Reply to Subscription message. requestId: ${msg.requestId}")
-            if (!ImplementationSettings.workaroundJUCEMissingSubscriptionIdIssue)
-                return
-        }
         val sub = subscriptions.firstOrNull { subscriptionId == it.subscriptionId }
             ?: subscriptions.firstOrNull { it.pendingRequestId == msg.requestId }
         if (sub == null) {
             parent.logger.logError("There was no pending subscription that matches subscribeId ($subscriptionId) or requestId (${msg.requestId})")
             return
         }
+        // `subscribeId` must be attached everywhere, except for unsubscription reply.
+        if (subscriptionId == null && sub.state != SubscriptionActionState.Unsubscribing) {
+            parent.logger.logError("Subscription ID is missing in the Reply to Subscription message. requestId: ${msg.requestId}")
+            if (!ImplementationSettings.workaroundJUCEMissingSubscriptionIdIssue)
+                return
+        }
 
         when (sub.state) {
             SubscriptionActionState.Subscribed,
             SubscriptionActionState.Unsubscribed -> {
-                parent.logger.logError("Received Subscription Reply, but it is unexpected (property: ${sub.propertyId}, subscriptionId: ${sub.subscriptionId}, state: ${sub.state})")
+                parent.logger.logError("Received Subscription Reply, but it is unexpected (existing subscription: property = ${sub.propertyId}, subscriptionId = ${sub.subscriptionId}, state = ${sub.state})")
                 return
             }
             else -> {}
@@ -228,14 +242,14 @@ class ClientConnection(
         parent.messenger.send(msg)
     }
 
-    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String? = null, subscriptionId: String? = null) {
+    fun sendUnsubscribeProperty(destinationMUID: Int, propertyId: String) {
         val newRequestId = parent.messenger.requestIdSerial++
-        val header = propertyClient.createSubscriptionHeader(resource, mapOf(
+        val header = propertyClient.createSubscriptionHeader(propertyId, mapOf(
             PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.END,
-            PropertyCommonHeaderKeys.MUTUAL_ENCODING to mutualEncoding))
+            PropertyCommonHeaderKeys.SUBSCRIBE_ID to subscriptions.firstOrNull { it.propertyId == propertyId}?.subscriptionId))
         val msg = Message.SubscribeProperty(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
             newRequestId, header, listOf())
-        promoteSubscriptionAsUnsubscribing(resource, newRequestId)
+        promoteSubscriptionAsUnsubscribing(propertyId, newRequestId)
         parent.messenger.send(msg)
     }
 
@@ -262,7 +276,10 @@ class ClientConnection(
     }
 
     fun processSubscribeProperty(msg: Message.SubscribeProperty) {
-        val reply = updateLocalProperty(parent.muid, msg)
+        val reply = when (propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.COMMAND)) {
+            MidiCISubscriptionCommand.END -> handleUnsubscriptionNotification(parent.muid, msg)
+            else -> updateLocalProperty(parent.muid, msg)
+        }
         if (reply.second != null)
             parent.messenger.send(reply.second!!)
         // If the update was NOTIFY, then it is supposed to send Get Data request.

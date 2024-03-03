@@ -68,9 +68,9 @@ fun ClientConnection(vm: ConnectionViewModel) {
                     refreshValueClicked = { encoding, paginateOffset, paginateLimit -> vm.refreshPropertyValue(vm.conn.conn.targetMUID, sp, encoding, paginateOffset, paginateLimit) },
                     subscribeClicked = { newState, encoding ->
                         if (newState)
-                            vm.sendSubscribeProperty(vm.conn.conn.targetMUID, sp, encoding)
+                            vm.subscribeProperty(vm.conn.conn.targetMUID, sp, encoding)
                         else
-                            vm.sendUnsubscribeProperty(vm.conn.conn.targetMUID, sp, encoding)
+                            vm.unsubscribeProperty(vm.conn.conn.targetMUID, sp)
                     },
                     commitChangeClicked = { id, bytes, encoding, isPartial -> vm.sendSetPropertyDataRequest(vm.conn.conn.targetMUID, id, bytes, encoding, isPartial) }
                 )

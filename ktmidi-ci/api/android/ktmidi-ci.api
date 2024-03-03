@@ -139,8 +139,7 @@ public final class dev/atsushieno/ktmidi/ci/ClientConnection {
 	public static synthetic fun sendSetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)V
 	public final fun sendSubscribeProperty (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public static synthetic fun sendSubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
-	public final fun sendUnsubscribeProperty (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
-	public static synthetic fun sendUnsubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
+	public final fun sendUnsubscribeProperty (ILjava/lang/String;)V
 	public final fun setMaxSimultaneousPropertyRequests (B)V
 	public final fun setProductInstanceId (Ljava/lang/String;)V
 	public final fun updateLocalProperty (ILdev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Lkotlin/Pair;
@@ -748,7 +747,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
 	public final fun sendProfileSpecificData (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;Ljava/util/List;)V
 	public final fun sendSetPropertyDataRequest (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
 	public final fun sendSubscribeProperty (ILjava/lang/String;Ljava/lang/String;)V
-	public final fun sendUnsubscribeProperty (ILjava/lang/String;Ljava/lang/String;)V
+	public final fun sendUnsubscribeProperty (ILjava/lang/String;)V
 	public final fun setMidiMessageReporter (Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;)V
 }
 
@@ -1131,7 +1130,8 @@ public final class dev/atsushieno/ktmidi/ci/PropertyExchangeHostFacade {
 	public final fun setProcessSubscribeProperty (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSubscribePropertyReply (Lkotlin/jvm/functions/Function1;)V
 	public final fun setPropertyValue (Ljava/lang/String;Ljava/util/List;Z)V
-	public final fun terminateSubscriptions (B)V
+	public final fun shutdownSubscription (ILjava/lang/String;)V
+	public final fun terminateSubscriptionsToAllSubsctibers (B)V
 	public final fun updateDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun updatePropertyMetadata (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
 }

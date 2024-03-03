@@ -44,5 +44,13 @@ class PropertyExchangeHostFacadeTest {
         assertContentEquals(bytes, conn.properties.getProperty(id), "getProperty at client after subscribed property update")
         conn.sendUnsubscribeProperty(device2.muid, id)
         assertEquals(0, device2.propertyHost.subscriptions.size, "subscriptions.size after unsubscription")
+
+        // subscribe again, but this time unsubscribe from host
+        conn.sendSubscribeProperty(device2.muid, id)
+        assertEquals(1, device2.propertyHost.subscriptions.size, "subscriptions.size after subscription, 2nd")
+        val sub = device2.propertyHost.subscriptions.first()
+        device2.propertyHost.shutdownSubscription(sub.muid, sub.resource)
+        assertEquals(0, conn.subscriptions.size, "client subscriptions.size after unsubscription by host")
+        assertEquals(0, device2.propertyHost.subscriptions.size, "host subscriptions.size after unsubscription by host")
     }
 }

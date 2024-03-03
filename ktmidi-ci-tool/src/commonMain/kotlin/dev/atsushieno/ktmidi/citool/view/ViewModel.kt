@@ -90,12 +90,12 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
         ciDeviceManager.device.sendGetPropertyDataRequest(targetMUID, propertyId, encoding, paginateOffset, paginateLimit)
     }
 
-    fun sendSubscribeProperty(targetMUID: Int, propertyId: String, mutualEncoding: String?) {
-        ciDeviceManager.device.sendSubscribeProperty(targetMUID, propertyId, mutualEncoding)
+    fun subscribeProperty(targetMUID: Int, propertyId: String, mutualEncoding: String?) {
+        ciDeviceManager.device.subscribeProperty(targetMUID, propertyId, mutualEncoding)
     }
 
-    fun sendUnsubscribeProperty(targetMUID: Int, propertyId: String, mutualEncoding: String?) {
-        ciDeviceManager.device.sendUnsubscribeProperty(targetMUID, propertyId, mutualEncoding)
+    fun unsubscribeProperty(targetMUID: Int, propertyId: String) {
+        ciDeviceManager.device.unsubscribeProperty(targetMUID, propertyId)
     }
 
     fun sendSetPropertyDataRequest(targetMUID: Int, propertyId: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) {
@@ -211,6 +211,9 @@ class ResponderViewModel(val model: CIDeviceModel) {
     fun addTestProfileItems() {
         model.addTestProfileItems()
     }
+
+    fun shutdownSubscription(targetMUID: Int, sp: String) =
+        model.shutdownSubscription(targetMUID, sp)
 
     init {
         device.propertyHost.properties.propertiesCatalogUpdated.add {

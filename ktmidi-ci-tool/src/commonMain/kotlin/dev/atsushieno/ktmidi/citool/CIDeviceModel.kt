@@ -116,18 +116,18 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
     }
 
     // Remote property exchange
-
+    // FIXME: they should be moved to ClientConnectionModel
     fun sendGetPropertyDataRequest(destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
         device.sendGetPropertyDataRequest(destinationMUID, resource, encoding, paginateOffset, paginateLimit)
     }
     fun sendSetPropertyDataRequest(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) {
         device.sendSetPropertyDataRequest(destinationMUID, resource, data, encoding, isPartial)
     }
-    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
+    fun subscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
         device.sendSubscribeProperty(destinationMUID, resource, mutualEncoding)
     }
-    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
-        device.sendUnsubscribeProperty(destinationMUID, resource, mutualEncoding)
+    fun unsubscribeProperty(destinationMUID: Int, resource: String) {
+        device.sendUnsubscribeProperty(destinationMUID, resource)
     }
 
     // Local property exchange
@@ -137,6 +137,10 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
 
     fun updatePropertyMetadata(oldPropertyId: String, property: PropertyMetadata) =
         device.propertyHost.updatePropertyMetadata(oldPropertyId, property)
+
+    fun shutdownSubscription(destinationMUID: Int, resource: String) {
+        device.propertyHost.shutdownSubscription(destinationMUID, resource)
+    }
 
     fun addTestProfileItems() {
         with(device.profileHost.profiles) {
