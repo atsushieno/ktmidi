@@ -145,7 +145,7 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
     }
 
     fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
-        device.propertyHost.updateDeviceInfo(deviceInfo)
+        device.updateDeviceInfo(deviceInfo)
     }
 
     val localProperties by device.propertyHost::properties

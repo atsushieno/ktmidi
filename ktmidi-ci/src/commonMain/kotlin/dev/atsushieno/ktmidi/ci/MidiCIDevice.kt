@@ -16,7 +16,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                    sendCIOutput: (group: Byte, data: List<Byte>) -> Unit,
                    sendMidiMessageReport: (group: Byte, protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
 ) {
-    val device: MidiCIDeviceInfo
+    val deviceInfo: MidiCIDeviceInfo
         get() = config.deviceInfo
 
     val unknownCIMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
@@ -58,4 +58,10 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     fun requestMidiMessageReport(address: Byte, targetMUID: Int, messageDataControl: Byte, systemMessages: Byte, channelControllerMessages: Byte, noteDataMessages: Byte) =
         messenger.sendMidiMessageReportInquiry(address, targetMUID, messageDataControl, systemMessages, channelControllerMessages, noteDataMessages)
+
+    // it involves extra property support
+    fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
+        config.deviceInfo = deviceInfo
+        propertyHost.updateCommonRulesDeviceInfo(deviceInfo)
+    }
 }

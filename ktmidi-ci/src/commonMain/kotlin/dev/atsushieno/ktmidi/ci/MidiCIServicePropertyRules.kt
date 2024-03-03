@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi.ci
 
+import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
+
 /**
  * This interface abstracts how MIDI-CI Property Exchange Responder (host, service, whatever)
  * handles the incoming inquiries.
@@ -25,6 +27,9 @@ interface MidiCIServicePropertyRules {
     // FIXME: too much exposure of Common Rules for PE
     fun encodeBody(data: List<Byte>, encoding: String?): List<Byte>
     fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte>
+    fun getHeaderFieldString(header: List<Byte>, field: String): String?
+    fun createShutdownSubscriptionHeader(propertyId: String): List<Byte>
 
+    val subscriptions: List<SubscriptionEntry>
     val propertyCatalogUpdated: MutableList<() -> Unit>
 }

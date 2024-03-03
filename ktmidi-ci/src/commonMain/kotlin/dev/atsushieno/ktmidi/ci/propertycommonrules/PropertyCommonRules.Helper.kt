@@ -129,7 +129,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return if (json?.token?.type == Json.TokenType.String) json.stringValue else null
     }
 
-    fun createUpdateNotificationHeader(subscribeId: String, command: String): Json.JsonValue {
+    private fun createSubscribePropertyHeader(subscribeId: String, command: String): Json.JsonValue {
         // M2-103-UM_v1.1 section 5.1.1: For subscription messages, the first Property shall be the command.
         val command = Pair(
             Json.JsonValue(PropertyCommonHeaderKeys.COMMAND),
@@ -142,8 +142,9 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return Json.JsonValue(mapOf(resource, command))
 
     }
-    fun createUpdateNotificationHeaderBytes(subscribeId: String, command: String): List<Byte> {
-        val json = createUpdateNotificationHeader(subscribeId, command)
+
+    internal fun createSubscribePropertyHeaderBytes(subscribeId: String, command: String): List<Byte> {
+        val json = createSubscribePropertyHeader(subscribeId, command)
         val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toASCIIByteArray().toList()
         return requestASCIIBytes
     }

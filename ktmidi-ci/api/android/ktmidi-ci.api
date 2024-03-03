@@ -597,6 +597,7 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public final fun getProcessEndpointMessage ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessEndpointReply ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessGetDataReply ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessGetPropertyData ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessInquiryReplyFor (Ldev/atsushieno/ktmidi/ci/Message$ProcessInquiryCapabilities;)Ldev/atsushieno/ktmidi/ci/Message$ProcessInquiryCapabilitiesReply;
 	public final fun getProcessInvalidateMUID ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessMidiMessageReport ()Lkotlin/jvm/functions/Function1;
@@ -619,6 +620,7 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public final fun getProcessSetDataReply ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessSetProfileOff ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessSetProfileOn ()Lkotlin/jvm/functions/Function1;
+	public final fun getProcessSetPropertyData ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessSubscribeProperty ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessSubscribePropertyReply ()Lkotlin/jvm/functions/Function1;
 	public final fun getProcessUnknownCIMessage ()Lkotlin/jvm/functions/Function2;
@@ -654,6 +656,7 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public final fun setProcessEndpointMessage (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessEndpointReply (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessGetDataReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessGetPropertyData (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessInvalidateMUID (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessMidiMessageReport (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessMidiMessageReportReply (Lkotlin/jvm/functions/Function1;)V
@@ -675,6 +678,7 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public final fun setProcessSetDataReply (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSetProfileOff (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSetProfileOn (Lkotlin/jvm/functions/Function1;)V
+	public final fun setProcessSetPropertyData (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSubscribeProperty (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSubscribePropertyReply (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessUnknownCIMessage (Lkotlin/jvm/functions/Function2;)V
@@ -730,7 +734,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
 	public final fun getConfig ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;
 	public final fun getConnections ()Ljava/util/Map;
 	public final fun getConnectionsChanged ()Ljava/util/List;
-	public final fun getDevice ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public final fun getDeviceInfo ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
 	public final fun getLogger ()Ldev/atsushieno/ktmidi/ci/Logger;
 	public final fun getMessageReceived ()Ljava/util/List;
 	public final fun getMidiMessageReporter ()Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;
@@ -745,6 +749,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
 	public final fun sendDiscovery ()V
 	public final fun sendProfileSpecificData (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;Ljava/util/List;)V
 	public final fun setMidiMessageReporter (Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;)V
+	public final fun updateDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 }
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
@@ -951,13 +956,16 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIProfileId$Companion {
 
 public abstract interface class dev/atsushieno/ktmidi/ci/MidiCIServicePropertyRules {
 	public abstract fun addMetadata (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
+	public abstract fun createShutdownSubscriptionHeader (Ljava/lang/String;)Ljava/util/List;
 	public abstract fun createUpdateNotificationHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
 	public abstract fun decodeBody (Ljava/util/List;Ljava/util/List;)Ljava/util/List;
 	public abstract fun encodeBody (Ljava/util/List;Ljava/lang/String;)Ljava/util/List;
+	public abstract fun getHeaderFieldString (Ljava/util/List;Ljava/lang/String;)Ljava/lang/String;
 	public abstract fun getMetadataList ()Ljava/util/List;
 	public abstract fun getPropertyCatalogUpdated ()Ljava/util/List;
 	public abstract fun getPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)Ljava/lang/Object;
 	public abstract fun getPropertyIdForHeader (Ljava/util/List;)Ljava/lang/String;
+	public abstract fun getSubscriptions ()Ljava/util/List;
 	public abstract fun removeMetadata (Ljava/lang/String;)V
 	public abstract fun setPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$SetPropertyData;)Ljava/lang/Object;
 	public abstract fun subscribeProperty-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Ljava/lang/Object;
@@ -1112,23 +1120,17 @@ public final class dev/atsushieno/ktmidi/ci/PropertyExchangeHostFacade {
 	public final fun addProperty (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
 	public final fun getMetadataList ()Ljava/util/List;
 	public final fun getNotifyPropertyUpdatesToSubscribers ()Lkotlin/jvm/functions/Function3;
-	public final fun getProcessGetPropertyData ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessSetPropertyData ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessSubscribeProperty ()Lkotlin/jvm/functions/Function1;
-	public final fun getProcessSubscribePropertyReply ()Lkotlin/jvm/functions/Function1;
 	public final fun getProperties ()Ldev/atsushieno/ktmidi/ci/ServiceObservablePropertyList;
 	public final fun getSubscriptions ()Ljava/util/List;
-	public final fun notifyPropertyUpdatesToSubscribers (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)V
+	public final fun processGetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)V
+	public final fun processSetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$SetPropertyData;)V
+	public final fun processSubscribeProperty (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)V
 	public final fun removeProperty (Ljava/lang/String;)V
 	public final fun setNotifyPropertyUpdatesToSubscribers (Lkotlin/jvm/functions/Function3;)V
-	public final fun setProcessGetPropertyData (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessSetPropertyData (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessSubscribeProperty (Lkotlin/jvm/functions/Function1;)V
-	public final fun setProcessSubscribePropertyReply (Lkotlin/jvm/functions/Function1;)V
 	public final fun setPropertyValue (Ljava/lang/String;Ljava/util/List;Z)V
 	public final fun shutdownSubscription (ILjava/lang/String;)V
 	public final fun terminateSubscriptionsToAllSubsctibers (B)V
-	public final fun updateDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public final fun updateCommonRulesDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun updatePropertyMetadata (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
 }
 
@@ -1313,8 +1315,6 @@ public abstract class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPr
 	public fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;)V
 	public final fun createRequestHeaderBytes (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
 	public final fun createSubscribeHeaderBytes (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
-	public final fun createUpdateNotificationHeader (Ljava/lang/String;Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
-	public final fun createUpdateNotificationHeaderBytes (Ljava/lang/String;Ljava/lang/String;)Ljava/util/List;
 	public final fun getHeaderFieldBoolean (Ljava/util/List;Ljava/lang/String;)Z
 	public final fun getHeaderFieldInteger (Ljava/util/List;Ljava/lang/String;)Ljava/lang/Integer;
 	public final fun getHeaderFieldString (Ljava/util/List;Ljava/lang/String;)Ljava/lang/String;
@@ -1392,7 +1392,7 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPrope
 	public fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;ILdev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;Ljava/util/List;Ljava/util/List;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;)V
 	public synthetic fun <init> (Ldev/atsushieno/ktmidi/ci/Logger;ILdev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;Ljava/util/List;Ljava/util/List;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun addMetadata (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
-	public final fun createTerminateNotificationHeader (Ljava/lang/String;)Ljava/util/List;
+	public fun createShutdownSubscriptionHeader (Ljava/lang/String;)Ljava/util/List;
 	public fun createUpdateNotificationHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
 	public fun decodeBody (Ljava/util/List;Ljava/util/List;)Ljava/util/List;
 	public fun encodeBody (Ljava/util/List;Ljava/lang/String;)Ljava/util/List;
@@ -1402,7 +1402,7 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPrope
 	public fun getPropertyCatalogUpdated ()Ljava/util/List;
 	public fun getPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)Ljava/lang/Object;
 	public fun getPropertyIdForHeader (Ljava/util/List;)Ljava/lang/String;
-	public final fun getSubscriptions ()Ljava/util/List;
+	public fun getSubscriptions ()Ljava/util/List;
 	public fun removeMetadata (Ljava/lang/String;)V
 	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public fun setPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$SetPropertyData;)Ljava/lang/Object;

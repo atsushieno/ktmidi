@@ -31,8 +31,10 @@ class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
         notifyPropertyUpdatesToSubscribers(propertyId, data, isPartial)
     }
 
-    fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
-        propertyService.deviceInfo = deviceInfo
+    fun updateCommonRulesDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
+        val p = propertyService
+        if (p is CommonRulesPropertyService)
+            p.deviceInfo = deviceInfo
     }
 
     // These members were moved from `PropertyExchangeResponder` and might be still unsorted.
@@ -41,7 +43,7 @@ class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
     private val logger by device::logger
     private val config by device::config
 
-    internal val propertyService by lazy { CommonRulesPropertyService(logger, muid, device.device, config.propertyValues, config.propertyMetadataList) }
+    internal val propertyService: MidiCIServicePropertyRules by lazy { CommonRulesPropertyService(logger, muid, device.deviceInfo, config.propertyValues, config.propertyMetadataList) }
     val properties by lazy { ServiceObservablePropertyList(config.propertyValues, propertyService) }
     val subscriptions: List<SubscriptionEntry> by propertyService::subscriptions
 
@@ -69,32 +71,37 @@ class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
         }
     }
 
-    fun notifyPropertyUpdatesToSubscribers(msg: Message.SubscribeProperty) = messenger.send(msg)
+    private fun notifyPropertyUpdatesToSubscribers(msg: Message.SubscribeProperty) = messenger.send(msg)
 
     fun shutdownSubscription(destinationMUID: Int, propertyId: String) {
-        val sub = propertyService.subscriptions.firstOrNull { it.resource == propertyId } ?: throw MidiCIException("Specified property $propertyId is not at subscribed state")
-        val msg = Message.SubscribeProperty(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, device.config.group),
-            messenger.requestIdSerial++,
-            propertyService.createTerminateNotificationHeader(sub.subscribeId), listOf()
-        )
-        propertyService.subscriptions.remove(sub)
-        messenger.send(msg)
+        messenger.send(createShutdownSubscriptionMessage(
+            destinationMUID, propertyId, device.config.group, device.messenger.requestIdSerial++))
     }
 
     // should be invoked when the host is being terminated
     fun terminateSubscriptionsToAllSubsctibers(group: Byte) {
         propertyService.subscriptions.forEach {
-            val msg = Message.SubscribeProperty(Message.Common(muid, it.muid, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
-                messenger.requestIdSerial++,
-                propertyService.createTerminateNotificationHeader(it.subscribeId), listOf()
-            )
-            messenger.send(msg)
+            messenger.send(createShutdownSubscriptionMessage(
+                it.muid, it.resource, group, device.messenger.requestIdSerial++))
         }
+    }
+
+    private fun createShutdownSubscriptionMessage(
+        destinationMUID: Int,
+        propertyId: String,
+        group: Byte,
+        requestId: Byte
+    ): Message.SubscribeProperty {
+        val msg = Message.SubscribeProperty(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
+            requestId,
+            propertyService.createShutdownSubscriptionHeader(propertyId), listOf()
+        )
+        return msg
     }
 
     // Message handlers
 
-    var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
+    fun processGetPropertyData(msg: Message.GetPropertyData) {
         val reply = propertyService.getPropertyData(msg)
         if (reply.isSuccess) {
             messenger.send(reply.getOrNull()!!)
@@ -103,7 +110,7 @@ class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming GetPropertyData message resulted in an error")
     }
 
-    var processSetPropertyData: (msg: Message.SetPropertyData) -> Unit = { msg ->
+    fun processSetPropertyData(msg: Message.SetPropertyData) {
         val reply = propertyService.setPropertyData(msg)
         if (reply.isSuccess)
             messenger.send(reply.getOrNull()!!)
@@ -111,16 +118,11 @@ class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming SetPropertyData message resulted in an error")
     }
 
-    var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
+    fun processSubscribeProperty(msg: Message.SubscribeProperty) {
         val reply = propertyService.subscribeProperty(msg)
         if (reply.isSuccess)
             messenger.send(reply.getOrNull()!!)
         else
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming SubscribeProperty message resulted in an error")
-    }
-
-    // It receives reply to property notifications
-    var processSubscribePropertyReply: (msg: Message.SubscribePropertyReply) -> Unit = { msg ->
-        // nothing to do in particular by default
     }
 }

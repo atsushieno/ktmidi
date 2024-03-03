@@ -12,39 +12,37 @@ private val defaultPropertyList = listOf(
 )
 
 
-private fun CommonRulesPropertyMetadata.jsonValuePairs() = sequence {
-    yield(Pair(Json.JsonValue(PropertyResourceFields.RESOURCE), Json.JsonValue(resource)))
-    if (!canGet)
-        yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_GET), if (canGet) Json.TrueValue else Json.FalseValue))
-    if (canSet != PropertySetAccess.NONE)
-        yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_SET), Json.JsonValue(canSet)))
-    if (canSubscribe)
-        yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_SUBSCRIBE), if (canSubscribe) Json.TrueValue else Json.FalseValue))
-    if (requireResId)
-        yield(Pair(Json.JsonValue(PropertyResourceFields.REQUIRE_RES_ID), if (requireResId) Json.TrueValue else Json.FalseValue))
-    if (mediaTypes.size != 1 || mediaTypes[0] != CommonRulesKnownMimeTypes.APPLICATION_JSON)
-        yield(Pair(
-            Json.JsonValue(PropertyResourceFields.MEDIA_TYPE),
-            Json.JsonValue(mediaTypes.map { s -> Json.JsonValue(s) })
-        ))
-    if (encodings.size != 1 || encodings[0] != PropertyDataEncoding.ASCII)
-        yield(Pair(
-            Json.JsonValue(PropertyResourceFields.ENCODINGS),
-            Json.JsonValue(encodings.map { s -> Json.JsonValue(s) })
-        ))
-    if (schema != null)
-        yield(Pair(Json.JsonValue(PropertyResourceFields.SCHEMA), Json.parse(schema!!)))
-    if (canPaginate)
-        yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_PAGINATE), if (canPaginate) Json.TrueValue else Json.FalseValue))
-    if (columns.any())
-        yield(Pair(
-            Json.JsonValue(PropertyResourceFields.COLUMNS),
-            Json.JsonValue(columns.map { c -> c.toJsonValue() })
-        ))
-}
-
 fun CommonRulesPropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
-    jsonValuePairs().toMap()
+    sequence {
+        yield(Pair(Json.JsonValue(PropertyResourceFields.RESOURCE), Json.JsonValue(resource)))
+        if (!canGet)
+            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_GET), if (canGet) Json.TrueValue else Json.FalseValue))
+        if (canSet != PropertySetAccess.NONE)
+            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_SET), Json.JsonValue(canSet)))
+        if (canSubscribe)
+            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_SUBSCRIBE), if (canSubscribe) Json.TrueValue else Json.FalseValue))
+        if (requireResId)
+            yield(Pair(Json.JsonValue(PropertyResourceFields.REQUIRE_RES_ID), if (requireResId) Json.TrueValue else Json.FalseValue))
+        if (mediaTypes.size != 1 || mediaTypes[0] != CommonRulesKnownMimeTypes.APPLICATION_JSON)
+            yield(Pair(
+                Json.JsonValue(PropertyResourceFields.MEDIA_TYPE),
+                Json.JsonValue(mediaTypes.map { s -> Json.JsonValue(s) })
+            ))
+        if (encodings.size != 1 || encodings[0] != PropertyDataEncoding.ASCII)
+            yield(Pair(
+                Json.JsonValue(PropertyResourceFields.ENCODINGS),
+                Json.JsonValue(encodings.map { s -> Json.JsonValue(s) })
+            ))
+        if (schema != null)
+            yield(Pair(Json.JsonValue(PropertyResourceFields.SCHEMA), Json.parse(schema!!)))
+        if (canPaginate)
+            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_PAGINATE), if (canPaginate) Json.TrueValue else Json.FalseValue))
+        if (columns.any())
+            yield(Pair(
+                Json.JsonValue(PropertyResourceFields.COLUMNS),
+                Json.JsonValue(columns.map { c -> c.toJsonValue() })
+            ))
+    }.toMap()
 )
 
 class CommonRulesPropertyService(logger: Logger, private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
@@ -56,10 +54,12 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
     : CommonRulesPropertyHelper(logger), MidiCIServicePropertyRules {
 
     // MidiCIPropertyService implementation
+    override val subscriptions = mutableListOf<SubscriptionEntry>()
+
     override fun getPropertyIdForHeader(header: List<Byte>) = getPropertyIdentifierInternal(header)
 
     override fun createUpdateNotificationHeader(propertyId: String, fields: Map<String, Any?>) =
-        createUpdateNotificationHeaderBytes(
+        createSubscribePropertyHeaderBytes(
             fields[PropertyCommonHeaderKeys.SUBSCRIBE_ID] as String,
             if (fields[PropertyCommonHeaderKeys.SET_PARTIAL] as Boolean)
                 MidiCISubscriptionCommand.PARTIAL else MidiCISubscriptionCommand.FULL
@@ -134,10 +134,16 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
     override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
 
+    override fun createShutdownSubscriptionHeader(propertyId: String): List<Byte> {
+        val sub = subscriptions.firstOrNull { it.resource == propertyId } ?: throw MidiCIException("Specified property $propertyId is not at subscribed state")
+        val header = createSubscribePropertyHeaderBytes(sub.subscribeId, MidiCISubscriptionCommand.END)
+        subscriptions.remove(sub)
+        return header
+    }
+
     // impl
 
     val linkedResources = mutableMapOf<String, List<Byte>>()
-    val subscriptions = mutableListOf<SubscriptionEntry>()
 
     private fun bytesToJsonArray(list: List<Byte>) = list.map { Json.JsonValue(it.toDouble()) }
     private fun getDeviceInfoJson(): Json.JsonValue {
@@ -294,9 +300,6 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
         // body is empty
         return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, subscribeId = subscribeId)), Json.JsonValue(mapOf()))
     }
-
-    fun createTerminateNotificationHeader(subscribeId: String): List<Byte> =
-        createUpdateNotificationHeaderBytes(subscribeId, MidiCISubscriptionCommand.END)
 
     override fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> = encodeBodyInternal(data, encoding)
     override fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte> = decodeBodyInternal(header, body)

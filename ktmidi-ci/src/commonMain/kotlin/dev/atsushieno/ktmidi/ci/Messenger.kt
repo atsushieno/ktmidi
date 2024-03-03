@@ -14,7 +14,7 @@ class Messenger(
     private val logger by device::logger
     private val config by device::config
     private val muid by device::muid
-    private val deviceInfo by device::device
+    private val deviceInfo by device::deviceInfo
     private val connections by device::connections
     private val localProfiles
         get() = device.profileHost.profiles
@@ -414,8 +414,7 @@ class Messenger(
         // We need to identify whether it is sent by the notifier or one of the subscribers
         if (connections[msg.sourceMUID] != null)
             conn(msg, CISubId2.PROPERTY_SUBSCRIBE_REPLY)?.processPropertySubscriptionReply(msg) // for a subscriber
-        else
-            device.propertyHost.processSubscribePropertyReply(msg) // for the notifier
+        // else -> nothing to do in particular by default
     }
 
     var processPropertyNotify: (propertyNotify: Message.PropertyNotify) -> Unit = { msg ->
