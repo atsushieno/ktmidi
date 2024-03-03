@@ -23,21 +23,21 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
 
     var deviceInfo = mutableStateOf(conn.deviceInfo)
 
-    val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.properties.values)}
+    val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.propertyClient.properties.values)}
 
-    fun getMetadataList() = conn.propertyClient.getMetadataList()
+    fun getMetadataList() = conn.propertyRules.getMetadataList()
 
     data class SubscriptionState(val propertyId: String, var state: MutableState<SubscriptionActionState>)
     var subscriptions = mutableStateListOf<SubscriptionState>()
 
     fun getPropertyData(resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
-        conn.sendGetPropertyData(resource, encoding, paginateOffset, paginateLimit)
+        conn.propertyClient.sendGetPropertyData(resource, encoding, paginateOffset, paginateLimit)
     fun setPropertyData(resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) =
-        conn.sendSetPropertyData(resource, data, encoding, isPartial)
+        conn.propertyClient.sendSetPropertyData(resource, data, encoding, isPartial)
     fun subscribeProperty(resource: String, mutualEncoding: String?) =
-        conn.sendSubscribeProperty(resource, mutualEncoding)
+        conn.propertyClient.sendSubscribeProperty(resource, mutualEncoding)
     fun unsubscribeProperty(resource: String) =
-        conn.sendUnsubscribeProperty(resource)
+        conn.propertyClient.sendUnsubscribeProperty(resource)
 
     fun requestMidiMessageReport(address: Byte, targetMUID: Int,
                                  messageDataControl: Byte = MidiMessageReportDataControl.Full,
@@ -73,7 +73,7 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
                 }
         }
 
-        conn.properties.valueUpdated.add { entry ->
+        conn.propertyClient.properties.valueUpdated.add { entry ->
             val index = properties.indexOfFirst { it.id == entry.id }
             if (index < 0)
                 properties.add(entry)
@@ -85,12 +85,12 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
                 deviceInfo.value = conn.deviceInfo
         }
 
-        conn.properties.propertiesCatalogUpdated.add {
+        conn.propertyClient.properties.propertiesCatalogUpdated.add {
             properties.clear()
-            properties.addAll(conn.properties.values)
+            properties.addAll(conn.propertyClient.properties.values)
         }
 
-        conn.subscriptionUpdated.add { sub ->
+        conn.propertyClient.subscriptionUpdated.add { sub ->
             if (sub.state == SubscriptionActionState.Subscribing)
                 subscriptions.add(SubscriptionState(sub.propertyId, mutableStateOf(sub.state)))
             else {

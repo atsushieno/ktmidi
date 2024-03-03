@@ -78,7 +78,7 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
 
     fun selectProperty(propertyId: String) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
-        val metadata = conn.conn.propertyClient.getMetadataList()?.firstOrNull { it.propertyId == propertyId }
+        val metadata = conn.conn.propertyRules.getMetadataList()?.firstOrNull { it.propertyId == propertyId }
                 as CommonRulesPropertyMetadata
         conn.getPropertyData(propertyId, encoding = metadata.encodings.firstOrNull(), paginateOffset = 0, paginateLimit = 10)
     }

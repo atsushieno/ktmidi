@@ -222,31 +222,32 @@ class Messenger(
 
     var processProfileReply = { msg: Message.ProfileReply ->
         messageReceived.forEach { it(msg) }
-        continueOnClient(msg, CISubId2.PROFILE_INQUIRY_REPLY) { it.profileClient.processProfileReply(msg) }
+        onClient(msg, CISubId2.PROFILE_INQUIRY_REPLY) { profileClient.processProfileReply(msg) }
     }
 
     var processProfileAddedReport = { msg: Message.ProfileAdded ->
         messageReceived.forEach { it(msg) }
-        continueOnClient(msg, CISubId2.PROFILE_ADDED_REPORT) { it.profileClient.processProfileAddedReport(msg) }
+        onClient(msg, CISubId2.PROFILE_ADDED_REPORT) { profileClient.processProfileAddedReport(msg) }
     }
 
     var processProfileRemovedReport: (msg: Message.ProfileRemoved) -> Unit = { msg ->
         messageReceived.forEach { it(msg) }
-        continueOnClient(msg, CISubId2.PROFILE_REMOVED_REPORT) { it.profileClient.processProfileRemovedReport(msg) }
+        onClient(msg, CISubId2.PROFILE_REMOVED_REPORT) { profileClient.processProfileRemovedReport(msg) }
     }
 
     var processProfileEnabledReport: (msg: Message.ProfileEnabled) -> Unit = { msg ->
         messageReceived.forEach { it(msg) }
-        continueOnClient(msg, CISubId2.PROFILE_ENABLED_REPORT) { it.profileClient.processProfileEnabledReport(msg) }
+        onClient(msg, CISubId2.PROFILE_ENABLED_REPORT) { profileClient.processProfileEnabledReport(msg) }
     }
+
     var processProfileDisabledReport: (msg: Message.ProfileDisabled) -> Unit = { msg ->
         messageReceived.forEach { it(msg) }
-        continueOnClient(msg, CISubId2.PROFILE_DISABLED_REPORT) { it.profileClient.processProfileDisabledReport(msg) }
+        onClient(msg, CISubId2.PROFILE_DISABLED_REPORT) { profileClient.processProfileDisabledReport(msg) }
     }
 
     var processProfileDetailsReply: (msg: Message.ProfileDetailsReply) -> Unit = { msg ->
         messageReceived.forEach { it(msg) }
-        continueOnClient(msg, CISubId2.PROFILE_DETAILS_REPLY) { it.profileClient.processProfileDetailsReply(msg) }
+        onClient(msg, CISubId2.PROFILE_DETAILS_REPLY) { profileClient.processProfileDetailsReply(msg) }
     }
 
     // Local Profile Configuration
@@ -360,23 +361,14 @@ class Messenger(
 
     // Local
 
-    private fun conn(msg: Message, subId2: Byte): ClientConnection? {
-        val conn = connections[msg.sourceMUID]
-        if (conn != null)
-            return conn
-        // Unknown MUID - send back NAK
-        sendNakForUnknownMUID(Message.Common(muid, msg.sourceMUID, msg.address, msg.group), subId2)
-        return null
-    }
-
     var processPropertyCapabilitiesReply: (msg: Message.PropertyGetCapabilitiesReply) -> Unit = { msg ->
         device.messageReceived.forEach { it(msg) }
-        conn(msg, CISubId2.PROPERTY_CAPABILITIES_REPLY)?.processPropertyCapabilitiesReply(msg)
+        onClient(msg, CISubId2.PROPERTY_CAPABILITIES_REPLY) { propertyClient.processPropertyCapabilitiesReply(msg) }
     }
 
     var processGetDataReply: (msg: Message.GetPropertyDataReply) -> Unit = { msg ->
         messageReceived.forEach { it(msg) }
-        conn(msg, CISubId2.PROPERTY_GET_DATA_REPLY)?.processGetDataReply(msg)
+        onClient(msg, CISubId2.PROPERTY_GET_DATA_REPLY) { propertyClient.processGetDataReply(msg) }
     }
 
     var processSetDataReply: (msg: Message.SetPropertyDataReply) -> Unit = { msg ->
@@ -393,11 +385,11 @@ class Messenger(
             MidiCISubscriptionCommand.FULL,
             MidiCISubscriptionCommand.PARTIAL,
             MidiCISubscriptionCommand.NOTIFY ->
-                conn(msg, CISubId2.PROPERTY_SUBSCRIBE)?.processSubscribeProperty(msg) // for a subscriber
+                onClient(msg, CISubId2.PROPERTY_SUBSCRIBE) { propertyClient.processSubscribeProperty(msg) } // for a subscriber
             MidiCISubscriptionCommand.END -> {
                 // We need to identify whether it is sent by the notifier or one of the subscribers
                 if (connections[msg.sourceMUID] != null)
-                    conn(msg, CISubId2.PROPERTY_SUBSCRIBE)?.processSubscribeProperty(msg) // for a subscriber
+                    onClient(msg, CISubId2.PROPERTY_SUBSCRIBE) { propertyClient.processSubscribeProperty(msg) } // for a subscriber
                 else
                     device.propertyHost.processSubscribeProperty(msg) // for the notifier
             }
@@ -413,7 +405,7 @@ class Messenger(
         //   (whether it is in our listening subscriptions xor it is request to unsubscribe from client)
         // We need to identify whether it is sent by the notifier or one of the subscribers
         if (connections[msg.sourceMUID] != null)
-            conn(msg, CISubId2.PROPERTY_SUBSCRIBE_REPLY)?.processPropertySubscriptionReply(msg) // for a subscriber
+            onClient(msg, CISubId2.PROPERTY_SUBSCRIBE_REPLY) { propertyClient.processPropertySubscriptionReply(msg) } // for a subscriber
         // else -> nothing to do in particular by default
     }
 
@@ -527,12 +519,13 @@ class Messenger(
 
     private val emptyNakDetails = List<Byte>(5) {0}
 
-    private fun <T> continueOnClient(msg: T, subId2: Byte, func: (conn: ClientConnection)->Unit) where T: Message {
+    private fun onClient(msg: Message, subId2: Byte, func: ClientConnection.() -> Unit) {
         val conn = connections[msg.sourceMUID]
         if (conn != null)
-            func(conn)
+            conn.func()
         else
-            sendNakForError(getResponseCommonForInput(msg.common), subId2, CINakStatus.Nak, 0, emptyNakDetails, "Profile Reply from unknown MUID")
+            // Unknown MUID - send back NAK
+            sendNakForUnknownMUID(Message.Common(muid, msg.sourceMUID, msg.address, msg.group), subId2)
     }
 
     private fun getResponseCommonForInput(common: Message.Common) =
@@ -573,7 +566,7 @@ class Messenger(
     private fun handleChunk(common: Message.Common, requestId: Byte, chunkIndex: Short, numChunks: Short,
                             header: List<Byte>, body: List<Byte>,
                             onComplete: (header: List<Byte>, body: List<Byte>) -> Unit) {
-        val pendingChunkManager = connections[common.sourceMUID]?.pendingChunkManager ?: localPendingChunkManager
+        val pendingChunkManager = connections[common.sourceMUID]?.propertyClient?.pendingChunkManager ?: localPendingChunkManager
         if (chunkIndex < numChunks) {
             pendingChunkManager.addPendingChunk(Clock.System.now().epochSeconds, common.sourceMUID, requestId, header, body)
         } else {

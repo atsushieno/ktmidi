@@ -41,7 +41,7 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
                 if (device.config.autoSendGetDeviceInfo) {
                     val def = getMetadataList().firstOrNull { it.propertyId == PropertyResourceNames.DEVICE_INFO } as CommonRulesPropertyMetadata?
                     if (def != null)
-                        conn.sendGetPropertyData(PropertyResourceNames.DEVICE_INFO, def.encodings.firstOrNull())
+                        conn.propertyClient.sendGetPropertyData(PropertyResourceNames.DEVICE_INFO, def.encodings.firstOrNull())
                 }
             }
             // If it is about DeviceInfo, then store the list internally.
