@@ -19,43 +19,36 @@ class MidiDeviceManager {
             midiAccessValue = value
             midiInput = emptyMidiInput
             midiOutput = emptyMidiOutput
-            GlobalScope.launch {
-                try {
-                    val pcOut = PortCreatorContext(
-                        manufacturer = "KtMidi project",
-                        applicationName = "KtMidi-CI-Tool",
-                        portName = "KtMidi-CI-Tool Virtual Out Port",
-                        version = "1.0"
-                        //midiProtocol = MidiCIProtocolType.MIDI2, // if applicable
-                        //umpGroup = 2
-                    )
-                    val pcIn = PortCreatorContext(
-                        manufacturer = "KtMidi project",
-                        applicationName = "KtMidi-CI-Tool",
-                        portName = "KtMidi-CI-Tool Virtual In Port",
-                        version = "1.0"
-                        //midiProtocol = MidiCIProtocolType.MIDI2, // if applicable
-                        //umpGroup = 2
-                    )
-
-                    virtualMidiInput = midiAccessValue.createVirtualOutputReceiver(pcOut)
-                    midiInputOpened.forEach { it(virtualMidiInput!!) }
-
-                    virtualMidiOutput = midiAccessValue.createVirtualInputSender(pcIn)
-                } catch (_: Exception) {
-                }
-            }
         }
+    suspend fun setupVirtualPorts() {
+        try {
+            val pcOut = PortCreatorContext(
+                manufacturer = "KtMidi project",
+                applicationName = "KtMidi-CI-Tool",
+                portName = "KtMidi-CI-Tool Virtual Out Port",
+                version = "1.0"
+                //midiProtocol = MidiCIProtocolType.MIDI2, // if applicable
+                //umpGroup = 2
+            )
+            val pcIn = PortCreatorContext(
+                manufacturer = "KtMidi project",
+                applicationName = "KtMidi-CI-Tool",
+                portName = "KtMidi-CI-Tool Virtual In Port",
+                version = "1.0"
+                //midiProtocol = MidiCIProtocolType.MIDI2, // if applicable
+                //umpGroup = 2
+            )
 
-    var midiInputDeviceId: String?
+            virtualMidiInput = midiAccessValue.createVirtualOutputReceiver(pcOut)
+            midiInputOpened.forEach { it(virtualMidiInput!!) }
+
+            virtualMidiOutput = midiAccessValue.createVirtualInputSender(pcIn)
+        } catch (_: Exception) {
+        }
+    }
+
+    val midiInputDeviceId: String?
         get() = midiInput.details.id
-        set(id) {
-            GlobalScope.launch {
-                midiInput.close()
-                midiInput = if (id != null) midiAccessValue.openInput(id) else emptyMidiInput
-                midiInputOpened.forEach { it(midiInput) }
-            }
-        }
 
     var midiInputOpened = mutableListOf<(input: MidiInput) -> Unit>()
     var midiOutputOpened = mutableListOf<(output: MidiOutput) -> Unit>()
@@ -75,8 +68,10 @@ class MidiDeviceManager {
 
     val midiOutputSent = mutableListOf<(bytes: ByteArray, timestamp: Long)->Unit>()
 
-    fun setInputDevice(id: String) {
-        midiInputDeviceId = id
+    suspend fun setInputDevice(id: String?) {
+        midiInput.close()
+        midiInput = if (id != null) midiAccessValue.openInput(id) else emptyMidiInput
+        midiInputOpened.forEach { it(midiInput) }
     }
 
     suspend fun setOutputDevice(id: String) {

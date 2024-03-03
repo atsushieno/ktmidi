@@ -26,11 +26,14 @@ fun MidiDeviceSelectorSection(midiDeviceManager: MidiDeviceManager) {
             var inputDevice by remember { mutableStateOf(midiDeviceManager.midiInput.details) }
             var outputDevice by remember { mutableStateOf(midiDeviceManager.midiOutput.details) }
             Column {
+                val scope = rememberCoroutineScope()
                 Text("From:")
                 MidiDeviceSelector(true, midiDeviceManager.midiAccess.inputs.toList(), inputDevice, portChanged = { id ->
-                    val newDevice = midiDeviceManager.midiAccess.inputs.first { it.id == id }
-                    midiDeviceManager.setInputDevice(id)
-                    inputDevice = newDevice
+                    scope.launch {
+                        val newDevice = midiDeviceManager.midiAccess.inputs.first { it.id == id }
+                        midiDeviceManager.setInputDevice(id)
+                        inputDevice = newDevice
+                    }
                 })
             }
             Column {
