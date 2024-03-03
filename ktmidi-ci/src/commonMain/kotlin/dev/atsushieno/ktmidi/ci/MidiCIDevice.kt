@@ -35,7 +35,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     // Profile Configuration
 
-    val profileHost = ProfileConfigurationHostFacade(this)
+    val profileHost = ProfileHostFacade(this)
 
     // We usually do not need to call it explicitly, unless MidiCIDeviceConfiguration.autoSendProfileInquiry is disabled.
     fun requestProfiles(group: Byte, address: Byte, destinationMUID: Int) =
@@ -50,7 +50,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     // Property Exchange
 
-    val propertyHost = PropertyExchangeHostFacade(this)
+    val propertyHost = PropertyHostFacade(this)
 
     // Process Inquiry
 

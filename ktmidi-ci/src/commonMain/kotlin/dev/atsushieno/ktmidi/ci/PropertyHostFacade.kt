@@ -11,10 +11,10 @@ import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
  * It is NOT for manipulating remote MIDI-CI device properties.
  * `ClientConnection` offers those features instead.
  *
- * Request handlers might also invoke these members.
+ * Request handlers also invoke these members.
  */
 
-class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
+class PropertyHostFacade(private val device: MidiCIDevice) {
     private val messenger by device::messenger
 
     val metadataList

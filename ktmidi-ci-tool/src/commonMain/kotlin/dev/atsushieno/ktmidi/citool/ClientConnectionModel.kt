@@ -25,7 +25,7 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
 
     val properties = mutableStateListOf<PropertyValue>().apply { addAll(conn.propertyClient.properties.values)}
 
-    fun getMetadataList() = conn.propertyRules.getMetadataList()
+    fun getMetadataList() = conn.propertyClient.propertyRules.getMetadataList()
 
     data class SubscriptionState(val propertyId: String, var state: MutableState<SubscriptionActionState>)
     var subscriptions = mutableStateListOf<SubscriptionState>()

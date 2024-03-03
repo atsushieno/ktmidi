@@ -30,11 +30,9 @@ ktmidi has comprehensive MIDI-CI support as well as its dogfooding "ktmidi-ci-to
 
 ## Known missing features
 
-- Good API design; everything has been messed throughout the development
-- Tests (I am usually test-driven, but I did not come up with good API structure in the first place this time...)
 - App lifecycle management: https://github.com/atsushieno/ktmidi/issues/59
 - zlib+Mcoded7 support on some platforms: ubiquitous zlib implementation is currently on hold until ktor-io 3.0.0 comes up on Kotlin/Wasm. Also, I cannot find any implementation that has no issues. https://github.com/atsushieno/ktmidi/issues/58
-- Profile specific messages (seeing no use at the moment)
+- Profile specific messages on UI
 - Any timer based session management (i.e. no timeouts implemented)
   - Therefore, no request ID management; it simply increments within `Byte` https://github.com/atsushieno/ktmidi/issues/57
 
@@ -53,7 +51,8 @@ Modules:
 Classes:
 
 - In `ktmidi-ci` module:
-  - `MidiCIDevice` plays the primary role. It works as the facade for most of the MIDI-CI features. It holds `initiator` and `responder` for now, but we have been making significant changes in the structure, so do not count on them to exist.
+  - `MidiCIDevice` plays the primary role. It works as the facade for most of the MIDI-CI features.
+  - `ClientConnection` represents a destination MIDI-CI device connection, as the client point of view.
   - `Message` and all those subclasses represent MIDI-CI SysEx messages. Data model and serialization in most classes (not all)
   - `Messenger` implements the actual messaging protocol like "send back Reply To Discovery message in reply to Discovery Inquiry message"
   - `ObservableProfileList` and `ObservablePropertyList` hold profiles and properties (both values and metadata for now) that can notify listeners. Models in `ktmidi-ci-tool` make use of them.

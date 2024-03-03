@@ -9,7 +9,7 @@ package dev.atsushieno.ktmidi.ci
  *
  * Request handlers also invoke these members.
  */
-class ProfileConfigurationHostFacade(device: MidiCIDevice) {
+class ProfileHostFacade(device: MidiCIDevice) {
     private val config by device::config
     private val messenger by device::messenger
 

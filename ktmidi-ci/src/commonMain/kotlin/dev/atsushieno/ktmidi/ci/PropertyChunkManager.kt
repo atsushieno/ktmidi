@@ -1,5 +1,14 @@
 package dev.atsushieno.ktmidi.ci
 
+/**
+ * Manages Property Exchange body chunking (PE messages could be split into
+ * multiple MIDI-CI SysEx message chunks like UMP SysEx8, but in its own manner
+ * so that they could be packages within SysEx7).
+ *
+ * It is to manage *incoming* messages. Outgoing message chunking is not supported.
+ *
+ * Each of `ClientConnection` and `MidiCIDevice` have a `PropertyChunkManager`.
+ */
 class PropertyChunkManager {
     data class Chunk(val timestamp: Long, val sourceMUID: Int, val requestId: Byte, val header: List<Byte>, val data: MutableList<Byte>)
 
