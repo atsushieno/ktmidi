@@ -53,12 +53,16 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
                 }
             }
             messageReceived.add {
-                receivingMidiMessageReports = true
-                midiMessageReportModeChanged.forEach { it() }
+                if (it is Message.MidiMessageReportInquiry) {
+                    receivingMidiMessageReports = true
+                    midiMessageReportModeChanged.forEach { it() }
+                }
             }
             messageReceived.add {
-                receivingMidiMessageReports = false
-                midiMessageReportModeChanged.forEach { it() }
+                if (it is Message.MidiMessageReportNotifyEnd) {
+                    receivingMidiMessageReports = false
+                    midiMessageReportModeChanged.forEach { it() }
+                }
             }
 
             midiMessageReporter = MidiMachineMessageReporter()

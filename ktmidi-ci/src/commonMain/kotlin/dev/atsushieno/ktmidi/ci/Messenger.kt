@@ -423,6 +423,7 @@ class Messenger(
         // no particular things to do. Event handlers should be used if any.
     }
 
+    // Local Property Exchange
 
     val getPropertyCapabilitiesReplyFor: (msg: Message.PropertyGetCapabilities) -> Message.PropertyGetCapabilitiesReply = { msg ->
         val establishedMaxSimultaneousPropertyRequests =
@@ -437,6 +438,15 @@ class Messenger(
         send(reply)
     }
 
+    var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
+        device.messageReceived.forEach { it(msg) }
+        device.propertyHost.processGetPropertyData(msg)
+    }
+
+    var processSetPropertyData: (msg: Message.SetPropertyData) -> Unit = { msg ->
+        device.messageReceived.forEach { it(msg) }
+        device.propertyHost.processSetPropertyData(msg)
+    }
 
     // Remote Process Inquiry
     fun requestProcessInquiryCapabilities(group: Byte, destinationMUID: Int) =
@@ -812,7 +822,7 @@ class Messenger(
             CISubId2.PROPERTY_GET_DATA_INQUIRY -> {
                 val requestId = data[13]
                 val header = CIRetrieval.midiCIGetPropertyHeader(data)
-                device.propertyHost.processGetPropertyData(Message.GetPropertyData(common, requestId, header))
+                processGetPropertyData(Message.GetPropertyData(common, requestId, header))
             }
 
             CISubId2.PROPERTY_SET_DATA_INQUIRY -> {
@@ -823,7 +833,7 @@ class Messenger(
                 val body = CIRetrieval.midiCIGetPropertyBodyInThisChunk(data)
 
                 handleChunk(common, requestId, chunkIndex, numChunks, header, body) { wholeHeader, wholeBody ->
-                    device.propertyHost.processSetPropertyData(Message.SetPropertyData(common, requestId, wholeHeader, wholeBody))
+                    processSetPropertyData(Message.SetPropertyData(common, requestId, wholeHeader, wholeBody))
                 }
             }
 

@@ -95,7 +95,6 @@ class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
     // Message handlers
 
     var processGetPropertyData: (msg: Message.GetPropertyData) -> Unit = { msg ->
-        device.messageReceived.forEach { it(msg) }
         val reply = propertyService.getPropertyData(msg)
         if (reply.isSuccess) {
             messenger.send(reply.getOrNull()!!)
@@ -105,7 +104,6 @@ class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
     }
 
     var processSetPropertyData: (msg: Message.SetPropertyData) -> Unit = { msg ->
-        device.messageReceived.forEach { it(msg) }
         val reply = propertyService.setPropertyData(msg)
         if (reply.isSuccess)
             messenger.send(reply.getOrNull()!!)
@@ -114,7 +112,6 @@ class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
     }
 
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->
-        device.messageReceived.forEach { it(msg) }
         val reply = propertyService.subscribeProperty(msg)
         if (reply.isSuccess)
             messenger.send(reply.getOrNull()!!)
@@ -124,6 +121,6 @@ class PropertyExchangeHostFacade(private val device: MidiCIDevice) {
 
     // It receives reply to property notifications
     var processSubscribePropertyReply: (msg: Message.SubscribePropertyReply) -> Unit = { msg ->
-        device.messageReceived.forEach { it(msg) }
+        // nothing to do in particular by default
     }
 }
