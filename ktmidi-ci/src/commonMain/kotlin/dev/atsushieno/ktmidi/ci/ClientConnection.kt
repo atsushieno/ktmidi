@@ -96,24 +96,12 @@ class ClientConnection(
 
     val pendingChunkManager = PropertyChunkManager()
 
-    private fun updateRemoteProperty(msg: Message.GetPropertyDataReply) {
-        val req = openRequests.firstOrNull { it.requestId == msg.requestId } ?: return
-        openRequests.remove(req)
-        val status = propertyClient.getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS) ?: return
-
-        if (status == PropertyExchangeStatus.OK) {
-            val propertyId = propertyClient.getPropertyIdForHeader(req.header)
-            propertyClient.propertyValueUpdated(propertyId, msg.body)
-            properties.updateValue(propertyId, msg)
-        }
-    }
-
-    private fun updateLocalProperty(ourMUID: Int, msg: Message.SubscribeProperty): Pair<String?, Message.SubscribePropertyReply?> {
+    private fun updatePropertyBySubscribe(msg: Message.SubscribeProperty): Pair<String?, Message.SubscribePropertyReply?> {
         val command = properties.updateValue(msg)
         return Pair(
             command,
             Message.SubscribePropertyReply(
-                Message.Common(ourMUID, msg.sourceMUID, msg.address, msg.group),
+                Message.Common(parent.muid, msg.sourceMUID, msg.address, msg.group),
                 msg.requestId,
                 propertyClient.createStatusHeader(PropertyExchangeStatus.OK), listOf()
             )
@@ -133,9 +121,6 @@ class ClientConnection(
         ))
     }
 
-    private fun addPendingRequest(msg: Message.GetPropertyData) {
-        openRequests.add(msg)
-    }
     private fun addPendingSubscription(requestId: Byte, subscriptionId: String?, propertyId: String) {
         val sub = ClientSubscription(
             requestId,
@@ -219,7 +204,7 @@ class ClientConnection(
 
     // unlike the other overload, it is not specific to Common Rules for PE
     fun sendGetPropertyData(msg: Message.GetPropertyData) {
-        addPendingRequest(msg)
+        openRequests.add(msg)
         parent.messenger.send(msg)
     }
 
@@ -268,22 +253,22 @@ class ClientConnection(
     }
 
     fun processGetDataReply(msg: Message.GetPropertyDataReply) {
-        updateRemoteProperty(msg)
-
-        val propertyId = propertyClient.getPropertyIdForHeader(msg.header)
-        // If the reply was ResourceList, and the parsed body contained an entry for DeviceInfo, and
-        //  if it is configured as auto-queried, then send another Get Property Data request for it.
-        if (parent.config.autoSendGetDeviceInfo && propertyId == PropertyResourceNames.RESOURCE_LIST) {
-            val def = propertyClient.getMetadataList()?.firstOrNull { it.propertyId == PropertyResourceNames.DEVICE_INFO } as CommonRulesPropertyMetadata?
-            if (def != null)
-                sendGetPropertyData(def.propertyId, def.encodings.firstOrNull())
+        val req = openRequests.firstOrNull { it.requestId == msg.requestId }
+            ?: return
+        openRequests.remove(req)
+        val status = propertyClient.getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS)
+            ?: return
+        if (status == PropertyExchangeStatus.OK) {
+            val propertyId = propertyClient.getPropertyIdForHeader(req.header)
+            properties.updateValue(propertyId, msg)
+            propertyClient.propertyValueUpdated(propertyId, msg.body)
         }
     }
 
     fun processSubscribeProperty(msg: Message.SubscribeProperty) {
         val reply = when (propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.COMMAND)) {
             MidiCISubscriptionCommand.END -> handleUnsubscriptionNotification(parent.muid, msg)
-            else -> updateLocalProperty(parent.muid, msg)
+            else -> updatePropertyBySubscribe(msg)
         }
         if (reply.second != null)
             parent.messenger.send(reply.second!!)

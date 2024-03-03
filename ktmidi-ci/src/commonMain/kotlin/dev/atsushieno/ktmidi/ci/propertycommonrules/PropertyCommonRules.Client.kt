@@ -35,6 +35,14 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
                 resourceList.clear()
                 resourceList.addAll(list)
                 propertyCatalogUpdated.forEach { it() }
+
+                // If the parsed body contained an entry for DeviceInfo, and
+                //  if it is configured as auto-queried, then send another Get Property Data request for it.
+                if (device.config.autoSendGetDeviceInfo) {
+                    val def = getMetadataList().firstOrNull { it.propertyId == PropertyResourceNames.DEVICE_INFO } as CommonRulesPropertyMetadata?
+                    if (def != null)
+                        conn.sendGetPropertyData(PropertyResourceNames.DEVICE_INFO, def.encodings.firstOrNull())
+                }
             }
             // If it is about DeviceInfo, then store the list internally.
             PropertyResourceNames.DEVICE_INFO -> {
