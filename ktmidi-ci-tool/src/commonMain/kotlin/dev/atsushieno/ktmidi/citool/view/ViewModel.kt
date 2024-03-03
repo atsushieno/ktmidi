@@ -80,26 +80,26 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
         Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
         val metadata = conn.conn.propertyClient.getMetadataList()?.firstOrNull { it.propertyId == propertyId }
                 as CommonRulesPropertyMetadata
-        ciDeviceManager.device.sendGetPropertyDataRequest(conn.conn.targetMUID, propertyId,
+        conn.getPropertyData(conn.conn.targetMUID, propertyId,
             encoding = metadata.encodings.firstOrNull(), paginateOffset = 0, paginateLimit = 10)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
 
     fun refreshPropertyValue(targetMUID: Int, propertyId: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
-        ciDeviceManager.device.sendGetPropertyDataRequest(targetMUID, propertyId, encoding, paginateOffset, paginateLimit)
+        conn.getPropertyData(targetMUID, propertyId, encoding, paginateOffset, paginateLimit)
     }
 
     fun subscribeProperty(targetMUID: Int, propertyId: String, mutualEncoding: String?) {
-        ciDeviceManager.device.subscribeProperty(targetMUID, propertyId, mutualEncoding)
+        conn.subscribeProperty(targetMUID, propertyId, mutualEncoding)
     }
 
     fun unsubscribeProperty(targetMUID: Int, propertyId: String) {
-        ciDeviceManager.device.unsubscribeProperty(targetMUID, propertyId)
+        conn.unsubscribeProperty(targetMUID, propertyId)
     }
 
     fun sendSetPropertyDataRequest(targetMUID: Int, propertyId: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) {
-        ciDeviceManager.device.sendSetPropertyDataRequest(targetMUID, propertyId, bytes, encoding, isPartial)
+        conn.setPropertyData(targetMUID, propertyId, bytes, encoding, isPartial)
     }
 
     fun setProfile(group: Byte, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) {

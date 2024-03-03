@@ -52,40 +52,6 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
 
     val propertyHost = PropertyExchangeHostFacade(this)
 
-    // FIXME: these connection-only functions should not exist here
-    private fun conn(destinationMUID: Int): ClientConnection =
-        connections[destinationMUID] ?: throw MidiCIException("Unknown destination MUID: $destinationMUID")
-
-    fun sendGetPropertyDataRequest(
-        destinationMUID: Int,
-        resource: String,
-        encoding: String?,
-        paginateOffset: Int?,
-        paginateLimit: Int?
-    ) =
-        conn(destinationMUID).sendGetPropertyData(
-            destinationMUID,
-            resource,
-            encoding,
-            paginateOffset,
-            paginateLimit
-        )
-
-    fun sendSetPropertyDataRequest(
-        destinationMUID: Int,
-        resource: String,
-        data: List<Byte>,
-        encoding: String?,
-        isPartial: Boolean
-    ) =
-        conn(destinationMUID).sendSetPropertyData(destinationMUID, resource, data, encoding, isPartial)
-
-    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) =
-        conn(destinationMUID).sendSubscribeProperty(destinationMUID, resource, mutualEncoding)
-
-    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String) =
-        conn(destinationMUID).sendUnsubscribeProperty(destinationMUID, resource)
-
     // Process Inquiry
 
     var midiMessageReporter: MidiMessageReporter = StubMidiMessageReporter()

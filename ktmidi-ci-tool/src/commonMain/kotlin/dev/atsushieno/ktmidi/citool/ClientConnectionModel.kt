@@ -31,6 +31,19 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
     data class SubscriptionState(val propertyId: String, var state: MutableState<SubscriptionActionState>)
     var subscriptions = mutableStateListOf<SubscriptionState>()
 
+    fun getPropertyData(destinationMUID: Int, resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) {
+        conn.sendGetPropertyData(destinationMUID, resource, encoding, paginateOffset, paginateLimit)
+    }
+    fun setPropertyData(destinationMUID: Int, resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) {
+        conn.sendSetPropertyData(destinationMUID, resource, data, encoding, isPartial)
+    }
+    fun subscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?) {
+        conn.sendSubscribeProperty(destinationMUID, resource, mutualEncoding)
+    }
+    fun unsubscribeProperty(destinationMUID: Int, resource: String) {
+        conn.sendUnsubscribeProperty(destinationMUID, resource)
+    }
+
     fun requestMidiMessageReport(address: Byte, targetMUID: Int,
                                  messageDataControl: Byte = MidiMessageReportDataControl.Full,
                                  systemMessages: Byte = MidiMessageReportSystemMessagesFlags.All,

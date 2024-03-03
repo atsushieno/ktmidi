@@ -743,11 +743,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
 	public final fun requestProfileDetails (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;B)V
 	public final fun requestProfiles (BBI)V
 	public final fun sendDiscovery ()V
-	public final fun sendGetPropertyDataRequest (ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
 	public final fun sendProfileSpecificData (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;Ljava/util/List;)V
-	public final fun sendSetPropertyDataRequest (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
-	public final fun sendSubscribeProperty (ILjava/lang/String;Ljava/lang/String;)V
-	public final fun sendUnsubscribeProperty (ILjava/lang/String;)V
 	public final fun setMidiMessageReporter (Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;)V
 }
 
