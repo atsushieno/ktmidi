@@ -110,7 +110,11 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
         }
         // body is ignored in PropertyCommonRules.
 
-        val result = subscribe(msg.sourceMUID, jsonHeader)
+        val result =
+            if (jsonHeader.getObjectValue(PropertyCommonHeaderKeys.COMMAND)?.stringValue == MidiCISubscriptionCommand.END)
+                unsubscribe(getPropertyIdForHeader(msg.header), jsonHeader.getObjectValue(PropertyCommonHeaderKeys.SUBSCRIBE_ID)?.stringValue)
+            else
+                subscribe(msg.sourceMUID, jsonHeader)
 
         val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toASCIIByteArray().toList()
         val replyBody = MidiCIConverter.encodeStringToASCII(Json.serialize(result.second)).toASCIIByteArray().toList()
@@ -281,6 +285,14 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
         subscriptions.add(subscription)
         // body is empty
         return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, subscribeId = subscription.subscribeId)), Json.JsonValue(mapOf()))
+    }
+
+    fun unsubscribe(resource: String, subscribeId: String?) : Pair<Json.JsonValue, Json.JsonValue> {
+        val existing = subscriptions.firstOrNull { subscribeId != null && it.subscribeId == subscribeId }
+            ?: subscriptions.firstOrNull { it.resource == resource }
+        subscriptions.remove(existing)
+        // body is empty
+        return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, subscribeId = subscribeId)), Json.JsonValue(mapOf()))
     }
 
     fun createTerminateNotificationHeader(subscribeId: String): List<Byte> =

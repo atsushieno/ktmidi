@@ -190,7 +190,8 @@ class ClientConnection(
         }
     }
 
-    fun saveAndSendGetCommonRulesPropertyData(destinationMUID: Int, resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
+    // It is Common Rules specific
+    fun sendGetPropertyData(destinationMUID: Int, resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
         val header = propertyClient.createDataRequestHeader(resource, mapOf(
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
             PropertyCommonHeaderKeys.SET_PARTIAL to false,
@@ -199,10 +200,10 @@ class ClientConnection(
         ).filter { it.value != null })
         val msg = Message.GetPropertyData(Message.Common(parent.muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, parent.config.group),
             parent.messenger.requestIdSerial++, header)
-        saveAndSendGetPropertyData(msg)
+        sendGetPropertyData(msg)
     }
 
-    fun saveAndSendGetPropertyData(msg: Message.GetPropertyData) {
+    fun sendGetPropertyData(msg: Message.GetPropertyData) {
         addPendingRequest(msg)
         parent.messenger.send(msg)
     }
@@ -217,7 +218,7 @@ class ClientConnection(
             parent.messenger.requestIdSerial++, header, encodedBody))
     }
 
-    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
+    fun sendSubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String? = null, subscriptionId: String? = null) {
         val header = propertyClient.createSubscriptionHeader(resource, mapOf(
             PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.START,
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to mutualEncoding))
@@ -227,7 +228,7 @@ class ClientConnection(
         parent.messenger.send(msg)
     }
 
-    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String?, subscriptionId: String? = null) {
+    fun sendUnsubscribeProperty(destinationMUID: Int, resource: String, mutualEncoding: String? = null, subscriptionId: String? = null) {
         val newRequestId = parent.messenger.requestIdSerial++
         val header = propertyClient.createSubscriptionHeader(resource, mapOf(
             PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.END,
@@ -245,7 +246,7 @@ class ClientConnection(
 
         // proceed to query resource list
         if (parent.config.autoSendGetResourceList)
-            saveAndSendGetPropertyData(propertyClient.getPropertyListRequest(msg.group, msg.sourceMUID, parent.messenger.requestIdSerial++))
+            sendGetPropertyData(propertyClient.getPropertyListRequest(msg.group, msg.sourceMUID, parent.messenger.requestIdSerial++))
     }
 
     fun processGetDataReply(msg: Message.GetPropertyDataReply) {
@@ -256,7 +257,7 @@ class ClientConnection(
         if (parent.config.autoSendGetDeviceInfo && propertyId == PropertyResourceNames.RESOURCE_LIST) {
             val def = propertyClient.getMetadataList()?.firstOrNull { it.propertyId == PropertyResourceNames.DEVICE_INFO } as CommonRulesPropertyMetadata?
             if (def != null)
-                saveAndSendGetCommonRulesPropertyData(msg.sourceMUID, def.propertyId, def.encodings?.firstOrNull())
+                sendGetPropertyData(msg.sourceMUID, def.propertyId, def.encodings?.firstOrNull())
         }
     }
 
@@ -266,6 +267,6 @@ class ClientConnection(
             parent.messenger.send(reply.second!!)
         // If the update was NOTIFY, then it is supposed to send Get Data request.
         if (reply.first == MidiCISubscriptionCommand.NOTIFY)
-            saveAndSendGetCommonRulesPropertyData(msg.sourceMUID, propertyClient.getPropertyIdForHeader(msg.header))
+            sendGetPropertyData(msg.sourceMUID, propertyClient.getPropertyIdForHeader(msg.header))
     }
 }

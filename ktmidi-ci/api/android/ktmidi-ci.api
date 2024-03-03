@@ -132,9 +132,9 @@ public final class dev/atsushieno/ktmidi/ci/ClientConnection {
 	public final fun processPropertySubscriptionReply (Ldev/atsushieno/ktmidi/ci/Message$SubscribePropertyReply;)V
 	public final fun processSubscribeProperty (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)V
 	public final fun promoteSubscriptionAsUnsubscribing (Ljava/lang/String;B)V
-	public final fun saveAndSendGetCommonRulesPropertyData (ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
-	public static synthetic fun saveAndSendGetCommonRulesPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
-	public final fun saveAndSendGetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)V
+	public final fun sendGetPropertyData (ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
+	public final fun sendGetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)V
+	public static synthetic fun sendGetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
 	public final fun sendSetPropertyData (ILjava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
 	public static synthetic fun sendSetPropertyData$default (Ldev/atsushieno/ktmidi/ci/ClientConnection;ILjava/lang/String;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)V
 	public final fun sendSubscribeProperty (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
@@ -1130,10 +1130,10 @@ public final class dev/atsushieno/ktmidi/ci/PropertyExchangeHostFacade {
 	public final fun setProcessSetPropertyData (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSubscribeProperty (Lkotlin/jvm/functions/Function1;)V
 	public final fun setProcessSubscribePropertyReply (Lkotlin/jvm/functions/Function1;)V
+	public final fun setPropertyValue (Ljava/lang/String;Ljava/util/List;Z)V
 	public final fun terminateSubscriptions (B)V
 	public final fun updateDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun updatePropertyMetadata (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
-	public final fun updatePropertyValue (Ljava/lang/String;Ljava/util/List;Z)V
 }
 
 public abstract interface class dev/atsushieno/ktmidi/ci/PropertyMetadata {
@@ -1413,6 +1413,7 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPrope
 	public final fun setPropertyData-gIAlu-s (Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ljava/util/List;)Ljava/lang/Object;
 	public final fun subscribe (ILdev/atsushieno/ktmidi/ci/json/Json$JsonValue;)Lkotlin/Pair;
 	public fun subscribeProperty-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Ljava/lang/Object;
+	public final fun unsubscribe (Ljava/lang/String;Ljava/lang/String;)Lkotlin/Pair;
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/DeviceInfoPropertyNames {

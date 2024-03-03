@@ -148,7 +148,7 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
     }
 
     fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
-        device.propertyHost.updatePropertyValue(propertyId, data, isPartial)
+        device.propertyHost.setPropertyValue(propertyId, data, isPartial)
     }
 
     fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {

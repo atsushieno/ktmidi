@@ -62,7 +62,7 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         paginateOffset: Int?,
         paginateLimit: Int?
     ) =
-        conn(destinationMUID).saveAndSendGetCommonRulesPropertyData(
+        conn(destinationMUID).sendGetPropertyData(
             destinationMUID,
             resource,
             encoding,
