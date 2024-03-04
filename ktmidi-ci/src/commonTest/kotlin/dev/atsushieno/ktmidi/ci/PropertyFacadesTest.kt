@@ -41,6 +41,7 @@ class PropertyFacadesTest {
         // test set property
         client.sendSetPropertyData(id, bytes2)
         assertContentEquals(bytes2, host.properties.getProperty(id), "host.getProperty")
+        assertContentEquals(bytes2, host.properties.values.first { it.id == id }.body, "host.properties.values entry")
         assertContentEquals(bytes2, client.properties.getProperty(id), "client.getProperty2")
 
         // subscribe -> update value -> notify

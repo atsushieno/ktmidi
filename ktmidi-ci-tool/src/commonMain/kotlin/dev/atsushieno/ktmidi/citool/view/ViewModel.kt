@@ -132,15 +132,17 @@ class ResponderViewModel(val model: CIDeviceModel) {
         // With the current implementation, we reuse the same PropertyMetadata instance
         // which means the id is already updated.
         // Since it depends on the implementation, we try both `oldPropertyId` and new id here... (there must not be collision in older id)
-        val index = properties.indexOfFirst { it.id.value == property.propertyId || it.id.value == oldPropertyId }
-        val existing = properties[index]
+        val index = model.properties.indexOfFirst { it.id == property.propertyId || it.id == oldPropertyId }
+        val existing = model.properties[index]
 
         // update definition
         model.updatePropertyMetadata(oldPropertyId, property)
 
         // We need to update the property value list state, as the property ID might have changed.
-        if (oldPropertyId != property.propertyId)
-            existing.id.value = property.propertyId
+        if (oldPropertyId != property.propertyId) {
+            model.properties.remove(existing)
+            model.properties.add(existing)
+        }
         selectedProperty.value = property.propertyId
     }
 
@@ -148,7 +150,7 @@ class ResponderViewModel(val model: CIDeviceModel) {
         model.updatePropertyValue(propertyId, data, isPartial)
         // It might be partial update, in that case we have to retrieve
         // the partial application result from MidiCIPropertyService processing.
-        properties.first { it.id.value == propertyId }.data.value =
+        model.properties.first { it.id == propertyId }.body =
             model.localProperties.getPropertyValue(propertyId)?.body ?: listOf()
     }
 
@@ -165,7 +167,6 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
-    val properties by lazy { mutableStateListOf<PropertyValueState>().apply { addAll(device.propertyHost.properties.values.map { PropertyValueState(it) }) } }
     fun getPropertyMetadata(propertyId: String) =
         device.propertyHost.metadataList?.firstOrNull { it.propertyId == propertyId }
 
@@ -205,8 +206,8 @@ class ResponderViewModel(val model: CIDeviceModel) {
 
     init {
         device.propertyHost.properties.propertiesCatalogUpdated.add {
-            properties.clear()
-            properties.addAll(device.propertyHost.properties.values.map { PropertyValueState(it) })
+            model.properties.clear()
+            model.properties.addAll(device.propertyHost.properties.values)
         }
     }
 }

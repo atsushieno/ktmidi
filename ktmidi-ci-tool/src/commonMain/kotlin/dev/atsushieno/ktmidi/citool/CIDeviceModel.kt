@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.profilecommonrules.DefaultControlChangesProfile
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 
 class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDeviceConfiguration,
                     private val ciOutputSender: (group: Byte, ciBytes: List<Byte>) -> Unit,
@@ -120,6 +121,8 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
     }
 
     // Local property exchange
+    val properties = mutableStateListOf<PropertyValue>().apply { addAll(device.propertyHost.properties.values)}
+
     fun addLocalProperty(property: PropertyMetadata) = device.propertyHost.addProperty(property)
 
     fun removeLocalProperty(propertyId: String) = device.propertyHost.removeProperty(propertyId)
@@ -175,6 +178,16 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
         device.profileHost.profiles.profileEnabledChanged.add { profile ->
             val dst = localProfileStates.first { it.profile == profile.profile && it.address.value == profile.address }
             dst.enabled.value = profile.enabled
+        }
+
+        device.propertyHost.properties.valueUpdated.add { entry ->
+            val index = properties.indexOfFirst { it.id == entry.id }
+            if (index < 0)
+                properties.add(entry)
+            else {
+                properties.removeAt(index)
+                properties.add(index, entry)
+            }
         }
 
         device.connectionsChanged.add { change, conn ->

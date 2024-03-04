@@ -112,8 +112,11 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
 
     fun processSetPropertyData(msg: Message.SetPropertyData) {
         val reply = propertyService.setPropertyData(msg)
-        if (reply.isSuccess)
+        if (reply.isSuccess) {
+            val propertyId = propertyService.getPropertyIdForHeader(msg.header)
+            properties.updateValue(propertyId, msg.header, msg.body)
             messenger.send(reply.getOrNull()!!)
+        }
         else
             logger.logError(reply.exceptionOrNull()?.message ?: "Incoming SetPropertyData message resulted in an error")
     }

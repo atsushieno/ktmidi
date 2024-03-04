@@ -42,7 +42,7 @@ fun LocalPropertyConfiguration(vm: ResponderViewModel) {
 
     Row {
         LocalPropertyList(
-            vm.properties.map { it.id.value }.distinct(),
+            vm.model.properties.map { it.id }.distinct(),
             vm.selectedProperty.value,
             selectProperty = { vm.selectProperty(it) },
             createNewProperty = { vm.createNewProperty() },
@@ -53,7 +53,7 @@ fun LocalPropertyConfiguration(vm: ResponderViewModel) {
         val selectedProperty by remember { vm.selectedProperty }
         val sp = selectedProperty
         if (sp != null) {
-            val value = vm.properties.first { it.id.value == sp }
+            val value = vm.model.properties.first { it.id == sp }
             val def = vm.getPropertyMetadata(sp) as CommonRulesPropertyMetadata
             val subscribedClients = vm.model.connections.filter { conn -> conn.subscriptions.any { sub -> sub.propertyId == sp } }
             LocalPropertyDetails(def, value,
@@ -253,18 +253,18 @@ fun LocalPropertyList(properties: List<String>,
 }
 
 @Composable
-fun LocalPropertyDetails(def: CommonRulesPropertyMetadata?, property: PropertyValueState,
+fun LocalPropertyDetails(def: CommonRulesPropertyMetadata?, property: PropertyValue,
                          updatePropertyValue: (propertyId: String, bytes: List<Byte>) -> Unit,
                          metadataUpdateCommitted: (property: CommonRulesPropertyMetadata) -> Unit,
                          subscribedClients: List<String>,
                          unsubscribeRequestedByIndex: (Int) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         if (def != null) {
-            PropertyValueEditor(true, property.mediaType.value, def, property.data.value,
+            PropertyValueEditor(true, property.mediaType, def, property.body,
                 refreshValueClicked = { _,_,_ -> }, // local editor does not support value refresh
                 isSubscribing = false,
                 subscriptionChanged = { _,_ -> }, // local editor does not support value subscription
-                { bytes, _, _ -> updatePropertyValue(property.id.value, bytes) } // local editor does not involve encoding and partial updates
+                { bytes, _, _ -> updatePropertyValue(property.id, bytes) } // local editor does not involve encoding and partial updates
             )
             PropertyMetadataEditor(
                 def,

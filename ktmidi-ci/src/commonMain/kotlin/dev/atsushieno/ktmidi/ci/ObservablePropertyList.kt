@@ -135,6 +135,23 @@ class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private 
         propertyService.addMetadata(property)
     }
 
+    private fun updateValue(propertyId: String, newValueMediaType: String, body: List<Byte>) {
+        val existing = internalValues.firstOrNull { it.id == propertyId }
+        if (existing != null)
+            internalValues.remove(existing)
+        val propertyValue = PropertyValue(propertyId, newValueMediaType, body)
+        internalValues.add(propertyValue)
+        valueUpdated.forEach { it(propertyValue) }
+    }
+
+    // The `header` and `body` are from SetPropertyData
+    fun updateValue(propertyId: String, header: List<Byte>, body: List<Byte>) {
+        // FIXME: cosmetic but unnecessary Common Rules for PE exposure
+        val mediaType = propertyService.getHeaderFieldString(header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
+        val decodedBody = propertyService.decodeBody(header, body)
+        updateValue(propertyId, mediaType, decodedBody)
+    }
+
     init {
         initializeCatalogUpdatedEvent()
         internalValues.addAll(propertyService.getMetadataList() ?.map {
