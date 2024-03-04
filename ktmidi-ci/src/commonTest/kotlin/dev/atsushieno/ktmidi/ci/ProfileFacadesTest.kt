@@ -2,7 +2,7 @@ package dev.atsushieno.ktmidi.ci
 
 import kotlin.test.*
 
-class ProfileConfigurationHostFacadeTest {
+class ProfileFacadesTest {
     @Test
     fun configureProfiles() {
         val mediator = TestCIMediator()

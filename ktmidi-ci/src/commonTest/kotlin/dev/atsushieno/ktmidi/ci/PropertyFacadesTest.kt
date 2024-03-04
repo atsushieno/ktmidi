@@ -7,7 +7,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class PropertyExchangeHostFacadeTest {
+class PropertyFacadesTest {
     @Test
     fun propertyExchange1() {
         val mediator = TestCIMediator()
@@ -30,16 +30,18 @@ class PropertyExchangeHostFacadeTest {
         // test get property
         val conn = device1.connections[device2.muid]
         assertNotNull(conn)
-        assertEquals(1, conn.propertyClient.properties.getMetadataList()!!.size, "client MetadataList size")
+        // It should contain `DeviceInfo` and `X-01` (may increase along with other predefined resources)
+        assertEquals(2, conn.propertyClient.properties.getMetadataList()!!.size, "client MetadataList size")
 
         val client = conn.propertyClient
 
         client.sendGetPropertyData(id)
-        assertContentEquals(bytes, client.properties.getProperty(id), "getProperty")
+        assertContentEquals(bytes, client.properties.getProperty(id), "client.getProperty")
 
         // test set property
         client.sendSetPropertyData(id, bytes2)
-        assertContentEquals(bytes2, host.properties.getProperty(id), "getProperty2")
+        assertContentEquals(bytes2, host.properties.getProperty(id), "host.getProperty")
+        assertContentEquals(bytes2, client.properties.getProperty(id), "client.getProperty2")
 
         // subscribe -> update value -> notify
         client.sendSubscribeProperty(id)

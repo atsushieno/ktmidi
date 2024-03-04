@@ -131,7 +131,7 @@ public final class dev/atsushieno/ktmidi/ci/ClientObservablePropertyList : dev/a
 	public fun getInternalCatalogUpdated ()Ljava/util/List;
 	public fun getMetadataList ()Ljava/util/List;
 	public final fun updateValue (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Ljava/lang/String;
-	public final fun updateValue (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/Message$GetPropertyDataReply;)V
+	public final fun updateValue (Ljava/lang/String;Ljava/util/List;Ljava/util/List;)V
 }
 
 public final class dev/atsushieno/ktmidi/ci/ClientSubscription {
@@ -1097,8 +1097,8 @@ public final class dev/atsushieno/ktmidi/ci/PropertyClientFacade {
 	public final fun sendGetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)V
 	public final fun sendGetPropertyData (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
 	public static synthetic fun sendGetPropertyData$default (Ldev/atsushieno/ktmidi/ci/PropertyClientFacade;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
+	public final fun sendSetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$SetPropertyData;)V
 	public final fun sendSetPropertyData (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
-	public final fun sendSetPropertyData (Ljava/util/List;Ljava/util/List;)V
 	public static synthetic fun sendSetPropertyData$default (Ldev/atsushieno/ktmidi/ci/PropertyClientFacade;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)V
 	public final fun sendSubscribeProperty (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public static synthetic fun sendSubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/PropertyClientFacade;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V

@@ -373,7 +373,7 @@ class Messenger(
 
     var processSetDataReply: (msg: Message.SetPropertyDataReply) -> Unit = { msg ->
         messageReceived.forEach { it(msg) }
-        // nothing to delegate further
+        onClient(msg, CISubId2.PROPERTY_SET_DATA_REPLY) { propertyClient.processSetDataReply(msg) }
     }
 
     var processSubscribeProperty: (msg: Message.SubscribeProperty) -> Unit = { msg ->

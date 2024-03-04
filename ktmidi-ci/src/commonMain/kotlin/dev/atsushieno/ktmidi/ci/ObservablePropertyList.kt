@@ -80,10 +80,11 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
         valueUpdated.forEach { it(propertyValue) }
     }
 
-    fun updateValue(propertyId: String, reply: Message.GetPropertyDataReply) {
+    // The `header` and `body` can be either from GetPropertyDataReply or SetPropertyData
+    fun updateValue(propertyId: String, header: List<Byte>, body: List<Byte>) {
         // FIXME: cosmetic but unnecessary Common Rules for PE exposure
-        val mediaType = propertyClient.getHeaderFieldString(reply.header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
-        val decodedBody = propertyClient.decodeBody(reply.header, reply.body)
+        val mediaType = propertyClient.getHeaderFieldString(header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
+        val decodedBody = propertyClient.decodeBody(header, body)
         // there is no partial updates in Reply to Get Property Data
         updateValue(propertyId, false, mediaType, decodedBody)
     }

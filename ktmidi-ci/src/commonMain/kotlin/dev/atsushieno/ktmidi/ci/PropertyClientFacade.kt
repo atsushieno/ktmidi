@@ -14,7 +14,7 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
 
     val properties = ClientObservablePropertyList(logger, propertyRules)
 
-    private val openRequests = mutableListOf<Message.GetPropertyData>()
+    private val openRequests = mutableListOf<Message.PropertyMessage>()
     val subscriptions = mutableListOf<ClientSubscription>()
     val subscriptionUpdated = mutableListOf<(sub: ClientSubscription)->Unit>()
 
@@ -146,16 +146,22 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
             PropertyCommonHeaderKeys.SET_PARTIAL to isPartial))
         val encodedBody = propertyRules.encodeBody(data, encoding)
-        sendSetPropertyData(header, encodedBody)
-    }
-    // unlike the other overload, it is not specific to Common Rules for PE
-    fun sendSetPropertyData(header: List<Byte>, body: List<Byte>) =
-        messenger.send(
+        val msg =
             Message.SetPropertyData(
                 Message.Common(muid, targetMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, device.config.group),
-                messenger.requestIdSerial++, header, body
+                messenger.requestIdSerial++, header, encodedBody
             )
-        )
+        sendSetPropertyData(msg)
+    }
+
+    // unlike the other overload, it is not specific to Common Rules for PE
+    fun sendSetPropertyData(msg: Message.SetPropertyData) {
+        // We need to update our local property value, but we should confirm that
+        // the operation was successful by verifying Reply To Set Data message status.
+        // To ensure that, we store `msg` as a pending request.
+        openRequests.add(msg)
+        messenger.send(msg)
+    }
 
     fun sendSubscribeProperty(resource: String, mutualEncoding: String? = null, subscriptionId: String? = null) {
         val header = propertyRules.createSubscriptionHeader(resource, mapOf(
@@ -200,7 +206,20 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
             ?: return
         if (status == PropertyExchangeStatus.OK) {
             val propertyId = propertyRules.getPropertyIdForHeader(req.header)
-            properties.updateValue(propertyId, msg)
+            properties.updateValue(propertyId, msg.header, msg.body)
+            propertyRules.propertyValueUpdated(propertyId, msg.body)
+        }
+    }
+
+    internal fun processSetDataReply(msg: Message.SetPropertyDataReply) {
+        val req = openRequests.firstOrNull { it.requestId == msg.requestId }
+            ?: return
+        openRequests.remove(req)
+        val status = propertyRules.getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS)
+            ?: return
+        if (status == PropertyExchangeStatus.OK) {
+            val propertyId = propertyRules.getPropertyIdForHeader(req.header)
+            properties.updateValue(propertyId, req.header, req.body)
             propertyRules.propertyValueUpdated(propertyId, msg.body)
         }
     }
