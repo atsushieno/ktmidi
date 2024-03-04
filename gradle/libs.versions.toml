@@ -13,7 +13,6 @@ compose-plugin = "1.6.0-alpha01"
 junit = "4.13.2"
 kotlin = "1.9.21"
 dokka = "1.9.10"
-metalava = "0.3.5"
 binary-compatibility-validator = "0.14.0"
 junit-jupiter-api = "5.9.1"
 kotlin-test-junit = "1.9.0"
@@ -70,7 +69,6 @@ dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 gradleJavacppBuild = { id = "org.bytedeco.gradle-javacpp-build", version.ref = "gradle-javacpp" }
 gradleJavacppPlatform = { id = "org.bytedeco.gradle-javacpp-platform", version.ref = "gradle-javacpp" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-metalavaPlugin = { id = "me.tylerbwong.gradle.metalava", version.ref = "metalava" }
 binaryCompatibilityValidatorPlugin = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary-compatibility-validator" }
 
 [bundles]
