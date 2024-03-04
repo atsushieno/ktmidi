@@ -8,6 +8,8 @@ $dokka.location:/EventListenerOptions///PointingToDeclaration/ktmidi/[root]/-ev
 $dokka.location:dev.atsushieno.ktmidi////PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/index.html
 $dokka.location:dev.atsushieno.ktmidi//JR_TIMESTAMP_TICKS_PER_SECOND/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-j-r_-t-i-m-e-s-t-a-m-p_-t-i-c-k-s_-p-e-r_-s-e-c-o-n-d.html
 $dokka.location:dev.atsushieno.ktmidi//MIDI_2_0_RESERVED/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-m-i-d-i_2_0_-r-e-s-e-r-v-e-d.html
+$dokka.location:dev.atsushieno.ktmidi//asNSString/kotlin.String#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/as-n-s-string.html
+$dokka.location:dev.atsushieno.ktmidi//asString/[Error type: Unresolved type for NSString]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/as-string.html
 $dokka.location:dev.atsushieno.ktmidi//channelInGroup/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/channel-in-group.html
 $dokka.location:dev.atsushieno.ktmidi//chordNameAlter1/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/chord-name-alter1.html
 $dokka.location:dev.atsushieno.ktmidi//chordNameAlter2/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/chord-name-alter2.html
@@ -55,6 +57,7 @@ $dokka.location:dev.atsushieno.ktmidi//functionBlockGroupCount/dev.atsushieno.kt
 $dokka.location:dev.atsushieno.ktmidi//functionBlockMaxSysEx8/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-max-sys-ex8.html
 $dokka.location:dev.atsushieno.ktmidi//functionBlockMidi1Port/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-midi1-port.html
 $dokka.location:dev.atsushieno.ktmidi//functionBlockUiHint/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-ui-hint.html
+$dokka.location:dev.atsushieno.ktmidi//getString/[Error type: Unresolved type for CFStringRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/get-string.html
 $dokka.location:dev.atsushieno.ktmidi//group/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/group.html
 $dokka.location:dev.atsushieno.ktmidi//groupAndChannel/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/group-and-channel.html
 $dokka.location:dev.atsushieno.ktmidi//groupByte/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/group-byte.html
@@ -132,6 +135,7 @@ $dokka.location:dev.atsushieno.ktmidi//read/dev.atsushieno.ktmidi.Midi1Music#kot
 $dokka.location:dev.atsushieno.ktmidi//read/dev.atsushieno.ktmidi.Midi2Music#kotlin.collections.List[kotlin.Byte]#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/read.html
 $dokka.location:dev.atsushieno.ktmidi//read/dev.atsushieno.ktmidi.Midi2Music#kotlin.collections.List[kotlin.Byte]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/read.html
 $dokka.location:dev.atsushieno.ktmidi//read/dev.atsushieno.ktmidi.MidiMusic#kotlin.collections.List[kotlin.Byte]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/read.html
+$dokka.location:dev.atsushieno.ktmidi//releaseString/[Error type: Unresolved type for CFStringRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/release-string.html
 $dokka.location:dev.atsushieno.ktmidi//reportMidiMessages/dev.atsushieno.ktmidi.Midi1Machine#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/report-midi-messages.html
 $dokka.location:dev.atsushieno.ktmidi//sizeInBytes/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/size-in-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//sizeInInts/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/size-in-ints.html
@@ -150,13 +154,24 @@ $dokka.location:dev.atsushieno.ktmidi//tempo/dev.atsushieno.ktmidi.Ump#/Pointing
 $dokka.location:dev.atsushieno.ktmidi//timeSignatureDenominator/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/time-signature-denominator.html
 $dokka.location:dev.atsushieno.ktmidi//timeSignatureNumberOf32thNotes/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/time-signature-number-of32th-notes.html
 $dokka.location:dev.atsushieno.ktmidi//timeSignatureNumerator/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/time-signature-numerator.html
+$dokka.location:dev.atsushieno.ktmidi//toCFStringRef/[Error type: Unresolved type for NSString]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-c-f-string-ref.html
+$dokka.location:dev.atsushieno.ktmidi//toCFStringRef/kotlin.String#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-c-f-string-ref.html
+$dokka.location:dev.atsushieno.ktmidi//toCFTypeRef/[Error type: Unresolved type for NSObject]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-c-f-type-ref.html
 $dokka.location:dev.atsushieno.ktmidi//toInts/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-ints.html
+$dokka.location:dev.atsushieno.ktmidi//toNSObjectReleased/[Error type: Unresolved type for CFTypeRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-object-released.html
+$dokka.location:dev.atsushieno.ktmidi//toNSObjectRetained/[Error type: Unresolved type for CFTypeRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-object-retained.html
+$dokka.location:dev.atsushieno.ktmidi//toNSStringReleased/[Error type: Unresolved type for CFStringRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-string-released.html
+$dokka.location:dev.atsushieno.ktmidi//toNSStringRetained/[Error type: Unresolved type for CFStringRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-string-retained.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformBytes/dev.atsushieno.ktmidi.Ump#dev.atsushieno.ktmidi.ByteOrder/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformBytes/dev.atsushieno.ktmidi.Ump#kotlin.ByteArray#kotlin.Int#dev.atsushieno.ktmidi.ByteOrder/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformBytes/dev.atsushieno.ktmidi.Ump#kotlin.ByteArray#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformNativeBytes/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-native-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toUtf8ByteArray/kotlin.String#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-utf8-byte-array.html
 $dokka.location:dev.atsushieno.ktmidi//umpStreamFormat/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/ump-stream-format.html
+$dokka.location:dev.atsushieno.ktmidi//viaPtr/#kotlin.Function1[kotlinx.cinterop.CPointer[kotlinx.cinterop.CPointerVarOf[TypeParam(bounds=[kotlinx.cinterop.CPointer[*]])]],kotlin.Unit]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/via-ptr.html
+$dokka.location:dev.atsushieno.ktmidi//viaPtr/#kotlin.Function1[kotlinx.cinterop.CPointer[kotlinx.cinterop.IntVarOf[kotlin.Int]],kotlin.Unit]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/via-ptr.html
+$dokka.location:dev.atsushieno.ktmidi//viaPtr/#kotlin.Function1[kotlinx.cinterop.CPointer[kotlinx.cinterop.UIntVarOf[kotlin.UInt]],kotlin.Unit]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/via-ptr.html
+$dokka.location:dev.atsushieno.ktmidi//viaPtrVar/#kotlin.Function1[kotlinx.cinterop.CPointer[TypeParam(bounds=[kotlinx.cinterop.CVariable])],kotlin.Unit]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/via-ptr-var.html
 $dokka.location:dev.atsushieno.ktmidi//write/dev.atsushieno.ktmidi.Midi1Music#kotlin.collections.MutableList[kotlin.Byte]#kotlin.Function3[kotlin.Boolean,dev.atsushieno.ktmidi.Midi1Event,kotlin.collections.MutableList[kotlin.Byte],kotlin.Int]#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/write.html
 $dokka.location:dev.atsushieno.ktmidi//write/dev.atsushieno.ktmidi.Midi2Music#kotlin.collections.MutableList[kotlin.Byte]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/write.html
 $dokka.location:dev.atsushieno.ktmidi//write/dev.atsushieno.ktmidi.MidiMusic#kotlin.collections.MutableList[kotlin.Byte]#kotlin.Function3[kotlin.Boolean,dev.atsushieno.ktmidi.MidiMessage,kotlin.collections.MutableList[kotlin.Byte],kotlin.Int]#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/write.html
