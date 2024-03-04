@@ -30,6 +30,8 @@ class PropertyExchangeHostFacadeTest {
         // test get property
         val conn = device1.connections[device2.muid]
         assertNotNull(conn)
+        assertEquals(1, conn.propertyClient.properties.getMetadataList()!!.size, "client MetadataList size")
+
         val client = conn.propertyClient
 
         client.sendGetPropertyData(id)

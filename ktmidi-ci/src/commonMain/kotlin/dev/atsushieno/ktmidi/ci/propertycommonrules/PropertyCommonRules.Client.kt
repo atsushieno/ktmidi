@@ -24,7 +24,8 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
             device.messenger.requestIdSerial++,
             requestASCIIBytes
         )
-        device.messenger.send(msg)
+        // it needs to be sent via this method otherwise we will fail to record it as a "pending request"
+        conn.propertyClient.sendGetPropertyData(msg)
     }
 
     override fun propertyValueUpdated(propertyId: String, data: List<Byte>) {
