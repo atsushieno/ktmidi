@@ -1,12 +1,14 @@
 package dev.atsushieno.ktmidi.ci.propertycommonrules
 
-import dev.atsushieno.ktmidi.ci.Logger
 import dev.atsushieno.ktmidi.ci.MidiCIConverter
+import dev.atsushieno.ktmidi.ci.MidiCIDevice
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
 import dev.atsushieno.ktmidi.ci.toASCIIByteArray
 
-abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
+internal class CommonRulesPropertyHelper(device: MidiCIDevice) {
+    val logger by device::logger
+
     fun getPropertyIdentifierInternal(header: List<Byte>): String {
         val json = try {
             Json.parse(MidiCIConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
@@ -32,7 +34,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return result
     }
 
-    fun getResourceListRequestJson() = createRequestHeaderInternal(PropertyResourceNames.RESOURCE_LIST, mapOf())
+    private fun getResourceListRequestJson() = createRequestHeader(PropertyResourceNames.RESOURCE_LIST, mapOf())
 
     fun getResourceListRequestBytes(): List<Byte> {
         val json = getResourceListRequestJson()
@@ -41,7 +43,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
     }
 
     private val partialSetPair = Pair(Json.JsonValue(PropertyCommonHeaderKeys.SET_PARTIAL), Json.TrueValue)
-    private fun createRequestHeaderInternal(resourceIdentifier: String, fields: Map<String, Any?>): Json.JsonValue {
+    private fun createRequestHeader(resourceIdentifier: String, fields: Map<String, Any?>): Json.JsonValue {
         val encoding = fields[PropertyCommonHeaderKeys.MUTUAL_ENCODING] as String?
         val isPartialSet = fields[PropertyCommonHeaderKeys.SET_PARTIAL] as Boolean?
         val paginateOffset = fields[PropertyCommonHeaderKeys.OFFSET] as Int?
@@ -63,12 +65,12 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
     }
 
     fun createRequestHeaderBytes(resourceIdentifier: String, fields: Map<String, Any?>): List<Byte> {
-        val json = createRequestHeaderInternal(resourceIdentifier, fields)
+        val json = createRequestHeader(resourceIdentifier, fields)
         val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toASCIIByteArray().toList()
         return requestASCIIBytes
     }
 
-    private fun createSubscribeHeaderInternal(resourceIdentifier: String, command: String, mutualEncoding: String?): Json.JsonValue {
+    private fun createSubscribeHeader(resourceIdentifier: String, command: String, mutualEncoding: String?): Json.JsonValue {
         val resource = Pair(
             Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
             Json.JsonValue(resourceIdentifier)
@@ -87,7 +89,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
     }
 
     fun createSubscribeHeaderBytes(resourceIdentifier: String, command: String, mutualEncoding: String?): List<Byte> {
-        val json = createSubscribeHeaderInternal(resourceIdentifier, command, mutualEncoding)
+        val json = createSubscribeHeader(resourceIdentifier, command, mutualEncoding)
         val requestASCIIBytes = Json.getEscapedString(Json.serialize(json)).toASCIIByteArray().toList()
         return requestASCIIBytes
     }
@@ -134,7 +136,7 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         return requestASCIIBytes
     }
 
-    internal fun encodeBodyInternal(data: List<Byte>, encoding: String?): List<Byte> {
+    internal fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> {
         return when (encoding) {
             PropertyDataEncoding.ASCII -> data
             PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.encodeToMcoded7(data)
@@ -147,9 +149,9 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
         }
     }
 
-    internal fun decodeBodyInternal(header: List<Byte>, body: List<Byte>): List<Byte> =
-        decodeBodyInternal(getHeaderFieldString(header, PropertyCommonHeaderKeys.MUTUAL_ENCODING), body)
-    internal fun decodeBodyInternal(encoding: String?, body: List<Byte>): List<Byte> {
+    internal fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte> =
+        decodeBody(getHeaderFieldString(header, PropertyCommonHeaderKeys.MUTUAL_ENCODING), body)
+    internal fun decodeBody(encoding: String?, body: List<Byte>): List<Byte> {
         return when (encoding) {
             PropertyDataEncoding.ASCII -> body
             PropertyDataEncoding.MCODED7 -> PropertyCommonConverter.decodeMcoded7(body)
@@ -163,45 +165,3 @@ abstract class CommonRulesPropertyHelper(protected val logger: Logger) {
     }
 }
 
-object PropertyPartialUpdater {
-    fun parseJsonPointer(s: String): List<String> =
-        if (s.isNotEmpty() && s[0] == '/')
-            s.substring(1).split('/').map { it.replace("~1", "/").replace("~0", "~") }
-        else listOf()
-
-    fun applyPartialUpdate(obj: Json.JsonValue, path: String, value: Json.JsonValue): Json.JsonValue =
-        applyPartialUpdate(obj, parseJsonPointer(path), value)
-
-    fun applyPartialUpdate(obj: Json.JsonValue, jsonPointerPath: List<String>, value: Json.JsonValue): Json.JsonValue =
-        patch(obj, jsonPointerPath, value)
-
-    private fun patch(obj: Json.JsonValue, path: List<String>, value: Json.JsonValue): Json.JsonValue {
-        val entry = path.firstOrNull() ?: return obj // path is empty
-        if (obj.token.type != Json.TokenType.Object) // obj is not an object
-            return obj
-
-        val contextKey = obj.objectValue.keys.firstOrNull { it.stringValue == entry }
-            ?: return obj // specified path entry does not match
-        // replace context entry with new object which might be recursively alter the content with the new value
-        val replacement = if (path.size == 1) value else patch(obj.objectValue[contextKey]!!, path.drop(1), value)
-        val newMap = obj.objectValue.keys.map {
-            Pair(it, if (it == contextKey) replacement else obj.objectValue[it]!!)
-        }
-        return Json.JsonValue(newMap.toMap())
-    }
-
-    fun applyPartialUpdates(existingJson: Json.JsonValue, partialSpecJson: Json.JsonValue): Pair<Boolean, Json.JsonValue> {
-        val failureReturn = Pair(false, existingJson)
-        if (partialSpecJson.token.type != Json.TokenType.Object)
-            return failureReturn // context should be JSON object
-
-        var target = existingJson
-        // apply all partial updates
-        partialSpecJson.objectValue.keys.forEach {  key ->
-            val path = if (key.token.type == Json.TokenType.String) key.stringValue else return Pair(false, existingJson)
-            val newValue = partialSpecJson.objectValue[key]!!
-            target = applyPartialUpdate(target, path, newValue)
-        }
-        return Pair(true, target)
-    }
-}

@@ -4,21 +4,23 @@ import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
 
-class CommonRulesPropertyClient(private val device: MidiCIDevice, private val conn: ClientConnection) :
-    CommonRulesPropertyHelper(device.logger), MidiCIClientPropertyRules {
+class CommonRulesPropertyClient(private val device: MidiCIDevice, private val conn: ClientConnection)
+    : MidiCIClientPropertyRules {
+    private val helper = CommonRulesPropertyHelper(device)
+    private val logger by device::logger
 
     override fun createDataRequestHeader(propertyId: String, fields: Map<String, Any?>): List<Byte> =
-        createRequestHeaderBytes(propertyId, fields)
+        helper.createRequestHeaderBytes(propertyId, fields)
 
     override fun createSubscriptionHeader(propertyId: String, fields: Map<String, Any?>): List<Byte> =
-        createSubscribeHeaderBytes(propertyId, fields[PropertyCommonHeaderKeys.COMMAND] as String, fields[PropertyCommonHeaderKeys.MUTUAL_ENCODING] as String?)
+        helper.createSubscribeHeaderBytes(propertyId, fields[PropertyCommonHeaderKeys.COMMAND] as String, fields[PropertyCommonHeaderKeys.MUTUAL_ENCODING] as String?)
 
-    override fun getPropertyIdForHeader(header: List<Byte>) = getPropertyIdentifierInternal(header)
+    override fun getPropertyIdForHeader(header: List<Byte>) = helper.getPropertyIdentifierInternal(header)
 
     override fun getMetadataList(): List<PropertyMetadata> = resourceList
 
     override fun requestPropertyList(group: Byte) {
-        val requestASCIIBytes = getResourceListRequestBytes()
+        val requestASCIIBytes = helper.getResourceListRequestBytes()
         val msg = Message.GetPropertyData(
             Message.Common(device.muid, conn.targetMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
             device.messenger.requestIdSerial++,
@@ -62,6 +64,10 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
             }
         }
     }
+
+    override fun getHeaderFieldInteger(header: List<Byte>, field: String): Int? = helper.getHeaderFieldInteger(header, field)
+
+    override fun getHeaderFieldString(header: List<Byte>, field: String): String? = helper.getHeaderFieldString(header, field)
 
     override fun getSubscribedProperty(msg: Message.SubscribeProperty): String? {
         val subscribeId = getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.SUBSCRIBE_ID)
@@ -135,8 +141,8 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
             Pair(false, existing.body)
     }
 
-    override fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> = encodeBodyInternal(data, encoding)
-    override fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte> = decodeBodyInternal(header, body)
+    override fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> = helper.encodeBody(data, encoding)
+    override fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte> = helper.decodeBody(header, body)
 
     override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
 

@@ -3,6 +3,7 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.json.JsonParserException
+import kotlin.jvm.JvmName
 import kotlin.random.Random
 
 private val defaultPropertyList = listOf(
@@ -45,21 +46,33 @@ fun CommonRulesPropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
     }.toMap()
 )
 
-class CommonRulesPropertyService(logger: Logger, private val muid: Int, var deviceInfo: MidiCIDeviceInfo,
-                                 private val values: MutableList<PropertyValue>,
-                                 private val metadataList: MutableList<CommonRulesPropertyMetadata> = mutableListOf(),
-                                 private val channelList: Json.JsonValue? = null,
-                                 private val jsonSchema: Json.JsonValue? = null
-    )
-    : CommonRulesPropertyHelper(logger), MidiCIServicePropertyRules {
+class CommonRulesPropertyService(private val device: MidiCIDevice)
+    : MidiCIServicePropertyRules {
+    private val helper = CommonRulesPropertyHelper(device)
+    private val logger by device::logger
+    private val muid by device::muid
+    internal var deviceInfo
+        @JvmName("get_deviceInfo")
+        get() = device.config.deviceInfo
+        @JvmName("set_deviceInfo")
+        set(value) { device.config.deviceInfo = value }
+    private val values
+        @JvmName("get_propertyValues")
+        get() = device.config.propertyValues
+    private val metadataList
+        @JvmName("get_metadataList")
+        get() = device.config.propertyMetadataList
+    private val channelList: Json.JsonValue? = null
+    private val jsonSchema: Json.JsonValue? = null
 
     // MidiCIPropertyService implementation
     override val subscriptions = mutableListOf<SubscriptionEntry>()
 
-    override fun getPropertyIdForHeader(header: List<Byte>) = getPropertyIdentifierInternal(header)
+    override fun getPropertyIdForHeader(header: List<Byte>) = helper.getPropertyIdentifierInternal(header)
+    override fun getHeaderFieldString(header: List<Byte>, field: String) = helper.getHeaderFieldString(header, field)
 
     override fun createUpdateNotificationHeader(propertyId: String, fields: Map<String, Any?>) =
-        createSubscribePropertyHeaderBytes(
+        helper.createSubscribePropertyHeaderBytes(
             fields[PropertyCommonHeaderKeys.SUBSCRIBE_ID] as String,
             if (fields[PropertyCommonHeaderKeys.SET_PARTIAL] as Boolean)
                 MidiCISubscriptionCommand.PARTIAL else MidiCISubscriptionCommand.FULL
@@ -136,7 +149,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
 
     override fun createShutdownSubscriptionHeader(propertyId: String): List<Byte> {
         val sub = subscriptions.firstOrNull { it.resource == propertyId } ?: throw MidiCIException("Specified property $propertyId is not at subscribed state")
-        val header = createSubscribePropertyHeaderBytes(sub.subscribeId, MidiCISubscriptionCommand.END)
+        val header = helper.createSubscribePropertyHeaderBytes(sub.subscribeId, MidiCISubscriptionCommand.END)
         subscriptions.remove(sub)
         return header
     }
@@ -301,7 +314,7 @@ class CommonRulesPropertyService(logger: Logger, private val muid: Int, var devi
         return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, subscribeId = subscribeId)), Json.JsonValue(mapOf()))
     }
 
-    override fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> = encodeBodyInternal(data, encoding)
-    override fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte> = decodeBodyInternal(header, body)
-    private fun decodeBody(mutualEncoding: String?, body: List<Byte>): List<Byte> = decodeBodyInternal(mutualEncoding, body)
+    override fun encodeBody(data: List<Byte>, encoding: String?): List<Byte> = helper.encodeBody(data, encoding)
+    override fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte> = helper.decodeBody(header, body)
+    private fun decodeBody(mutualEncoding: String?, body: List<Byte>): List<Byte> = helper.decodeBody(mutualEncoding, body)
 }

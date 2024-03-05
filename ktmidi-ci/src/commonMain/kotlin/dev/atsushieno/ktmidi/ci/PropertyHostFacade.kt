@@ -43,7 +43,7 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
     private val logger by device::logger
     private val config by device::config
 
-    internal val propertyService: MidiCIServicePropertyRules by lazy { CommonRulesPropertyService(logger, muid, device.deviceInfo, config.propertyValues, config.propertyMetadataList) }
+    internal val propertyService: MidiCIServicePropertyRules by lazy { CommonRulesPropertyService(device) }
     val properties by lazy { ServiceObservablePropertyList(config.propertyValues, propertyService) }
     val subscriptions: List<SubscriptionEntry> by propertyService::subscriptions
 
