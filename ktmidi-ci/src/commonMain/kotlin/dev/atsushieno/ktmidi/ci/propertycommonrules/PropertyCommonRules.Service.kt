@@ -9,7 +9,7 @@ import kotlin.random.Random
 private val defaultPropertyList = listOf(
     CommonRulesPropertyMetadata(PropertyResourceNames.DEVICE_INFO).apply { originator = CommonRulesPropertyMetadata.Originator.SYSTEM },
     //PropertyResource(PropertyResourceNames.CHANNEL_LIST),
-    //PropertyResource(PropertyResourceNames.JSON_SCHEMA)
+    CommonRulesPropertyMetadata(PropertyResourceNames.JSON_SCHEMA).apply { originator = CommonRulesPropertyMetadata.Originator.SYSTEM }
 )
 
 
@@ -56,6 +56,11 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         get() = device.config.deviceInfo
         @JvmName("set_deviceInfo")
         set(value) { device.config.deviceInfo = value }
+    internal var jsonSchemaString
+        @JvmName("get_jsonSchemaString")
+        get() = device.config.jsonSchemaString
+        @JvmName("set_jsonSchemaString")
+        set(value) { device.config.jsonSchemaString = value }
     private val values
         @JvmName("get_propertyValues")
         get() = device.config.propertyValues
@@ -63,7 +68,6 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         @JvmName("get_metadataList")
         get() = device.config.propertyMetadataList
     private val channelList: Json.JsonValue? = null
-    private val jsonSchema: Json.JsonValue? = null
 
     // MidiCIPropertyService implementation
     override val subscriptions = mutableListOf<SubscriptionEntry>()
@@ -219,7 +223,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
             PropertyResourceNames.RESOURCE_LIST -> Json.JsonValue(getMetadataList().map { (it as CommonRulesPropertyMetadata).toJsonValue() })
             PropertyResourceNames.DEVICE_INFO -> getDeviceInfoJson()
             PropertyResourceNames.CHANNEL_LIST -> channelList
-            PropertyResourceNames.JSON_SCHEMA -> jsonSchema
+            PropertyResourceNames.JSON_SCHEMA -> if (device.config.jsonSchemaString.isNotBlank()) Json.parse(device.config.jsonSchemaString) else null
             else -> {
                 val bytes = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body
                     ?: throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")
@@ -259,14 +263,8 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     fun setPropertyData(headerJson: Json.JsonValue, body: List<Byte>): Result<Json.JsonValue> {
         val header = getPropertyHeader(headerJson)
-        when (header.resource) {
-            PropertyResourceNames.RESOURCE_LIST ->
-                return Result.failure(PropertyExchangeException("Property is readonly: ${PropertyResourceNames.RESOURCE_LIST}"))
-            PropertyResourceNames.JSON_SCHEMA ->
-                return Result.failure(PropertyExchangeException("Property is readonly: ${PropertyResourceNames.JSON_SCHEMA}"))
-            PropertyResourceNames.CHANNEL_LIST ->
-                return Result.failure(PropertyExchangeException("Property is readonly: ${PropertyResourceNames.CHANNEL_LIST}"))
-        }
+        if (defaultPropertyList.any { it.propertyId == header.resource })
+            return Result.failure(PropertyExchangeException("Resource is readonly: ${header.resource}"))
 
         val decodedBody = decodeBody(header.mutualEncoding, body)
         // Perform partial updates, if applicable

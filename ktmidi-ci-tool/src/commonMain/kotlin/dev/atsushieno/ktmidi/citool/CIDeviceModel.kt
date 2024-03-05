@@ -151,6 +151,10 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
         device.updateDeviceInfo(deviceInfo)
     }
 
+    fun updateJsonSchemaString(value: String) {
+        device.config.jsonSchemaString = value
+    }
+
     val localProperties by device.propertyHost::properties
 
     init {

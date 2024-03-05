@@ -116,12 +116,14 @@ public final class dev/atsushieno/ktmidi/ci/ClientConnection {
 	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;ILdev/atsushieno/ktmidi/ci/DeviceDetails;BLjava/lang/String;)V
 	public synthetic fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;ILdev/atsushieno/ktmidi/ci/DeviceDetails;BLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getDeviceInfo ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public final fun getJsonSchema ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
 	public final fun getMaxSimultaneousPropertyRequests ()B
 	public final fun getProductInstanceId ()Ljava/lang/String;
 	public final fun getProfileClient ()Ldev/atsushieno/ktmidi/ci/ProfileClientFacade;
 	public final fun getPropertyClient ()Ldev/atsushieno/ktmidi/ci/PropertyClientFacade;
 	public final fun getTargetMUID ()I
 	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public final fun setJsonSchema (Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;)V
 	public final fun setMaxSimultaneousPropertyRequests (B)V
 	public final fun setProductInstanceId (Ljava/lang/String;)V
 }
@@ -716,6 +718,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
 	public final fun sendProfileSpecificData (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;Ljava/util/List;)V
 	public final fun setMidiMessageReporter (Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;)V
 	public final fun updateDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public final fun updateJsonSchema (Ljava/lang/String;)V
 }
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
@@ -731,6 +734,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
 	public final fun getDeviceInfo ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
 	public final fun getFunctionBlock ()B
 	public final fun getGroup ()B
+	public final fun getJsonSchemaString ()Ljava/lang/String;
 	public final fun getLocalProfiles ()Ljava/util/List;
 	public final fun getMaxPropertyChunkSize ()I
 	public final fun getMaxSimultaneousPropertyRequests ()B
@@ -754,6 +758,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
 	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun setFunctionBlock (B)V
 	public final fun setGroup (B)V
+	public final fun setJsonSchemaString (Ljava/lang/String;)V
 	public final fun setMaxPropertyChunkSize (I)V
 	public final fun setMaxSimultaneousPropertyRequests (B)V
 	public final fun setMidiMessageReportChannelControllerMessages (B)V
@@ -1122,6 +1127,7 @@ public final class dev/atsushieno/ktmidi/ci/PropertyHostFacade {
 	public final fun shutdownSubscription (ILjava/lang/String;)V
 	public final fun terminateSubscriptionsToAllSubsctibers (B)V
 	public final fun updateCommonRulesDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public final fun updateJsonSchema (Ljava/lang/String;)V
 	public final fun updatePropertyMetadata (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V
 }
 

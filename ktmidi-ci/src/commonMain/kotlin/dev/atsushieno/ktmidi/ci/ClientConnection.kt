@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi.ci
 
+import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.propertycommonrules.*
 
 enum class SubscriptionActionState {
@@ -28,6 +29,7 @@ class ClientConnection(
         "",
         ""
     )
+    var jsonSchema: Json.JsonValue? = null
 
     val profileClient = ProfileClientFacade(parent, this)
 

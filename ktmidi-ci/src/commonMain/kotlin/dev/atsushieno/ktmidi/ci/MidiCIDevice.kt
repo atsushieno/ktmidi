@@ -64,4 +64,9 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         config.deviceInfo = deviceInfo
         propertyHost.updateCommonRulesDeviceInfo(deviceInfo)
     }
+
+    fun updateJsonSchema(stringValue: String) {
+        config.jsonSchemaString = stringValue
+        propertyHost.updateJsonSchema(stringValue)
+    }
 }

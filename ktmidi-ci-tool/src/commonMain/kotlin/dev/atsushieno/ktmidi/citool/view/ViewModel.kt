@@ -220,6 +220,7 @@ class DeviceConfigurationViewModel(private val device: CIDeviceModel, private va
 
     fun updateMaxSimultaneousPropertyRequests(newValue: Byte) {
         config.maxSimultaneousPropertyRequests = newValue
+        maxSimultaneousPropertyRequests.value = newValue
     }
 
     var manufacturerId = mutableStateOf(deviceInfo.manufacturerId)
@@ -244,6 +245,13 @@ class DeviceConfigurationViewModel(private val device: CIDeviceModel, private va
         this.model.value = deviceInfo.model
         this.version.value = deviceInfo.version
         this.serialNumber.value = deviceInfo.serialNumber
+    }
+
+    var jsonSchemaString = mutableStateOf(device.device.config.jsonSchemaString)
+
+    fun updateJsonSchemaString(newValue: String) {
+        device.updateJsonSchemaString(newValue)
+        jsonSchemaString.value = newValue
     }
 }
 

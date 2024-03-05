@@ -17,6 +17,8 @@ class MidiCIDeviceConfiguration {
     var deviceInfo = MidiCIDeviceInfo(0x123456,0x1234,0x5678,0x00000001,
             "atsushieno", "KtMidi", "KtMidi-CI-Tool", "0.1")
 
+    var jsonSchemaString: String = ""
+
     var capabilityInquirySupported: Byte = MidiCISupportedCategories.THREE_P
     var receivableMaxSysExSize: Int = MidiCIConstants.DEFAULT_RECEIVABLE_MAX_SYSEX_SIZE
     var maxSimultaneousPropertyRequests: Byte = MidiCIConstants.DEFAULT_MAX_SIMULTANEOUS_PROPERTY_REQUESTS

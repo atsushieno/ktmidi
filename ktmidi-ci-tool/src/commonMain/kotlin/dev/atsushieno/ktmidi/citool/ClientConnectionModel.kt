@@ -4,6 +4,8 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
+import dev.atsushieno.ktmidi.ci.json.Json
+import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonConverter
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 
 class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnection) {
@@ -81,8 +83,12 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
                 properties.removeAt(index)
                 properties.add(index, entry)
             }
-            if (entry.id == PropertyResourceNames.DEVICE_INFO)
-                deviceInfo.value = conn.deviceInfo
+            when (entry.id) {
+                PropertyResourceNames.DEVICE_INFO ->
+                    deviceInfo.value = conn.deviceInfo
+                PropertyResourceNames.JSON_SCHEMA ->
+                    conn.jsonSchema = Json.parse(entry.body.toByteArray().decodeToString())
+            }
         }
 
         conn.propertyClient.properties.propertiesCatalogUpdated.add {

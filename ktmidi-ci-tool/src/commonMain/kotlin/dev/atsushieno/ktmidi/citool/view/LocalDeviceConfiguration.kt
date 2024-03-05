@@ -1,10 +1,7 @@
 package dev.atsushieno.ktmidi.citool.view
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,14 +14,16 @@ import dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo
 
 @Composable
 fun DeviceInfoItem(label: String) {
-    Card { Text(label, modifier= Modifier.padding(6.dp, 0.dp).width(150.dp)) }
+    Card(Modifier.padding(12.dp, 0.dp)) {
+        Text(label, modifier= Modifier.padding(6.dp, 0.dp).width(150.dp))
+    }
 }
 
 @Composable
 private fun NumericTextField(num: Int, onUpdate: (Int) -> Unit) {
     TextField(num.toString(16),
         {val v = it.toIntOrNull(16); if (v != null) onUpdate(v) },
-        modifier = Modifier.width(150.dp))
+        modifier = Modifier.padding(12.dp, 0.dp).width(120.dp))
 }
 
 @Composable
@@ -39,6 +38,7 @@ fun LocalDeviceConfiguration(vm: DeviceConfigurationViewModel) {
     val version by remember { vm.version }
     val serialNumber by remember { vm.serialNumber }
     val maxSimultaneousPropertyRequests by remember { vm.maxSimultaneousPropertyRequests }
+    val jsonSchemaString by remember { vm.jsonSchemaString }
     val update: ((info: MidiCIDeviceInfo) -> Unit) -> Unit = {
         val dev = MidiCIDeviceInfo(
             manufacturerId, familyId, modelId, versionId,
@@ -51,32 +51,44 @@ fun LocalDeviceConfiguration(vm: DeviceConfigurationViewModel) {
         Text("Local Device Configuration", fontSize = 24.sp, fontWeight = FontWeight.Bold)
         Text("Note that each ID byte is in 7 bits. Hex more than 80h is invalid.", fontSize = 12.sp)
         Row {
-            Column(Modifier.border(1.dp, MaterialTheme.colorScheme.primaryContainer)) {
+            Column {
                 Row {
                     DeviceInfoItem("Manufacturer")
-                    Text("ID (3bytes):")
+                    Column {
+                        Text("ID:")
+                        Text("(3bytes)")
+                    }
                     NumericTextField(manufacturerId) { value -> update { it.manufacturerId = value } }
                 }
                 Row {
                     DeviceInfoItem("Family")
-                    Text("ID (2bytes):")
+                    Column {
+                        Text("ID:")
+                        Text("(2bytes)")
+                    }
                     NumericTextField(familyId.toInt()) { value -> update { it.familyId = value.toShort() } }
                 }
                 Row {
                     DeviceInfoItem("Model")
-                    Text("ID (2bytes):")
+                    Column {
+                        Text("ID:")
+                        Text("(2bytes)")
+                    }
                     NumericTextField(modelId.toInt()) { value -> update { it.modelId = value.toShort() } }
                 }
                 Row {
                     DeviceInfoItem("Revision")
-                    Text("ID (4bytes):")
+                    Column {
+                        Text("ID:")
+                        Text("(4bytes)")
+                    }
                     NumericTextField(versionId) { value -> update { it.versionId = value } }
                 }
                 Row {
                     DeviceInfoItem("SerialNumber")
                 }
             }
-            Column(Modifier.border(1.dp, MaterialTheme.colorScheme.primaryContainer)) {
+            Column {
                 Row {
                     Text("Text:")
                     TextField(manufacturer, { value: String -> update { it.manufacturer = value } })
@@ -101,14 +113,18 @@ fun LocalDeviceConfiguration(vm: DeviceConfigurationViewModel) {
         }
         Divider()
         Row {
-            DeviceItemCard("max connections")
+            DeviceInfoItem("max connections")
             TextField(
                 "$maxSimultaneousPropertyRequests",
-                { value: String ->
-                    vm.updateMaxSimultaneousPropertyRequests(
-                        value.toByteOrNull() ?: maxSimultaneousPropertyRequests
-                    )
-                })
+                { vm.updateMaxSimultaneousPropertyRequests(it.toByteOrNull() ?: maxSimultaneousPropertyRequests) },
+                modifier = Modifier.padding(12.dp, 0.dp).width(120.dp))
+        }
+        Divider()
+        Row {
+            DeviceInfoItem("JSON Schema")
+            TextField(jsonSchemaString, { vm.updateJsonSchemaString(it) }, minLines = 2,
+                modifier= Modifier.padding(12.dp, 0.dp).fillMaxWidth())
+            // FIXME: provide file upload feature here
         }
     }
 }

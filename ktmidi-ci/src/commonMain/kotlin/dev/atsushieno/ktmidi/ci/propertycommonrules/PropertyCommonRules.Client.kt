@@ -62,6 +62,9 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
                     json.getObjectValue(DeviceInfoPropertyNames.SERIAL_NUMBER)?.stringValue ?: "",
                     )
             }
+
+            PropertyResourceNames.JSON_SCHEMA ->
+                conn.jsonSchema = convertApplicationJsonBytesToJson(data)
         }
     }
 

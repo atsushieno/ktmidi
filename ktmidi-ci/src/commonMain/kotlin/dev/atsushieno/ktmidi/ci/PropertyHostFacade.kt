@@ -37,6 +37,12 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
             p.deviceInfo = deviceInfo
     }
 
+    fun updateJsonSchema(stringValue: String) {
+        val p = propertyService
+        if (p is CommonRulesPropertyService)
+            p.jsonSchemaString = stringValue
+    }
+
     // These members were moved from `PropertyExchangeResponder` and might be still unsorted.
 
     private val muid by device::muid

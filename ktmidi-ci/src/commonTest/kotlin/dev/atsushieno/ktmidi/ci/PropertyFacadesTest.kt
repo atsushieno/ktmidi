@@ -30,8 +30,8 @@ class PropertyFacadesTest {
         // test get property
         val conn = device1.connections[device2.muid]
         assertNotNull(conn)
-        // It should contain `DeviceInfo` and `X-01` (may increase along with other predefined resources)
-        assertEquals(2, conn.propertyClient.properties.getMetadataList()!!.size, "client MetadataList size")
+        // It should contain `DeviceInfo`, `JSONSchema`, and `X-01` (may increase along with other predefined resources)
+        assertEquals(3, conn.propertyClient.properties.getMetadataList()!!.size, "client MetadataList size")
 
         val client = conn.propertyClient
 
