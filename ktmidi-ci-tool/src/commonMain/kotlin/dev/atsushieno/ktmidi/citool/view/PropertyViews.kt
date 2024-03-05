@@ -320,6 +320,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         }
 
         if (isTextRenderable) {
+            // FIXME: we have state loss problem here, value vanishes after "Commit changes"
             val bodyText = MidiCIConverter.decodeASCIIToString(body.toByteArray().decodeToString())
             if (isEditable) {
                 Row(verticalAlignment = Alignment.CenterVertically) {

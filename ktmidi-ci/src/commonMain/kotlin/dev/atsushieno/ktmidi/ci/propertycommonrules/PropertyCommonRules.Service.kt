@@ -61,7 +61,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         get() = device.config.jsonSchemaString
         @JvmName("set_jsonSchemaString")
         set(value) { device.config.jsonSchemaString = value }
-    private val values
+    private val values: List<PropertyValue>
         @JvmName("get_propertyValues")
         get() = device.config.propertyValues
     private val metadataList
@@ -289,7 +289,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         else if (existing != null)
             existing.body = decodedBody
         else
-            values.add(PropertyValue(header.resource, header.mediaType ?: CommonRulesKnownMimeTypes.APPLICATION_JSON, decodedBody))
+            device.config.propertyValues.add(PropertyValue(header.resource, header.mediaType ?: CommonRulesKnownMimeTypes.APPLICATION_JSON, decodedBody))
         return Result.success(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)))
     }
 

@@ -154,7 +154,9 @@ class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private 
 
     init {
         initializeCatalogUpdatedEvent()
-        internalValues.addAll(propertyService.getMetadataList() ?.map {
+        internalValues.addAll(propertyService.getMetadataList()
+            ?.filter { p -> !internalValues.any { v -> v.id == p.propertyId } }
+            ?.map {
             PropertyValue(it.propertyId, it.mediaTypes?.firstOrNull() ?: "", listOf())
         } ?: listOf())
     }
