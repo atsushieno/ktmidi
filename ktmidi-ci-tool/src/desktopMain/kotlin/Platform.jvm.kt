@@ -1,5 +1,6 @@
 import androidx.compose.runtime.Composable
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -9,11 +10,18 @@ class JVMPlatform : Platform {
     override val canReadLocalFile = true
 
     private val toolName = "ktmidi-ci-tool"
-    override fun loadFileContent(path: String): ByteArray =
-        Files.readAllBytes(Path.of(ensureAppConfigPath(), toolName, path))
 
+    private fun getPath(path: String): Path {
+        val file = File(path)
+        return if (file.isAbsolute)
+            Path.of(path)
+        else
+            Path.of(ensureAppConfigPath(), toolName, path)
+    }
+    override fun loadFileContent(path: String): ByteArray =
+        Files.readAllBytes(getPath(path))
     override fun saveFileContent(path: String, bytes: ByteArray) {
-        Files.write(Path.of(ensureAppConfigPath(), toolName, path), bytes)
+        Files.write(getPath(path), bytes)
     }
 
     private fun ensureAppConfigPath(): String {
