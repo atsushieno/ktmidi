@@ -266,15 +266,16 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         }
 
         if (isTextRenderable) {
-            // FIXME: we have state loss problem here, value vanishes after "Commit changes"
             val bodyText = MidiCIConverter.decodeASCIIToString(body.toByteArray().decodeToString())
+            var text by remember { mutableStateOf(bodyText) }
+            if (resetState)
+                text = bodyText
             if (isEditable) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(editing, { editing = !editing })
                     Text("edit")
                 }
                 if (editing) {
-                    var text by remember { mutableStateOf(bodyText) }
                     var partial by remember { mutableStateOf("") }
                     if (resetState) {
                         text = bodyText
@@ -311,12 +312,12 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                     PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding ?: "", onSelectionChange = { selectedEncoding = it.ifEmpty { null } })
                 } else {
                     showRefreshAndSubscribeButton()
-                    PropertyEditorTextField(bodyText, readOnly = true)
+                    PropertyEditorTextField(text, readOnly = true)
                 }
             } else {
                 Text("read-only")
                 showRefreshAndSubscribeButton()
-                PropertyEditorTextField(bodyText, readOnly = true)
+                PropertyEditorTextField(text, readOnly = true)
             }
         } else {
             Text("MIME type '$mediaType' not supported for editing")
