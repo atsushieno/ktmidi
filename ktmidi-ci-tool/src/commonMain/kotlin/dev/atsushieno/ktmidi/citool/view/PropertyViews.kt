@@ -383,7 +383,7 @@ private fun PropertyRefreshAndSubscribeButtons(
 }
 
 @Composable
-private fun PropertyValueUploadButton(
+fun PropertyValueUploadButton(
     resetState: Boolean,
     selectedEncoding: String?,
     commitChangeClicked: (List<Byte>, String?, Boolean) -> Unit

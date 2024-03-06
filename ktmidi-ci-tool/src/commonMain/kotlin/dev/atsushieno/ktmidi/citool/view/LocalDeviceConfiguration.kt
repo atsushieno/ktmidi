@@ -3,14 +3,15 @@ package dev.atsushieno.ktmidi.citool.view
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.atsushieno.ktmidi.ci.MidiCIConverter
 import dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo
+import getPlatform
 
 @Composable
 fun DeviceInfoItem(label: String) {
@@ -122,9 +123,20 @@ fun LocalDeviceConfiguration(vm: DeviceConfigurationViewModel) {
         Divider()
         Row {
             DeviceInfoItem("JSON Schema")
-            TextField(jsonSchemaString, { vm.updateJsonSchemaString(it) }, minLines = 2,
-                modifier= Modifier.padding(12.dp, 0.dp).fillMaxWidth())
-            // FIXME: provide file upload feature here
+            Column {
+                var schemaText by remember { mutableStateOf(jsonSchemaString) }
+                TextField(
+                    schemaText, { text: String -> schemaText = text }, minLines = 2,
+                    modifier = Modifier.padding(12.dp, 0.dp).fillMaxWidth()
+                )
+                PropertyValueUploadButton(false, null) { bytes, _, _ ->
+                    schemaText = bytes.toByteArray().decodeToString()
+                    vm.updateJsonSchemaString(schemaText)
+                }
+                Button(onClick = { vm.updateJsonSchemaString(schemaText) }) {
+                    Text("Update")
+                }
+            }
         }
     }
 }
