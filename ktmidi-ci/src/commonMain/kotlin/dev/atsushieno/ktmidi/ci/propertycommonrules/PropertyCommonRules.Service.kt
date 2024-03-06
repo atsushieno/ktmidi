@@ -200,6 +200,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
             json.getObjectValue(PropertyCommonHeaderKeys.MEDIA_TYPE)?.stringValue,
             json.getObjectValue(PropertyCommonHeaderKeys.OFFSET)?.numberValue?.toInt(),
             json.getObjectValue(PropertyCommonHeaderKeys.LIMIT)?.numberValue?.toInt(),
+            json.getObjectValue(PropertyCommonHeaderKeys.SET_PARTIAL)?.isBooleanTrue,
         )
     private fun getReplyHeaderJson(src: PropertyCommonReplyHeader) = Json.JsonValue(mutableMapOf(
         Pair(Json.JsonValue(PropertyCommonHeaderKeys.STATUS), Json.JsonValue(src.status.toDouble()))
@@ -269,7 +270,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         val decodedBody = decodeBody(header.mutualEncoding, body)
         // Perform partial updates, if applicable
         val existing = values.firstOrNull { it.id == header.resource }
-        if (headerJson.getObjectValue(PropertyCommonHeaderKeys.SET_PARTIAL)?.isBooleanTrue == true) {
+        if (header.setPartial == true) {
             if (existing == null) {
                 logger.logError("Partial update is specified but there is no existing value for property ${header.resource}")
             } else {

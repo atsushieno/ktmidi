@@ -1455,16 +1455,17 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRe
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRequestHeader {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
 	public final fun component4 ()Ljava/lang/String;
 	public final fun component5 ()Ljava/lang/Integer;
 	public final fun component6 ()Ljava/lang/Integer;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRequestHeader;
-	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRequestHeader;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRequestHeader;
+	public final fun component7 ()Ljava/lang/Boolean;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRequestHeader;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRequestHeader;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/Boolean;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRequestHeader;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getLimit ()Ljava/lang/Integer;
 	public final fun getMediaType ()Ljava/lang/String;
@@ -1472,6 +1473,7 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRe
 	public final fun getOffset ()Ljava/lang/Integer;
 	public final fun getResId ()Ljava/lang/String;
 	public final fun getResource ()Ljava/lang/String;
+	public final fun getSetPartial ()Ljava/lang/Boolean;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
 }

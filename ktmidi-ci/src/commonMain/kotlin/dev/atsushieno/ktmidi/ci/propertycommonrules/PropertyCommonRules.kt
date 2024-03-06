@@ -101,7 +101,9 @@ data class PropertyCommonRequestHeader(
     val mediaType: String? = CommonRulesKnownMimeTypes.APPLICATION_JSON,
     // M2-103-UM 6.6.2 Pagination
     val offset: Int? = null,
-    val limit: Int? = null
+    val limit: Int? = null,
+    // M2-103-UM 8 Full and Partial SET Inquiries
+    val setPartial: Boolean? = null
 )
 
 // required fields are non-null, optionals are nullable
