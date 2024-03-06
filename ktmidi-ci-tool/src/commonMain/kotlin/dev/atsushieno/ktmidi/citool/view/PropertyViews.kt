@@ -2,10 +2,7 @@ package dev.atsushieno.ktmidi.citool.view
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -252,70 +249,19 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         val isEditable = metadata?.originator == CommonRulesPropertyMetadata.Originator.USER && (isLocalEditor || isEditableByMetadata)
         val isTextRenderable = mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON
         var editing by remember { mutableStateOf(false) }
-        val showRefreshAndSubscribeButtons = @Composable {
-            if (!isLocalEditor && !editing) {
-                var paginateOffset by remember { mutableStateOf("0") }
-                var paginateLimit by remember { mutableStateOf("9999") }
-                Row {
-                    var selectedEncoding by remember { mutableStateOf<String?>(null) }
-                    if (resetState)
-                        selectedEncoding = null
-                    Button(onClick = {
-                        if (metadata?.canPaginate == true) {
-                            val offset = paginateOffset.toIntOrNull()
-                            val limit = paginateLimit.toIntOrNull()
-                            // FIXME: maybe we should warn number parsing errors.
-                            refreshValueClicked(selectedEncoding, offset, limit)
-                        }
-                        else
-                            refreshValueClicked(selectedEncoding, null, null)
-                    }) {
-                        Text("Refresh")
-                    }
-                    if (metadata?.canSubscribe == true) {
-                        Button(onClick = { subscriptionChanged(!isSubscribing, selectedEncoding) }) {
-                            Text(if (isSubscribing) "Unsubscribe" else "Subscribe")
-                        }
-                    }
-                    // encoding selector
-                    PropertyEncodingSelector(
-                        metadata?.encodings ?: listOf(),
-                        selectedEncoding ?: "",
-                        onSelectionChange = { selectedEncoding = it.ifEmpty { null } })
-                }
-                Row {
-                    if (metadata?.canPaginate == true) {
-                        Text("Paginate? offset: ")
-                        TextField(paginateOffset, { paginateOffset = it }, Modifier.width(80.dp))
-                        Text(" limit: ")
-                        TextField(paginateLimit, { paginateLimit = it }, Modifier.width(80.dp))
-                    }
-                }
-            }
-        }
-        var showFilePicker by remember { mutableStateOf(false) }
-        if (resetState)
-            showFilePicker = false
         if (resetState)
             editing = false
         var selectedEncoding by remember { mutableStateOf<String?>(null) }
         if (resetState)
             selectedEncoding = null
+        val showRefreshAndSubscribeButton = @Composable {
+            PropertyRefreshAndSubscribeButtons(isLocalEditor, editing, isSubscribing, resetState, metadata,
+                refreshValueClicked, subscriptionChanged)
+        }
         val showUploadButton = @Composable {
-            if (getPlatform().canReadLocalFile) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Button(onClick = { showFilePicker = !showFilePicker }) {
-                        Text("Set value by file (choose)")
-                    }
-                    getPlatform().BinaryFilePicker(showFilePicker) { file ->
-                        showFilePicker = false
-                        if (file != null) {
-                            val bytes = getPlatform().loadFileContent(file).toList()
-                            commitChangeClicked(bytes, selectedEncoding, false)
-                            editing = false
-                        }
-                    }
-                }
+            PropertyValueUploadButton(resetState, selectedEncoding) { data, selectedEncoding, isPartial ->
+                commitChangeClicked(data, selectedEncoding, isPartial)
+                editing = false
             }
         }
 
@@ -339,13 +285,16 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         if (isEditable && !isLocalEditor) {
                             if (metadata?.canSet == PropertySetAccess.PARTIAL) {
                                 TextField(partial, { partial = it },
-                                    label = { Text("Partial? RFC6901 Pointer here then:") }
+                                    label = { Text("Partial? RFC6901 Pointer here then:") },
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
-                            showRefreshAndSubscribeButtons()
+                            showRefreshAndSubscribeButton()
                         }
                     }
-                    TextField(text, { text = it }, minLines = 2, maxLines = 10)
+
+                    PropertyEditorTextField(text) { text = it }
+
                     if (isEditable) {
                         Button(onClick = {
                             val jsonString = Json.getEscapedString(partial.ifEmpty { text })
@@ -361,17 +310,17 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                     showUploadButton()
                     PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding ?: "", onSelectionChange = { selectedEncoding = it.ifEmpty { null } })
                 } else {
-                    showRefreshAndSubscribeButtons()
-                    TextField(bodyText, {}, readOnly = true, minLines = 2, maxLines = 10)
+                    showRefreshAndSubscribeButton()
+                    PropertyEditorTextField(bodyText, readOnly = true)
                 }
             } else {
                 Text("read-only")
-                showRefreshAndSubscribeButtons()
-                TextField(bodyText, {}, readOnly = true, minLines = 2, maxLines = 10)
+                showRefreshAndSubscribeButton()
+                PropertyEditorTextField(bodyText, readOnly = true)
             }
         } else {
             Text("MIME type '$mediaType' not supported for editing")
-            showRefreshAndSubscribeButtons()
+            showRefreshAndSubscribeButton()
             if (isEditable)
                 showUploadButton()
             PropertyEncodingSelector(metadata?.encodings ?: listOf(), selectedEncoding ?: "", onSelectionChange = { selectedEncoding = it.ifEmpty { null } })
@@ -379,4 +328,85 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
 
         prev = metadata
     }
+}
+
+@Composable
+private fun PropertyRefreshAndSubscribeButtons(
+    isLocalEditor: Boolean,
+    editing: Boolean,
+    isSubscribing: Boolean,
+    resetEncoding: Boolean,
+    metadata: CommonRulesPropertyMetadata?,
+    refreshValueClicked: (requestedEncoding: String?, paginateOffset: Int?, paginateLimit: Int?) -> Unit,
+    subscriptionChanged: (newSubscribing: Boolean, requestedEncoding: String?) -> Unit
+) {
+    if (isLocalEditor || editing)
+        return
+    var paginateOffset by remember { mutableStateOf("0") }
+    var paginateLimit by remember { mutableStateOf("9999") }
+    Row {
+        var selectedEncoding by remember { mutableStateOf<String?>(null) }
+        if (resetEncoding)
+            selectedEncoding = null
+        Button(onClick = {
+            if (metadata?.canPaginate == true) {
+                val offset = paginateOffset.toIntOrNull()
+                val limit = paginateLimit.toIntOrNull()
+                // FIXME: maybe we should warn number parsing errors.
+                refreshValueClicked(selectedEncoding, offset, limit)
+            }
+            else
+                refreshValueClicked(selectedEncoding, null, null)
+        }) {
+            Text("Refresh")
+        }
+        if (metadata?.canSubscribe == true) {
+            Button(onClick = { subscriptionChanged(!isSubscribing, selectedEncoding) }) {
+                Text(if (isSubscribing) "Unsubscribe" else "Subscribe")
+            }
+        }
+        // encoding selector
+        PropertyEncodingSelector(
+            metadata?.encodings ?: listOf(),
+            selectedEncoding ?: "",
+            onSelectionChange = { selectedEncoding = it.ifEmpty { null } })
+    }
+    Row {
+        if (metadata?.canPaginate == true) {
+            Text("Paginate? offset: ")
+            TextField(paginateOffset, { paginateOffset = it }, Modifier.width(80.dp))
+            Text(" limit: ")
+            TextField(paginateLimit, { paginateLimit = it }, Modifier.width(80.dp))
+        }
+    }
+}
+
+@Composable
+private fun PropertyValueUploadButton(
+    resetState: Boolean,
+    selectedEncoding: String?,
+    commitChangeClicked: (List<Byte>, String?, Boolean) -> Unit
+) {
+    var showFilePicker by remember { mutableStateOf(false) }
+    if (resetState)
+        showFilePicker = false
+    if (getPlatform().canReadLocalFile) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Button(onClick = { showFilePicker = !showFilePicker }) {
+                Text("Set value by file (choose)")
+            }
+            getPlatform().BinaryFilePicker(showFilePicker) { file ->
+                showFilePicker = false
+                if (file != null) {
+                    val bytes = getPlatform().loadFileContent(file).toList()
+                    commitChangeClicked(bytes, selectedEncoding, false)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PropertyEditorTextField(text: String, readOnly: Boolean = false, textChanged: (String) -> Unit = {}) {
+    TextField(text, textChanged, readOnly = readOnly, minLines = 2, maxLines = 10, modifier = Modifier.fillMaxWidth())
 }

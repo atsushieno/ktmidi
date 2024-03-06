@@ -265,6 +265,7 @@ fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
             isSubscribing = vm.conn.subscriptions.firstOrNull { it.propertyId == propertyId }?.state?.value == SubscriptionActionState.Subscribed,
             subscribeClicked,
             commitChangeClicked = { bytes, encoding, isPartial -> commitChangeClicked(entry.id, bytes, encoding, isPartial) })
+        Divider(Modifier.padding(16.dp))
         if (def != null)
             PropertyMetadataEditor(def,
                 {}, // client does not support metadata editing

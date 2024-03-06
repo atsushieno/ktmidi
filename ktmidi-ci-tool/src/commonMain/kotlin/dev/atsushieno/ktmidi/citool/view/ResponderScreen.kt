@@ -266,6 +266,7 @@ fun LocalPropertyDetails(def: CommonRulesPropertyMetadata?, property: PropertyVa
                 subscriptionChanged = { _,_ -> }, // local editor does not support value subscription
                 { bytes, _, _ -> updatePropertyValue(property.id, bytes) } // local editor does not involve encoding and partial updates
             )
+            Divider(Modifier.padding(16.dp))
             PropertyMetadataEditor(
                 def,
                 metadataUpdateCommitted,
