@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlinJvm)
     alias(libs.plugins.gradleJavacppPlatform)
+    alias(libs.plugins.dokka)
     id 'maven-publish'
     id 'signing'
 }
@@ -33,63 +34,7 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = '11'
 }
 
+ext["moduleDescription"] = "Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - ALSA and RtMidi"
 afterEvaluate {
-
-    tasks.register('javadocJar', Jar) {
-        archiveClassifier.set('javadoc')
-        from javadoc.destinationDir
-    }
-    tasks.register('sourceJar', Jar) {
-        archiveClassifier.set('sources')
-        from sourceSets.main.allSource
-    }
-
-    publishing {
-        publications {
-            maven(MavenPublication) {
-                artifact(javadocJar)
-                artifact(sourceJar)
-
-                pom {
-                    name.set('ktmidi-jvm-desktop')
-                    description.set('Kotlin library for MIDI 1.0 and MIDI 2.0 - ALSA and RtMidi')
-                    url.set('https://github.com/atsushieno/ktmidi-jvm-desktop')
-                    scm {
-                        url.set('https://github.com/atsushieno/ktmidi-jvm-desktop')
-                    }
-                    licenses {
-                        license {
-                            name.set('the MIT License')
-                            url.set('https://github.com/atsushieno/ktmidi-jvm-desktop/blob/main/LICENSE')
-                        }
-                    }
-                    developers {
-                        developer {
-                            id.set('atsushieno')
-                            name.set('Atsushi Eno')
-                            email.set('atsushieno@gmail.com')
-                        }
-                    }
-                }
-
-                groupId = group
-                artifactId = "ktmidi-jvm-desktop"
-                from components.java
-            }
-        }
-
-        repositories {
-            maven {
-                name = "OSSRH"
-                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-                credentials {
-                    username = System.getenv("OSSRH_USERNAME")
-                    password = System.getenv("OSSRH_PASSWORD")
-                }
-            }
-        }
-    }
-
-    // keep it as is. It is replaced by CI release builds
-    signing {}
+    apply { from("../publish-pom.gradle") }
 }

@@ -75,44 +75,7 @@ tasks {
     }
 }
 
+ext["moduleDescription"] = "Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - Native specific"
 afterEvaluate {
-    publishing {
-        publications.withType<MavenPublication> {
-            pom {
-                name.set("ktmidi")
-                description.set("Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - Native specific")
-                url.set("https://github.com/atsushieno/ktmidi")
-                scm {
-                    url.set("https://github.com/atsushieno/ktmidi")
-                }
-                licenses {
-                    license {
-                        name.set("the MIT License")
-                        url.set("https://github.com/atsushieno/ktmidi/blob/main/LICENSE")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("atsushieno")
-                        name.set("Atsushi Eno")
-                        email.set("atsushieno@gmail.com")
-                    }
-                }
-            }
-        }
-
-        repositories {
-            maven {
-                name = "OSSRH"
-                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-                credentials {
-                    username = System.getenv("OSSRH_USERNAME")
-                    password = System.getenv("OSSRH_PASSWORD")
-                }
-            }
-        }
-    }
-
-    // keep it as is. It is replaced by CI release builds
-    signing {}
+    apply { from("../publish-pom.gradle") }
 }

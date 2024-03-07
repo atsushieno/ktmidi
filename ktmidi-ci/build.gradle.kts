@@ -136,4 +136,6 @@ android {
 
 ext["moduleDescription"] = "Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - MIDI-CI support"
 
-apply { from("../publish-pom.gradle") }
+afterEvaluate {
+    apply { from("../publish-pom.gradle") }
+}

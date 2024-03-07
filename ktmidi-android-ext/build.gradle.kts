@@ -44,4 +44,6 @@ dependencies {
 
 ext["moduleDescription"] = "Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - Android Extensions"
 
-apply { from("../publish-pom.gradle") }
+afterEvaluate {
+    apply { from("../publish-pom.gradle") }
+}
