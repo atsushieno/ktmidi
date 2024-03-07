@@ -7,32 +7,16 @@ import android.os.Build
 import android.os.Build.VERSION_CODES
 import kotlinx.coroutines.delay
 
-class AndroidMidi2Access(applicationContext: Context, private val includeMidi1Transport: Boolean = false) : AndroidMidiAccess(applicationContext) {
-    override val ports : List<MidiPortDetails>
-        get() =
-            (if (includeMidi1Transport) ports1 else listOf())
-            .flatMap { d -> d.ports.map { port -> Pair(d, port) } }
-            .map { pair -> AndroidPortDetails(pair.first, pair.second, 1) } +
-            ports2.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
-            .map { pair -> AndroidPortDetails(pair.first, pair.second, 2) }
-    private val ports2: List<MidiDeviceInfo>
-        get() =
-            if (Build.VERSION.SDK_INT >= VERSION_CODES.TIRAMISU)
-                manager.getDevicesForTransport(MidiManager.TRANSPORT_UNIVERSAL_MIDI_PACKETS).toList()
-            else
-                manager.devices.toList()
-}
-
 open class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
     override val name: String
         get() = "AndroidSDK"
 
-    internal val manager: MidiManager = applicationContext.getSystemService(Service.MIDI_SERVICE) as MidiManager
+    val manager: MidiManager = applicationContext.getSystemService(Service.MIDI_SERVICE) as MidiManager
     protected open val ports : List<MidiPortDetails>
         get() = ports1.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
             .map { pair -> AndroidPortDetails(pair.first, pair.second, 1) }
     @Suppress("DEPRECATION") // cannot linter track this conditional code while it can detect unguarded invocation?
-    internal val ports1: List<MidiDeviceInfo>
+    val ports1: List<MidiDeviceInfo>
         get() =
             if (Build.VERSION.SDK_INT >= VERSION_CODES.TIRAMISU)
                 manager.getDevicesForTransport(MidiManager.TRANSPORT_MIDI_BYTE_STREAM).toList()
@@ -61,7 +45,7 @@ open class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
     }
 }
 
-private class AndroidPortDetails(val device: MidiDeviceInfo, val portInfo: MidiDeviceInfo.PortInfo,
+class AndroidPortDetails(val device: MidiDeviceInfo, val portInfo: MidiDeviceInfo.PortInfo,
                                  override val midiTransportProtocol: Int
 ) : MidiPortDetails {
     private val significantPortName = if (portInfo.name != "input" && portInfo.name != "output") portInfo.name else null

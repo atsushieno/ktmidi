@@ -1,16 +1,24 @@
-public final class dev/atsushieno/ktmidi/AndroidMidi2Access : dev/atsushieno/ktmidi/AndroidMidiAccess {
-	public fun <init> (Landroid/content/Context;Z)V
-	public synthetic fun <init> (Landroid/content/Context;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
 public class dev/atsushieno/ktmidi/AndroidMidiAccess : dev/atsushieno/ktmidi/MidiAccess {
 	public fun <init> (Landroid/content/Context;)V
 	public fun getInputs ()Ljava/lang/Iterable;
+	public final fun getManager ()Landroid/media/midi/MidiManager;
 	public fun getName ()Ljava/lang/String;
 	public fun getOutputs ()Ljava/lang/Iterable;
 	protected fun getPorts ()Ljava/util/List;
+	public final fun getPorts1 ()Ljava/util/List;
 	public fun openInput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun openOutput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class dev/atsushieno/ktmidi/AndroidPortDetails : dev/atsushieno/ktmidi/MidiPortDetails {
+	public fun <init> (Landroid/media/midi/MidiDeviceInfo;Landroid/media/midi/MidiDeviceInfo$PortInfo;I)V
+	public final fun getDevice ()Landroid/media/midi/MidiDeviceInfo;
+	public fun getId ()Ljava/lang/String;
+	public fun getManufacturer ()Ljava/lang/String;
+	public fun getMidiTransportProtocol ()I
+	public fun getName ()Ljava/lang/String;
+	public final fun getPortInfo ()Landroid/media/midi/MidiDeviceInfo$PortInfo;
+	public fun getVersion ()Ljava/lang/String;
 }
 
 public final class dev/atsushieno/ktmidi/ByteOrder : java/lang/Enum {

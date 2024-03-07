@@ -70,6 +70,7 @@ gradleJavacppBuild = { id = "org.bytedeco.gradle-javacpp-build", version.ref = "
 gradleJavacppPlatform = { id = "org.bytedeco.gradle-javacpp-platform", version.ref = "gradle-javacpp" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 binaryCompatibilityValidatorPlugin = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary-compatibility-validator" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 
 [bundles]
 
