@@ -1,3 +1,8 @@
+public final class dev/atsushieno/ktmidi/AndroidMidi2Access : dev/atsushieno/ktmidi/AndroidMidiAccess {
+	public fun <init> (Landroid/content/Context;Z)V
+	public synthetic fun <init> (Landroid/content/Context;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public class dev/atsushieno/ktmidi/AndroidMidiAccess : dev/atsushieno/ktmidi/MidiAccess {
 	public fun <init> (Landroid/content/Context;)V
 	public fun getInputs ()Ljava/lang/Iterable;

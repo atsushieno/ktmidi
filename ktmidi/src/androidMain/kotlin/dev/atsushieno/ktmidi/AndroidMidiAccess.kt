@@ -4,9 +4,23 @@ import android.app.Service
 import android.media.midi.*
 import android.content.Context
 import android.os.Build
-import android.os.Build.VERSION_CODES
 import kotlinx.coroutines.delay
 
+class AndroidMidi2Access(applicationContext: Context, private val includeMidi1Transport: Boolean = false) : AndroidMidiAccess(applicationContext) {
+    override val ports : List<MidiPortDetails>
+        get() =
+            (if (includeMidi1Transport) ports1 else listOf())
+                .flatMap { d -> d.ports.map { port -> Pair(d, port) } }
+                .map { pair -> AndroidPortDetails(pair.first, pair.second, 1) } +
+                    ports2.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
+                        .map { pair -> AndroidPortDetails(pair.first, pair.second, 2) }
+    private val ports2: List<MidiDeviceInfo>
+        get() =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                manager.getDevicesForTransport(MidiManager.TRANSPORT_UNIVERSAL_MIDI_PACKETS).toList()
+            else
+                manager.devices.toList()
+}
 open class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
     override val name: String
         get() = "AndroidSDK"
@@ -18,7 +32,7 @@ open class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
     @Suppress("DEPRECATION") // cannot linter track this conditional code while it can detect unguarded invocation?
     val ports1: List<MidiDeviceInfo>
         get() =
-            if (Build.VERSION.SDK_INT >= VERSION_CODES.TIRAMISU)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
                 manager.getDevicesForTransport(MidiManager.TRANSPORT_MIDI_BYTE_STREAM).toList()
             else
                 manager.devices.toList()
