@@ -237,7 +237,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                         refreshValueClicked: (requestedEncoding: String?, paginateOffset: Int?, paginateLimit: Int?) -> Unit,
                         isSubscribing: Boolean,
                         subscriptionChanged: (newSubscribing: Boolean, requestedEncoding: String?) -> Unit,
-                        commitChangeClicked: (List<Byte>, String?, Boolean) -> Unit) {
+                        commitChangeClicked: (data: List<Byte>, resId: String?, selectedEncoding: String?, Boolean) -> Unit) {
     // It is saved to optionally reset cached state
     var prev by remember { mutableStateOf(metadata) }
     val resetState = prev != metadata
@@ -251,6 +251,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         var editing by remember { mutableStateOf(false) }
         if (resetState)
             editing = false
+        var resId by remember { mutableStateOf("") }
         var selectedEncoding by remember { mutableStateOf<String?>(null) }
         if (resetState)
             selectedEncoding = null
@@ -260,8 +261,15 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
         }
         val showUploadButton = @Composable {
             PropertyValueUploadButton(resetState, selectedEncoding) { data, selectedEncoding, isPartial ->
-                commitChangeClicked(data, selectedEncoding, isPartial)
+                commitChangeClicked(data, resId, selectedEncoding, isPartial)
                 editing = false
+            }
+        }
+
+        if (!isLocalEditor && editing) {
+            Row {
+                Text("resId if applicable")
+                TextField(resId, { resId = it })
             }
         }
 
@@ -301,7 +309,7 @@ fun PropertyValueEditor(isLocalEditor: Boolean,
                             val jsonString = Json.getEscapedString(partial.ifEmpty { text })
                             val bytes =
                                 MidiCIConverter.encodeStringToASCII(jsonString).encodeToByteArray().toList()
-                            commitChangeClicked(bytes, selectedEncoding, partial.isNotBlank())
+                            commitChangeClicked(bytes, resId.ifBlank { null }, selectedEncoding, partial.isNotBlank())
                             editing = false
                         }) {
                             Text("Commit changes")

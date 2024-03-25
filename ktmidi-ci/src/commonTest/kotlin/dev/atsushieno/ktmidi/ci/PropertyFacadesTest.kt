@@ -23,7 +23,7 @@ class PropertyFacadesTest {
         host.addProperty(prop1)
         val bytes = Json.serialize(Json.JsonValue("FOO")).toASCIIByteArray().toList()
         val bytes2 = Json.serialize(Json.JsonValue("BAR")).toASCIIByteArray().toList()
-        host.setPropertyValue(id, bytes, false)
+        host.setPropertyValue(id, null, bytes, false)
 
         device1.sendDiscovery()
 
@@ -39,7 +39,7 @@ class PropertyFacadesTest {
         assertContentEquals(bytes, client.properties.getProperty(id), "client.getProperty")
 
         // test set property
-        client.sendSetPropertyData(id, bytes2)
+        client.sendSetPropertyData(id, null, bytes2)
         assertContentEquals(bytes2, host.properties.getProperty(id), "host.getProperty")
         assertContentEquals(bytes2, host.properties.values.first { it.id == id }.body, "host.properties.values entry")
         assertContentEquals(bytes2, client.properties.getProperty(id), "client.getProperty2")
@@ -47,7 +47,7 @@ class PropertyFacadesTest {
         // subscribe -> update value -> notify
         client.sendSubscribeProperty(id)
         assertEquals(1, host.subscriptions.size, "subscriptions.size after subscription")
-        host.setPropertyValue(id, bytes, false)
+        host.setPropertyValue(id, null, bytes, false)
         // it should be reflected on the client side
         assertContentEquals(bytes, client.properties.getProperty(id), "getProperty at client after subscribed property update")
         client.sendUnsubscribeProperty(id)

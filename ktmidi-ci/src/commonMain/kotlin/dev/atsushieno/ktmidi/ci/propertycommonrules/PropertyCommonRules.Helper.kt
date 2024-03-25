@@ -44,6 +44,7 @@ internal class CommonRulesPropertyHelper(device: MidiCIDevice) {
 
     private val partialSetPair = Pair(Json.JsonValue(PropertyCommonHeaderKeys.SET_PARTIAL), Json.TrueValue)
     private fun createRequestHeader(resourceIdentifier: String, fields: Map<String, Any?>): Json.JsonValue {
+        val resId = fields[PropertyCommonHeaderKeys.RES_ID] as String?
         val encoding = fields[PropertyCommonHeaderKeys.MUTUAL_ENCODING] as String?
         val isPartialSet = fields[PropertyCommonHeaderKeys.SET_PARTIAL] as Boolean?
         val paginateOffset = fields[PropertyCommonHeaderKeys.OFFSET] as Int?
@@ -53,6 +54,8 @@ internal class CommonRulesPropertyHelper(device: MidiCIDevice) {
             Json.JsonValue(PropertyCommonHeaderKeys.RESOURCE),
             Json.JsonValue(resourceIdentifier)
         ))
+        if (resId != null)
+            list.add(Pair(Json.JsonValue(PropertyCommonHeaderKeys.RES_ID), Json.JsonValue(resId)))
         if (encoding != null)
             list.add(Pair(Json.JsonValue(PropertyCommonHeaderKeys.MUTUAL_ENCODING), Json.JsonValue(encoding)))
         if (isPartialSet == true)

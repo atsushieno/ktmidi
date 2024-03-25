@@ -57,7 +57,7 @@ fun LocalPropertyConfiguration(vm: ResponderViewModel) {
             val def = vm.getPropertyMetadata(sp) as CommonRulesPropertyMetadata
             val subscribedClients = vm.model.connections.filter { conn -> conn.subscriptions.any { sub -> sub.propertyId == sp } }
             LocalPropertyDetails(def, value,
-                updatePropertyValue = { id, data -> vm.updatePropertyValue(id, data, false) },
+                updatePropertyValue = { id, resId, data -> vm.updatePropertyValue(id, resId, data) },
                 metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) },
                 subscribedClients = subscribedClients.map { it.conn.targetMUID.toString() },
                 unsubscribeRequestedByIndex = { idx -> vm.shutdownSubscription(subscribedClients[idx].conn.targetMUID, sp) }
@@ -254,7 +254,7 @@ fun LocalPropertyList(properties: List<String>,
 
 @Composable
 fun LocalPropertyDetails(def: CommonRulesPropertyMetadata?, property: PropertyValue,
-                         updatePropertyValue: (propertyId: String, bytes: List<Byte>) -> Unit,
+                         updatePropertyValue: (propertyId: String, resId: String?, bytes: List<Byte>) -> Unit,
                          metadataUpdateCommitted: (property: CommonRulesPropertyMetadata) -> Unit,
                          subscribedClients: List<String>,
                          unsubscribeRequestedByIndex: (Int) -> Unit) {
@@ -264,7 +264,7 @@ fun LocalPropertyDetails(def: CommonRulesPropertyMetadata?, property: PropertyVa
                 refreshValueClicked = { _,_,_ -> }, // local editor does not support value refresh
                 isSubscribing = false,
                 subscriptionChanged = { _,_ -> }, // local editor does not support value subscription
-                { bytes, _, _ -> updatePropertyValue(property.id, bytes) } // local editor does not involve encoding and partial updates
+                { bytes, resId, _, _ -> updatePropertyValue(property.id, resId, bytes) } // local editor does not involve encoding and partial updates
             )
             Divider(Modifier.padding(16.dp))
             PropertyMetadataEditor(

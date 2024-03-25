@@ -34,8 +34,8 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
 
     fun getPropertyData(resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
         conn.propertyClient.sendGetPropertyData(resource, encoding, paginateOffset, paginateLimit)
-    fun setPropertyData(resource: String, data: List<Byte>, encoding: String?, isPartial: Boolean) =
-        conn.propertyClient.sendSetPropertyData(resource, data, encoding, isPartial)
+    fun setPropertyData(resource: String, resId: String?, data: List<Byte>, encoding: String?, isPartial: Boolean) =
+        conn.propertyClient.sendSetPropertyData(resource, resId, data, encoding, isPartial)
     fun subscribeProperty(resource: String, mutualEncoding: String?) =
         conn.propertyClient.sendSubscribeProperty(resource, mutualEncoding)
     fun unsubscribeProperty(resource: String) =

@@ -91,8 +91,8 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
         conn.subscribeProperty(propertyId, mutualEncoding)
     fun unsubscribeProperty(propertyId: String) =
         conn.unsubscribeProperty(propertyId)
-    fun sendSetPropertyDataRequest(propertyId: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) =
-        conn.setPropertyData(propertyId, bytes, encoding, isPartial)
+    fun sendSetPropertyDataRequest(propertyId: String, resId: String?, bytes: List<Byte>, encoding: String?, isPartial: Boolean) =
+        conn.setPropertyData(propertyId, resId, bytes, encoding, isPartial)
     fun setProfile(group: Byte, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) =
         conn.setProfile(group, address, profile, newEnabled, newNumChannelsRequested)
     fun requestMidiMessageReport(address: Byte, targetMUID: Int) =
@@ -146,12 +146,8 @@ class ResponderViewModel(val model: CIDeviceModel) {
         selectedProperty.value = property.propertyId
     }
 
-    fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
-        model.updatePropertyValue(propertyId, data, isPartial)
-        // It might be partial update, in that case we have to retrieve
-        // the partial application result from MidiCIPropertyService processing.
-        model.properties.first { it.id == propertyId }.body =
-            model.localProperties.getPropertyValue(propertyId)?.body ?: listOf()
+    fun updatePropertyValue(propertyId: String, resId: String?, data: List<Byte>) {
+        model.updatePropertyValue(propertyId, resId, data)
     }
 
     fun createNewProperty() {

@@ -143,8 +143,15 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
         }
     }
 
-    fun updatePropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
-        device.propertyHost.setPropertyValue(propertyId, data, isPartial)
+    fun updatePropertyValue(propertyId: String, resId: String?, data: List<Byte>) {
+        // This tool does not support local partial updates, while ktmidi-ci as a library does.
+        device.propertyHost.setPropertyValue(propertyId, resId, data, false)
+
+        // FIXME: if resId is specified, this property value updating does not make sense.
+        // It might be partial update, in that case we have to retrieve
+        // the partial application result from MidiCIPropertyService processing.
+        properties.first { it.id == propertyId }.body =
+            localProperties.getPropertyValue(propertyId)?.body ?: listOf()
     }
 
     fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {

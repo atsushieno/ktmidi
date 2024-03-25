@@ -141,8 +141,9 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
     }
 
     // It is Common Rules specific
-    fun sendSetPropertyData(resource: String, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
+    fun sendSetPropertyData(resource: String, resId: String?, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
         val header = propertyRules.createDataRequestHeader(resource, mapOf(
+            PropertyCommonHeaderKeys.RES_ID to resId,
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
             PropertyCommonHeaderKeys.SET_PARTIAL to isPartial))
         val encodedBody = propertyRules.encodeBody(data, encoding)

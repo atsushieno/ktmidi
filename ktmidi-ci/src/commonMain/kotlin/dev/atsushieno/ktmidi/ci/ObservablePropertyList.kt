@@ -17,6 +17,7 @@ interface PropertyMetadata {
 @Serializable
 data class PropertyValue(
     val id: String,
+    val resId: String?,
     // FIXME: this is specific to Common Rules for PE, which had better be abstracted away...
     val mediaType: String,
     var body: List<Byte>
@@ -49,7 +50,7 @@ abstract class ObservablePropertyList(protected val internalValues: MutableList<
                 if (existing != null)
                     newEntries.add(existing)
                 else
-                    newEntries.add(PropertyValue(entry.propertyId, entry.mediaTypes?.firstOrNull() ?: "", listOf()))
+                    newEntries.add(PropertyValue(entry.propertyId, null, entry.mediaTypes?.firstOrNull() ?: "", listOf()))
             }
             internalValues.clear()
             internalValues.addAll(newEntries)
@@ -66,7 +67,7 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
     override val internalCatalogUpdated: MutableList<() -> Unit>
         get() = propertyClient.propertyCatalogUpdated
 
-    private fun updateValue(propertyId: String, isPartial: Boolean, newValueMediaType: String, body: List<Byte>) {
+    private fun updateValue(propertyId: String, resId: String?, isPartial: Boolean, newValueMediaType: String, body: List<Byte>) {
         val existing = internalValues.firstOrNull { it.id == propertyId }
         if (existing != null)
             internalValues.remove(existing)
@@ -75,18 +76,19 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
             logger.logError("Partial property update failed for $propertyId")
             return
         }
-        val propertyValue = PropertyValue(propertyId, newValueMediaType, updateResult.second)
+        val propertyValue = PropertyValue(propertyId, resId, newValueMediaType, updateResult.second)
         internalValues.add(propertyValue)
         valueUpdated.forEach { it(propertyValue) }
     }
 
     // The `header` and `body` can be either from GetPropertyDataReply or SetPropertyData
     fun updateValue(propertyId: String, header: List<Byte>, body: List<Byte>) {
-        // FIXME: cosmetic but unnecessary Common Rules for PE exposure
+        // FIXME: unnecessary Common Rules for PE exposure
+        val resId = propertyClient.getHeaderFieldString(header, PropertyCommonHeaderKeys.RES_ID)
         val mediaType = propertyClient.getHeaderFieldString(header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
         val decodedBody = propertyClient.decodeBody(header, body)
         // there is no partial updates in Reply to Get Property Data
-        updateValue(propertyId, false, mediaType, decodedBody)
+        updateValue(propertyId, resId, false, mediaType, decodedBody)
     }
 
     fun updateValue(msg: Message.SubscribeProperty): String? {
@@ -99,10 +101,11 @@ class ClientObservablePropertyList(private val logger: Logger, private val prope
         if (command == MidiCISubscriptionCommand.NOTIFY)
             return command
         val isPartial = command == MidiCISubscriptionCommand.PARTIAL
-        // FIXME: cosmetic but unnecessary exposure of Common Rules for PE.
+        // FIXME: unnecessary exposure of Common Rules for PE.
+        val resId = propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.RES_ID)
         val mediaType = propertyClient.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
         val decodedBody = propertyClient.decodeBody(msg.header, msg.body)
-        updateValue(id, isPartial, mediaType, decodedBody)
+        updateValue(id, resId, isPartial, mediaType, decodedBody)
         return command
     }
 
@@ -135,21 +138,22 @@ class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private 
         propertyService.addMetadata(property)
     }
 
-    private fun updateValue(propertyId: String, newValueMediaType: String, body: List<Byte>) {
+    private fun updateValue(propertyId: String, resId: String?, newValueMediaType: String, body: List<Byte>) {
         val existing = internalValues.firstOrNull { it.id == propertyId }
         if (existing != null)
             internalValues.remove(existing)
-        val propertyValue = PropertyValue(propertyId, newValueMediaType, body)
+        val propertyValue = PropertyValue(propertyId, resId, newValueMediaType, body)
         internalValues.add(propertyValue)
         valueUpdated.forEach { it(propertyValue) }
     }
 
     // The `header` and `body` are from SetPropertyData
     fun updateValue(propertyId: String, header: List<Byte>, body: List<Byte>) {
-        // FIXME: cosmetic but unnecessary Common Rules for PE exposure
+        // FIXME: unnecessary Common Rules for PE exposure
+        val resId = propertyService.getHeaderFieldString(header, PropertyCommonHeaderKeys.RES_ID)
         val mediaType = propertyService.getHeaderFieldString(header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
         val decodedBody = propertyService.decodeBody(header, body)
-        updateValue(propertyId, mediaType, decodedBody)
+        updateValue(propertyId, resId, mediaType, decodedBody)
     }
 
     init {
@@ -157,7 +161,7 @@ class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private 
         internalValues.addAll(propertyService.getMetadataList()
             ?.filter { p -> !internalValues.any { v -> v.id == p.propertyId } }
             ?.map {
-            PropertyValue(it.propertyId, it.mediaTypes?.firstOrNull() ?: "", listOf())
+            PropertyValue(it.propertyId, null, it.mediaTypes?.firstOrNull() ?: "", listOf())
         } ?: listOf())
     }
 }

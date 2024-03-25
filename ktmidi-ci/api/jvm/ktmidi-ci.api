@@ -1103,8 +1103,8 @@ public final class dev/atsushieno/ktmidi/ci/PropertyClientFacade {
 	public final fun sendGetPropertyData (Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;)V
 	public static synthetic fun sendGetPropertyData$default (Ldev/atsushieno/ktmidi/ci/PropertyClientFacade;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/Integer;ILjava/lang/Object;)V
 	public final fun sendSetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$SetPropertyData;)V
-	public final fun sendSetPropertyData (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
-	public static synthetic fun sendSetPropertyData$default (Ldev/atsushieno/ktmidi/ci/PropertyClientFacade;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)V
+	public final fun sendSetPropertyData (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Z)V
+	public static synthetic fun sendSetPropertyData$default (Ldev/atsushieno/ktmidi/ci/PropertyClientFacade;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;ZILjava/lang/Object;)V
 	public final fun sendSubscribeProperty (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public static synthetic fun sendSubscribeProperty$default (Ldev/atsushieno/ktmidi/ci/PropertyClientFacade;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)V
 	public final fun sendUnsubscribeProperty (Ljava/lang/String;)V
@@ -1123,7 +1123,7 @@ public final class dev/atsushieno/ktmidi/ci/PropertyHostFacade {
 	public final fun processSubscribeProperty (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)V
 	public final fun removeProperty (Ljava/lang/String;)V
 	public final fun setNotifyPropertyUpdatesToSubscribers (Lkotlin/jvm/functions/Function3;)V
-	public final fun setPropertyValue (Ljava/lang/String;Ljava/util/List;Z)V
+	public final fun setPropertyValue (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Z)V
 	public final fun shutdownSubscription (ILjava/lang/String;)V
 	public final fun terminateSubscriptionsToAllSubsctibers (B)V
 	public final fun updateCommonRulesDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
@@ -1138,16 +1138,18 @@ public abstract interface class dev/atsushieno/ktmidi/ci/PropertyMetadata {
 
 public final class dev/atsushieno/ktmidi/ci/PropertyValue {
 	public static final field Companion Ldev/atsushieno/ktmidi/ci/PropertyValue$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
-	public final fun component3 ()Ljava/util/List;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/PropertyValue;
-	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/PropertyValue;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/PropertyValue;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/PropertyValue;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/PropertyValue;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/PropertyValue;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getBody ()Ljava/util/List;
 	public final fun getId ()Ljava/lang/String;
 	public final fun getMediaType ()Ljava/lang/String;
+	public final fun getResId ()Ljava/lang/String;
 	public fun hashCode ()I
 	public final fun setBody (Ljava/util/List;)V
 	public fun toString ()Ljava/lang/String;

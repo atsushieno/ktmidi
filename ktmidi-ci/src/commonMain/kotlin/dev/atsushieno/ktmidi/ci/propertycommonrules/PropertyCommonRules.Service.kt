@@ -290,7 +290,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         else if (existing != null)
             existing.body = decodedBody
         else
-            device.config.propertyValues.add(PropertyValue(header.resource, header.mediaType ?: CommonRulesKnownMimeTypes.APPLICATION_JSON, decodedBody))
+            device.config.propertyValues.add(PropertyValue(header.resource, header.resId, header.mediaType ?: CommonRulesKnownMimeTypes.APPLICATION_JSON, decodedBody))
         return Result.success(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)))
     }
 

@@ -72,7 +72,7 @@ fun ClientConnection(vm: ConnectionViewModel) {
                         else
                             vm.unsubscribeProperty(sp)
                     },
-                    commitChangeClicked = { id, bytes, encoding, isPartial -> vm.sendSetPropertyDataRequest(id, bytes, encoding, isPartial) }
+                    commitChangeClicked = { id, resId, bytes, encoding, isPartial -> vm.sendSetPropertyDataRequest(id, resId, bytes, encoding, isPartial) }
                 )
         }
 
@@ -256,7 +256,7 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
 fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
                           refreshValueClicked: (requestedEncoding: String?, paginateOffset: Int?, paginateLimit: Int?) -> Unit,
                           subscribeClicked: (newValue: Boolean, requestedEncoding: String?) -> Unit,
-                          commitChangeClicked: (id: String, bytes: List<Byte>, encoding: String?, isPartial: Boolean) -> Unit) {
+                          commitChangeClicked: (id: String, resId: String?, bytes: List<Byte>, encoding: String?, isPartial: Boolean) -> Unit) {
     Column(Modifier.padding(12.dp)) {
         val entry = vm.conn.properties.firstOrNull { it.id == propertyId } ?: return
         val def = vm.conn.getMetadataList()?.firstOrNull { it.propertyId == entry.id } as CommonRulesPropertyMetadata?
@@ -264,7 +264,7 @@ fun ClientPropertyDetails(vm: ConnectionViewModel, propertyId: String,
             refreshValueClicked,
             isSubscribing = vm.conn.subscriptions.firstOrNull { it.propertyId == propertyId }?.state?.value == SubscriptionActionState.Subscribed,
             subscribeClicked,
-            commitChangeClicked = { bytes, encoding, isPartial -> commitChangeClicked(entry.id, bytes, encoding, isPartial) })
+            commitChangeClicked = { bytes, resId, encoding, isPartial -> commitChangeClicked(entry.id, resId, bytes, encoding, isPartial) })
         Divider(Modifier.padding(16.dp))
         if (def != null)
             PropertyMetadataEditor(def,

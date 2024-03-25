@@ -26,8 +26,8 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
         properties.updateMetadata(oldPropertyId, property)
 
     // update property value. It involves notifications to subscribers.
-    fun setPropertyValue(propertyId: String, data: List<Byte>, isPartial: Boolean) {
-        properties.values.first { it.id == propertyId }.body = data
+    fun setPropertyValue(propertyId: String, resId: String?, data: List<Byte>, isPartial: Boolean) {
+        properties.values.first { it.id == propertyId && (resId == null || it.resId == resId) }.body = data
         notifyPropertyUpdatesToSubscribers(propertyId, data, isPartial)
     }
 
