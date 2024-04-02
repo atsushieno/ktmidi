@@ -54,7 +54,7 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
                 }
             }
             messageReceived.add {
-                if (it is Message.MidiMessageReportInquiry) {
+                if (it is Message.MidiMessageReportReply) {
                     receivingMidiMessageReports = true
                     midiMessageReportModeChanged.forEach { it() }
                 }

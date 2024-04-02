@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.json.Json
-import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonConverter
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 
 class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnection) {
