@@ -70,6 +70,8 @@ object CINakStatus {
     const val TimeoutRetrySuggested = 0x43
 }
 
+// It is equivalent to UmpDeviceIdentity in `ktmidi` module,
+// but since we make this module independent of that one, we need a clone here...
 data class DeviceDetails(val manufacturer: Int = 0, val family: Short = 0, val modelNumber: Short = 0, val softwareRevisionLevel: Int = 0) {
     companion object {
         val empty = DeviceDetails()

@@ -210,24 +210,40 @@ object UmpStreamStatus {
     const val END_OF_CLIP: Byte = 0x21
 }
 
+// [s][i][n][d][e]
+object UmpDiscoveryFlags {
+    const val ENDPOINT_INFO: Byte = 1
+    const val DEVICE_IDENTITY: Byte = 2
+    const val ENDPOINT_NAME: Byte = 4
+    const val PRODUCT_INSTANCE_ID: Byte = 8
+    const val STREAM_CONFIGURATION: Byte = 16
+    const val ALL: Byte = 31
+}
+
+object FunctionBlockDiscoveryFlags {
+    const val NAME: Byte = 2
+    const val INFO: Byte = 1
+    const val ALL: Byte = 3
+}
+
 // indicates what the function block is *primarily* for.
 object FunctionBlockUiHint {
-    const val UNKNOWN = 0
-    const val RECEIVER = 1
-    const val SENDER = 2
-    const val BOTH = 3
+    const val UNKNOWN: Byte = 0
+    const val RECEIVER: Byte = 1
+    const val SENDER: Byte = 2
+    const val BOTH: Byte = 3
 }
 
 object FunctionBlockDirection {
-    const val INPUT = 1
-    const val OUTPUT = 2
-    const val BIDIRECTIONAL = 3
+    const val INPUT: Byte = 1
+    const val OUTPUT: Byte = 2
+    const val BIDIRECTIONAL: Byte = 3
 }
 
 object FunctionBlockMidi1Bandwidth {
-    const val NOT_AVAILABLE = 0
-    const val NO_LIMITATION = 1
-    const val UP_TO_31250BPS = 2
+    const val NOT_AVAILABLE: Byte = 0
+    const val NO_LIMITATION: Byte = 1
+    const val UP_TO_31250BPS: Byte = 2
 }
 
 object Midi1Status {

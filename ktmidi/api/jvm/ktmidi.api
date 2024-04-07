@@ -134,25 +134,32 @@ public final class dev/atsushieno/ktmidi/FlexDataStatusBank {
 }
 
 public final class dev/atsushieno/ktmidi/FunctionBlockDirection {
-	public static final field BIDIRECTIONAL I
-	public static final field INPUT I
+	public static final field BIDIRECTIONAL B
+	public static final field INPUT B
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/FunctionBlockDirection;
-	public static final field OUTPUT I
+	public static final field OUTPUT B
+}
+
+public final class dev/atsushieno/ktmidi/FunctionBlockDiscoveryFlags {
+	public static final field ALL B
+	public static final field INFO B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/FunctionBlockDiscoveryFlags;
+	public static final field NAME B
 }
 
 public final class dev/atsushieno/ktmidi/FunctionBlockMidi1Bandwidth {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/FunctionBlockMidi1Bandwidth;
-	public static final field NOT_AVAILABLE I
-	public static final field NO_LIMITATION I
-	public static final field UP_TO_31250BPS I
+	public static final field NOT_AVAILABLE B
+	public static final field NO_LIMITATION B
+	public static final field UP_TO_31250BPS B
 }
 
 public final class dev/atsushieno/ktmidi/FunctionBlockUiHint {
-	public static final field BOTH I
+	public static final field BOTH B
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/FunctionBlockUiHint;
-	public static final field RECEIVER I
-	public static final field SENDER I
-	public static final field UNKNOWN I
+	public static final field RECEIVER B
+	public static final field SENDER B
+	public static final field UNKNOWN B
 }
 
 public final class dev/atsushieno/ktmidi/GeneralMidi {
@@ -1699,6 +1706,16 @@ public final class dev/atsushieno/ktmidi/UmpBinaryRetrieverFallback : java/lang/
 	public static fun values ()[Ldev/atsushieno/ktmidi/UmpBinaryRetrieverFallback;
 }
 
+public final class dev/atsushieno/ktmidi/UmpDiscoveryFlags {
+	public static final field ALL B
+	public static final field DEVICE_IDENTITY B
+	public static final field ENDPOINT_INFO B
+	public static final field ENDPOINT_NAME B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/UmpDiscoveryFlags;
+	public static final field PRODUCT_INSTANCE_ID B
+	public static final field STREAM_CONFIGURATION B
+}
+
 public final class dev/atsushieno/ktmidi/UmpException : java/lang/Exception {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;)V
@@ -1725,7 +1742,7 @@ public final class dev/atsushieno/ktmidi/UmpFactory {
 	public final fun fromPlatformBytes (Ldev/atsushieno/ktmidi/ByteOrder;Ljava/util/List;)Ljava/lang/Iterable;
 	public final fun fromPlatformNativeBytes (Ljava/util/List;)Ljava/lang/Iterable;
 	public final fun functionBlockDiscovery (BB)Ldev/atsushieno/ktmidi/Ump;
-	public final fun functionBlockInfoNotification (ZBBBBBBBI)Ldev/atsushieno/ktmidi/Ump;
+	public final fun functionBlockInfoNotification-A169VBk (ZBBBBBBBB)Ldev/atsushieno/ktmidi/Ump;
 	public final fun functionBlockNameNotification (BLjava/lang/String;)Ljava/util/List;
 	public final fun jrClock (D)I
 	public final fun jrClock (I)I
@@ -1788,8 +1805,8 @@ public final class dev/atsushieno/ktmidi/UmpFactory {
 	public final fun performanceText (BBBB[B)Ljava/util/List;
 	public final fun pitch7_9 (D)I
 	public final fun pitch7_9Split (BD)I
-	public final fun productInstanceNotification (Ljava/lang/String;)Ljava/util/List;
-	public final fun productInstanceNotification ([B)Ljava/util/List;
+	public final fun productInstanceIdNotification (Ljava/lang/String;)Ljava/util/List;
+	public final fun productInstanceIdNotification ([B)Ljava/util/List;
 	public final fun startOfClip ()Ldev/atsushieno/ktmidi/Ump;
 	public final fun streamConfigNotification (BZZ)Ldev/atsushieno/ktmidi/Ump;
 	public final fun streamConfigRequest (BZZ)Ldev/atsushieno/ktmidi/Ump;
@@ -1853,15 +1870,16 @@ public final class dev/atsushieno/ktmidi/UmpRetrievalKt {
 	public static final fun getFlexDataStatus (Ldev/atsushieno/ktmidi/Ump;)B
 	public static final fun getFlexDataStatusBank (Ldev/atsushieno/ktmidi/Ump;)B
 	public static final fun getFunctionBlockActive (Ldev/atsushieno/ktmidi/Ump;)Z
-	public static final fun getFunctionBlockCIVersion (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFunctionBlockCIVersion (Ldev/atsushieno/ktmidi/Ump;)B
 	public static final fun getFunctionBlockCount (Ldev/atsushieno/ktmidi/Ump;)I
-	public static final fun getFunctionBlockDirection (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFunctionBlockDirection (Ldev/atsushieno/ktmidi/Ump;)B
 	public static final fun getFunctionBlockDiscoveryFilter (Ldev/atsushieno/ktmidi/Ump;)I
-	public static final fun getFunctionBlockFirstGroup (Ldev/atsushieno/ktmidi/Ump;)I
-	public static final fun getFunctionBlockGroupCount (Ldev/atsushieno/ktmidi/Ump;)I
-	public static final fun getFunctionBlockMaxSysEx8 (Ldev/atsushieno/ktmidi/Ump;)I
-	public static final fun getFunctionBlockMidi1Port (Ldev/atsushieno/ktmidi/Ump;)I
-	public static final fun getFunctionBlockUiHint (Ldev/atsushieno/ktmidi/Ump;)I
+	public static final fun getFunctionBlockFirstGroup (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getFunctionBlockGroupCount (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getFunctionBlockIndex (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getFunctionBlockMaxSysEx8 (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getFunctionBlockMidi1Port (Ldev/atsushieno/ktmidi/Ump;)B
+	public static final fun getFunctionBlockUiHint (Ldev/atsushieno/ktmidi/Ump;)B
 	public static final fun getGroup (Ldev/atsushieno/ktmidi/Ump;)I
 	public static final fun getGroupAndChannel (Ldev/atsushieno/ktmidi/Ump;)I
 	public static final fun getGroupByte (Ldev/atsushieno/ktmidi/Ump;)I
@@ -2045,5 +2063,126 @@ public final class dev/atsushieno/ktmidi/WellKnownNames {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/WellKnownNames;
 	public final fun getCcFullNames ()Ljava/util/Map;
 	public final fun getCcNames ()Ljava/util/Map;
+}
+
+public final class dev/atsushieno/ktmidi/umpdevice/FunctionBlock {
+	public synthetic fun <init> (BLjava/lang/String;BBBBBZBBILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (BLjava/lang/String;BBBBBZBBLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()B
+	public final fun component10-w2LRezQ ()B
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()B
+	public final fun component4 ()B
+	public final fun component5 ()B
+	public final fun component6 ()B
+	public final fun component7 ()B
+	public final fun component8 ()Z
+	public final fun component9 ()B
+	public final fun copy-ZZLtrpY (BLjava/lang/String;BBBBBZBB)Ldev/atsushieno/ktmidi/umpdevice/FunctionBlock;
+	public static synthetic fun copy-ZZLtrpY$default (Ldev/atsushieno/ktmidi/umpdevice/FunctionBlock;BLjava/lang/String;BBBBBZBBILjava/lang/Object;)Ldev/atsushieno/ktmidi/umpdevice/FunctionBlock;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getCiVersionFormat ()B
+	public final fun getDirection ()B
+	public final fun getFunctionBlockIndex ()B
+	public final fun getGroupCount ()B
+	public final fun getGroupIndex ()B
+	public final fun getMaxSysEx8Streams-w2LRezQ ()B
+	public final fun getMidi1 ()B
+	public final fun getName ()Ljava/lang/String;
+	public final fun getUiHint ()B
+	public fun hashCode ()I
+	public final fun isActive ()Z
+	public final fun setActive (Z)V
+	public final fun setCiVersionFormat (B)V
+	public final fun setDirection (B)V
+	public final fun setFunctionBlockIndex (B)V
+	public final fun setGroupCount (B)V
+	public final fun setGroupIndex (B)V
+	public final fun setMaxSysEx8Streams-7apg3OU (B)V
+	public final fun setMidi1 (B)V
+	public final fun setName (Ljava/lang/String;)V
+	public final fun setUiHint (B)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity {
+	public static final field Companion Ldev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity$Companion;
+	public fun <init> (ISSI)V
+	public final fun component1 ()I
+	public final fun component2 ()S
+	public final fun component3 ()S
+	public final fun component4 ()I
+	public final fun copy (ISSI)Ldev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity;ISSIILjava/lang/Object;)Ldev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getFamily ()S
+	public final fun getManufacturer ()I
+	public final fun getModelNumber ()S
+	public final fun getSoftwareRevisionLevel ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity$Companion {
+	public final fun getEmpty ()Ldev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity;
+}
+
+public final class dev/atsushieno/ktmidi/umpdevice/UmpEndpoint {
+	public fun <init> (Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration;)V
+	public final fun getAutoSendFunctionBlockDiscovery ()Z
+	public final fun getConfig ()Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration;
+	public final fun getErrorHandlers ()Ljava/util/List;
+	public final fun getMessageReceived ()Ljava/util/List;
+	public final fun getOutputSenders ()Ljava/util/List;
+	public final fun getTargetEndpoint ()Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration;
+	public final fun processInput (Lkotlin/sequences/Sequence;)V
+	public final fun sendDiscovery ()V
+	public final fun sendFunctionBlockDiscovery (I)V
+	public final fun sendOutput (Lkotlin/sequences/Sequence;)V
+	public final fun setAutoSendFunctionBlockDiscovery (Z)V
+	public final fun setTargetEndpoint (Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration;)V
+}
+
+public final class dev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ldev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity;Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration$UmpStreamConfiguration;ZLjava/util/List;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ldev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity;
+	public final fun component4 ()Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration$UmpStreamConfiguration;
+	public final fun component5 ()Z
+	public final fun component6 ()Ljava/util/List;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ldev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity;Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration$UmpStreamConfiguration;ZLjava/util/List;)Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration;Ljava/lang/String;Ljava/lang/String;Ldev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity;Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration$UmpStreamConfiguration;ZLjava/util/List;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDeviceIdentity ()Ldev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity;
+	public final fun getFunctionBlocks ()Ljava/util/List;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getProductInstanceId ()Ljava/lang/String;
+	public final fun getStreamConfiguration ()Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration$UmpStreamConfiguration;
+	public fun hashCode ()I
+	public final fun isStaticFunctionBlock ()Z
+	public final fun setDeviceIdentity (Ldev/atsushieno/ktmidi/umpdevice/UmpDeviceIdentity;)V
+	public final fun setName (Ljava/lang/String;)V
+	public final fun setProductInstanceId (Ljava/lang/String;)V
+	public final fun setStaticFunctionBlock (Z)V
+	public final fun setStreamConfiguration (Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration$UmpStreamConfiguration;)V
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration$UmpStreamConfiguration {
+	public fun <init> (ZZZZ)V
+	public final fun component1 ()Z
+	public final fun component2 ()Z
+	public final fun component3 ()Z
+	public final fun component4 ()Z
+	public final fun copy (ZZZZ)Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration$UmpStreamConfiguration;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration$UmpStreamConfiguration;ZZZZILjava/lang/Object;)Ldev/atsushieno/ktmidi/umpdevice/UmpEndpointConfiguration$UmpStreamConfiguration;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getRxJR ()Z
+	public final fun getSupportsMidi1 ()Z
+	public final fun getSupportsMidi2 ()Z
+	public final fun getTxJR ()Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
 }
 

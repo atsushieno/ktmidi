@@ -502,7 +502,7 @@ class UmpFactoryTest {
 
     @Test
     fun testProductInstanceIdNotification() {
-        val pn1 = UmpFactory.productInstanceNotification("ProductName 123") // 15 bytes
+        val pn1 = UmpFactory.productInstanceIdNotification("ProductName 123") // 15 bytes
         assertEquals(2, pn1.size, "pn1.size")
         //"ProductName 123".forEach { print(it.code.toString(16)) }
         assertEquals(0xF404_5072L, pn1[0].int1.toUnsigned(), "pn1[0].int1")
@@ -546,7 +546,7 @@ class UmpFactoryTest {
     fun testFunctionBlockInfoNotification() {
         val fb1 = UmpFactory.functionBlockInfoNotification(true, 5,
             3, 2, 1,
-            0, 3, 1, 255)
+            0, 3, 1, 255u)
         assertEquals(0xF011_8539L, fb1.int1.toUnsigned(), "fb1.int1")
         assertEquals(0x000301FF, fb1.int2, "fb1.int2")
         assertEquals(0, fb1.int3, "fb1.int3")

@@ -3,6 +3,7 @@ package dev.atsushieno.ktmidi
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class UmpRetrieverTest {
     @Test
@@ -177,8 +178,11 @@ class UmpRetrieverTest {
 
     @Test
     fun testEndpointNameNotification() {
-        val en1 = listOf(Ump(0xF003_456eL.toInt(), 0x6470_6f69, 0x6e74_4e61, 0x6d65_3132))
-        assertEquals("EndpointName12", UmpRetriever.getEndpointName(en1.iterator()))
+        val en1 = listOf(Ump(0xF003_456eL.toInt(), 0x6470_6f69, 0x6e74_4e61, 0x6d65_3132), Ump(0x20904078))
+        val iterator = en1.iterator()
+        assertEquals("EndpointName12", UmpRetriever.getEndpointName(iterator))
+        assertTrue(iterator.hasNext(), "do not consume too much")
+        assertEquals(0x20904078, iterator.next().int1, "next")
     }
 
     @Test
@@ -231,7 +235,7 @@ class UmpRetrieverTest {
         assertEquals(0, fb1.functionBlockFirstGroup, "functionBlockFirstGroup")
         assertEquals(3, fb1.functionBlockGroupCount, "functionBlockGroupCount")
         assertEquals(1, fb1.functionBlockCIVersion, "functionBlockCIVersion")
-        assertEquals(255, fb1.functionBlockMaxSysEx8, "functionBlockMaxSysEx8")
+        assertEquals(255u, fb1.functionBlockMaxSysEx8, "functionBlockMaxSysEx8")
     }
 
     @Test

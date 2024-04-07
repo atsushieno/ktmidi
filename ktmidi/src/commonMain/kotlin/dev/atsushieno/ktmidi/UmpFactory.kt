@@ -732,8 +732,8 @@ object UmpFactory {
     fun endpointNameNotification(name: String) = endpointNameNotification(name.toUtf8ByteArray())
     fun endpointNameNotification(name: ByteArray) = umpStreamTextCommon(3, name)
 
-    fun productInstanceNotification(id: String) = productInstanceNotification(id.toUtf8ByteArray())
-    fun productInstanceNotification(id: ByteArray) = umpStreamTextCommon(4, id)
+    fun productInstanceIdNotification(id: String) = productInstanceIdNotification(id.toUtf8ByteArray())
+    fun productInstanceIdNotification(id: ByteArray) = umpStreamTextCommon(4, id)
 
     fun streamConfigRequest(protocol: Byte, rxJRTimestamp: Boolean, txJRTimestamp: Boolean) =
         Ump((0xF005_0000L + (protocol.toUnsigned() shl 8) + (if (rxJRTimestamp) 2 else 0) + if (txJRTimestamp) 1 else 0).toInt(),
@@ -749,12 +749,12 @@ object UmpFactory {
 
     fun functionBlockInfoNotification(isFbActive: Boolean, fbNumber: Byte, uiHint: Byte, midi1: Byte, direction: Byte,
                                       firstGroup: Byte, numberOfGroupsSpanned: Byte,
-                                      midiCIMessageVersionFormat: Byte, maxSysEx8Streams: Int) =
+                                      midiCIMessageVersionFormat: Byte, maxSysEx8Streams: UByte) =
         Ump((0xF011_0000L +
                 (if (isFbActive) 0x8000 else 0) + (fbNumber.toUnsigned() shl 8) +
                 ((uiHint and 3) shl 4) + ((midi1 and 3) shl 2) + (direction and 3).toUnsigned()).toInt(),
             (firstGroup.toUnsigned() shl 24) + (numberOfGroupsSpanned.toUnsigned() shl 16) +
-                    (midiCIMessageVersionFormat.toUnsigned() shl 8) + (maxSysEx8Streams and 0xFF),
+                    (midiCIMessageVersionFormat.toUnsigned() shl 8) + (maxSysEx8Streams.toInt() and 0xFF),
             0, 0)
 
     fun functionBlockNameNotification(blockNumber: Byte, name: String): List<Ump> {

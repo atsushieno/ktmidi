@@ -337,22 +337,24 @@ val Ump.functionBlockCount
 val Ump.functionBlockDiscoveryFilter
     get() = int1 and 0xFF
 
+val Ump.functionBlockIndex: Byte
+    get() = ((int1 and 0x7F00) shr 8).toByte()
 val Ump.functionBlockActive
     get() = (int1 and 0x8000) != 0
-val Ump.functionBlockUiHint
-    get() = (int1 shr 4) and 0x3
-val Ump.functionBlockMidi1Port
-    get() = (int1 shr 2) and 0x3
-val Ump.functionBlockDirection
-    get() = int1 and 0x3
-val Ump.functionBlockFirstGroup
-    get() = (int2 shr 24) and 0xFF
-val Ump.functionBlockGroupCount
-    get() = (int2 shr 16) and 0xFF
-val Ump.functionBlockCIVersion
-    get() = (int2 shr 8) and 0xFF
-val Ump.functionBlockMaxSysEx8
-    get() = int2 and 0xFF
+val Ump.functionBlockUiHint: Byte
+    get() = ((int1 shr 4) and 0x3).toByte()
+val Ump.functionBlockMidi1Port: Byte
+    get() = ((int1 shr 2) and 0x3).toByte()
+val Ump.functionBlockDirection: Byte
+    get() = (int1 and 0x3).toByte()
+val Ump.functionBlockFirstGroup: Byte
+    get() = ((int2 shr 24) and 0x7F).toByte()
+val Ump.functionBlockGroupCount: Byte
+    get() = ((int2 shr 16) and 0x7F).toByte()
+val Ump.functionBlockCIVersion: Byte
+    get() = ((int2 shr 8) and 0xFF).toByte()
+val Ump.functionBlockMaxSysEx8: UByte
+    get() = (int2 and 0xFF).toUByte()
 
 val Ump.isStartOfClip
     get() = isUmpStream && ((int1 and 0xFF_0000) shr 16).toByte() == UmpStreamStatus.START_OF_CLIP
