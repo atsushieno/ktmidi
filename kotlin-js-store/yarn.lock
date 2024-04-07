@@ -1569,10 +1569,10 @@ jsonfile@^4.0.0:
   optionalDependencies:
     graceful-fs "^4.1.6"
 
-jzz@1.7.7:
-  version "1.7.7"
-  resolved "https://registry.yarnpkg.com/jzz/-/jzz-1.7.7.tgz#6f1d08542c1c68df651b5711643bfe838404e13d"
-  integrity sha512-fh7Qxb7G4q+7XqmayINHtGj2WpXtQTm+crFK0kg/s7JDhXLKg97MV0MXpADWNFJrNNVb9mkwNzW9sQlkRlfyug==
+jzz@1.8.1:
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/jzz/-/jzz-1.8.1.tgz#09eec1204c662e9cc78699e669f6f935650db546"
+  integrity sha512-L5jWc6xOB6FybF7vYJD/3pL29sCq/ZGW5sfg7dLEB07qcVH1zxUG9YxAC4jHfztzZu0oAaKe03QOV1rAFskhCw==
   dependencies:
     "@types/webmidi" "^2.0.10"
     jazz-midi "^1.7.9"

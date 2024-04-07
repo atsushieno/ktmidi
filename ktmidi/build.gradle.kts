@@ -101,14 +101,14 @@ kotlin {
         }
         val jsMain by getting {
             dependencies {
-                implementation(npm("jzz", "1.7.7"))
+                implementation(npm("jzz", libs.versions.jzz.get()))
                 implementation(libs.ktor.io)
             }
         }
         val jsTest by getting
         val wasmJsMain by getting {
             dependencies {
-                implementation(npm("jzz", "1.7.7"))
+                implementation(npm("jzz", libs.versions.jzz.get()))
             }
         }
         val wasmJsTest by getting

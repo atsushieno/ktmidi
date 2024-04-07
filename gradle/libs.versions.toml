@@ -16,6 +16,7 @@ dokka = "1.9.10"
 binary-compatibility-validator = "0.14.0"
 junit-jupiter-api = "5.9.1"
 kotlin-test-junit = "1.9.0"
+jzz = "1.8.1"
 
 kotlinx-coroutines-core = "1.8.0-RC2"
 kotlinx-datetime = "0.5.0"
