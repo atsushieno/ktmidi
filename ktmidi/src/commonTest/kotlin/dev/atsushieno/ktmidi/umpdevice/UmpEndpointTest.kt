@@ -22,21 +22,19 @@ class UmpEndpointTest {
         val device1 = mediator.device1
         val device2 = mediator.device2
 
-        val fb2l1 = FunctionBlock(0, "fb2_1",
+        device2.config.addFunctionBlock("fb2_1",
             FunctionBlockMidi1Bandwidth.NO_LIMITATION,
             FunctionBlockDirection.INPUT,
             FunctionBlockUiHint.RECEIVER)
-        val fb2l2 = FunctionBlock(0, "fb2_2",
+        device2.config.addFunctionBlock("fb2_2",
             FunctionBlockMidi1Bandwidth.UP_TO_31250BPS,
             FunctionBlockDirection.OUTPUT,
             FunctionBlockUiHint.SENDER,
-            groupIndex = 1,
-            groupCount = 2)
+            2)
+        val fb2l1 = device2.config.functionBlocks[0]
         assertEquals("fb2_1", fb2l1.name, "fb2l1.name")
         assertTrue(fb2l1.isActive, "fb2l1.isActive")
         assertEquals(1, fb2l1.groupCount, "fb2l1.groupCount")
-        device2.config.functionBlocks.add(fb2l1)
-        device2.config.functionBlocks.add(fb2l2)
 
         assertEquals("device2", device2.config.name, "local endpoint name")
         assertEquals("Device2", device2.config.productInstanceId, "local productInstanceId")

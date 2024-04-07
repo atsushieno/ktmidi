@@ -4,7 +4,7 @@ import dev.atsushieno.ktmidi.FunctionBlockDirection
 import dev.atsushieno.ktmidi.FunctionBlockMidi1Bandwidth
 import dev.atsushieno.ktmidi.FunctionBlockUiHint
 
-data class FunctionBlock(
+class FunctionBlock(
     var functionBlockIndex: Byte,
     var name: String = "",
     var midi1: Byte = FunctionBlockMidi1Bandwidth.NO_LIMITATION,
