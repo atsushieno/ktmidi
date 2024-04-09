@@ -8,12 +8,13 @@ import platform.Foundation.CFBridgingRetain
 import platform.Foundation.NSString
 import platform.darwin.NSObject
 
-// a lot of ideas are taken from r4zzz4k/kmidi so far (it does not seem to work yet though)
+// a lot of ideas are taken from r4zzz4k/kmidi so far
 @Suppress("CAST_NEVER_SUCCEEDS")
 fun String.asNSString() = this as NSString
 @Suppress("CAST_NEVER_SUCCEEDS")
 fun NSString.asString() = this as String
 
+// It seems they need to be invoked within memScoped {} ...
 @OptIn(ExperimentalForeignApi::class)
 inline fun <reified T: NSObject> CFTypeRef.toNSObjectReleased() = CFBridgingRelease(this) as T
 @OptIn(ExperimentalForeignApi::class)
@@ -21,11 +22,7 @@ inline fun <reified T: NSObject> CFTypeRef.toNSObjectRetained() = CFBridgingReta
 @OptIn(ExperimentalForeignApi::class)
 fun CFStringRef.toNSStringReleased() = toNSObjectReleased<NSString>()
 @OptIn(ExperimentalForeignApi::class)
-fun CFStringRef.toNSStringRetained() = toNSObjectRetained<NSString>()
-@OptIn(ExperimentalForeignApi::class)
-fun CFStringRef.releaseString() = toNSStringReleased().asString()
-@OptIn(ExperimentalForeignApi::class)
-fun CFStringRef.getString() = toNSStringRetained().asString()
+fun CFStringRef.getString() = toNSStringReleased().asString()
 
 @OptIn(ExperimentalForeignApi::class)
 inline fun <reified T: CFTypeRef> NSObject.toCFTypeRef() = CFBridgingRetain(this) as T
@@ -42,7 +39,3 @@ inline fun <reified T: CVariable> viaPtrVar(block: (ptr: CPointer<T>) -> Unit): 
 }
 @OptIn(ExperimentalForeignApi::class)
 inline fun <T : CPointer<*>> viaPtr(block: (CPointer<CPointerVarOf<T>>) -> Unit): T? = viaPtrVar(block).value
-@OptIn(ExperimentalForeignApi::class)
-inline fun viaPtr(block: (CPointer<IntVarOf<Int>>) -> Unit): Int = viaPtrVar(block).value
-@OptIn(ExperimentalForeignApi::class)
-inline fun viaPtr(block: (CPointer<UIntVarOf<UInt>>) -> Unit): UInt = viaPtrVar(block).value
