@@ -6,9 +6,9 @@ import kotlin.system.exitProcess
 
 actual fun getMidiAccessApi(api: String?, midiTransportProtocol: Int): MidiAccess = when (api) {
     "EMPTY" -> EmptyMidiAccess()
-    else -> getNativeMidiAccessApi()
+    else -> getNativeMidiAccessApi(midiTransportProtocol)
 }
 
-expect fun getNativeMidiAccessApi(): MidiAccess
+expect fun getNativeMidiAccessApi(midiTransportProtocol: Int): MidiAccess
 
 actual fun exitApplication(code: Int): Unit = exitProcess(code)

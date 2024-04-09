@@ -4,26 +4,24 @@ import kotlinx.cinterop.*
 import platform.CoreMIDI.*
 import platform.posix.alloca
 
-// It is based on traditional CoreMIDI API. For MIDI 2.0 support, see UmpCoreMidiAccess.
-class TraditionalCoreMidiAccess : MidiAccess() {
-    override val name = "CoreMIDI-Traditional"
+class UmpCoreMidiAccess : MidiAccess() {
+    override val name = "CoreMIDI-UMP"
     override val inputs: Iterable<MidiPortDetails>
         get() = (0UL until MIDIGetNumberOfSources())
-            .map { MIDIGetSource(it) }.filter { it != 0u }.map { TraditionalCoreMidiPortDetails(it) }
+            .map { MIDIGetSource(it) }.filter { it != 0u }.map { UmpCoreMidiPortDetails(it) }
 
     override val outputs: Iterable<MidiPortDetails>
         get() = (0UL until MIDIGetNumberOfDestinations())
-            .map { MIDIGetDestination(it) }.filter { it != 0u }.map { TraditionalCoreMidiPortDetails(it) }
+            .map { MIDIGetDestination(it) }.filter { it != 0u }.map { UmpCoreMidiPortDetails(it) }
 
     override suspend fun openInput(portId: String): MidiInput =
-        TraditionalCoreMidiInput(inputs.first { it.id == portId } as TraditionalCoreMidiPortDetails)
+        UmpCoreMidiInput(inputs.first { it.id == portId } as UmpCoreMidiPortDetails)
 
     override suspend fun openOutput(portId: String): MidiOutput =
-        TraditionalCoreMidiOutput(outputs.first { it.id == portId } as TraditionalCoreMidiPortDetails)
+        UmpCoreMidiOutput(outputs.first { it.id == portId } as UmpCoreMidiPortDetails)
 }
 
-
-private class TraditionalCoreMidiPortDetails(val endpoint: MIDIEndpointRef)
+private class UmpCoreMidiPortDetails(val endpoint: MIDIEndpointRef)
     : MidiPortDetails {
 
     @OptIn(ExperimentalForeignApi::class)
@@ -44,7 +42,7 @@ private class TraditionalCoreMidiPortDetails(val endpoint: MIDIEndpointRef)
         get() = getPropertyInt(endpoint, kMIDIPropertyProtocolID)
 }
 
-private abstract class TraditionalCoreMidiPort(override val details: TraditionalCoreMidiPortDetails) : MidiPort {
+private abstract class UmpCoreMidiPort(override val details: UmpCoreMidiPortDetails) : MidiPort {
     abstract val clientRef: MIDIClientRef
     abstract val portRef: MIDIPortRef
 
@@ -64,7 +62,7 @@ private abstract class TraditionalCoreMidiPort(override val details: Traditional
     protected val notifyProc: MIDINotifyProc = staticCFunction(fun (message: CPointer<MIDINotification>?, refCon: COpaquePointer?) {
         if (refCon == null)
             return
-        val input = refCon.asStableRef<TraditionalCoreMidiPort>()
+        val input = refCon.asStableRef<UmpCoreMidiPort>()
         input.get().notify(message)
     })
     @OptIn(ExperimentalForeignApi::class)
@@ -74,7 +72,7 @@ private abstract class TraditionalCoreMidiPort(override val details: Traditional
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class TraditionalCoreMidiInput(details: TraditionalCoreMidiPortDetails) : TraditionalCoreMidiPort(details), MidiInput {
+private class UmpCoreMidiInput(details: UmpCoreMidiPortDetails) : UmpCoreMidiPort(details), MidiInput {
     private var client: MIDIClientRef = 0U
     private var port: MIDIPortRef = 0U
     override val clientRef = client
@@ -85,40 +83,41 @@ private class TraditionalCoreMidiInput(details: TraditionalCoreMidiPortDetails) 
         this.listener = listener
     }
 
-    private val readProc: MIDIReadProc = staticCFunction(fun (pktlistPtr: CPointer<MIDIPacketList>?, readProcRefCon: COpaquePointer?, srcConnRefCon: COpaquePointer?) {
-        if (readProcRefCon == null)
-            return
-        val input = readProcRefCon.asStableRef<TraditionalCoreMidiInput>()
-        input.get().readInput(pktlistPtr)
-    })
+    private val receiveBlock: MIDIReceiveBlock = { eventListPtr: CPointer<MIDIEventList>?, receiveBlockRefCon: COpaquePointer? ->
+        if (receiveBlockRefCon != null) {
+            val input = receiveBlockRefCon.asStableRef<UmpCoreMidiInput>()
+            input.get().receiveInput(eventListPtr)
+        }
+    }
 
-    private fun readInput(pktlistPtr: CPointer<MIDIPacketList>?) {
+    private fun receiveInput(eventListPtr: CPointer<MIDIEventList>?) {
         val listener = this.listener
-        if (pktlistPtr == null || listener == null)
+        if (eventListPtr == null || listener == null)
             return
         memScoped {
-            val pktlist = pktlistPtr.pointed
-            var packetPtr: CPointer<MIDIPacket>? = pktlist.packet
-            (0 until pktlist.numPackets.toInt()).forEach { _ ->
-                val packet = packetPtr?.pointed ?: return@forEach
-                val data = packet.data
-                val bytes = data.readBytes(packet.length.toInt())
+            val eventList = eventListPtr.pointed
+            var packetPtr: CPointer<MIDIEventPacket>? = eventList.packet
+            (0 until eventList.numPackets.toInt()).forEach { _ ->
+                val event = packetPtr?.pointed ?: return@forEach
+                val data = event.words
+                val bytes = data.readBytes(event.wordCount.toInt())
                 listener.onEventReceived(bytes, 0, bytes.size, 0)
-                packetPtr = MIDIPacketNext(packetPtr)
+                packetPtr = MIDIEventPacketNext(packetPtr)
             }
         }
     }
 
-    val clientName = "KTMidiInputClient"
-    val portName = "KTMidiInputPort"
+    private val protocol = if (details.midiTransportProtocol == MidiTransportProtocol.UMP) kMIDIProtocol_2_0 else kMIDIProtocol_1_0
 
     init {
         memScoped {
+            val clientName = "KTMidiInputClient"
+            val portName = "KTMidiInputPort"
             val clientP = alloc<MIDIClientRefVar>()
             checkStatus { MIDIClientCreate(clientName.toCFStringRef(), notifyProc, stableRef.asCPointer(), clientP.ptr) }
             client = clientP.value
             val portP = alloc<MIDIPortRefVar>()
-            checkStatus { MIDIInputPortCreate(client, portName.toCFStringRef(), readProc, stableRef.asCPointer(), portP.ptr) }
+            checkStatus { MIDIInputPortCreateWithProtocol(client, portName.toCFStringRef(), protocol, portP.ptr, receiveBlock) }
             port = portP.value
             checkStatus { MIDIPortConnectSource(port, details.endpoint, stableRef.asCPointer()) }
         }
@@ -126,19 +125,20 @@ private class TraditionalCoreMidiInput(details: TraditionalCoreMidiPortDetails) 
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class TraditionalCoreMidiOutput(details: TraditionalCoreMidiPortDetails) : TraditionalCoreMidiPort(details), MidiOutput {
+private class UmpCoreMidiOutput(details: UmpCoreMidiPortDetails) : UmpCoreMidiPort(details), MidiOutput {
     private var client: MIDIClientRef = 0U
     private var port: MIDIPortRef = 0U
     override val clientRef = client
     override val portRef = port
+    private val protocol = if (details.midiTransportProtocol == MidiTransportProtocol.UMP) kMIDIProtocol_2_0 else kMIDIProtocol_1_0
 
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
         mevent.usePinned { pinned ->
-            val packetListPtr = alloca(length.toULong()) ?: return
-            val packetListRef: CValuesRef<MIDIPacketList> = packetListPtr.reinterpret()
-            MIDIPacketListInit(packetListRef)
-            MIDIPacketListAdd(packetListRef, 1U, null, timestampInNanoseconds.toULong(), length.toULong(), pinned.addressOf(offset).reinterpret())
-            MIDISend(port, details.endpoint, packetListRef)
+            val eventListPtr = alloca(length.toULong()) ?: return
+            val eventListRef: CValuesRef<MIDIEventList> = eventListPtr.reinterpret()
+            MIDIEventListInit(eventListRef, protocol)
+            MIDIEventListAdd(eventListRef, 1U, null, timestampInNanoseconds.toULong(), length.toULong(), pinned.addressOf(offset).reinterpret())
+            MIDISendEventList(port, details.endpoint, eventListRef)
         }
     }
 
