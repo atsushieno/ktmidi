@@ -5,76 +5,18 @@ import platform.CoreMIDI.*
 import platform.posix.alloca
 
 // It is based on traditional CoreMIDI API. For MIDI 2.0 support, see UmpCoreMidiAccess.
-class TraditionalCoreMidiAccess : MidiAccess() {
+class TraditionalCoreMidiAccess : CoreMidiAccess() {
     override val name = "CoreMIDI-Traditional"
-    override val inputs: Iterable<MidiPortDetails>
-        get() = (0UL until MIDIGetNumberOfSources())
-            .map { MIDIGetSource(it) }.filter { it != 0u }.map { TraditionalCoreMidiPortDetails(it) }
-
-    override val outputs: Iterable<MidiPortDetails>
-        get() = (0UL until MIDIGetNumberOfDestinations())
-            .map { MIDIGetDestination(it) }.filter { it != 0u }.map { TraditionalCoreMidiPortDetails(it) }
 
     override suspend fun openInput(portId: String): MidiInput =
-        TraditionalCoreMidiInput(inputs.first { it.id == portId } as TraditionalCoreMidiPortDetails)
+        TraditionalCoreMidiInput(inputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun openOutput(portId: String): MidiOutput =
-        TraditionalCoreMidiOutput(outputs.first { it.id == portId } as TraditionalCoreMidiPortDetails)
-}
-
-
-private class TraditionalCoreMidiPortDetails(val endpoint: MIDIEndpointRef)
-    : MidiPortDetails {
-
-    @OptIn(ExperimentalForeignApi::class)
-    override val id: String
-        get() = getPropertyInt(endpoint, kMIDIPropertyUniqueID).toString()
-
-    @OptIn(ExperimentalForeignApi::class)
-    override val manufacturer
-        get() = getPropertyString(endpoint, kMIDIPropertyManufacturer)
-    @OptIn(ExperimentalForeignApi::class)
-    override val name
-        get() = getPropertyString(endpoint, kMIDIPropertyDisplayName) ?: getPropertyString(endpoint, kMIDIPropertyName) ?: "(unnamed port)"
-    @OptIn(ExperimentalForeignApi::class)
-    override val version
-        get() = getPropertyString(endpoint, kMIDIPropertyDriverVersion)
-    @OptIn(ExperimentalForeignApi::class)
-    override val midiTransportProtocol
-        get() = getPropertyInt(endpoint, kMIDIPropertyProtocolID)
-}
-
-private abstract class TraditionalCoreMidiPort(override val details: TraditionalCoreMidiPortDetails) : MidiPort {
-    abstract val clientRef: MIDIClientRef
-    abstract val portRef: MIDIPortRef
-
-    private var closed: Boolean = false
-
-    override val connectionState: MidiPortConnectionState
-        get() = if (closed) MidiPortConnectionState.OPEN else MidiPortConnectionState.CLOSED
-
-    override fun close() {
-        MIDIClientDispose(clientRef)
-        closed = true
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    protected val stableRef = StableRef.create(this)
-    @OptIn(ExperimentalForeignApi::class)
-    protected val notifyProc: MIDINotifyProc = staticCFunction(fun (message: CPointer<MIDINotification>?, refCon: COpaquePointer?) {
-        if (refCon == null)
-            return
-        val input = refCon.asStableRef<TraditionalCoreMidiPort>()
-        input.get().notify(message)
-    })
-    @OptIn(ExperimentalForeignApi::class)
-    private fun notify(message: CPointer<MIDINotification>?) {
-        // what to do here?
-    }
+        TraditionalCoreMidiOutput(outputs.first { it.id == portId } as CoreMidiPortDetails)
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class TraditionalCoreMidiInput(details: TraditionalCoreMidiPortDetails) : TraditionalCoreMidiPort(details), MidiInput {
+private class TraditionalCoreMidiInput(details: CoreMidiPortDetails) : CoreMidiPort(details), MidiInput {
     private var client: MIDIClientRef = 0U
     private var port: MIDIPortRef = 0U
     override val clientRef = client
@@ -126,7 +68,7 @@ private class TraditionalCoreMidiInput(details: TraditionalCoreMidiPortDetails) 
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class TraditionalCoreMidiOutput(details: TraditionalCoreMidiPortDetails) : TraditionalCoreMidiPort(details), MidiOutput {
+private class TraditionalCoreMidiOutput(details: CoreMidiPortDetails) : CoreMidiPort(details), MidiOutput {
     private var client: MIDIClientRef = 0U
     private var port: MIDIPortRef = 0U
     override val clientRef = client

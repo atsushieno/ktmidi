@@ -4,75 +4,18 @@ import kotlinx.cinterop.*
 import platform.CoreMIDI.*
 import platform.posix.alloca
 
-class UmpCoreMidiAccess : MidiAccess() {
+class UmpCoreMidiAccess : CoreMidiAccess() {
     override val name = "CoreMIDI-UMP"
-    override val inputs: Iterable<MidiPortDetails>
-        get() = (0UL until MIDIGetNumberOfSources())
-            .map { MIDIGetSource(it) }.filter { it != 0u }.map { UmpCoreMidiPortDetails(it) }
-
-    override val outputs: Iterable<MidiPortDetails>
-        get() = (0UL until MIDIGetNumberOfDestinations())
-            .map { MIDIGetDestination(it) }.filter { it != 0u }.map { UmpCoreMidiPortDetails(it) }
 
     override suspend fun openInput(portId: String): MidiInput =
-        UmpCoreMidiInput(inputs.first { it.id == portId } as UmpCoreMidiPortDetails)
+        UmpCoreMidiInput(inputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun openOutput(portId: String): MidiOutput =
-        UmpCoreMidiOutput(outputs.first { it.id == portId } as UmpCoreMidiPortDetails)
-}
-
-private class UmpCoreMidiPortDetails(val endpoint: MIDIEndpointRef)
-    : MidiPortDetails {
-
-    @OptIn(ExperimentalForeignApi::class)
-    override val id: String
-        get() = getPropertyInt(endpoint, kMIDIPropertyUniqueID).toString()
-
-    @OptIn(ExperimentalForeignApi::class)
-    override val manufacturer
-        get() = getPropertyString(endpoint, kMIDIPropertyManufacturer)
-    @OptIn(ExperimentalForeignApi::class)
-    override val name
-        get() = getPropertyString(endpoint, kMIDIPropertyDisplayName) ?: getPropertyString(endpoint, kMIDIPropertyName) ?: "(unnamed port)"
-    @OptIn(ExperimentalForeignApi::class)
-    override val version
-        get() = getPropertyString(endpoint, kMIDIPropertyDriverVersion)
-    @OptIn(ExperimentalForeignApi::class)
-    override val midiTransportProtocol
-        get() = getPropertyInt(endpoint, kMIDIPropertyProtocolID)
-}
-
-private abstract class UmpCoreMidiPort(override val details: UmpCoreMidiPortDetails) : MidiPort {
-    abstract val clientRef: MIDIClientRef
-    abstract val portRef: MIDIPortRef
-
-    private var closed: Boolean = false
-
-    override val connectionState: MidiPortConnectionState
-        get() = if (closed) MidiPortConnectionState.OPEN else MidiPortConnectionState.CLOSED
-
-    override fun close() {
-        MIDIClientDispose(clientRef)
-        closed = true
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    protected val stableRef = StableRef.create(this)
-    @OptIn(ExperimentalForeignApi::class)
-    protected val notifyProc: MIDINotifyProc = staticCFunction(fun (message: CPointer<MIDINotification>?, refCon: COpaquePointer?) {
-        if (refCon == null)
-            return
-        val input = refCon.asStableRef<UmpCoreMidiPort>()
-        input.get().notify(message)
-    })
-    @OptIn(ExperimentalForeignApi::class)
-    private fun notify(message: CPointer<MIDINotification>?) {
-        // what to do here?
-    }
+        UmpCoreMidiOutput(outputs.first { it.id == portId } as CoreMidiPortDetails)
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class UmpCoreMidiInput(details: UmpCoreMidiPortDetails) : UmpCoreMidiPort(details), MidiInput {
+private class UmpCoreMidiInput(details: CoreMidiPortDetails) : CoreMidiPort(details), MidiInput {
     private var client: MIDIClientRef = 0U
     private var port: MIDIPortRef = 0U
     override val clientRef = client
@@ -100,7 +43,7 @@ private class UmpCoreMidiInput(details: UmpCoreMidiPortDetails) : UmpCoreMidiPor
             (0 until eventList.numPackets.toInt()).forEach { _ ->
                 val event = packetPtr?.pointed ?: return@forEach
                 val data = event.words
-                val bytes = data.readBytes(event.wordCount.toInt())
+                val bytes = data.readBytes(event.wordCount.toInt() * 4)
                 listener.onEventReceived(bytes, 0, bytes.size, 0)
                 packetPtr = MIDIEventPacketNext(packetPtr)
             }
@@ -125,7 +68,7 @@ private class UmpCoreMidiInput(details: UmpCoreMidiPortDetails) : UmpCoreMidiPor
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class UmpCoreMidiOutput(details: UmpCoreMidiPortDetails) : UmpCoreMidiPort(details), MidiOutput {
+private class UmpCoreMidiOutput(details: CoreMidiPortDetails) : CoreMidiPort(details), MidiOutput {
     private var client: MIDIClientRef = 0U
     private var port: MIDIPortRef = 0U
     override val clientRef = client
