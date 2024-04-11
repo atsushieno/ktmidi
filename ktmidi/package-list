@@ -5,6 +5,54 @@ $dokka.location:/AddEventListenerOptions///PointingToDeclaration/ktmidi/[root]/
 $dokka.location:/DOMHighResTimeStamp///PointingToDeclaration/ktmidi/[root]/-d-o-m-high-res-time-stamp/index.html
 $dokka.location:/EventListenerObject///PointingToDeclaration/ktmidi/[root]/-event-listener-object/index.html
 $dokka.location:/EventListenerOptions///PointingToDeclaration/ktmidi/[root]/-event-listener-options/index.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice////PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/index.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/index.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock/FunctionBlock/#kotlin.Byte#kotlin.String#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Boolean#kotlin.Byte#kotlin.UByte/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/-function-block.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock/ciVersionFormat/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/ci-version-format.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock/direction/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/direction.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock/functionBlockIndex/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/function-block-index.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock/groupCount/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/group-count.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock/groupIndex/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/group-index.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock/isActive/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/is-active.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock/maxSysEx8Streams/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/max-sys-ex8-streams.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock/midi1/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/midi1.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock/name/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/name.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/FunctionBlock/uiHint/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-function-block/ui-hint.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpDeviceIdentity.Companion///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-device-identity/-companion/index.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpDeviceIdentity.Companion/empty/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-device-identity/-companion/empty.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpDeviceIdentity///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-device-identity/index.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpDeviceIdentity/UmpDeviceIdentity/#kotlin.Int#kotlin.Short#kotlin.Short#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-device-identity/-ump-device-identity.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpDeviceIdentity/family/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-device-identity/family.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpDeviceIdentity/manufacturer/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-device-identity/manufacturer.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpDeviceIdentity/modelNumber/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-device-identity/model-number.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpDeviceIdentity/softwareRevisionLevel/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-device-identity/software-revision-level.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/index.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint/UmpEndpoint/#dev.atsushieno.ktmidi.umpdevice.UmpEndpointConfiguration/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/-ump-endpoint.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint/autoSendFunctionBlockDiscovery/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/auto-send-function-block-discovery.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint/config/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/config.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint/errorHandlers/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/error-handlers.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint/messageReceived/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/message-received.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint/outputSenders/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/output-senders.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint/processInput/#kotlin.sequences.Sequence[dev.atsushieno.ktmidi.Ump]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/process-input.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint/sendDiscovery/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/send-discovery.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint/sendFunctionBlockDiscovery/#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/send-function-block-discovery.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint/sendOutput/#kotlin.sequences.Sequence[dev.atsushieno.ktmidi.Ump]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/send-output.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpoint/targetEndpoint/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint/target-endpoint.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration.UmpStreamConfiguration///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/-ump-stream-configuration/index.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration.UmpStreamConfiguration/UmpStreamConfiguration/#kotlin.Boolean#kotlin.Boolean#kotlin.Boolean#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/-ump-stream-configuration/-ump-stream-configuration.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration.UmpStreamConfiguration/rxJR/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/-ump-stream-configuration/rx-j-r.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration.UmpStreamConfiguration/supportsMidi1/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/-ump-stream-configuration/supports-midi1.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration.UmpStreamConfiguration/supportsMidi2/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/-ump-stream-configuration/supports-midi2.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration.UmpStreamConfiguration/txJR/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/-ump-stream-configuration/tx-j-r.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/index.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration/UmpEndpointConfiguration/#kotlin.String#kotlin.String#dev.atsushieno.ktmidi.umpdevice.UmpDeviceIdentity#dev.atsushieno.ktmidi.umpdevice.UmpEndpointConfiguration.UmpStreamConfiguration#kotlin.Boolean#kotlin.collections.MutableList[dev.atsushieno.ktmidi.umpdevice.FunctionBlock]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/-ump-endpoint-configuration.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration/addFunctionBlock/#kotlin.String#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Boolean#kotlin.Byte#kotlin.UByte/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/add-function-block.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration/deviceIdentity/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/device-identity.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration/functionBlocks/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/function-blocks.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration/isStaticFunctionBlock/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/is-static-function-block.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration/name/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/name.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration/productInstanceId/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/product-instance-id.html
+$dokka.location:dev.atsushieno.ktmidi.umpdevice/UmpEndpointConfiguration/streamConfiguration/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi.umpdevice/-ump-endpoint-configuration/stream-configuration.html
 $dokka.location:dev.atsushieno.ktmidi////PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/index.html
 $dokka.location:dev.atsushieno.ktmidi//JR_TIMESTAMP_TICKS_PER_SECOND/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-j-r_-t-i-m-e-s-t-a-m-p_-t-i-c-k-s_-p-e-r_-s-e-c-o-n-d.html
 $dokka.location:dev.atsushieno.ktmidi//MIDI_2_0_RESERVED/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-m-i-d-i_2_0_-r-e-s-e-r-v-e-d.html
@@ -54,6 +102,7 @@ $dokka.location:dev.atsushieno.ktmidi//functionBlockDirection/dev.atsushieno.ktm
 $dokka.location:dev.atsushieno.ktmidi//functionBlockDiscoveryFilter/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-discovery-filter.html
 $dokka.location:dev.atsushieno.ktmidi//functionBlockFirstGroup/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-first-group.html
 $dokka.location:dev.atsushieno.ktmidi//functionBlockGroupCount/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-group-count.html
+$dokka.location:dev.atsushieno.ktmidi//functionBlockIndex/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-index.html
 $dokka.location:dev.atsushieno.ktmidi//functionBlockMaxSysEx8/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-max-sys-ex8.html
 $dokka.location:dev.atsushieno.ktmidi//functionBlockMidi1Port/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-midi1-port.html
 $dokka.location:dev.atsushieno.ktmidi//functionBlockUiHint/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-ui-hint.html
@@ -135,7 +184,6 @@ $dokka.location:dev.atsushieno.ktmidi//read/dev.atsushieno.ktmidi.Midi1Music#kot
 $dokka.location:dev.atsushieno.ktmidi//read/dev.atsushieno.ktmidi.Midi2Music#kotlin.collections.List[kotlin.Byte]#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/read.html
 $dokka.location:dev.atsushieno.ktmidi//read/dev.atsushieno.ktmidi.Midi2Music#kotlin.collections.List[kotlin.Byte]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/read.html
 $dokka.location:dev.atsushieno.ktmidi//read/dev.atsushieno.ktmidi.MidiMusic#kotlin.collections.List[kotlin.Byte]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/read.html
-$dokka.location:dev.atsushieno.ktmidi//releaseString/[Error type: Unresolved type for CFStringRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/release-string.html
 $dokka.location:dev.atsushieno.ktmidi//reportMidiMessages/dev.atsushieno.ktmidi.Midi1Machine#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/report-midi-messages.html
 $dokka.location:dev.atsushieno.ktmidi//sizeInBytes/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/size-in-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//sizeInInts/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/size-in-ints.html
@@ -159,19 +207,13 @@ $dokka.location:dev.atsushieno.ktmidi//toCFStringRef/kotlin.String#/PointingToDe
 $dokka.location:dev.atsushieno.ktmidi//toCFTypeRef/[Error type: Unresolved type for NSObject]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-c-f-type-ref.html
 $dokka.location:dev.atsushieno.ktmidi//toInts/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-ints.html
 $dokka.location:dev.atsushieno.ktmidi//toNSObjectReleased/[Error type: Unresolved type for CFTypeRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-object-released.html
-$dokka.location:dev.atsushieno.ktmidi//toNSObjectRetained/[Error type: Unresolved type for CFTypeRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-object-retained.html
 $dokka.location:dev.atsushieno.ktmidi//toNSStringReleased/[Error type: Unresolved type for CFStringRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-string-released.html
-$dokka.location:dev.atsushieno.ktmidi//toNSStringRetained/[Error type: Unresolved type for CFStringRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-string-retained.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformBytes/dev.atsushieno.ktmidi.Ump#dev.atsushieno.ktmidi.ByteOrder/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformBytes/dev.atsushieno.ktmidi.Ump#kotlin.ByteArray#kotlin.Int#dev.atsushieno.ktmidi.ByteOrder/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformBytes/dev.atsushieno.ktmidi.Ump#kotlin.ByteArray#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformNativeBytes/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-native-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toUtf8ByteArray/kotlin.String#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-utf8-byte-array.html
 $dokka.location:dev.atsushieno.ktmidi//umpStreamFormat/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/ump-stream-format.html
-$dokka.location:dev.atsushieno.ktmidi//viaPtr/#kotlin.Function1[kotlinx.cinterop.CPointer[kotlinx.cinterop.CPointerVarOf[TypeParam(bounds=[kotlinx.cinterop.CPointer[*]])]],kotlin.Unit]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/via-ptr.html
-$dokka.location:dev.atsushieno.ktmidi//viaPtr/#kotlin.Function1[kotlinx.cinterop.CPointer[kotlinx.cinterop.IntVarOf[kotlin.Int]],kotlin.Unit]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/via-ptr.html
-$dokka.location:dev.atsushieno.ktmidi//viaPtr/#kotlin.Function1[kotlinx.cinterop.CPointer[kotlinx.cinterop.UIntVarOf[kotlin.UInt]],kotlin.Unit]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/via-ptr.html
-$dokka.location:dev.atsushieno.ktmidi//viaPtrVar/#kotlin.Function1[kotlinx.cinterop.CPointer[TypeParam(bounds=[kotlinx.cinterop.CVariable])],kotlin.Unit]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/via-ptr-var.html
 $dokka.location:dev.atsushieno.ktmidi//write/dev.atsushieno.ktmidi.Midi1Music#kotlin.collections.MutableList[kotlin.Byte]#kotlin.Function3[kotlin.Boolean,dev.atsushieno.ktmidi.Midi1Event,kotlin.collections.MutableList[kotlin.Byte],kotlin.Int]#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/write.html
 $dokka.location:dev.atsushieno.ktmidi//write/dev.atsushieno.ktmidi.Midi2Music#kotlin.collections.MutableList[kotlin.Byte]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/write.html
 $dokka.location:dev.atsushieno.ktmidi//write/dev.atsushieno.ktmidi.MidiMusic#kotlin.collections.MutableList[kotlin.Byte]#kotlin.Function3[kotlin.Boolean,dev.atsushieno.ktmidi.MidiMessage,kotlin.collections.MutableList[kotlin.Byte],kotlin.Int]#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/write.html
@@ -179,6 +221,7 @@ $dokka.location:dev.atsushieno.ktmidi/AndroidMidi2Access///PointingToDeclaration
 $dokka.location:dev.atsushieno.ktmidi/AndroidMidi2Access/AndroidMidi2Access/#android.content.Context#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi2-access/-android-midi2-access.html
 $dokka.location:dev.atsushieno.ktmidi/AndroidMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi-access/index.html
 $dokka.location:dev.atsushieno.ktmidi/AndroidMidiAccess/AndroidMidiAccess/#android.content.Context/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi-access/-android-midi-access.html
+$dokka.location:dev.atsushieno.ktmidi/AndroidMidiAccess/canDetectStateChanges/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi-access/can-detect-state-changes.html
 $dokka.location:dev.atsushieno.ktmidi/AndroidMidiAccess/inputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi-access/inputs.html
 $dokka.location:dev.atsushieno.ktmidi/AndroidMidiAccess/manager/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi-access/manager.html
 $dokka.location:dev.atsushieno.ktmidi/AndroidMidiAccess/name/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-android-midi-access/name.html
@@ -248,13 +291,16 @@ $dokka.location:dev.atsushieno.ktmidi/ChordTypeField/POWER/#/PointingToDeclarati
 $dokka.location:dev.atsushieno.ktmidi/ChordTypeField/SEVENTH_SUSPENDED_4TH/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-chord-type-field/-s-e-v-e-n-t-h_-s-u-s-p-e-n-d-e-d_4-t-h.html
 $dokka.location:dev.atsushieno.ktmidi/ChordTypeField/SUSPENDED_2ND/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-chord-type-field/-s-u-s-p-e-n-d-e-d_2-n-d.html
 $dokka.location:dev.atsushieno.ktmidi/ChordTypeField/SUSPENDED_4TH/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-chord-type-field/-s-u-s-p-e-n-d-e-d_4-t-h.html
+$dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess.Companion///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/-companion/index.html
+$dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess.Companion/create/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/-companion/create.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/index.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/CoreMidiAccess/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/-core-midi-access.html
+$dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/canCreateVirtualPort/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/can-create-virtual-port.html
+$dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/canDetectStateChanges/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/can-detect-state-changes.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/inputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/inputs.html
-$dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/name/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/name.html
-$dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/openInput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/open-input.html
-$dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/openOutput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/open-output.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/outputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/outputs.html
+$dokka.location:dev.atsushieno.ktmidi/CoreMidiException///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-exception/index.html
+$dokka.location:dev.atsushieno.ktmidi/CoreMidiException/CoreMidiException/#[Error type: Unresolved type for OSStatus]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-exception/-core-midi-exception.html
 $dokka.location:dev.atsushieno.ktmidi/Dc///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-dc/index.html
 $dokka.location:dev.atsushieno.ktmidi/Dc/Dc/#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-dc/-dc.html
 $dokka.location:dev.atsushieno.ktmidi/Dc/value/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-dc/value.html
@@ -299,6 +345,10 @@ $dokka.location:dev.atsushieno.ktmidi/FunctionBlockDirection///PointingToDeclara
 $dokka.location:dev.atsushieno.ktmidi/FunctionBlockDirection/BIDIRECTIONAL/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-function-block-direction/-b-i-d-i-r-e-c-t-i-o-n-a-l.html
 $dokka.location:dev.atsushieno.ktmidi/FunctionBlockDirection/INPUT/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-function-block-direction/-i-n-p-u-t.html
 $dokka.location:dev.atsushieno.ktmidi/FunctionBlockDirection/OUTPUT/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-function-block-direction/-o-u-t-p-u-t.html
+$dokka.location:dev.atsushieno.ktmidi/FunctionBlockDiscoveryFlags///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-function-block-discovery-flags/index.html
+$dokka.location:dev.atsushieno.ktmidi/FunctionBlockDiscoveryFlags/ALL/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-function-block-discovery-flags/-a-l-l.html
+$dokka.location:dev.atsushieno.ktmidi/FunctionBlockDiscoveryFlags/INFO/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-function-block-discovery-flags/-i-n-f-o.html
+$dokka.location:dev.atsushieno.ktmidi/FunctionBlockDiscoveryFlags/NAME/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-function-block-discovery-flags/-n-a-m-e.html
 $dokka.location:dev.atsushieno.ktmidi/FunctionBlockMidi1Bandwidth///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-function-block-midi1-bandwidth/index.html
 $dokka.location:dev.atsushieno.ktmidi/FunctionBlockMidi1Bandwidth/NOT_AVAILABLE/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-function-block-midi1-bandwidth/-n-o-t_-a-v-a-i-l-a-b-l-e.html
 $dokka.location:dev.atsushieno.ktmidi/FunctionBlockMidi1Bandwidth/NO_LIMITATION/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-function-block-midi1-bandwidth/-n-o_-l-i-m-i-t-a-t-i-o-n.html
@@ -936,6 +986,13 @@ $dokka.location:dev.atsushieno.ktmidi/Midi2TrackSplitter///PointingToDeclaration
 $dokka.location:dev.atsushieno.ktmidi/Midi2TrackSplitter/Midi2TrackSplitter/#kotlin.collections.MutableList[dev.atsushieno.ktmidi.Ump]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi2-track-splitter/-midi2-track-splitter.html
 $dokka.location:dev.atsushieno.ktmidi/Midi2TrackSplitter/getTrackId/#dev.atsushieno.ktmidi.Ump/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi2-track-splitter/get-track-id.html
 $dokka.location:dev.atsushieno.ktmidi/Midi2TrackSplitter/split/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi2-track-splitter/split.html
+$dokka.location:dev.atsushieno.ktmidi/MidiAccess.StateChange.Added///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}ktmidi/dev.atsushieno.ktmidi/-midi-access/-state-change/-added/index.html
+$dokka.location:dev.atsushieno.ktmidi/MidiAccess.StateChange.Other///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}ktmidi/dev.atsushieno.ktmidi/-midi-access/-state-change/-other/index.html
+$dokka.location:dev.atsushieno.ktmidi/MidiAccess.StateChange.Removed///PointingToDeclaration/{"org.jetbrains.dokka.links.EnumEntryDRIExtra":{"key":"org.jetbrains.dokka.links.EnumEntryDRIExtra"}}ktmidi/dev.atsushieno.ktmidi/-midi-access/-state-change/-removed/index.html
+$dokka.location:dev.atsushieno.ktmidi/MidiAccess.StateChange///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/-state-change/index.html
+$dokka.location:dev.atsushieno.ktmidi/MidiAccess.StateChange/entries/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/-state-change/entries.html
+$dokka.location:dev.atsushieno.ktmidi/MidiAccess.StateChange/valueOf/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/-state-change/value-of.html
+$dokka.location:dev.atsushieno.ktmidi/MidiAccess.StateChange/values/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/-state-change/values.html
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/index.html
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess/MidiAccess/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/-midi-access.html
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess/canCreateVirtualPort/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/can-create-virtual-port.html
@@ -1381,6 +1438,13 @@ $dokka.location:dev.atsushieno.ktmidi/TonicNoteField/F/#/PointingToDeclaration/
 $dokka.location:dev.atsushieno.ktmidi/TonicNoteField/G/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-tonic-note-field/-g.html
 $dokka.location:dev.atsushieno.ktmidi/TonicNoteField/NON_STANDARD/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-tonic-note-field/-n-o-n_-s-t-a-n-d-a-r-d.html
 $dokka.location:dev.atsushieno.ktmidi/TonicNoteField/UNKNOWN/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-tonic-note-field/-u-n-k-n-o-w-n.html
+$dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/index.html
+$dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/TraditionalCoreMidiAccess/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/-traditional-core-midi-access.html
+$dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/createVirtualInputSender/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/create-virtual-input-sender.html
+$dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/createVirtualOutputReceiver/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/create-virtual-output-receiver.html
+$dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/name/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/name.html
+$dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/openInput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/open-input.html
+$dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/openOutput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/open-output.html
 $dokka.location:dev.atsushieno.ktmidi/Ump.Companion///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump/-companion/index.html
 $dokka.location:dev.atsushieno.ktmidi/Ump.Companion/fromBytes/#kotlin.ByteArray#kotlin.Int#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump/-companion/from-bytes.html
 $dokka.location:dev.atsushieno.ktmidi/Ump///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump/index.html
@@ -1397,6 +1461,20 @@ $dokka.location:dev.atsushieno.ktmidi/UmpBinaryRetrieverFallback///PointingToDec
 $dokka.location:dev.atsushieno.ktmidi/UmpBinaryRetrieverFallback/entries/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-binary-retriever-fallback/entries.html
 $dokka.location:dev.atsushieno.ktmidi/UmpBinaryRetrieverFallback/valueOf/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-binary-retriever-fallback/value-of.html
 $dokka.location:dev.atsushieno.ktmidi/UmpBinaryRetrieverFallback/values/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-binary-retriever-fallback/values.html
+$dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/index.html
+$dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/UmpCoreMidiAccess/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/-ump-core-midi-access.html
+$dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/createVirtualInputSender/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/create-virtual-input-sender.html
+$dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/createVirtualOutputReceiver/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/create-virtual-output-receiver.html
+$dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/name/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/name.html
+$dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/openInput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/open-input.html
+$dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/openOutput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/open-output.html
+$dokka.location:dev.atsushieno.ktmidi/UmpDiscoveryFlags///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-discovery-flags/index.html
+$dokka.location:dev.atsushieno.ktmidi/UmpDiscoveryFlags/ALL/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-discovery-flags/-a-l-l.html
+$dokka.location:dev.atsushieno.ktmidi/UmpDiscoveryFlags/DEVICE_IDENTITY/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-discovery-flags/-d-e-v-i-c-e_-i-d-e-n-t-i-t-y.html
+$dokka.location:dev.atsushieno.ktmidi/UmpDiscoveryFlags/ENDPOINT_INFO/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-discovery-flags/-e-n-d-p-o-i-n-t_-i-n-f-o.html
+$dokka.location:dev.atsushieno.ktmidi/UmpDiscoveryFlags/ENDPOINT_NAME/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-discovery-flags/-e-n-d-p-o-i-n-t_-n-a-m-e.html
+$dokka.location:dev.atsushieno.ktmidi/UmpDiscoveryFlags/PRODUCT_INSTANCE_ID/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-discovery-flags/-p-r-o-d-u-c-t_-i-n-s-t-a-n-c-e_-i-d.html
+$dokka.location:dev.atsushieno.ktmidi/UmpDiscoveryFlags/STREAM_CONFIGURATION/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-discovery-flags/-s-t-r-e-a-m_-c-o-n-f-i-g-u-r-a-t-i-o-n.html
 $dokka.location:dev.atsushieno.ktmidi/UmpException///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-exception/index.html
 $dokka.location:dev.atsushieno.ktmidi/UmpException/UmpException/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-exception/-ump-exception.html
 $dokka.location:dev.atsushieno.ktmidi/UmpException/UmpException/#kotlin.String#kotlin.Exception/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-exception/-ump-exception.html
@@ -1418,7 +1496,7 @@ $dokka.location:dev.atsushieno.ktmidi/UmpFactory/flexDataText/#kotlin.Byte#kotli
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/fromPlatformBytes/#dev.atsushieno.ktmidi.ByteOrder#kotlin.collections.List[kotlin.Byte]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/from-platform-bytes.html
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/fromPlatformNativeBytes/#kotlin.collections.List[kotlin.Byte]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/from-platform-native-bytes.html
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/functionBlockDiscovery/#kotlin.Byte#kotlin.Byte/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/function-block-discovery.html
-$dokka.location:dev.atsushieno.ktmidi/UmpFactory/functionBlockInfoNotification/#kotlin.Boolean#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/function-block-info-notification.html
+$dokka.location:dev.atsushieno.ktmidi/UmpFactory/functionBlockInfoNotification/#kotlin.Boolean#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.UByte/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/function-block-info-notification.html
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/functionBlockNameNotification/#kotlin.Byte#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/function-block-name-notification.html
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/jrClock/#kotlin.Double/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/jr-clock.html
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/jrClock/#kotlin.Int#kotlin.Double/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/jr-clock.html
@@ -1478,8 +1556,8 @@ $dokka.location:dev.atsushieno.ktmidi/UmpFactory/performanceText/#kotlin.Byte#ko
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/performanceText/#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.Byte#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/performance-text.html
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/pitch7_9/#kotlin.Double/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/pitch7_9.html
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/pitch7_9Split/#kotlin.Byte#kotlin.Double/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/pitch7_9-split.html
-$dokka.location:dev.atsushieno.ktmidi/UmpFactory/productInstanceNotification/#kotlin.ByteArray/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/product-instance-notification.html
-$dokka.location:dev.atsushieno.ktmidi/UmpFactory/productInstanceNotification/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/product-instance-notification.html
+$dokka.location:dev.atsushieno.ktmidi/UmpFactory/productInstanceIdNotification/#kotlin.ByteArray/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/product-instance-id-notification.html
+$dokka.location:dev.atsushieno.ktmidi/UmpFactory/productInstanceIdNotification/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/product-instance-id-notification.html
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/startOfClip/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/start-of-clip.html
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/streamConfigNotification/#kotlin.Byte#kotlin.Boolean#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/stream-config-notification.html
 $dokka.location:dev.atsushieno.ktmidi/UmpFactory/streamConfigRequest/#kotlin.Byte#kotlin.Boolean#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-factory/stream-config-request.html
@@ -1560,4 +1638,5 @@ $dokka.location:dev.atsushieno.ktmidi/WellKnownNames///PointingToDeclaration/kt
 $dokka.location:dev.atsushieno.ktmidi/WellKnownNames/ccFullNames/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-well-known-names/cc-full-names.html
 $dokka.location:dev.atsushieno.ktmidi/WellKnownNames/ccNames/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-well-known-names/cc-names.html
 dev.atsushieno.ktmidi
+dev.atsushieno.ktmidi.umpdevice
 
