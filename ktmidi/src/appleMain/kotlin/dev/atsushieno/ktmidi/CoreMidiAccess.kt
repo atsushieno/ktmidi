@@ -33,6 +33,11 @@ abstract class CoreMidiAccess : MidiAccess() {
     override val outputs: Iterable<MidiPortDetails>
         get() = (0UL until MIDIGetNumberOfDestinations())
             .map { MIDIGetDestination(it) }.filter { it != 0u }.map { CoreMidiPortDetails(it) }
+
+    override val canDetectStateChanges: Boolean = true
+
+    internal fun notifyChange(change: StateChange, port: CoreMidiPortDetails) = stateChanged(change, port)
+
 }
 
 internal class CoreMidiPortDetails(val endpoint: MIDIEndpointRef)
@@ -64,14 +69,30 @@ internal interface ListenerHolder {
 
 // MIDIClientRef setup
 @OptIn(ExperimentalStdlibApi::class, ExperimentalForeignApi::class)
-internal class ClientHolder : AutoCloseable {
+internal class ClientHolder(access: CoreMidiAccess) : AutoCloseable {
     val clientRef: MIDIClientRef = memScoped {
         val clientName = "KTMidiClient"
         val client = alloc<MIDIClientRefVar>()
         val notifyBlock: MIDINotifyBlock = { message: CPointer<MIDINotification>? ->
-            println("!!! NOTIFY: ${message?.pointed?.messageID}")
             if (message != null) {
+                val notification = message.pointed
                 // what to do here?
+                when (notification.messageID) {
+                    kMIDIMsgObjectAdded -> {
+                        val evt = notification.reinterpret<MIDIObjectAddRemoveNotification>()
+                        when (evt.childType) {
+                            kMIDIObjectType_Source, kMIDIObjectType_Destination ->
+                                access.notifyChange(MidiAccess.StateChange.Added, CoreMidiPortDetails(evt.child))
+                        }
+                    }
+                    kMIDIMsgObjectRemoved -> {
+                        val evt = notification.reinterpret<MIDIObjectAddRemoveNotification>()
+                        when (evt.childType) {
+                            kMIDIObjectType_Source, kMIDIObjectType_Destination ->
+                                access.notifyChange(MidiAccess.StateChange.Removed, CoreMidiPortDetails(evt.child))
+                        }
+                    }
+                }
             }
         }
         checkStatus { MIDIClientCreateWithBlock(clientName.toCFStringRef(), client.ptr, notifyBlock) }

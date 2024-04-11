@@ -4,7 +4,9 @@ import android.app.Service
 import android.media.midi.*
 import android.content.Context
 import android.os.Build
+import android.os.Handler
 import kotlinx.coroutines.delay
+import java.util.concurrent.Executor
 
 class AndroidMidi2Access(applicationContext: Context, private val includeMidi1Transport: Boolean = false) : AndroidMidiAccess(applicationContext) {
     override val ports : List<MidiPortDetails>
@@ -12,8 +14,9 @@ class AndroidMidi2Access(applicationContext: Context, private val includeMidi1Tr
             (if (includeMidi1Transport) ports1 else listOf())
                 .flatMap { d -> d.ports.map { port -> Pair(d, port) } }
                 .map { pair -> AndroidPortDetails(pair.first, pair.second, 1) } +
-                    ports2.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
-                        .map { pair -> AndroidPortDetails(pair.first, pair.second, 2) }
+            ports2
+                .flatMap { d -> d.ports.map { port -> Pair(d, port) } }
+                .map { pair -> AndroidPortDetails(pair.first, pair.second, 2) }
     private val ports2: List<MidiDeviceInfo>
         get() =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
@@ -25,7 +28,25 @@ open class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
     override val name: String
         get() = "AndroidSDK"
 
-    val manager: MidiManager = applicationContext.getSystemService(Service.MIDI_SERVICE) as MidiManager
+    private val deviceCallback = object:
+        MidiManager.DeviceCallback() {
+        override fun onDeviceAdded(device: MidiDeviceInfo?) {
+            device?.ports?.forEach { stateChanged(StateChange.Added, AndroidPortDetails(device, it, MidiTransportProtocol.UMP)) }
+        }
+
+        override fun onDeviceRemoved(device: MidiDeviceInfo?) {
+            device?.ports?.forEach { stateChanged(StateChange.Removed, AndroidPortDetails(device, it, MidiTransportProtocol.UMP)) }
+            super.onDeviceRemoved(device)
+        }
+    }
+
+    val manager: MidiManager = (applicationContext.getSystemService(Service.MIDI_SERVICE) as MidiManager).apply {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            registerDeviceCallback(MidiManager.TRANSPORT_UNIVERSAL_MIDI_PACKETS, { it.run() }, deviceCallback)
+        else
+            registerDeviceCallback(deviceCallback, null)
+    }
+
     protected open val ports : List<MidiPortDetails>
         get() = ports1.flatMap { d -> d.ports.map { port -> Pair(d, port) } }
             .map { pair -> AndroidPortDetails(pair.first, pair.second, 1) }

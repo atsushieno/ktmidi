@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 
 expect fun getMidiAccessApi(api: String?, midiTransportProtocol: Int): MidiAccess
 expect fun exitApplication(code: Int)
+expect fun runLoop(body: ()->Unit)
 
 data class CommandLineOptions(val api: String? = null, val port: String? = null, val musicFile: String? = null, val midi2: Boolean = false, val ump: Boolean = false)
 
@@ -40,14 +41,20 @@ fun runMain(args: Array<String>) {
         return
     }
 
+    access.stateChanged = { state, port ->
+        println("Device State Changed: $state $port")
+    }
+
     println("Using ${portDetails.name}")
 
     val midiInput = runBlocking { access.openInput(portDetails.id) }
     midiInput.setMessageReceivedListener(InputTester())
 
-    println("Type something[CR] to quit.")
-    readln()
-    println("done.")
+    runLoop {
+        println("Type something[CR] to quit.")
+        readln()
+        println("done.")
+    }
 }
 
 class InputTester : OnMidiReceivedEventListener {

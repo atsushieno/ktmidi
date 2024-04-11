@@ -4,3 +4,5 @@ import dev.atsushieno.ktmidi.MidiAccess
 import dev.atsushieno.ktmidi.RtMidiNativeAccess
 
 actual fun getNativeMidiAccessApi(midiTransportProtocol: Int): MidiAccess = RtMidiNativeAccess()
+
+actual fun runLoop(body: ()->Unit) = body()

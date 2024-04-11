@@ -8,23 +8,23 @@ class UmpCoreMidiAccess : CoreMidiAccess() {
     override val name = "CoreMIDI-UMP"
 
     override suspend fun openInput(portId: String): MidiInput =
-        UmpCoreMidiInput(ClientHolder(), null, inputs.first { it.id == portId } as CoreMidiPortDetails)
+        UmpCoreMidiInput(ClientHolder(this), null, inputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun openOutput(portId: String): MidiOutput =
-        UmpCoreMidiOutput(ClientHolder(), outputs.first { it.id == portId } as CoreMidiPortDetails)
+        UmpCoreMidiOutput(ClientHolder(this), outputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput {
-        val holder = ClientHolder()
+        val holder = ClientHolder(this)
         val endpoint = createVirtualInputSource(holder.clientRef, context)
         return UmpCoreMidiOutput(holder, CoreMidiPortDetails(endpoint))
     }
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput {
-        val holder = ClientHolder()
+        val holder = ClientHolder(this)
         val receiveBlockHolder = ReceiveBlockHolder(null)
         val endpoint = createVirtualOutputDestination(holder.clientRef, receiveBlockHolder.receiveBlock, context)
-        val input = UmpCoreMidiInput(ClientHolder(), receiveBlockHolder, CoreMidiPortDetails(endpoint))
+        val input = UmpCoreMidiInput(ClientHolder(this), receiveBlockHolder, CoreMidiPortDetails(endpoint))
         receiveBlockHolder.input = input
         return input
     }

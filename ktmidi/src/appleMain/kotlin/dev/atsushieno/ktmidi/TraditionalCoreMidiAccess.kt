@@ -9,20 +9,20 @@ class TraditionalCoreMidiAccess : CoreMidiAccess() {
     override val name = "CoreMIDI-Traditional"
 
     override suspend fun openInput(portId: String): MidiInput =
-        TraditionalCoreMidiInput(ClientHolder(), null, inputs.first { it.id == portId } as CoreMidiPortDetails)
+        TraditionalCoreMidiInput(ClientHolder(this), null, inputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun openOutput(portId: String): MidiOutput =
-        TraditionalCoreMidiOutput(ClientHolder(), outputs.first { it.id == portId } as CoreMidiPortDetails)
+        TraditionalCoreMidiOutput(ClientHolder(this), outputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput {
-        val holder = ClientHolder()
+        val holder = ClientHolder(this)
         val endpoint = createVirtualInputSource(holder.clientRef, context)
         return TraditionalCoreMidiOutput(holder, CoreMidiPortDetails(endpoint))
     }
 
     @OptIn(ExperimentalForeignApi::class)
     override suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput {
-        val holder = ClientHolder()
+        val holder = ClientHolder(this)
         val readProcHolder = ReadProcHolder(null)
         val endpoint = createVirtualOutputDestination(holder.clientRef,
             readProcHolder.readProc,

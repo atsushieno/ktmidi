@@ -15,3 +15,5 @@ actual fun getMidiAccessApi(api: String?, midiTransportProtocol: Int) = when (ap
 }
 
 actual fun exitApplication(code: Int): Unit = exitProcess(code)
+
+actual fun runLoop(body: ()->Unit) = body()

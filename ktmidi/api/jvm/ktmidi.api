@@ -995,11 +995,20 @@ public abstract class dev/atsushieno/ktmidi/MidiAccess {
 	public abstract fun getInputs ()Ljava/lang/Iterable;
 	public abstract fun getName ()Ljava/lang/String;
 	public abstract fun getOutputs ()Ljava/lang/Iterable;
-	public final fun getStateChanged ()Lkotlin/jvm/functions/Function1;
+	public final fun getStateChanged ()Lkotlin/jvm/functions/Function2;
 	public fun getSupportsUmpTransport ()Z
 	public abstract fun openInput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun openOutput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
-	public final fun setStateChanged (Lkotlin/jvm/functions/Function1;)V
+	public final fun setStateChanged (Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class dev/atsushieno/ktmidi/MidiAccess$StateChange : java/lang/Enum {
+	public static final field Added Ldev/atsushieno/ktmidi/MidiAccess$StateChange;
+	public static final field Other Ldev/atsushieno/ktmidi/MidiAccess$StateChange;
+	public static final field Removed Ldev/atsushieno/ktmidi/MidiAccess$StateChange;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/MidiAccess$StateChange;
+	public static fun values ()[Ldev/atsushieno/ktmidi/MidiAccess$StateChange;
 }
 
 public final class dev/atsushieno/ktmidi/MidiAccessKt {

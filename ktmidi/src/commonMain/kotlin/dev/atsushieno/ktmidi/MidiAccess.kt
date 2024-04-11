@@ -14,8 +14,16 @@ abstract class MidiAccess {
     abstract suspend fun openInput(portId: String): MidiInput
     abstract suspend fun openOutput(portId: String): MidiOutput
 
+    enum class StateChange {
+        Added,
+        Removed,
+        Other
+    }
+
+    // Who can actually detect the changes? Web MIDI API on Chromium surprisingly does,
+    // while none of rtmidi, javax.sound.midi, JUCE can...
     open val canDetectStateChanges = false
-    var stateChanged : (MidiPortDetails) -> Unit = {}
+    var stateChanged : (StateChange, MidiPortDetails) -> Unit = { _, _ -> }
 
     open val canCreateVirtualPort = false
 
