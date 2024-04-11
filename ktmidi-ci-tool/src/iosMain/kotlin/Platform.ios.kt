@@ -1,15 +1,26 @@
 import androidx.compose.runtime.Composable
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
+import kotlinx.cinterop.*
+import platform.Foundation.NSData
+import platform.Foundation.NSFileManager
+import platform.Foundation.create
 import platform.UIKit.UIDevice
 
 class IOSPlatform: Platform {
     override val name: String = UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
     override val canReadLocalFile = false
-    override fun loadFileContent(path: String): ByteArray =
-        throw IllegalStateException("FIXME: implement")
+    @OptIn(ExperimentalForeignApi::class)
+    override fun loadFileContent(path: String): ByteArray {
+        val data = NSFileManager.defaultManager.contentsAtPath(path)
+        return data?.bytes?.readBytes(data.length.toInt()) ?: byteArrayOf()
+    }
 
+    @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
     override fun saveFileContent(path: String, bytes: ByteArray) {
-        throw IllegalStateException("FIXME: implement")
+        TODO("FIXME: implement")
+        /*bytes.usePinned {
+            NSFileManager.defaultManager.createFileAtPath(path, NSData(), null)
+        }*/
     }
 
     @Composable

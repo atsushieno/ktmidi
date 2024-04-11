@@ -9,33 +9,46 @@ class TraditionalCoreMidiAccess : CoreMidiAccess() {
     override val name = "CoreMIDI-Traditional"
 
     override suspend fun openInput(portId: String): MidiInput =
-        TraditionalCoreMidiInput(inputs.first { it.id == portId } as CoreMidiPortDetails)
+        TraditionalCoreMidiInput(ClientHolder(), null, inputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun openOutput(portId: String): MidiOutput =
-        TraditionalCoreMidiOutput(outputs.first { it.id == portId } as CoreMidiPortDetails)
-}
+        TraditionalCoreMidiOutput(ClientHolder(), outputs.first { it.id == portId } as CoreMidiPortDetails)
 
-@OptIn(ExperimentalForeignApi::class)
-private class TraditionalCoreMidiInput(details: CoreMidiPortDetails) : CoreMidiPort(details), MidiInput {
-    private var client: MIDIClientRef = 0U
-    private var port: MIDIPortRef = 0U
-    override val clientRef = client
-    override val portRef = port
-    private var listener: OnMidiReceivedEventListener? = null
-
-    override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
-        this.listener = listener
+    override suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput {
+        val holder = ClientHolder()
+        val endpoint = createVirtualInputSource(holder.clientRef, context)
+        return TraditionalCoreMidiOutput(holder, CoreMidiPortDetails(endpoint))
     }
 
-    private val readProc: MIDIReadProc = staticCFunction(fun (pktlistPtr: CPointer<MIDIPacketList>?, readProcRefCon: COpaquePointer?, srcConnRefCon: COpaquePointer?) {
+    @OptIn(ExperimentalForeignApi::class)
+    override suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput {
+        val holder = ClientHolder()
+        val readProcHolder = ReadProcHolder(null)
+        val endpoint = createVirtualOutputDestination(holder.clientRef,
+            readProcHolder.readProc,
+            readProcHolder.stableRef.asCPointer(),
+            context)
+        val input = TraditionalCoreMidiInput(holder, readProcHolder, CoreMidiPortDetails(endpoint))
+        readProcHolder.input = input
+        return input
+    }
+}
+
+private class ReadProcHolder(var input: TraditionalCoreMidiInput?) {
+    @OptIn(ExperimentalForeignApi::class)
+    val stableRef by lazy { StableRef.create(this) }
+
+    @OptIn(ExperimentalForeignApi::class)
+    val readProc: MIDIReadProc = staticCFunction(fun (pktlistPtr: CPointer<MIDIPacketList>?, readProcRefCon: COpaquePointer?, srcConnRefCon: COpaquePointer?) {
         if (readProcRefCon == null)
             return
-        val input = readProcRefCon.asStableRef<TraditionalCoreMidiInput>()
+        val input = readProcRefCon.asStableRef<ReadProcHolder>()
         input.get().readInput(pktlistPtr)
     })
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun readInput(pktlistPtr: CPointer<MIDIPacketList>?) {
-        val listener = this.listener
+        val listener = input?.listener
         if (pktlistPtr == null || listener == null)
             return
         memScoped {
@@ -50,29 +63,61 @@ private class TraditionalCoreMidiInput(details: CoreMidiPortDetails) : CoreMidiP
             }
         }
     }
+}
 
-    val clientName = "KTMidiInputClient"
-    val portName = "KTMidiInputPort"
+@OptIn(ExperimentalForeignApi::class)
+private fun createVirtualInputSource(clientRef: MIDIClientRef, context: PortCreatorContext): MIDIEndpointRef = memScoped {
+    val endpoint = alloc<MIDIEndpointRefVar>()
+    checkStatus { MIDISourceCreate(clientRef, context.applicationName.toCFStringRef(), endpoint.ptr) }
+    checkStatus { MIDIObjectSetStringProperty(endpoint.value, kMIDIPropertyManufacturer, context.manufacturer.toCFStringRef()) }
+    checkStatus { MIDIObjectSetStringProperty(endpoint.value, kMIDIPropertyDriverVersion, context.version.toCFStringRef()) }
+    endpoint.value
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun createVirtualOutputDestination(clientRef: MIDIClientRef, readProc: MIDIReadProc?, refCon: COpaquePointer?, context: PortCreatorContext): MIDIEndpointRef = memScoped {
+    val endpoint = alloc<MIDIEndpointRefVar>()
+    checkStatus { MIDIDestinationCreate(clientRef, context.applicationName.toCFStringRef(), readProc, refCon, endpoint.ptr) }
+    checkStatus { MIDIObjectSetStringProperty(endpoint.value, kMIDIPropertyManufacturer, context.manufacturer.toCFStringRef()) }
+    checkStatus { MIDIObjectSetStringProperty(endpoint.value, kMIDIPropertyDriverVersion, context.version.toCFStringRef()) }
+    endpoint.value
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private open class TraditionalCoreMidiInput(holder: ClientHolder, customReadProcHolder: ReadProcHolder?, private val coreMidiPortDetails: CoreMidiPortDetails)
+    : CoreMidiPort(holder, coreMidiPortDetails), MidiInput, ListenerHolder {
+
+    override var listener: OnMidiReceivedEventListener? = null
+
+    override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
+        this.listener = listener
+    }
+
+    private val readProcHolder by lazy { customReadProcHolder ?: ReadProcHolder(this) }
 
     init {
         memScoped {
-            val clientP = alloc<MIDIClientRefVar>()
-            checkStatus { MIDIClientCreate(clientName.toCFStringRef(), notifyProc, stableRef.asCPointer(), clientP.ptr) }
-            client = clientP.value
-            val portP = alloc<MIDIPortRefVar>()
-            checkStatus { MIDIInputPortCreate(client, portName.toCFStringRef(), readProc, stableRef.asCPointer(), portP.ptr) }
-            port = portP.value
-            checkStatus { MIDIPortConnectSource(port, details.endpoint, stableRef.asCPointer()) }
+            val portName = "KTMidiInputPort"
+            val port = alloc<MIDIPortRefVar>()
+            checkStatus { MIDIInputPortCreate(clientRef, portName.toCFStringRef(), readProcHolder.readProc, readProcHolder.stableRef.asCPointer(), port.ptr) }
+            checkStatus { MIDIPortConnectSource(port.value, coreMidiPortDetails.endpoint, stableRef.asCPointer()) }
+            port.value
         }
     }
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class TraditionalCoreMidiOutput(details: CoreMidiPortDetails) : CoreMidiPort(details), MidiOutput {
-    private var client: MIDIClientRef = 0U
-    private var port: MIDIPortRef = 0U
-    override val clientRef = client
-    override val portRef = port
+private open class TraditionalCoreMidiOutput(holder: ClientHolder, private val coreMidiPortDetails: CoreMidiPortDetails)
+    : CoreMidiPort(holder, coreMidiPortDetails), MidiOutput
+{
+    private val portRef by lazy {
+        memScoped {
+            val portName = "KTMidiOutputPort"
+            val port = alloc<MIDIPortRefVar>()
+            checkStatus { MIDIOutputPortCreate(clientRef, portName.toCFStringRef(), port.ptr) }
+            port.value
+        }
+    }
 
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
         mevent.usePinned { pinned ->
@@ -80,18 +125,7 @@ private class TraditionalCoreMidiOutput(details: CoreMidiPortDetails) : CoreMidi
             val packetListRef: CValuesRef<MIDIPacketList> = packetListPtr.reinterpret()
             MIDIPacketListInit(packetListRef)
             MIDIPacketListAdd(packetListRef, 1U, null, timestampInNanoseconds.toULong(), length.toULong(), pinned.addressOf(offset).reinterpret())
-            MIDISend(port, details.endpoint, packetListRef)
-        }
-    }
-
-    init {
-        memScoped {
-            val clientName = "KTMidiOutputClient"
-            val client = alloc<MIDIClientRefVar>()
-            checkStatus { MIDIClientCreate(clientName.toCFStringRef(), notifyProc, stableRef.asCPointer(), client.ptr) }
-            val portName = "KTMidiOutputPort"
-            val port = alloc<MIDIPortRefVar>()
-            checkStatus { MIDIOutputPortCreate(client.value, portName.toCFStringRef(), port.ptr) }
+            MIDISend(portRef, coreMidiPortDetails.endpoint, packetListRef)
         }
     }
 }

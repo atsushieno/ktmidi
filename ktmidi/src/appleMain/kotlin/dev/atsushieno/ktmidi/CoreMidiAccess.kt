@@ -2,9 +2,9 @@ package dev.atsushieno.ktmidi
 
 import kotlinx.cinterop.*
 import platform.CoreMIDI.*
-import platform.Foundation.NSOperatingSystemVersion
 import platform.Foundation.NSProcessInfo
 
+@OptIn(ExperimentalForeignApi::class, ExperimentalStdlibApi::class)
 abstract class CoreMidiAccess : MidiAccess() {
     companion object {
         @OptIn(ExperimentalForeignApi::class)
@@ -16,13 +16,15 @@ abstract class CoreMidiAccess : MidiAccess() {
                 // FIXME: How can I detect if I am on macOS or iOS in general??
                 if (false) // isiOS
                     majorVersion >= 17
-               else
+                else
                     majorVersion >= 14
             })
                 UmpCoreMidiAccess()
             else
                 TraditionalCoreMidiAccess()
     }
+
+    override val canCreateVirtualPort: Boolean = true
 
     override val inputs: Iterable<MidiPortDetails>
         get() = (0UL until MIDIGetNumberOfSources())
@@ -45,7 +47,9 @@ internal class CoreMidiPortDetails(val endpoint: MIDIEndpointRef)
         get() = getPropertyString(endpoint, kMIDIPropertyManufacturer)
     @OptIn(ExperimentalForeignApi::class)
     override val name
-        get() = getPropertyString(endpoint, kMIDIPropertyDisplayName) ?: getPropertyString(endpoint, kMIDIPropertyName) ?: "(unnamed port)"
+        get() = getPropertyString(endpoint, kMIDIPropertyDisplayName)
+            ?: getPropertyString(endpoint, kMIDIPropertyName)
+            ?: "(unnamed port)"
     @OptIn(ExperimentalForeignApi::class)
     override val version
         get() = getPropertyString(endpoint, kMIDIPropertyDriverVersion)
@@ -54,9 +58,54 @@ internal class CoreMidiPortDetails(val endpoint: MIDIEndpointRef)
         get() = getPropertyInt(endpoint, kMIDIPropertyProtocolID)
 }
 
-internal abstract class CoreMidiPort(override val details: CoreMidiPortDetails) : MidiPort {
-    abstract val clientRef: MIDIClientRef
-    abstract val portRef: MIDIPortRef
+internal interface ListenerHolder {
+    val listener: OnMidiReceivedEventListener?
+}
+
+// MIDIClientRef setup
+@OptIn(ExperimentalStdlibApi::class, ExperimentalForeignApi::class)
+internal class ClientHolder : AutoCloseable {
+    val clientRef: MIDIClientRef
+
+    override fun close() {
+        MIDIClientDispose(clientRef)
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private val stableRef by lazy { StableRef.create(this) }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private val notifyProc: MIDINotifyProc = staticCFunction(fun(message: CPointer<MIDINotification>?, refCon: COpaquePointer?) {
+        if (refCon == null)
+            return
+        val input = refCon.asStableRef<ClientHolder>()
+        input.get().notify(message)
+    })
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun notify(message: CPointer<MIDINotification>?) {
+        // what to do here?
+    }
+
+    init {
+        clientRef = memScoped {
+            val clientName = "KTMidiClient"
+            val client = alloc<MIDIClientRefVar>()
+            checkStatus { MIDIClientCreate(clientName.toCFStringRef(), notifyProc, stableRef.asCPointer(), client.ptr) }
+            client.value
+        }
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal abstract class CoreMidiPort(
+    private val holder: ClientHolder,
+    private val coreMidiPortDetails: CoreMidiPortDetails
+) : MidiPort {
+    override val details: MidiPortDetails
+        get() = coreMidiPortDetails
+
+    val clientRef: MIDIClientRef by lazy { holder.clientRef }
 
     private var closed: Boolean = false
 
@@ -64,21 +113,9 @@ internal abstract class CoreMidiPort(override val details: CoreMidiPortDetails) 
         get() = if (closed) MidiPortConnectionState.OPEN else MidiPortConnectionState.CLOSED
 
     override fun close() {
-        MIDIClientDispose(clientRef)
         closed = true
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    protected val stableRef = StableRef.create(this)
-    @OptIn(ExperimentalForeignApi::class)
-    protected val notifyProc: MIDINotifyProc = staticCFunction(fun (message: CPointer<MIDINotification>?, refCon: COpaquePointer?) {
-        if (refCon == null)
-            return
-        val input = refCon.asStableRef<CoreMidiPort>()
-        input.get().notify(message)
-    })
-    @OptIn(ExperimentalForeignApi::class)
-    private fun notify(message: CPointer<MIDINotification>?) {
-        // what to do here?
-    }
+    protected val stableRef by lazy { StableRef.create(this) }
 }

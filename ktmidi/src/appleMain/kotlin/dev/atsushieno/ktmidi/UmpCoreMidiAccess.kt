@@ -8,33 +8,60 @@ class UmpCoreMidiAccess : CoreMidiAccess() {
     override val name = "CoreMIDI-UMP"
 
     override suspend fun openInput(portId: String): MidiInput =
-        UmpCoreMidiInput(inputs.first { it.id == portId } as CoreMidiPortDetails)
+        UmpCoreMidiInput(ClientHolder(), null, inputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun openOutput(portId: String): MidiOutput =
-        UmpCoreMidiOutput(outputs.first { it.id == portId } as CoreMidiPortDetails)
+        UmpCoreMidiOutput(ClientHolder(), outputs.first { it.id == portId } as CoreMidiPortDetails)
+
+    override suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput {
+        val holder = ClientHolder()
+        val endpoint = createVirtualInputSource(holder.clientRef, context)
+        return UmpCoreMidiOutput(holder, CoreMidiPortDetails(endpoint))
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    override suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput {
+        val holder = ClientHolder()
+        val receiveBlockHolder = ReceiveBlockHolder(null)
+        val endpoint = createVirtualOutputDestination(holder.clientRef, receiveBlockHolder.receiveBlock, context)
+        val input = UmpCoreMidiInput(ClientHolder(), receiveBlockHolder, CoreMidiPortDetails(endpoint))
+        receiveBlockHolder.input = input
+        return input
+    }
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class UmpCoreMidiInput(details: CoreMidiPortDetails) : CoreMidiPort(details), MidiInput {
-    private var client: MIDIClientRef = 0U
-    private var port: MIDIPortRef = 0U
-    override val clientRef = client
-    override val portRef = port
-    private var listener: OnMidiReceivedEventListener? = null
+private fun createVirtualInputSource(clientRef: MIDIClientRef, context: PortCreatorContext): MIDIEndpointRef = memScoped {
+    val endpoint = alloc<MIDIEndpointRefVar>()
+    val protocol = if (context.midiProtocol == MidiTransportProtocol.UMP) kMIDIProtocol_2_0 else kMIDIProtocol_1_0
+    checkStatus { MIDISourceCreateWithProtocol(clientRef, context.applicationName.toCFStringRef(), protocol, endpoint.ptr) }
+    checkStatus { MIDIObjectSetStringProperty(endpoint.value, kMIDIPropertyManufacturer, context.manufacturer.toCFStringRef()) }
+    checkStatus { MIDIObjectSetStringProperty(endpoint.value, kMIDIPropertyDriverVersion, context.version.toCFStringRef()) }
+    endpoint.value
+}
 
-    override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
-        this.listener = listener
-    }
+@OptIn(ExperimentalForeignApi::class)
+private fun createVirtualOutputDestination(clientRef: MIDIClientRef, receiveBlock: MIDIReceiveBlock, context: PortCreatorContext): MIDIEndpointRef = memScoped {
+    val endpoint = alloc<MIDIEndpointRefVar>()
+    val protocol = if (context.midiProtocol == MidiTransportProtocol.UMP) kMIDIProtocol_2_0 else kMIDIProtocol_1_0
+    checkStatus { MIDIDestinationCreateWithProtocol(clientRef, context.applicationName.toCFStringRef(), protocol, endpoint.ptr, receiveBlock) }
+    checkStatus { MIDIObjectSetStringProperty(endpoint.value, kMIDIPropertyManufacturer, context.manufacturer.toCFStringRef()) }
+    checkStatus { MIDIObjectSetStringProperty(endpoint.value, kMIDIPropertyDriverVersion, context.version.toCFStringRef()) }
+    endpoint.value
+}
 
-    private val receiveBlock: MIDIReceiveBlock = { eventListPtr: CPointer<MIDIEventList>?, receiveBlockRefCon: COpaquePointer? ->
+private class ReceiveBlockHolder(var input: UmpCoreMidiInput?) {
+    @OptIn(ExperimentalForeignApi::class)
+    val receiveBlock: MIDIReceiveBlock = { eventListPtr: CPointer<MIDIEventList>?, receiveBlockRefCon: COpaquePointer? ->
         if (receiveBlockRefCon != null) {
-            val input = receiveBlockRefCon.asStableRef<UmpCoreMidiInput>()
+            val input = receiveBlockRefCon.asStableRef<ReceiveBlockHolder>()
             input.get().receiveInput(eventListPtr)
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun receiveInput(eventListPtr: CPointer<MIDIEventList>?) {
-        val listener = this.listener
+        val listener = input?.listener
         if (eventListPtr == null || listener == null)
             return
         memScoped {
@@ -49,30 +76,45 @@ private class UmpCoreMidiInput(details: CoreMidiPortDetails) : CoreMidiPort(deta
             }
         }
     }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private class UmpCoreMidiInput(holder: ClientHolder, customReceiveBlockHolder: ReceiveBlockHolder?, coreMidiPortDetails: CoreMidiPortDetails)
+    : CoreMidiPort(holder, coreMidiPortDetails), MidiInput, ListenerHolder
+{
+    override var listener: OnMidiReceivedEventListener? = null
+
+    override fun setMessageReceivedListener(listener: OnMidiReceivedEventListener) {
+        this.listener = listener
+    }
+
+    private val receiveBlockHolder by lazy { customReceiveBlockHolder ?: ReceiveBlockHolder(this) }
 
     private val protocol = if (details.midiTransportProtocol == MidiTransportProtocol.UMP) kMIDIProtocol_2_0 else kMIDIProtocol_1_0
 
     init {
         memScoped {
-            val clientName = "KTMidiInputClient"
             val portName = "KTMidiInputPort"
-            val clientP = alloc<MIDIClientRefVar>()
-            checkStatus { MIDIClientCreate(clientName.toCFStringRef(), notifyProc, stableRef.asCPointer(), clientP.ptr) }
-            client = clientP.value
-            val portP = alloc<MIDIPortRefVar>()
-            checkStatus { MIDIInputPortCreateWithProtocol(client, portName.toCFStringRef(), protocol, portP.ptr, receiveBlock) }
-            port = portP.value
-            checkStatus { MIDIPortConnectSource(port, details.endpoint, stableRef.asCPointer()) }
+            val port = alloc<MIDIPortRefVar>()
+            checkStatus { MIDIInputPortCreateWithProtocol(clientRef, portName.toCFStringRef(), protocol, port.ptr, receiveBlockHolder.receiveBlock) }
+            checkStatus { MIDIPortConnectSource(port.value, coreMidiPortDetails.endpoint, stableRef.asCPointer()) }
+            port.value
         }
     }
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class UmpCoreMidiOutput(details: CoreMidiPortDetails) : CoreMidiPort(details), MidiOutput {
-    private var client: MIDIClientRef = 0U
-    private var port: MIDIPortRef = 0U
-    override val clientRef = client
-    override val portRef = port
+private class UmpCoreMidiOutput(holder: ClientHolder, private val coreMidiPortDetails: CoreMidiPortDetails)
+    : CoreMidiPort(holder, coreMidiPortDetails), MidiOutput
+{
+    private val portRef by lazy {
+        memScoped {
+            val portName = "KTMidiOutputPort"
+            val port = alloc<MIDIPortRefVar>()
+            checkStatus { MIDIOutputPortCreate(clientRef, portName.toCFStringRef(), port.ptr) }
+            port.value
+        }
+    }
     private val protocol = if (details.midiTransportProtocol == MidiTransportProtocol.UMP) kMIDIProtocol_2_0 else kMIDIProtocol_1_0
 
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
@@ -81,18 +123,7 @@ private class UmpCoreMidiOutput(details: CoreMidiPortDetails) : CoreMidiPort(det
             val eventListRef: CValuesRef<MIDIEventList> = eventListPtr.reinterpret()
             MIDIEventListInit(eventListRef, protocol)
             MIDIEventListAdd(eventListRef, 1U, null, timestampInNanoseconds.toULong(), length.toULong(), pinned.addressOf(offset).reinterpret())
-            MIDISendEventList(port, details.endpoint, eventListRef)
-        }
-    }
-
-    init {
-        memScoped {
-            val clientName = "KTMidiOutputClient"
-            val client = alloc<MIDIClientRefVar>()
-            checkStatus { MIDIClientCreate(clientName.toCFStringRef(), notifyProc, stableRef.asCPointer(), client.ptr) }
-            val portName = "KTMidiOutputPort"
-            val port = alloc<MIDIPortRefVar>()
-            checkStatus { MIDIOutputPortCreate(client.value, portName.toCFStringRef(), port.ptr) }
+            MIDISendEventList(portRef, coreMidiPortDetails.endpoint, eventListRef)
         }
     }
 }
