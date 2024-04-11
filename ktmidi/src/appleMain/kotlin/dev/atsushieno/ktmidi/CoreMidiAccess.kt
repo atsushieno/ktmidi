@@ -65,35 +65,21 @@ internal interface ListenerHolder {
 // MIDIClientRef setup
 @OptIn(ExperimentalStdlibApi::class, ExperimentalForeignApi::class)
 internal class ClientHolder : AutoCloseable {
-    val clientRef: MIDIClientRef
+    val clientRef: MIDIClientRef = memScoped {
+        val clientName = "KTMidiClient"
+        val client = alloc<MIDIClientRefVar>()
+        val notifyBlock: MIDINotifyBlock = { message: CPointer<MIDINotification>? ->
+            println("!!! NOTIFY: ${message?.pointed?.messageID}")
+            if (message != null) {
+                // what to do here?
+            }
+        }
+        checkStatus { MIDIClientCreateWithBlock(clientName.toCFStringRef(), client.ptr, notifyBlock) }
+        client.value
+    }
 
     override fun close() {
         MIDIClientDispose(clientRef)
-    }
-
-    @OptIn(ExperimentalForeignApi::class)
-    private val stableRef by lazy { StableRef.create(this) }
-
-    @OptIn(ExperimentalForeignApi::class)
-    private val notifyProc: MIDINotifyProc = staticCFunction(fun(message: CPointer<MIDINotification>?, refCon: COpaquePointer?) {
-        if (refCon == null)
-            return
-        val input = refCon.asStableRef<ClientHolder>()
-        input.get().notify(message)
-    })
-
-    @OptIn(ExperimentalForeignApi::class)
-    private fun notify(message: CPointer<MIDINotification>?) {
-        // what to do here?
-    }
-
-    init {
-        clientRef = memScoped {
-            val clientName = "KTMidiClient"
-            val client = alloc<MIDIClientRefVar>()
-            checkStatus { MIDIClientCreate(clientName.toCFStringRef(), notifyProc, stableRef.asCPointer(), client.ptr) }
-            client.value
-        }
     }
 }
 
@@ -105,7 +91,8 @@ internal abstract class CoreMidiPort(
     override val details: MidiPortDetails
         get() = coreMidiPortDetails
 
-    val clientRef: MIDIClientRef by lazy { holder.clientRef }
+    val clientRef: MIDIClientRef
+        get() = holder.clientRef
 
     private var closed: Boolean = false
 
