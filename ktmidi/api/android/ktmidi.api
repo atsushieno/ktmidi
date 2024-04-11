@@ -5,6 +5,7 @@ public final class dev/atsushieno/ktmidi/AndroidMidi2Access : dev/atsushieno/ktm
 
 public class dev/atsushieno/ktmidi/AndroidMidiAccess : dev/atsushieno/ktmidi/MidiAccess {
 	public fun <init> (Landroid/content/Context;)V
+	public fun getCanDetectStateChanges ()Z
 	public fun getInputs ()Ljava/lang/Iterable;
 	public final fun getManager ()Landroid/media/midi/MidiManager;
 	public fun getName ()Ljava/lang/String;

@@ -28,6 +28,8 @@ open class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
     override val name: String
         get() = "AndroidSDK"
 
+    override val canDetectStateChanges: Boolean = true
+
     private val deviceCallback = object:
         MidiManager.DeviceCallback() {
         override fun onDeviceAdded(device: MidiDeviceInfo?) {
@@ -42,7 +44,8 @@ open class AndroidMidiAccess(applicationContext: Context) : MidiAccess() {
 
     val manager: MidiManager = (applicationContext.getSystemService(Service.MIDI_SERVICE) as MidiManager).apply {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            registerDeviceCallback(MidiManager.TRANSPORT_UNIVERSAL_MIDI_PACKETS, { it.run() }, deviceCallback)
+            for (p in listOf(MidiManager.TRANSPORT_UNIVERSAL_MIDI_PACKETS, MidiManager.TRANSPORT_MIDI_BYTE_STREAM))
+                registerDeviceCallback(p, { it.run() }, deviceCallback)
         else
             registerDeviceCallback(deviceCallback, null)
     }
