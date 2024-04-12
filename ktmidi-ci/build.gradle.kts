@@ -134,7 +134,7 @@ android {
     }
 }
 
-val repositoryId = ext["ossrhStagingRepositoryId"]
+val repositoryId = if (ext.has("ossrhStagingRepositoryId")) ext["ossrhStagingRepositoryId"] else ""
 val moduleDescription = "Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - MIDI-CI support"
 // copypasting
 afterEvaluate {

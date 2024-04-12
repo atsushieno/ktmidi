@@ -34,7 +34,7 @@ compileTestKotlin {
     kotlinOptions.jvmTarget = '11'
 }
 
-var repositoryId = ext["ossrhStagingRepositoryId"]
+var repositoryId = ext.has("ossrhStagingRepositoryId") ? ext["ossrhStagingRepositoryId"] : ""
 var moduleDescription = "Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - ALSA and RtMidi"
 afterEvaluate {
     publishing {
