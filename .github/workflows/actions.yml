@@ -77,7 +77,7 @@ jobs:
       # only for releases on macos-13
       - name: macos-13 lightweight publish with Gradle for libs
         if: ${{ startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-13') }}
-        run: ./gradlew --warning-mode all publish
+        run: ./gradlew --no-daemon --warning-mode all publish
         env:
           OSSRH_USERNAME: atsushieno
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
@@ -92,7 +92,7 @@ jobs:
       # only for releases on macos-14
       - name: macos-14 lightweight publish with Gradle for libs and apps
         if: ${{ startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-14') }}
-        run: ./gradlew --warning-mode all publish iosArm64Binaries packageDmg
+        run: ./gradlew --no-daemon --warning-mode all publish iosArm64Binaries packageDmg
         env:
           OSSRH_USERNAME: atsushieno
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
@@ -107,7 +107,7 @@ jobs:
       # only for releases on Linux
       - name: linux publish with Gradle
         if: ${{ startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'ubuntu-22.04') }}
-        run: ./gradlew --warning-mode all dokkaHtml publish
+        run: ./gradlew --no-daemon --warning-mode all dokkaHtml publish
         env:
           OSSRH_USERNAME: atsushieno
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
