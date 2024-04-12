@@ -134,6 +134,7 @@ android {
     }
 }
 
+val repositoryId = ext["ossrhStagingRepositoryId"]
 val moduleDescription = "Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - MIDI-CI support"
 // copypasting
 afterEvaluate {
@@ -181,7 +182,7 @@ afterEvaluate {
         repositories {
             maven {
                 name = "OSSRH"
-                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                url = uri("https://s01.oss.sonatype.org/service/local/staging/deployByRepositoryId/$repositoryId/")
                 credentials {
                     username = System.getenv("OSSRH_USERNAME")
                     password = System.getenv("OSSRH_PASSWORD")
