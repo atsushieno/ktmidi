@@ -7,12 +7,13 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 
 class JzzMidiAccessTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun create() = runTest {
+    fun create() = runTest(timeout = 2000.milliseconds) {
         val access = JzzMidiAccess.create(true)
         assertTrue(access.inputs.toList().size >= 0, "inputs")
         assertTrue(access.outputs.toList().size >= 0, "outputs")
@@ -20,7 +21,7 @@ class JzzMidiAccessTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun output() = runTest(dispatchTimeoutMs = 1000) {
+    fun output() = runTest(timeout = 2000.milliseconds) {
         async {
             val access = JzzMidiAccess.create(true)
             val outPort = access.outputs.firstOrNull() ?: return@async
@@ -32,7 +33,7 @@ class JzzMidiAccessTest {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
-    fun input() = runTest(dispatchTimeoutMs = 1000) {
+    fun input() = runTest(timeout = 2000.milliseconds) {
         async {
             val access = JzzMidiAccess.create(true)
             val inPort = access.inputs.firstOrNull() ?: return@async
