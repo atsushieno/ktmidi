@@ -75,7 +75,7 @@ tasks {
     }
 }
 
-val repositoryId = if (ext.has("ossrhStagingRepositoryId")) ext["ossrhStagingRepositoryId"] else ""
+val repositoryId: String? = System.getenv("OSSRH_STAGING_REPOSITORY_ID")
 val moduleDescription = "Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - Native specific"
 // copypasting
 afterEvaluate {
