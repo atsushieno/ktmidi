@@ -3,28 +3,49 @@ name: build dist
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
-  linux-build:
-    name: build on linux
+  create_staging_repository:
     runs-on: ubuntu-22.04
+    name: Create staging repository
+    outputs:
+      repository_id: ${{ steps.create.outputs.repository_id }}
+    steps:
+      - id: create
+        name: create OSSRH Repository for aggregated pushes (ONLY FOR RELEASES)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: nexus-actions/create-nexus-staging-repo@main
+        with:
+          username: atsushieno
+          password: ${{ secrets.OSSRH_PASSWORD }}
+          staging_profile_id: 1b92322eb8632e
+          description: ${{ github.repository }}/${{ github.workflow }}#${{ github.run_number }}
+          base_url: https://s01.oss.sonatype.org/service/local/
+
+  build:
+    name: build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-13, macos-14]
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: apt update
+      - name: setup apt packages on Linux
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
+          echo y | sudo apt-get install doxygen cmake ninja-build libasound2-dev libjack-jackd2-0
       - name: set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: temurin
-      - name: apt install
-        run: |
-          echo y | sudo apt-get install doxygen cmake ninja-build libasound2-dev libjack-jackd2-0
 
         # Only for release tags
       - name: setup gpg necessities
@@ -34,12 +55,12 @@ jobs:
           mkdir -p '${{ github.workspace }}'
           echo '${{ secrets.GPG_KEY_CONTENTS }}' | base64 -d > '${{ github.workspace }}/${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}'
       - name: rewrite build.gradle to require signing on awkward OS
-        if: startsWith(github.ref, 'refs/tags/') && startsWith(matrix.os, 'macos')
+        if: startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos')
         run: |
           sed -i "" "s/signing {}/signing { sign(publishing.publications) }/" */build.gradle*
       - name: rewrite build.gradle to require signing on standard OS
         shell: bash
-        if: startsWith(github.ref, 'refs/tags/') && !startsWith(matrix.os, 'macos')
+        if: startsWith(github.ref, 'refs/tags/') && !contains(matrix.os, 'macos')
         run: |
           sed -i "s/signing {}/signing { sign(publishing.publications) }/" */build.gradle*
 
@@ -59,13 +80,14 @@ jobs:
         env:
           OSSRH_USERNAME: atsushieno
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OSSRH_STAGING_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository_id }}
           SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
           SIGNING_SECRET_KEY_RING_FILE: ${{ format('{0}/{1}', github.workspace, secrets.SIGNING_SECRET_KEY_RING_FILE) }}
 
       - name: upload build failure logs
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-failure-logs
           path: |
@@ -77,7 +99,7 @@ jobs:
             ktmidi-jvm-desktop/*.log
       - name: upload artifact
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ktmidi-artifacts
           path: |
@@ -89,7 +111,7 @@ jobs:
             ktmidi-jvm-desktop/build/libs/*.jar
       # only for releases
       - name: deploy to GitHub Pages
-        if: ${{ startsWith(github.ref, 'refs/tags/') }}
+        if: ${{ startsWith(github.ref, 'refs/tags/') && startsWith(matrix.os, 'ubuntu') }}
         uses: JamesIves/github-pages-deploy-action@4.1.2
         with:
           branch: gh-pages
