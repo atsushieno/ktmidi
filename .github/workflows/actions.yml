@@ -3,7 +3,6 @@ name: build dist
 on:
   push:
   pull_request:
-  workflow_dispatch:
 
 jobs:
   create_staging_repository:
@@ -75,7 +74,7 @@ jobs:
         if: ${{ !startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-13') }}
         run: ./gradlew --warning-mode all publishToMavenLocal
       # only for releases on macos-13
-      - name: macos-13 lightweight build with Gradle for libs
+      - name: macos-13 lightweight publish with Gradle for libs
         if: ${{ startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-13') }}
         run: ./gradlew --warning-mode all publish
         env:
@@ -90,7 +89,7 @@ jobs:
         if: ${{ !startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-14') }}
         run: ./gradlew --warning-mode all publishToMavenLocal iosArm64Binaries
       # only for releases on macos-14
-      - name: macos-14 lightweight build with Gradle for libs and apps
+      - name: macos-14 lightweight publish with Gradle for libs and apps
         if: ${{ startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-14') }}
         run: ./gradlew --warning-mode all publish iosArm64Binaries packageDmg
         env:
