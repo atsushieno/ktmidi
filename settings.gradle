@@ -27,4 +27,4 @@ include(":input-sample")
 include(":player-sample")
 include(':ktmidi-ci-tool')
 
-gradle.rootProject { ext.javacppVersion = '1.5.9' }
+gradle.rootProject { ext.javacppVersion = '1.5.10' }
