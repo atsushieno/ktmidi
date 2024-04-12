@@ -73,10 +73,24 @@ jobs:
       - name: macos-13 lightweight build with Gradle () for libs
         if: ${{ contains(matrix.os, 'macos-13') }}
         run: ./gradlew --warning-mode all publishToMavenLocal
+        env:
+          OSSRH_USERNAME: atsushieno
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OSSRH_STAGING_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository_id }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          SIGNING_SECRET_KEY_RING_FILE: ${{ format('{0}/{1}', github.workspace, secrets.SIGNING_SECRET_KEY_RING_FILE) }}
       # only on macos-14
       - name: macos-14 lightweight build with Gradle () for libs and apps
         if: ${{ contains(matrix.os, 'macos-14') }}
         run: ./gradlew --warning-mode all publishToMavenLocal iosArm64Binaries packageDmg
+        env:
+          OSSRH_USERNAME: atsushieno
+          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          OSSRH_STAGING_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository_id }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          SIGNING_SECRET_KEY_RING_FILE: ${{ format('{0}/{1}', github.workspace, secrets.SIGNING_SECRET_KEY_RING_FILE) }}
       # only for NON-releases on Linux
       - name: linux build with Gradle ()
         if: ${{ !startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'ubuntu-22.04') }}
