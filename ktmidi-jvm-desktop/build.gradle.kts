@@ -24,7 +24,7 @@ kotlin {
             dependencies {
                 implementation(project(":ktmidi"))
                 implementation(libs.alsakt)
-                implementation(libs.rtmidi.javacpp)
+                api(libs.rtmidi.javacpp)
 
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.datetime)
