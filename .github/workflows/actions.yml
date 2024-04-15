@@ -17,9 +17,9 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: nexus-actions/create-nexus-staging-repo@main
         with:
-          username: ${{ secrets.OSSRH_USERNAME }}
-          password: ${{ secrets.OSSRH_PASSWORD }}
-          staging_profile_id: ${{ secrets.SONATYPE_STAGING_PROFILE_ID }}
+          # Note that if you pass "secrets.XXX" GitHub is not clever enough and refuses to output what we need:
+          # https://github.com/nexus-actions/create-nexus-staging-repo/issues/1
+          username: atsushieno
           description: ${{ github.repository }}/${{ github.workflow }}#${{ github.run_number }}
           base_url: https://s01.oss.sonatype.org/service/local/
 
@@ -78,7 +78,7 @@ jobs:
       # only for releases on macos-13
       - name: macos-13 lightweight publish with Gradle for libs
         if: ${{ startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-13') }}
-        run: ./gradlew --no-daemon --warning-mode all publishAllPublicationsToOSSRHRepository -x publishKotlinMultiplatformPublicationToOSSRHRepository -x publishJvmPublicationToOSSRHRepository -x publishAndroidPublicationToOSSRHRepository
+        run: ./gradlew --no-daemon --warning-mode all publish
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
@@ -89,11 +89,11 @@ jobs:
       # only for NON-releases on macos-14
       - name: macos-14 lightweight build with Gradle for libs and apps
         if: ${{ !startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-14') }}
-        run: ./gradlew --warning-mode all publishToMavenLocal iosArm64Binaries
+        run: ./gradlew --warning-mode all iosArm64Binaries publishToMavenLocal
       # only for releases on macos-14
       - name: macos-14 lightweight publish with Gradle for libs and apps
         if: ${{ startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-14') }}
-        run: ./gradlew --no-daemon --warning-mode all iosArm64Binaries packageDmg publishAllPublicationsToOSSRHRepository -x publishKotlinMultiplatformPublicationToOSSRHRepository -x publishJvmPublicationToOSSRHRepository -x publishAndroidPublicationToOSSRHRepository
+        run: ./gradlew --no-daemon --warning-mode all iosArm64Binaries packageDmg publish
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
