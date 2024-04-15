@@ -8,6 +8,7 @@ on:
 jobs:
   create_staging_repository:
     runs-on: ubuntu-22.04
+    if: false
     name: Create staging repository
     outputs:
       repository_id: ${{ steps.create.outputs.repository_id }}
@@ -26,7 +27,7 @@ jobs:
   build:
     name: build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    needs: create_staging_repository
+    #needs: create_staging_repository
     strategy:
       fail-fast: false
       matrix:
