@@ -3,7 +3,6 @@ package dev.atsushieno.ktmidi.samples.inputsample
 import dev.atsushieno.ktmidi.EmptyMidiAccess
 import dev.atsushieno.ktmidi.JvmMidiAccess
 import dev.atsushieno.ktmidi.RtMidiAccess
-import java.io.File
 import kotlin.system.exitProcess
 
 actual fun getMidiAccessApi(api: String?, midiTransportProtocol: Int) = when (api) {

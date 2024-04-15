@@ -1,47 +1,76 @@
 plugins {
-    alias(libs.plugins.kotlinJvm)
-    alias(libs.plugins.gradleJavacppPlatform)
-    alias(libs.plugins.dokka)
-    id 'maven-publish'
-    id 'signing'
+    kotlin("multiplatform")
+    id("maven-publish")
+    id("signing")
+    id("org.jetbrains.dokka")
 }
 
-dependencies {
-    implementation project(":ktmidi")
-    implementation libs.alsakt
-    api libs.rtmidi.javacpp.platform // implementation is resolved by gradle-javacpp plugin
+kotlin {
+    jvmToolchain(11)
 
-    implementation libs.kotlinx.coroutines.core
-    implementation libs.kotlinx.datetime
-    testImplementation libs.kotlin.test.junit
-    testImplementation libs.kotlinx.coroutines.test
+    jvm {
+        java {
+            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_11
+        }
+
+        //test { useJUnit() }
+        //compileKotlin { kotlinOptions.jvmTarget = "11" }
+        //compileTestKotlin.kotlinOptions.jvmTarget = "11
+    }
+
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(project(":ktmidi"))
+                implementation(libs.alsakt)
+                implementation(libs.rtmidi.javacpp)
+
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.datetime)
+            }
+        }
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test.junit)
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
+    }
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+// https://github.com/gradle/gradle/issues/26091#issuecomment-1722947958
+tasks.withType<AbstractPublishToMaven>().configureEach {
+    val signingTasks = tasks.withType<Sign>()
+    mustRunAfter(signingTasks)
 }
 
-test {
-    useJUnit()
+tasks {
+    val dokkaOutputDir = "${layout.buildDirectory}/dokka"
+
+    dokkaHtml {
+        outputDirectory.set(file(dokkaOutputDir))
+    }
+
+    val deleteDokkaOutputDir by registering(Delete::class) {
+        delete(dokkaOutputDir)
+    }
+
+    register<Jar>("javadocJar") {
+        dependsOn(deleteDokkaOutputDir, dokkaHtml)
+        archiveClassifier.set("javadoc")
+        from(dokkaOutputDir)
+    }
 }
 
-compileKotlin {
-    kotlinOptions.jvmTarget = '11'
-}
-
-compileTestKotlin {
-    kotlinOptions.jvmTarget = '11'
-}
-
-var repositoryId = System.getenv('OSSRH_STAGING_REPOSITORY_ID')
+var repositoryId = System.getenv("OSSRH_STAGING_REPOSITORY_ID")
 var moduleDescription = "Kotlin Multiplatform library for MIDI 1.0 and MIDI 2.0 - ALSA and RtMidi"
 afterEvaluate {
     publishing {
         publications {
-            maven(MavenPublication) {
+            publications.withType<MavenPublication>{
                 // https://github.com/gradle/gradle/issues/26091#issuecomment-1681343496
-                var dokkaJar = project.tasks.register("${name}DokkaJar", Jar) {
+                var dokkaJar = project.tasks.register("${name}DokkaJar", Jar::class) {
                     group = JavaBasePlugin.DOCUMENTATION_GROUP
                     description = "Assembles Kotlin docs with Dokka into a Javadoc jar"
                     archiveClassifier.set("javadoc")
