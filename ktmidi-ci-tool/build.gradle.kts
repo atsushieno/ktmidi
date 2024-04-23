@@ -71,6 +71,8 @@ kotlin {
             implementation(project(":ktmidi-jvm-desktop"))
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.mpfilepicker)
+            // without this, jnirtmidi.so will not be found at runtime.
+            api(libs.rtmidi.javacpp.platform)
         }
 
         val iosMain by creating {
