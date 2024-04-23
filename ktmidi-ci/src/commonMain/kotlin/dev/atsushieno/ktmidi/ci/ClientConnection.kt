@@ -29,6 +29,7 @@ class ClientConnection(
         "",
         ""
     )
+    var channelList = MidiCIChannelList()
     var jsonSchema: Json.JsonValue? = null
 
     val profileClient = ProfileClientFacade(parent, this)

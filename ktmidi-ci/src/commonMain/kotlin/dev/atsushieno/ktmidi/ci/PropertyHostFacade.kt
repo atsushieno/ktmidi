@@ -37,6 +37,12 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
             p.deviceInfo = deviceInfo
     }
 
+    fun updateCommonRulesChannelList(channelList: MidiCIChannelList) {
+        val p = propertyService
+        if (p is CommonRulesPropertyService)
+            p.channelList = channelList
+    }
+
     fun updateJsonSchema(stringValue: String) {
         val p = propertyService
         if (p is CommonRulesPropertyService)

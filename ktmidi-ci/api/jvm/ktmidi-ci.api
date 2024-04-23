@@ -112,9 +112,22 @@ public final class dev/atsushieno/ktmidi/ci/CISubId2 {
 	public static final field TEST_NEW_PROTOCOL_R2I B
 }
 
+public final class dev/atsushieno/ktmidi/ci/ChannelInfoPropertyNames {
+	public static final field BANK_PC Ljava/lang/String;
+	public static final field CHANNEL Ljava/lang/String;
+	public static final field CLUSTER_CHANNEL_START Ljava/lang/String;
+	public static final field CLUSTER_LENGTH Ljava/lang/String;
+	public static final field CLUSTER_MIDI_MODE Ljava/lang/String;
+	public static final field CLUSTER_TYPE Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/ChannelInfoPropertyNames;
+	public static final field PROGRAM_TITLE Ljava/lang/String;
+	public static final field TITLE Ljava/lang/String;
+}
+
 public final class dev/atsushieno/ktmidi/ci/ClientConnection {
 	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;ILdev/atsushieno/ktmidi/ci/DeviceDetails;BLjava/lang/String;)V
 	public synthetic fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;ILdev/atsushieno/ktmidi/ci/DeviceDetails;BLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getChannelList ()Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;
 	public final fun getDeviceInfo ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
 	public final fun getJsonSchema ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
 	public final fun getMaxSimultaneousPropertyRequests ()B
@@ -122,6 +135,7 @@ public final class dev/atsushieno/ktmidi/ci/ClientConnection {
 	public final fun getProfileClient ()Ldev/atsushieno/ktmidi/ci/ProfileClientFacade;
 	public final fun getPropertyClient ()Ldev/atsushieno/ktmidi/ci/PropertyClientFacade;
 	public final fun getTargetMUID ()I
+	public final fun setChannelList (Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;)V
 	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun setJsonSchema (Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;)V
 	public final fun setMaxSimultaneousPropertyRequests (B)V
@@ -154,6 +168,23 @@ public final class dev/atsushieno/ktmidi/ci/ClientSubscription {
 	public final fun setState (Ldev/atsushieno/ktmidi/ci/SubscriptionActionState;)V
 	public final fun setSubscriptionId (Ljava/lang/String;)V
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/ClusterMidiMode {
+	public static final field DEFAULT B
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/ClusterMidiMode;
+	public static final field MONO_MODE B
+	public static final field NONE B
+	public static final field OMNI_OFF B
+	public static final field OMNI_ON B
+	public static final field POLY_MODE B
+}
+
+public final class dev/atsushieno/ktmidi/ci/ClusterType {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/ClusterType;
+	public static final field MPE1 Ljava/lang/String;
+	public static final field OTHER Ljava/lang/String;
+	public static final field PROFILE Ljava/lang/String;
 }
 
 public final class dev/atsushieno/ktmidi/ci/ConnectionChange : java/lang/Enum {
@@ -653,6 +684,77 @@ public final class dev/atsushieno/ktmidi/ci/Messenger {
 	public final fun setProcessUnknownCIMessage (Lkotlin/jvm/functions/Function2;)V
 }
 
+public final class dev/atsushieno/ktmidi/ci/MidiCIChannel {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/MidiCIChannel$Companion;
+	public fun <init> (Ljava/lang/String;ILjava/lang/String;BBBIIZZLjava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;ILjava/lang/String;BBBIIZZLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component10 ()Z
+	public final fun component11 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()B
+	public final fun component5 ()B
+	public final fun component6 ()B
+	public final fun component7 ()I
+	public final fun component8 ()I
+	public final fun component9 ()Z
+	public final fun copy (Ljava/lang/String;ILjava/lang/String;BBBIIZZLjava/lang/String;)Ldev/atsushieno/ktmidi/ci/MidiCIChannel;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/MidiCIChannel;Ljava/lang/String;ILjava/lang/String;BBBIIZZLjava/lang/String;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/MidiCIChannel;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBankLSB ()B
+	public final fun getBankMSB ()B
+	public final fun getBankPC ()[Ljava/lang/Byte;
+	public final fun getChannel ()I
+	public final fun getClusterChannelStart ()I
+	public final fun getClusterLength ()I
+	public final fun getClusterMidiMode ()B
+	public final fun getClusterType ()Ljava/lang/String;
+	public final fun getProgram ()B
+	public final fun getProgramTitle ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public final fun isOmniOn ()Z
+	public final fun isPolyMode ()Z
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIChannel$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIChannel$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIChannel;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIChannel;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIChannel$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIChannelList {
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/MidiCIChannelList$Companion;
+	public fun <init> ()V
+	public final fun getChannels ()Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIChannelList$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIChannelList$$serializer;
+	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/MidiCIChannelList$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
 public abstract interface class dev/atsushieno/ktmidi/ci/MidiCIClientPropertyRules {
 	public abstract fun createDataRequestHeader (Ljava/lang/String;Ljava/util/Map;)Ljava/util/List;
 	public abstract fun createStatusHeader (I)Ljava/util/List;
@@ -717,6 +819,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
 	public final fun sendDiscovery ()V
 	public final fun sendProfileSpecificData (BILdev/atsushieno/ktmidi/ci/MidiCIProfileId;Ljava/util/List;)V
 	public final fun setMidiMessageReporter (Ldev/atsushieno/ktmidi/ci/MidiMessageReporter;)V
+	public final fun updateChannelList (Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;)V
 	public final fun updateDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun updateJsonSchema (Ljava/lang/String;)V
 }
@@ -731,6 +834,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
 	public final fun getAutoSendProfileInquiry ()Z
 	public final fun getAutoSendPropertyExchangeCapabilitiesInquiry ()Z
 	public final fun getCapabilityInquirySupported ()B
+	public final fun getChannelList ()Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;
 	public final fun getDeviceInfo ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
 	public final fun getFunctionBlock ()B
 	public final fun getGroup ()B
@@ -755,6 +859,7 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
 	public final fun setAutoSendProfileInquiry (Z)V
 	public final fun setAutoSendPropertyExchangeCapabilitiesInquiry (Z)V
 	public final fun setCapabilityInquirySupported (B)V
+	public final fun setChannelList (Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;)V
 	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun setFunctionBlock (B)V
 	public final fun setGroup (B)V
@@ -1126,6 +1231,7 @@ public final class dev/atsushieno/ktmidi/ci/PropertyHostFacade {
 	public final fun setPropertyValue (Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Z)V
 	public final fun shutdownSubscription (ILjava/lang/String;)V
 	public final fun terminateSubscriptionsToAllSubsctibers (B)V
+	public final fun updateCommonRulesChannelList (Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;)V
 	public final fun updateCommonRulesDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public final fun updateJsonSchema (Ljava/lang/String;)V
 	public final fun updatePropertyMetadata (Ljava/lang/String;Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)V

@@ -69,4 +69,9 @@ class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
         config.jsonSchemaString = stringValue
         propertyHost.updateJsonSchema(stringValue)
     }
+
+    fun updateChannelList(channelList: MidiCIChannelList) {
+        config.channelList = channelList
+        propertyHost.updateCommonRulesChannelList(channelList)
+    }
 }

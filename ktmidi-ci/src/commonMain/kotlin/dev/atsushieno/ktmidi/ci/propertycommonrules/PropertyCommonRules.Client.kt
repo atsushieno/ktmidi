@@ -62,6 +62,31 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
                     json.getObjectValue(DeviceInfoPropertyNames.SERIAL_NUMBER)?.stringValue ?: "",
                     )
             }
+            // If it is about DeviceInfo, then store the list internally.
+            PropertyResourceNames.CHANNEL_LIST -> {
+                val json = convertApplicationJsonBytesToJson(data)
+                conn.channelList = MidiCIChannelList().apply {
+                    json.arrayValue.map {
+                        val bankPC = json.getObjectValue(ChannelInfoPropertyNames.BANK_PC)?.arrayValue?.toList()
+                        val midiMode = json.getObjectValue(ChannelInfoPropertyNames.CLUSTER_MIDI_MODE)?.numberValue?.toInt()
+                        channels.add(
+                            MidiCIChannel(
+                                json.getObjectValue(ChannelInfoPropertyNames.TITLE)?.stringValue ?: "",
+                                (json.getObjectValue(ChannelInfoPropertyNames.CHANNEL)?.numberValue?.toInt() ?: 1) - 1,
+                                json.getObjectValue(ChannelInfoPropertyNames.PROGRAM_TITLE)?.stringValue,
+                                (if (bankPC == null) 0 else bankPC[0].numberValue).toByte(),
+                                (if (bankPC == null) 0 else bankPC[1].numberValue).toByte(),
+                                (if (bankPC == null) 0 else bankPC[2].numberValue).toByte(),
+                                (json.getObjectValue(ChannelInfoPropertyNames.CLUSTER_CHANNEL_START)?.numberValue?.toInt() ?: 1) - 1,
+                                json.getObjectValue(ChannelInfoPropertyNames.CLUSTER_LENGTH)?.numberValue?.toInt() ?: 1,
+                                if (midiMode == null) false else ((midiMode - 1) and 1) != 0,
+                                if (midiMode == null) false else ((midiMode - 1) and 2) != 0,
+                                json.getObjectValue(ChannelInfoPropertyNames.CLUSTER_TYPE)?.stringValue
+                            )
+                        )
+                    }
+                }
+            }
 
             PropertyResourceNames.JSON_SCHEMA ->
                 conn.jsonSchema = convertApplicationJsonBytesToJson(data)

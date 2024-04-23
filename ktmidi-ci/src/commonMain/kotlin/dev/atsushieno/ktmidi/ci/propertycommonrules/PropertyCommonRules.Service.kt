@@ -8,7 +8,7 @@ import kotlin.random.Random
 
 private val defaultPropertyList = listOf(
     CommonRulesPropertyMetadata(PropertyResourceNames.DEVICE_INFO).apply { originator = CommonRulesPropertyMetadata.Originator.SYSTEM },
-    //PropertyResource(PropertyResourceNames.CHANNEL_LIST),
+    CommonRulesPropertyMetadata(PropertyResourceNames.CHANNEL_LIST).apply { originator = CommonRulesPropertyMetadata.Originator.SYSTEM },
     CommonRulesPropertyMetadata(PropertyResourceNames.JSON_SCHEMA).apply { originator = CommonRulesPropertyMetadata.Originator.SYSTEM }
 )
 
@@ -56,6 +56,11 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         get() = device.config.deviceInfo
         @JvmName("set_deviceInfo")
         set(value) { device.config.deviceInfo = value }
+    internal var channelList
+        @JvmName("get_channelList")
+        get() = device.config.channelList
+        @JvmName("set_channelList")
+        set(value) { device.config.channelList = value }
     internal var jsonSchemaString
         @JvmName("get_jsonSchemaString")
         get() = device.config.jsonSchemaString
@@ -67,7 +72,6 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
     private val metadataList
         @JvmName("get_metadataList")
         get() = device.config.propertyMetadataList
-    private val channelList: Json.JsonValue? = null
 
     // MidiCIPropertyService implementation
     override val subscriptions = mutableListOf<SubscriptionEntry>()
@@ -192,6 +196,23 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         )
     }
 
+    private fun MidiCIChannel.toJson() = Json.JsonValue(mapOf(
+        Json.JsonValue(ChannelInfoPropertyNames.TITLE) to Json.JsonValue(title),
+        Json.JsonValue(ChannelInfoPropertyNames.CHANNEL) to Json.JsonValue(channel.toDouble()),
+        Json.JsonValue(ChannelInfoPropertyNames.PROGRAM_TITLE) to
+                if (programTitle == null) null else Json.JsonValue(programTitle),
+        Json.JsonValue(ChannelInfoPropertyNames.BANK_PC) to
+                if (bankPC.all { it.toInt() == 0 }) null else Json.JsonValue(bankPC.map { Json.JsonValue(it.toDouble()) }),
+        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_CHANNEL_START) to
+                if (clusterChannelStart <= 1) null else Json.JsonValue(clusterChannelStart.toDouble()),
+        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_LENGTH) to
+                if (clusterChannelStart <= 1) null else Json.JsonValue(clusterLength.toDouble()),
+        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_MIDI_MODE) to
+                if (clusterMidiMode.toInt() == 3) null else Json.JsonValue(clusterMidiMode.toDouble()),
+        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_TYPE) to
+                if (clusterType == null || clusterType == ClusterType.OTHER) null else Json.JsonValue(clusterType)
+    ).filterValues { it != null }.map { Pair(it.key, it.value!!) }.toMap())
+
     private fun getPropertyHeader(json: Json.JsonValue) =
         PropertyCommonRequestHeader(
             json.getObjectValue(PropertyCommonHeaderKeys.RESOURCE)?.stringValue ?: "",
@@ -221,10 +242,14 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     private fun getPropertyDataJson(header: PropertyCommonRequestHeader): Pair<Json.JsonValue, Json.JsonValue> {
         val body = when(header.resource) {
-            PropertyResourceNames.RESOURCE_LIST -> Json.JsonValue(getMetadataList().map { (it as CommonRulesPropertyMetadata).toJsonValue() })
-            PropertyResourceNames.DEVICE_INFO -> getDeviceInfoJson()
-            PropertyResourceNames.CHANNEL_LIST -> channelList
-            PropertyResourceNames.JSON_SCHEMA -> if (device.config.jsonSchemaString.isNotBlank()) Json.parse(device.config.jsonSchemaString) else null
+            PropertyResourceNames.RESOURCE_LIST ->
+                Json.JsonValue(getMetadataList().map { (it as CommonRulesPropertyMetadata).toJsonValue() })
+            PropertyResourceNames.DEVICE_INFO ->
+                getDeviceInfoJson()
+            PropertyResourceNames.CHANNEL_LIST ->
+                if (channelList.channels.isEmpty()) null else Json.JsonValue(channelList.channels.map { it.toJson() })
+            PropertyResourceNames.JSON_SCHEMA ->
+                if (device.config.jsonSchemaString.isNotBlank()) Json.parse(device.config.jsonSchemaString) else null
             else -> {
                 val bytes = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body
                     ?: throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")

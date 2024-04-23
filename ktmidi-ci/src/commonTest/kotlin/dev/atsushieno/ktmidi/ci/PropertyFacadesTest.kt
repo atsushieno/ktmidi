@@ -61,4 +61,18 @@ class PropertyFacadesTest {
         assertEquals(0, client.subscriptions.size, "client subscriptions.size after unsubscription by host")
         assertEquals(0, host.subscriptions.size, "host subscriptions.size after unsubscription by host")
     }
+
+    @Test
+    fun propertyExchange2() {
+        val mediator = TestCIMediator()
+        val device1 = mediator.device1
+        val device2 = mediator.device2
+
+        device2.config.channelList.channels.add(MidiCIChannel("TestChannel1", 1))
+
+        device1.sendDiscovery()
+        val conn = device1.connections[device2.muid]!!
+        val channelList = conn.propertyClient.properties.getProperty("ChannelList")
+        assertNotNull(channelList, "ChannelList should not be null")
+    }
 }
