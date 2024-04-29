@@ -147,7 +147,7 @@ jobs:
       # only for releases
       - name: deploy to GitHub Pages
         if: ${{ startsWith(github.ref, 'refs/tags/') && startsWith(matrix.os, 'ubuntu') }}
-        uses: JamesIves/github-pages-deploy-action@4.1.2
+        uses: JamesIves/github-pages-deploy-action@v4.6.0
         with:
           branch: gh-pages
           folder: ktmidi/build/dokka/html
