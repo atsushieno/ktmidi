@@ -78,12 +78,26 @@ If you want to bring better user experience on desktop (which @atsushieno recomm
 
 
 ```
+plugins { // skip this if you are rather building a library (not an app)
+    id("org.bytedeco.gradle-javacpp-platform") version "1.5.10"
+}
+
 dependencies {
     implementation "dev.atsushieno:ktmidi-jvm-desktop:+" // replace + with the actual version
 }
 ```
 
 ... and use `AlsaMidiAccess` on Linux, or `RtMidiAccess` elsewhere. I use `if (File.exists("/dev/snd/seq")) AlsaMidiAccess() else RtMidiAccess()` (or `JvmMidiAccess` instead of `RtMidiAccess`) to create best `MidiAccess` instance.
+
+**NOTE**: if you are building a desktop MIDI library using `ktmidi-jvm-desktop`, your *application* needs to add javacpp-platform Gradle plugin:
+
+```
+plugins {
+    id("org.bytedeco.gradle-javacpp-platform") version "1.5.10"
+}
+```
+
+This Gradle plugin replaces the reference to javacpp library with the platform-specific ones. So if you do this in your *library* build, it will result in that your library is useful only on the same platform as your building environment(!)
 
 ktmidi is released at sonatype and hence available at Maven Central.
 
