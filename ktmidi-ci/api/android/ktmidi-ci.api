@@ -719,13 +719,13 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIChannel {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class dev/atsushieno/ktmidi/ci/MidiCIChannel$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public synthetic class dev/atsushieno/ktmidi/ci/MidiCIChannel$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIChannel$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIChannel;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIChannel;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIChannel;)V
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIChannel;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
@@ -740,13 +740,13 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIChannelList {
 	public final fun getChannels ()Ljava/util/List;
 }
 
-public final class dev/atsushieno/ktmidi/ci/MidiCIChannelList$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public synthetic class dev/atsushieno/ktmidi/ci/MidiCIChannelList$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIChannelList$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;)V
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
@@ -876,13 +876,13 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration {
 	public final fun setReceivableMaxSysExSize (I)V
 }
 
-public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public synthetic class dev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)V
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
@@ -933,13 +933,13 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceInfo {
 	public final fun versionIdBytes ()Ljava/util/List;
 }
 
-public final class dev/atsushieno/ktmidi/ci/MidiCIDeviceInfo$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public synthetic class dev/atsushieno/ktmidi/ci/MidiCIDeviceInfo$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
@@ -973,13 +973,13 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIProfile {
 	public final fun setNumChannelsRequested (S)V
 }
 
-public final class dev/atsushieno/ktmidi/ci/MidiCIProfile$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public synthetic class dev/atsushieno/ktmidi/ci/MidiCIProfile$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIProfile$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIProfile;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIProfile;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIProfile;)V
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIProfile;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
@@ -1015,13 +1015,13 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIProfileId {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class dev/atsushieno/ktmidi/ci/MidiCIProfileId$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public synthetic class dev/atsushieno/ktmidi/ci/MidiCIProfileId$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/MidiCIProfileId$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/MidiCIProfileId;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
@@ -1261,13 +1261,13 @@ public final class dev/atsushieno/ktmidi/ci/PropertyValue {
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class dev/atsushieno/ktmidi/ci/PropertyValue$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public synthetic class dev/atsushieno/ktmidi/ci/PropertyValue$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/PropertyValue$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/PropertyValue;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/PropertyValue;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/PropertyValue;)V
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/PropertyValue;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
@@ -1447,13 +1447,13 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPrope
 	public final fun setSchema (Ljava/lang/String;)V
 }
 
-public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public synthetic class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata;)V
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
@@ -1647,13 +1647,13 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResource
 	public final fun toJsonValue ()Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
 }
 
-public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+public synthetic class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn$$serializer;
-	public fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
-	public fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn;)V
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertyResourceColumn;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
