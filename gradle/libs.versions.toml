@@ -26,7 +26,7 @@ ktor-io = "2.3.11"
 mpfilepicker = "3.1.0"
 gradle-javacpp = "1.5.10"
 
-alsakt = "0.3.5"
+alsa-javacpp = "0.1.0"
 rtmidi-javacpp = "0.1.5"
 
 [libraries]
@@ -42,7 +42,7 @@ compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 
-alsakt = { module = "dev.atsushieno:alsakt", version.ref = "alsakt" }
+alsa-javacpp = { module = "dev.atsushieno:alsa-javacpp", version.ref = "alsa-javacpp" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter-api" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter-api" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core" }

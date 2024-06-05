@@ -23,7 +23,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":ktmidi"))
-                implementation(libs.alsakt)
+                implementation(libs.alsa.javacpp)
                 api(libs.rtmidi.javacpp)
 
                 implementation(libs.kotlinx.coroutines.core)
