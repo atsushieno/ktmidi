@@ -239,22 +239,6 @@ class AlsaSequencer(
         }
     }
 
-    // receives messages as in ALSA sequencer format. Required for system annoucement messages.
-    fun input( result:AlsaSequencerEvent, port: Int): Int {
-        val evt = snd_seq_event_t()
-        val ret = Alsa.snd_seq_event_input(seq, evt)
-        if (ret >= 0) {
-            result.type = evt.type()
-            result.flags = evt.flags()
-            result.tag = evt.tag()
-            result.queue = evt.queue()
-            result.time = evt.time()
-            result.source = evt.source()
-            result.dest = evt.dest()
-        }
-        return ret
-    }
-
     private val defaultInputTimeout = -1
     fun startListening(
         applicationPort: Int,
@@ -399,23 +383,3 @@ class AlsaSequencer(
         seq = ptr
     }
 }
-
-
-// This is a class for temporary managed class to make it possible to unmarshal via PtrToStructure.
-//[StructLayout (LayoutKind.Sequential)]
-class AlsaSequencerEvent {
-    var type: Byte = 0
-    var flags: Byte = 0
-    var tag: Byte = 0
-    var queue: Byte = 0
-    var time: snd_seq_timestamp_t? = null
-    var source: snd_seq_addr_t? = null
-    var dest: snd_seq_addr_t? = null
-    // FIXME: some of the struct members are arrays with SizeConsts, but the runtime (either mono or CoreCLR) does not accept them.
-    // Therefore it is commented out, but that will result in inconsistent sizing between managed and unmanaged.
-    //anonymous_type_3 data;
-
-    val eventType: Int
-        get() = type.toInt()
-}
-
