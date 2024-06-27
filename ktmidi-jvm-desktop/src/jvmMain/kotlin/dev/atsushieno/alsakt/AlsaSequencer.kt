@@ -2,6 +2,10 @@ package dev.atsushieno.alsakt
 import dev.atsushieno.alsa.javacpp.*
 import dev.atsushieno.alsa.javacpp.global.Alsa
 import dev.atsushieno.alsa.javacpp.global.HackyPoll
+import dev.atsushieno.ktmidi.MidiTransportProtocol
+import dev.atsushieno.ktmidi.Ump
+import dev.atsushieno.ktmidi.sizeInInts
+import dev.atsushieno.ktmidi.umpSizeInInts
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -213,6 +217,15 @@ class AlsaSequencer(
 
     // FIXME: should this be moved to AlsaMidiApi? It's a bit too high level.
     fun send(port: Int, data: ByteArray, index: Int, count: Int) {
+
+        val midiProtocol = clientInfo.midiVersion
+        if (midiProtocol == MidiTransportProtocol.UMP)
+            sendUmp(port, data, index, count)
+        else
+            sendMidi1(port, data, index, count)
+    }
+
+    private fun sendMidi1(port: Int, data: ByteArray, index: Int, count: Int) {
         if (midiEventParserOutput == null) {
             val ptr = snd_midi_event_t()
             Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
@@ -233,9 +246,42 @@ class AlsaSequencer(
                 eventBufferOutput.put(seq_evt_off_dest_client, AddressSubscribers.toByte())
                 eventBufferOutput.put(seq_evt_off_dest_port, AddressUnknown.toByte())
                 eventBufferOutput.put(seq_evt_off_queue, QueueDirect.toByte())
+                // FIXME: should we provide error handler and catch it?
                 Alsa.snd_seq_event_output_direct(seq, ev)
             }
             i += ret.toInt()
+        }
+    }
+
+    private fun sendUmp(port: Int, data: ByteArray, index: Int, count: Int) {
+        if (midiEventParserOutput == null) {
+            val ptr = snd_midi_event_t()
+            Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
+            midiEventParserOutput = ptr
+        }
+
+        val ev = snd_seq_ump_event_t()
+        val source = snd_seq_addr_t()
+        source.client(clientInfo.client.toByte())
+        source.port(port.toByte())
+        ev.source(source)
+        val dest = snd_seq_addr_t()
+        dest.client(AddressSubscribers.toByte())
+        dest.port(AddressUnknown.toByte())
+        ev.queue(QueueDirect.toByte())
+        ev.type(Alsa.SND_SEQ_EVENT_NONE.toByte())
+
+        Ump.fromBytes(data, index, count).forEach { ump ->
+            val size = ump.sizeInInts
+            ev.ump(0, ump.int1)
+            if (size > 1)
+                ev.ump(1, ump.int2)
+            if (size > 2)
+                ev.ump(2, ump.int3)
+            if (size > 3)
+                ev.ump(3, ump.int4)
+            // FIXME: should we provide error handler and catch it?
+            Alsa.snd_seq_ump_event_output_direct(seq, ev)
         }
     }
 
@@ -245,12 +291,12 @@ class AlsaSequencer(
         buffer: ByteArray,
         onReceived: (ByteArray, Int, Int) -> Unit,
         timeout: Int = defaultInputTimeout
-    ) = SequencerLoopContext(seq, midiEventBufferSize).apply { startListening(applicationPort, buffer, onReceived, timeout) }
+    ) = SequencerLoopContext(this, midiEventBufferSize).apply { startListening(applicationPort, buffer, onReceived, timeout) }
 
     fun stopListening(loop: SequencerLoopContext) { loop.stopListening() }
 
-    class SequencerLoopContext(private val seq: snd_seq_t, private val midiEventBufferSize: Long) {
-
+    class SequencerLoopContext(private val sequencer: AlsaSequencer, private val midiEventBufferSize: Long) {
+        private val seq: snd_seq_t = sequencer.sequencerHandle!!
         private var eventLoopStopped = false
         private lateinit var eventLoopBuffer: ByteArray
         private var inputTimeout: Int = 0
@@ -283,29 +329,33 @@ class AlsaSequencer(
             val ret = Alsa.snd_seq_poll_descriptors(seq, fd, count, POLLIN.toShort())
             if (ret < 0)
                 throw AlsaException(ret)
+
+            val midiProtocol = sequencer.clientInfo.midiVersion
+
             while (!eventLoopStopped) {
                 val rt = HackyPoll.poll(fd, count.toLong(), inputTimeout)
                 if (rt > 0) {
-                    val len = receive(port, eventLoopBuffer, 0, eventLoopBuffer.size)
-                    onReceived(eventLoopBuffer, 0, len)
+                    if (midiProtocol == 2) {
+                        val len = receiveUmp(port, eventLoopBuffer, 0, eventLoopBuffer.size)
+                        onReceived(eventLoopBuffer, 0, len)
+                    } else {
+                        val len = receiveMidi1(port, eventLoopBuffer, 0, eventLoopBuffer.size)
+                        onReceived(eventLoopBuffer, 0, len)
+                    }
                 }
             }
         }
 
         private var midiEventParserInput: snd_midi_event_t? = null
 
-        private fun prepareEventParser() {
+        private fun receiveMidi1(port: Int, data: ByteArray, index: Int, count: Int): Int {
+            var received = 0
+
             if (midiEventParserInput == null) {
                 val ptr = snd_midi_event_t()
                 Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
                 midiEventParserInput = ptr
             }
-        }
-
-        fun receive(port: Int, data: ByteArray, index: Int, count: Int): Int {
-            var received = 0
-
-            prepareEventParser()
 
             var remaining = true
             while (remaining && index + received < count) {
@@ -322,6 +372,27 @@ class AlsaSequencer(
                 )
                 if (converted > 0)
                     received += converted.toInt()
+            }
+            return received
+        }
+
+        private fun receiveUmp(port: Int, data: ByteArray, index: Int, count: Int): Int {
+            var received = 0
+
+            val numEvents = Alsa.snd_seq_event_input_pending(seq, 1)
+            var eventsProcessed = 0
+
+            while (index + received < count) {
+                val sevt = snd_seq_ump_event_t()
+                val ret = Alsa.snd_seq_ump_event_input(seq, sevt)
+                if (ret < 0)
+                    throw AlsaException(ret)
+                val size = umpSizeInInts(sevt.ump(0))
+                val bytes = sevt.ump().asByteBuffer()
+                bytes.get(data, index + received, size * 4)
+                received += size * 4
+                if (++eventsProcessed == numEvents)
+                    break
             }
             return received
         }

@@ -10,12 +10,14 @@ val Ump.groupByte: Int
 val Ump.messageType: Int
     get() = (int1 shr 28) and 0xF
 
+fun umpSizeInInts(messageType: Int) = when(messageType) {
+    MidiMessageType.SYSEX8_MDS, MidiMessageType.FLEX_DATA, MidiMessageType.UMP_STREAM -> 4
+    MidiMessageType.SYSEX7, MidiMessageType.MIDI2 -> 2
+    else -> 1
+}
+
 val Ump.sizeInInts
-    get() = when(messageType) {
-        MidiMessageType.SYSEX8_MDS, MidiMessageType.FLEX_DATA, MidiMessageType.UMP_STREAM -> 4
-        MidiMessageType.SYSEX7, MidiMessageType.MIDI2 -> 2
-        else -> 1
-    }
+    get() = umpSizeInInts(messageType)
 
 val Ump.sizeInBytes
     get() = sizeInInts * 4

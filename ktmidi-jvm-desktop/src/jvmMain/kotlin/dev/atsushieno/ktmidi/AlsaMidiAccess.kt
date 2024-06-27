@@ -97,19 +97,22 @@ class AlsaMidiAccess : MidiAccess() {
 
     override suspend fun createVirtualInputSender ( context: PortCreatorContext) : MidiOutput {
         val portCap = virtual_input_sender_connected_cap or
-                if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) AlsaPortCapabilities.UmpEndpoint else 0
-        val portType = midi_port_type or if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) AlsaPortType.Ump else 0
+                if (context.midiProtocol == MidiTransportProtocol.UMP) AlsaPortCapabilities.UmpEndpoint else 0
+        val portType = midi_port_type or if (context.midiProtocol == MidiTransportProtocol.UMP) AlsaPortType.Ump else 0
         seq.setClientName (context.applicationName)
-        if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) {
+        if (context.midiProtocol == MidiTransportProtocol.UMP) {
             val client = seq.clientInfo
             client.midiVersion = context.midiProtocol
+            client.isUmpGrouplessEnabled = true
+            if (context.umpGroup > 0)
+                client.setUmpGroupEnabled(context.umpGroup, true)
             seq.clientInfo = client // snd_seq_set_client_info()
         }
         val portNumber = seq.createSimplePort(context.portName, portCap, portType)
         if (portNumber < 0)
             throw AlsaException(portNumber)
         val port = seq.getPortInfo(portNumber)
-        if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) {
+        if (context.midiProtocol == MidiTransportProtocol.UMP) {
             port.umpGroup = context.umpGroup
             seq.setPortInfo(portNumber, port)
         }
@@ -119,24 +122,29 @@ class AlsaMidiAccess : MidiAccess() {
                 Thread.sleep(timestampInNanoSeconds / 1000000, (timestampInNanoSeconds % 1000000).toInt())
             seq.send(portNumber, buffer, start, length)
         }
-        return SimpleVirtualMidiOutput (details) { seq.deleteSimplePort(portNumber) }.apply { onSend = send }
+        return AlsaVirtualMidiOutput (seq, details, { seq.deleteSimplePort(portNumber) }, send)
     }
 
     override suspend fun createVirtualOutputReceiver ( context:PortCreatorContext): MidiInput {
+        val seq = AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking)
+
         val portCap = virtual_output_receiver_connected_cap or
-                if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) AlsaPortCapabilities.UmpEndpoint else 0
-        val portType = midi_port_type or if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) AlsaPortType.Ump else 0
+                if (context.midiProtocol == MidiTransportProtocol.UMP) AlsaPortCapabilities.UmpEndpoint else 0
+        val portType = midi_port_type or if (context.midiProtocol == MidiTransportProtocol.UMP) AlsaPortType.Ump else 0
         seq.setClientName (context.applicationName)
-        if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) {
+        if (context.midiProtocol == MidiTransportProtocol.UMP) {
             val client = seq.clientInfo
             client.midiVersion = context.midiProtocol
+            client.isUmpGrouplessEnabled = true
+            if (context.umpGroup > 0)
+                client.setUmpGroupEnabled(context.umpGroup, true)
             seq.clientInfo = client // snd_seq_set_client_info()
         }
         val portNumber = seq.createSimplePort (context.portName, portCap, portType)
         if (portNumber < 0)
             throw AlsaException(portNumber)
         val port = seq.getPortInfo (portNumber)
-        if (context.midiProtocol != MidiProtocolVersion.UNSPECIFIED) {
+        if (context.midiProtocol == MidiTransportProtocol.UMP) {
             port.umpGroup = context.umpGroup
             seq.setPortInfo(portNumber, port)
         }
@@ -144,6 +152,28 @@ class AlsaMidiAccess : MidiAccess() {
 
         return AlsaVirtualMidiInput(seq, details) { seq.deleteSimplePort(port.port) }
     }
+}
+
+class AlsaVirtualMidiOutput (
+    private val seq: AlsaSequencer,
+    private val portDetails: AlsaMidiPortDetails,
+    private val onClose: ()->Unit,
+    private val onSend: (ByteArray,Int,Int, Long) -> Unit) : MidiOutput {
+    private var state = MidiPortConnectionState.OPEN
+
+    override val details: MidiPortDetails
+        get() = portDetails
+    override val connectionState: MidiPortConnectionState
+        get() = state
+
+    override fun close() {
+        onClose()
+        seq.close()
+        state = MidiPortConnectionState.CLOSED
+    }
+
+    override fun send (mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) =
+        onSend(mevent, offset, length, timestampInNanoseconds)
 }
 
 class AlsaVirtualMidiInput (private val seq: AlsaSequencer, private val portDetails: AlsaMidiPortDetails, private val onClose: ()->Unit) : MidiInput {
@@ -163,6 +193,8 @@ class AlsaVirtualMidiInput (private val seq: AlsaSequencer, private val portDeta
     override fun close() {
         loop.stopListening()
         onClose()
+        seq.close()
+        state = MidiPortConnectionState.CLOSED
     }
 
     init {
