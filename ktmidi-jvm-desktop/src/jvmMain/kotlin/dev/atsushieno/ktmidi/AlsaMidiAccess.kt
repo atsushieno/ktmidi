@@ -48,8 +48,12 @@ class AlsaMidiAccess : MidiAccess() {
     }
 
     // [input device port] --> [RETURNED PORT] --> app handles messages
-    private fun createInputConnectedPort (seq: AlsaSequencer , pinfo:  AlsaPortInfo, portName: String = "ktmidi ALSA input") : AlsaPortInfo {
-        val portId = seq.createSimplePort (portName, input_connected_cap, midi_port_type)
+    private fun createInputConnectedPort (seq: AlsaSequencer, midiProtocol: Int, group: Int, pinfo:  AlsaPortInfo, portName: String = "ktmidi ALSA input") : AlsaPortInfo {
+        val isUmp = midiProtocol == MidiTransportProtocol.UMP
+        val portCap = input_connected_cap or if (isUmp) AlsaPortCapabilities.UmpEndpoint else 0
+        val portType = midi_port_type or if (isUmp) AlsaPortType.Ump else 0
+        val portId = seq.createSimplePort (portName, portCap, portType)
+        updateClientProtocol(seq, midiProtocol, group)
         val sub =  AlsaPortSubscription ()
         sub.destination.client = seq.currentClientId.toByte()
         sub.destination.port = portId.toByte()
@@ -60,8 +64,12 @@ class AlsaMidiAccess : MidiAccess() {
     }
 
     // app generates messages --> [RETURNED PORT] --> [output device port]
-    private fun createOutputConnectedPort ( seq: AlsaSequencer, pinfo: AlsaPortInfo, portName: String = "ktmidi ALSA output") : AlsaPortInfo {
-        val portId = seq.createSimplePort (portName, output_connected_cap, midi_port_type)
+    private fun createOutputConnectedPort ( seq: AlsaSequencer, midiProtocol: Int, group: Int, pinfo: AlsaPortInfo, portName: String = "ktmidi ALSA output") : AlsaPortInfo {
+        val isUmp = midiProtocol == MidiTransportProtocol.UMP
+        val portCap = output_connected_cap or if (isUmp) AlsaPortCapabilities.UmpEndpoint else 0
+        val portType = midi_port_type or if (isUmp) AlsaPortType.Ump else 0
+        val portId = seq.createSimplePort (portName, portCap, portType)
+        updateClientProtocol(seq, midiProtocol, group)
         val sub = AlsaPortSubscription ()
         sub.sender.client = seq.currentClientId.toByte()
         sub.sender.port = portId.toByte()
@@ -81,7 +89,8 @@ class AlsaMidiAccess : MidiAccess() {
         val sourcePort = inputs.firstOrNull { p -> p.id == portId } as AlsaMidiPortDetails?
             ?: throw IllegalArgumentException ("Port '$portId' does not exist.")
         val seq = AlsaSequencer (AlsaIOType.Input, AlsaIOMode.NonBlocking)
-        val appPort = createInputConnectedPort (seq, sourcePort.portInfo)
+        // FIXME: get UMP group?
+        val appPort = createInputConnectedPort (seq, sourcePort.midiTransportProtocol, 0, sourcePort.portInfo)
         return AlsaMidiInput (seq, AlsaMidiPortDetails (appPort), sourcePort)
     }
 
@@ -89,25 +98,20 @@ class AlsaMidiAccess : MidiAccess() {
         val destPort = outputs.firstOrNull { p -> p.id == portId } as AlsaMidiPortDetails?
             ?: throw IllegalArgumentException ("Port '$portId' does not exist.")
         val seq = AlsaSequencer (AlsaIOType.Output, AlsaIOMode.None)
-        val appPort = createOutputConnectedPort (seq, destPort.portInfo)
+        // FIXME: get UMP group?
+        val appPort = createOutputConnectedPort (seq, destPort.midiTransportProtocol, 0, destPort.portInfo)
         return AlsaMidiOutput (seq, AlsaMidiPortDetails (appPort), destPort)
     }
 
     private val seq: AlsaSequencer by lazy { AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking) }
 
     override suspend fun createVirtualInputSender ( context: PortCreatorContext) : MidiOutput {
+        val isUmp = context.midiProtocol == MidiTransportProtocol.UMP
         val portCap = virtual_input_sender_connected_cap or
-                if (context.midiProtocol == MidiTransportProtocol.UMP) AlsaPortCapabilities.UmpEndpoint else 0
-        val portType = midi_port_type or if (context.midiProtocol == MidiTransportProtocol.UMP) AlsaPortType.Ump else 0
+                if (isUmp) AlsaPortCapabilities.UmpEndpoint else 0
+        val portType = midi_port_type or if (isUmp) AlsaPortType.Ump else 0
         seq.setClientName (context.applicationName)
-        if (context.midiProtocol == MidiTransportProtocol.UMP) {
-            val client = seq.clientInfo
-            client.midiVersion = context.midiProtocol
-            client.isUmpGrouplessEnabled = true
-            if (context.umpGroup > 0)
-                client.setUmpGroupEnabled(context.umpGroup, true)
-            seq.clientInfo = client // snd_seq_set_client_info()
-        }
+        updateClientProtocol(seq, context.midiProtocol, context.umpGroup)
         val portNumber = seq.createSimplePort(context.portName, portCap, portType)
         if (portNumber < 0)
             throw AlsaException(portNumber)
@@ -132,14 +136,7 @@ class AlsaMidiAccess : MidiAccess() {
                 if (context.midiProtocol == MidiTransportProtocol.UMP) AlsaPortCapabilities.UmpEndpoint else 0
         val portType = midi_port_type or if (context.midiProtocol == MidiTransportProtocol.UMP) AlsaPortType.Ump else 0
         seq.setClientName (context.applicationName)
-        if (context.midiProtocol == MidiTransportProtocol.UMP) {
-            val client = seq.clientInfo
-            client.midiVersion = context.midiProtocol
-            client.isUmpGrouplessEnabled = true
-            if (context.umpGroup > 0)
-                client.setUmpGroupEnabled(context.umpGroup, true)
-            seq.clientInfo = client // snd_seq_set_client_info()
-        }
+        updateClientProtocol(seq, context.midiProtocol, context.umpGroup)
         val portNumber = seq.createSimplePort (context.portName, portCap, portType)
         if (portNumber < 0)
             throw AlsaException(portNumber)
@@ -151,6 +148,17 @@ class AlsaMidiAccess : MidiAccess() {
         val details = AlsaMidiPortDetails (port)
 
         return AlsaVirtualMidiInput(seq, details) { seq.deleteSimplePort(port.port) }
+    }
+
+    private fun updateClientProtocol(seq: AlsaSequencer, midiProtocol: Int, group: Int) {
+        if (midiProtocol == MidiTransportProtocol.UMP) {
+            val client = seq.clientInfo
+            client.midiVersion = midiProtocol
+            client.isUmpGrouplessEnabled = true
+            if (group > 0)
+                client.setUmpGroupEnabled(group, true)
+            seq.clientInfo = client // snd_seq_set_client_info()
+        }
     }
 }
 
