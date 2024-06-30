@@ -3,9 +3,6 @@ package dev.atsushieno.ktmidi.citool
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.Snapshot
 import dev.atsushieno.ktmidi.*
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-//import kotlinx.coroutines.runBlocking
 
 class MidiDeviceManager {
     private val emptyMidiAccess = EmptyMidiAccess()
@@ -24,26 +21,48 @@ class MidiDeviceManager {
         try {
             val pcOut = PortCreatorContext(
                 manufacturer = "KtMidi project",
-                applicationName = "KtMidi-CI-Tool",
+                applicationName = "KtMidi-CI-Tool V-In",
                 portName = "KtMidi-CI-Tool Virtual Out Port",
-                version = "1.0"
-                //midiProtocol = MidiCIProtocolType.MIDI2, // if applicable
-                //umpGroup = 2
+                version = "1.0",
+                midiProtocol = MidiTransportProtocol.MIDI1, // if applicable
             )
             val pcIn = PortCreatorContext(
                 manufacturer = "KtMidi project",
-                applicationName = "KtMidi-CI-Tool",
+                applicationName = "KtMidi-CI-Tool V-Out",
                 portName = "KtMidi-CI-Tool Virtual In Port",
-                version = "1.0"
-                //midiProtocol = MidiCIProtocolType.MIDI2, // if applicable
-                //umpGroup = 2
+                version = "1.0",
+                midiProtocol = MidiTransportProtocol.MIDI1, // if applicable
             )
 
             virtualMidiInput = midiAccessValue.createVirtualOutputReceiver(pcOut)
             midiInputOpened.forEach { it(virtualMidiInput!!) }
-
             virtualMidiOutput = midiAccessValue.createVirtualInputSender(pcIn)
-        } catch (_: Exception) {
+
+            if (!midiAccessValue.supportsUmpTransport)
+                return
+
+            val pcOut2 = PortCreatorContext(
+                manufacturer = "KtMidi project",
+                applicationName = "KtMidi-CI-Tool UMP V-In",
+                portName = "KtMidi-CI-Tool UMP Virtual Out Port",
+                version = "1.0",
+                midiProtocol = MidiTransportProtocol.UMP, // if applicable
+                umpGroup = 1
+            )
+            val pcIn2 = PortCreatorContext(
+                manufacturer = "KtMidi project",
+                applicationName = "KtMidi-CI-Tool UMP V-Out",
+                portName = "KtMidi-CI-Tool UMP Virtual In Port",
+                version = "1.0",
+                midiProtocol = MidiTransportProtocol.UMP, // if applicable
+                umpGroup = 2
+            )
+
+            virtualMidiInput2 = midiAccessValue.createVirtualOutputReceiver(pcOut2)
+            midiInputOpened.forEach { it(virtualMidiInput2!!) }
+            virtualMidiOutput2 = midiAccessValue.createVirtualInputSender(pcIn2)
+        } catch (ex: Exception) {
+            println(ex)
         }
     }
 
@@ -62,6 +81,8 @@ class MidiDeviceManager {
     // Therefore, we simply use the same virtual in and out for both purposes.
     private var virtualMidiInput: MidiInput? = null
     private var virtualMidiOutput: MidiOutput? = null
+    private var virtualMidiInput2: MidiInput? = null
+    private var virtualMidiOutput2: MidiOutput? = null
 
     private var midiOutputError = mutableStateOf<Exception?>(null)
     private var virtualMidiOutputError = mutableStateOf<Exception?>(null)
@@ -104,8 +125,13 @@ class MidiDeviceManager {
             Snapshot.withMutableSnapshot { midiOutputError.value = ex }
         }
         try {
-            if (virtualMidiOutputError.value == null && virtualMidiOutput != null) {
-                if (virtualMidiOutput!!.details.midiTransportProtocol == MidiTransportProtocol.UMP)
+            if (virtualMidiOutput!!.details.midiTransportProtocol == MidiTransportProtocol.UMP) {
+                if (virtualMidiOutputError.value == null && virtualMidiOutput2 != null)
+                    virtualMidiOutput2!!.send(translateMidi1BytesToUmp(bytes, group), timestampInNanoseconds)
+                else
+                    virtualMidiOutput2!!.send(bytes, 0, bytes.size, timestampInNanoseconds)
+            } else {
+                if (virtualMidiOutputError.value == null && virtualMidiOutput != null)
                     virtualMidiOutput!!.send(translateMidi1BytesToUmp(bytes, group), timestampInNanoseconds)
                 else
                     virtualMidiOutput!!.send(bytes, 0, bytes.size, timestampInNanoseconds)
