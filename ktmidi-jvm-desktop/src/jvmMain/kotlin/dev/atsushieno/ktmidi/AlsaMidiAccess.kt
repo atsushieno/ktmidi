@@ -22,6 +22,10 @@ class AlsaMidiAccess : MidiAccess() {
 
     override val name: String
         get() = "ALSA"
+    override val canCreateVirtualPort: Boolean
+        get() = true
+    override val supportsUmpTransport: Boolean
+        get() = true
 
     private fun enumerateMatchingPorts ( seq: AlsaSequencer, cap:  Int) : Iterable<AlsaPortInfo> {
         val clientInfo = AlsaClientInfo().apply { client = -1 }
