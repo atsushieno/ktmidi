@@ -68,7 +68,7 @@ internal interface ListenerHolder {
 }
 
 // MIDIClientRef setup
-@OptIn(ExperimentalStdlibApi::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal class ClientHolder(access: CoreMidiAccess) : AutoCloseable {
     val clientRef: MIDIClientRef = memScoped {
         val clientName = "KTMidiClient"

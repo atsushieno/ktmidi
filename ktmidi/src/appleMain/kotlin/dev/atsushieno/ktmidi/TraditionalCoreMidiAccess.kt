@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi
 
 import kotlinx.cinterop.*
+import platform.CoreFoundation.CFStringRefVar
 import platform.CoreMIDI.*
 import platform.posix.alloca
 
@@ -110,22 +111,21 @@ private open class TraditionalCoreMidiInput(holder: ClientHolder, customReadProc
 private open class TraditionalCoreMidiOutput(holder: ClientHolder, private val coreMidiPortDetails: CoreMidiPortDetails)
     : CoreMidiPort(holder, coreMidiPortDetails), MidiOutput
 {
-    private val portRef by lazy {
-        memScoped {
-            val portName = "KTMidiOutputPort"
-            val port = alloc<MIDIPortRefVar>()
-            checkStatus { MIDIOutputPortCreate(clientRef, portName.toCFStringRef(), port.ptr) }
-            port.value
-        }
+    private val portRef = memScoped {
+        val portName = "KTMidiOutputPort"
+        val port = alloc<MIDIPortRefVar>()
+        checkStatus { MIDIOutputPortCreate(clientRef, portName.toCFStringRef(), port.ptr) }
+        port.value
     }
 
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
         mevent.usePinned { pinned ->
-            val packetListPtr = alloca(length.toULong()) ?: return
-            val packetListRef: CValuesRef<MIDIPacketList> = packetListPtr.reinterpret()
-            MIDIPacketListInit(packetListRef)
-            MIDIPacketListAdd(packetListRef, 1U, null, timestampInNanoseconds.toULong(), length.toULong(), pinned.addressOf(offset).reinterpret())
-            MIDISend(portRef, coreMidiPortDetails.endpoint, packetListRef)
+            memScoped {
+                val packetList = alloc<MIDIPacketList>()
+                val curPacket = MIDIPacketListInit(packetList.ptr)
+                MIDIPacketListAdd(packetList.ptr, length.toULong(), curPacket, timestampInNanoseconds.toULong(), length.toULong(), pinned.addressOf(offset).reinterpret())
+                MIDISend(portRef, coreMidiPortDetails.endpoint, packetList.ptr)
+            }
         }
     }
 }
