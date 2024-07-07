@@ -1,4 +1,4 @@
-package dev.atsushieno.ktmidi.samples.inputsample
+package dev.atsushieno.ktmidi.samples.playersample
 
 import dev.atsushieno.ktmidi.*
 
