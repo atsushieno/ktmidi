@@ -31,7 +31,9 @@ Lastly, but as often the most useful implementation, there is `EmptyMidiAccess` 
 ## Feature set
 
 There are various options on how a cross-platform MIDI access API can be designed.
-For now, `MidiAccess` class basically starts with what Web MIDI API provides, except that it does not currently track device connection state changes.
+For now, `MidiAccess` class basically starts with what Web MIDI API provides.
+
+Listing available ports may be unreliable depending on the platforms. WinMM does not provide such functionality, so it needs to repeatedlly check available ports to detect any diffs from the previously checked list.
 If you really need it, you can observe Inputs and Outputs of `MidiAccess` using simple timer loop.
 
 It also provides functionality to create arbitrary virtual input and output ports. It is doable only with Linux (ALSA / RtMidi) and Mac/iOS probably (RtMidi, untested). Windows does not support virtual ports and therefore we do not support them either.
@@ -39,12 +41,10 @@ It also provides functionality to create arbitrary virtual input and output port
 
 ## asynchronous API
 
-It is argurable that the API should be asynchronous or not. At this state, these operations are exposed as asynchronous on the common interface:
+It is argurable that the API should be asynchronous or not. At this state, these operations are exposed as `suspend fun` on the common interface:
 
-- `MidiAccess.openInputAsync()`
-- `MidiAccess.openOutputAsync()`
-- `MidiInput.closeAsync()`
-- `MidiOutput.closeAsync()`
+- `MidiAccess.openInput()`
+- `MidiAccess.openOutput()`
 
 Other operations, such as `MidiOutput.send()` and `MidiInput.messageReceived` are implemented as synchronous.
 While they are designed to be synchronous, users shouldn't expect them to "block" until the actual MIDI messaging is done.
@@ -60,3 +60,11 @@ For ordinal MIDI access like WinMM or CoreMIDI, they shouldn't take too much tim
 For MIDI access implementations like RTP support, their send/receive operations should be still implemented to return immediately, while queuing messages on some other messaging.
 
 For open and close operations, there wouldn't be too many calls and there is no performance concern.
+
+## dealing with UMP endpoints
+
+Since `MidiAccess` API is generally based on what Web MIDI API provides, and Web MIDI API does not have any distinct concept between a "device" and a "port". But now we have many enhancements over it e.g. we can handle UMP ports, and we can create virtual ports.
+
+Combining those concepts brought in an interesting problem: what if we need a bidirectional UMP ports? Currently we only have `createVirtualInputSender()` and `createVirtualOutputReceiver()` and it is impossible to have them as bidirection. Should there be a unified `MidiInput` and `MidiOutput` interface like `MidiDuplex` and `createVirtualDuplexHandler()` ? We don't have any design decision yet.
+
+Currently only CoreMIDI and ALSA have support for virtual UMP ports, and currently they have no problem as long as what ktmidi provides. But those input and output ports are enumerated as different devices underneath (not sure about CoreMIDI, but ALSA `aconnect -l` tells us how those ALSA clients and ports are structured).
