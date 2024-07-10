@@ -90,7 +90,7 @@ internal class SmfWriter(
                     if (len > 1)
                         stream.add(e.event.lsb)
                     if (len > 2)
-                        throw Exception("Unexpected data size: $len")
+                        throw Midi1Exception("Unexpected data size: $len")
                 }
             }
             runningStatus = e.event.statusByte

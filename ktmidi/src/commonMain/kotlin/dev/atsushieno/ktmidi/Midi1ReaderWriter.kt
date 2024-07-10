@@ -88,7 +88,7 @@ internal class Midi1Writer(
                     if (len > 1)
                         stream.add(e.message.lsb)
                     if (len > 2)
-                        throw Exception("Unexpected data size: $len")
+                        throw Midi1Exception("Unexpected data size: $len")
                 }
             }
             runningStatus = e.message.statusByte

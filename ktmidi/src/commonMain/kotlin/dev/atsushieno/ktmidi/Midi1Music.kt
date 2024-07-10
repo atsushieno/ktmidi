@@ -131,16 +131,35 @@ class Midi1Event(val deltaTime: Int, val message: Midi1Message) {
 
 interface Midi1Message {
     companion object {
-        fun convert(bytes: ByteArray, index: Int, size: Int) = sequence<Midi1Message> {
-            var i = index
-            val end = index + size
+        @Deprecated("Use convert(bytes, index, size, sysExChunkProcessor. It's better if you supply Midi1SysExChunkProcessor() (it is null by default for backward compatibility).", ReplaceWith("convert(bytes, index, size, null)"))
+        fun convert(bytes: ByteArray, index: Int, size: Int): Sequence<Midi1Message> = convert(bytes, index, size, null)
+
+        fun convert(bytes: ByteArray, index: Int, size: Int,
+                    sysExChunkProcessor: Midi1SysExChunkProcessor? = Midi1SysExChunkProcessor()
+        ): Sequence<Midi1Message> = convert(bytes.drop(index).take(size), sysExChunkProcessor)
+
+        fun convert(bytes: List<Byte>,
+                    sysExChunkProcessor: Midi1SysExChunkProcessor? = Midi1SysExChunkProcessor()
+        ): Sequence<Midi1Message> = sequence {
+            if (sysExChunkProcessor == null)
+                yieldAll(convertInternal(bytes))
+            else
+                sysExChunkProcessor.process(bytes)
+                    .map { convertInternal(it) }
+                    .forEach { yieldAll(it) }
+        }
+
+        private fun convertInternal(bytes: List<Byte>): Sequence<Midi1Message> = sequence {
+            var i = 0
+            val size = bytes.size
+            val end = bytes.size
             while (i < end) {
                 if (bytes[i].toUnsigned() == 0xF0) {
-                    yield(Midi1CompoundMessage(0xF0, 0, 0, bytes, i, size))
+                    yield(Midi1CompoundMessage(0xF0, 0, 0, bytes.drop(i).take(size).toByteArray()))
                     i += size
                 } else {
                     if (end < i + fixedDataSize(bytes[i]))
-                        throw Exception("Received data was incomplete to build MIDI status message for '${bytes[i]}' status.")
+                        throw Midi1Exception("Received data was incomplete to build MIDI status message for '${bytes[i]}' status.")
                     val z = fixedDataSize(bytes[i])
                     yield(
                         Midi1SimpleMessage(

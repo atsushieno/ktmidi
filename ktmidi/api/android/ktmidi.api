@@ -633,6 +633,12 @@ public final class dev/atsushieno/ktmidi/Midi1Event$Companion {
 	public final fun encode7BitLength (I)Lkotlin/sequences/Sequence;
 }
 
+public final class dev/atsushieno/ktmidi/Midi1Exception : java/lang/Exception {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Exception;)V
+}
+
 public final class dev/atsushieno/ktmidi/Midi1Machine {
 	public fun <init> ()V
 	public final fun getChannels ()[Ldev/atsushieno/ktmidi/Midi1MachineChannel;
@@ -689,7 +695,11 @@ public abstract interface class dev/atsushieno/ktmidi/Midi1Message {
 }
 
 public final class dev/atsushieno/ktmidi/Midi1Message$Companion {
+	public final fun convert (Ljava/util/List;Ldev/atsushieno/ktmidi/Midi1SysExChunkProcessor;)Lkotlin/sequences/Sequence;
 	public final fun convert ([BII)Lkotlin/sequences/Sequence;
+	public final fun convert ([BIILdev/atsushieno/ktmidi/Midi1SysExChunkProcessor;)Lkotlin/sequences/Sequence;
+	public static synthetic fun convert$default (Ldev/atsushieno/ktmidi/Midi1Message$Companion;Ljava/util/List;Ldev/atsushieno/ktmidi/Midi1SysExChunkProcessor;ILjava/lang/Object;)Lkotlin/sequences/Sequence;
+	public static synthetic fun convert$default (Ldev/atsushieno/ktmidi/Midi1Message$Companion;[BIILdev/atsushieno/ktmidi/Midi1SysExChunkProcessor;ILjava/lang/Object;)Lkotlin/sequences/Sequence;
 	public final fun fixedDataSize (B)B
 }
 
@@ -785,6 +795,12 @@ public final class dev/atsushieno/ktmidi/Midi1Status {
 	public static final field META I
 	public static final field SYSEX I
 	public static final field SYSEX_END I
+}
+
+public final class dev/atsushieno/ktmidi/Midi1SysExChunkProcessor {
+	public fun <init> ()V
+	public final fun getRemaining ()Ljava/util/List;
+	public final fun process (Ljava/util/List;)Lkotlin/sequences/Sequence;
 }
 
 public final class dev/atsushieno/ktmidi/Midi1SystemCommon {
