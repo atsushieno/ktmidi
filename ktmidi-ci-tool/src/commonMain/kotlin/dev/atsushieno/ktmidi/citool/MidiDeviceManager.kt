@@ -24,14 +24,14 @@ class MidiDeviceManager {
                 applicationName = "KtMidi-CI-Tool V-In",
                 portName = "KtMidi-CI-Tool Virtual Out Port",
                 version = "1.0",
-                midiProtocol = MidiTransportProtocol.MIDI1, // if applicable
+                midiProtocol = MidiTransportProtocol.MIDI1,
             )
             val pcIn = PortCreatorContext(
                 manufacturer = "KtMidi project",
                 applicationName = "KtMidi-CI-Tool V-Out",
                 portName = "KtMidi-CI-Tool Virtual In Port",
                 version = "1.0",
-                midiProtocol = MidiTransportProtocol.MIDI1, // if applicable
+                midiProtocol = MidiTransportProtocol.MIDI1,
             )
 
             virtualMidiInput = midiAccessValue.createVirtualOutputReceiver(pcOut)
@@ -46,16 +46,14 @@ class MidiDeviceManager {
                 applicationName = "KtMidi-CI-Tool UMP V-In",
                 portName = "KtMidi-CI-Tool UMP Virtual Out Port",
                 version = "1.0",
-                midiProtocol = MidiTransportProtocol.UMP, // if applicable
-                umpGroup = 1
+                midiProtocol = MidiTransportProtocol.UMP,
             )
             val pcIn2 = PortCreatorContext(
                 manufacturer = "KtMidi project",
                 applicationName = "KtMidi-CI-Tool UMP V-Out",
                 portName = "KtMidi-CI-Tool UMP Virtual In Port",
                 version = "1.0",
-                midiProtocol = MidiTransportProtocol.UMP, // if applicable
-                umpGroup = 2
+                midiProtocol = MidiTransportProtocol.UMP,
             )
 
             virtualMidiInput2 = midiAccessValue.createVirtualOutputReceiver(pcOut2)

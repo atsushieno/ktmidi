@@ -1,7 +1,6 @@
 package dev.atsushieno.ktmidi
 
 import dev.atsushieno.alsakt.*
-import kotlinx.coroutines.delay
 
 internal fun Byte.toUnsigned() : Int = if (this < 0) this + 0x100 else this.toInt()
 
@@ -107,9 +106,12 @@ class AlsaMidiAccess : MidiAccess() {
         return AlsaMidiOutput (seq, AlsaMidiPortDetails (appPort), destPort)
     }
 
-    private val seq: AlsaSequencer by lazy { AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking) }
+    private val seqIn1: AlsaSequencer by lazy { AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking) }
+    private val seqIn2: AlsaSequencer by lazy { AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking) }
 
     override suspend fun createVirtualInputSender ( context: PortCreatorContext) : MidiOutput {
+        val seq = if (context.midiProtocol == MidiTransportProtocol.UMP) seqIn2 else seqIn1
+
         val isUmp = context.midiProtocol == MidiTransportProtocol.UMP
         val portCap = virtual_input_sender_connected_cap or
                 if (isUmp) AlsaPortCapabilities.UmpEndpoint else 0
@@ -133,7 +135,12 @@ class AlsaMidiAccess : MidiAccess() {
         return AlsaVirtualMidiOutput (seq, details, { seq.deleteSimplePort(portNumber) }, send)
     }
 
+    // should we have this as a property? It seems to cause internal crash.
+    private val seqOut1: AlsaSequencer by lazy { AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking) }
+    private val seqOut2: AlsaSequencer by lazy { AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking) }
+
     override suspend fun createVirtualOutputReceiver ( context:PortCreatorContext): MidiInput {
+        //val seq = if (context.midiProtocol == MidiTransportProtocol.UMP) seqOut2 else seqOut1
         val seq = AlsaSequencer (AlsaIOType.Duplex, AlsaIOMode.NonBlocking)
 
         val portCap = virtual_output_receiver_connected_cap or

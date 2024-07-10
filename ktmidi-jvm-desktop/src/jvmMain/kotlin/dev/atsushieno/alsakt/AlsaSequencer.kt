@@ -228,7 +228,9 @@ class AlsaSequencer(
     private fun sendMidi1(port: Int, data: ByteArray, index: Int, count: Int) {
         if (midiEventParserOutput == null) {
             val ptr = snd_midi_event_t()
-            Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
+            val ret = Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
+            if (ret < 0)
+                throw AlsaException(ret.toInt())
             midiEventParserOutput = ptr
         }
 
@@ -247,7 +249,9 @@ class AlsaSequencer(
                 eventBufferOutput.put(seq_evt_off_dest_port, AddressUnknown.toByte())
                 eventBufferOutput.put(seq_evt_off_queue, QueueDirect.toByte())
                 // FIXME: should we provide error handler and catch it?
-                Alsa.snd_seq_event_output_direct(seq, ev)
+                val ret = Alsa.snd_seq_event_output_direct(seq, ev)
+                if (ret < 0)
+                    throw AlsaException(ret)
             }
             i += ret.toInt()
         }
