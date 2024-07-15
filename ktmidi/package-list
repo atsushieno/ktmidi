@@ -213,6 +213,7 @@ $dokka.location:dev.atsushieno.ktmidi//toPlatformBytes/dev.atsushieno.ktmidi.Ump
 $dokka.location:dev.atsushieno.ktmidi//toPlatformBytes/dev.atsushieno.ktmidi.Ump#kotlin.ByteArray#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformNativeBytes/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-native-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toUtf8ByteArray/kotlin.String#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-utf8-byte-array.html
+$dokka.location:dev.atsushieno.ktmidi//umpSizeInInts/#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/ump-size-in-ints.html
 $dokka.location:dev.atsushieno.ktmidi//umpStreamFormat/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/ump-stream-format.html
 $dokka.location:dev.atsushieno.ktmidi//write/dev.atsushieno.ktmidi.Midi1Music#kotlin.collections.MutableList[kotlin.Byte]#kotlin.Function3[kotlin.Boolean,dev.atsushieno.ktmidi.Midi1Event,kotlin.collections.MutableList[kotlin.Byte],kotlin.Int]#kotlin.Boolean/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/write.html
 $dokka.location:dev.atsushieno.ktmidi//write/dev.atsushieno.ktmidi.Midi2Music#kotlin.collections.MutableList[kotlin.Byte]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/write.html
@@ -786,6 +787,10 @@ $dokka.location:dev.atsushieno.ktmidi/Midi1Event/deltaTime/#/PointingToDeclarati
 $dokka.location:dev.atsushieno.ktmidi/Midi1Event/event/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-event/event.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Event/message/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-event/message.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Event/toString/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-event/to-string.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Exception///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-exception/index.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Exception/Midi1Exception/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-exception/-midi1-exception.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Exception/Midi1Exception/#kotlin.String#kotlin.Exception/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-exception/-midi1-exception.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Exception/Midi1Exception/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-exception/-midi1-exception.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Machine.OnMidi1MessageListener///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/-on-midi1-message-listener/index.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Machine.OnMidi1MessageListener/onMessage/#dev.atsushieno.ktmidi.Midi1Message/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/-on-midi1-message-listener/on-message.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Machine///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine/index.html
@@ -816,7 +821,9 @@ $dokka.location:dev.atsushieno.ktmidi/Midi1MachineChannel/processDteIncrement/#/
 $dokka.location:dev.atsushieno.ktmidi/Midi1MachineChannel/program/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine-channel/program.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1MachineChannel/rpns/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-machine-channel/rpns.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Message.Companion///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/-companion/index.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Message.Companion/convert/#kotlin.ByteArray#kotlin.Int#kotlin.Int#dev.atsushieno.ktmidi.Midi1SysExChunkProcessor?/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/-companion/convert.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Message.Companion/convert/#kotlin.ByteArray#kotlin.Int#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/-companion/convert.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1Message.Companion/convert/#kotlin.collections.List[kotlin.Byte]#dev.atsushieno.ktmidi.Midi1SysExChunkProcessor?/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/-companion/convert.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Message.Companion/fixedDataSize/#kotlin.Byte/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/-companion/fixed-data-size.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Message///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/index.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Message/channel/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-message/channel.html
@@ -865,6 +872,10 @@ $dokka.location:dev.atsushieno.ktmidi/Midi1Status///PointingToDeclaration/ktmid
 $dokka.location:dev.atsushieno.ktmidi/Midi1Status/META/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-status/-m-e-t-a.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Status/SYSEX/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-status/-s-y-s-e-x.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1Status/SYSEX_END/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-status/-s-y-s-e-x_-e-n-d.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1SysExChunkProcessor///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-sys-ex-chunk-processor/index.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1SysExChunkProcessor/Midi1SysExChunkProcessor/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-sys-ex-chunk-processor/-midi1-sys-ex-chunk-processor.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1SysExChunkProcessor/process/#kotlin.collections.List[kotlin.Byte]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-sys-ex-chunk-processor/process.html
+$dokka.location:dev.atsushieno.ktmidi/Midi1SysExChunkProcessor/remaining/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-sys-ex-chunk-processor/remaining.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1SystemCommon///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-system-common/index.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1SystemCommon/Midi1SystemCommon/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-system-common/-midi1-system-common.html
 $dokka.location:dev.atsushieno.ktmidi/Midi1SystemCommon/mtcQuarterFrame/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi1-system-common/mtc-quarter-frame.html
