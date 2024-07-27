@@ -12,6 +12,7 @@ class Midi1SysExChunkProcessor {
                 remaining.addAll(input)
             else {
                 yield(remaining + input.take(f7Pos + 1))
+                remaining.clear()
                 // process the remaining recursively
                 yieldAll(process(input.drop(f7Pos + 1)))
             }
