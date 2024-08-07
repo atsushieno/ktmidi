@@ -123,15 +123,13 @@ private open class TraditionalCoreMidiOutput(val sendBufferSize: Int, holder: Cl
 
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
         mevent.usePinned { pinned ->
-            memScoped {
-                val curPacket = MIDIPacketListInit(packetList.ptr)
-                // FIXME: use AudioGetCurrentHostTime() and mach_absolute_time() to calculate timestamps
-                //  (They do not exist in Kotlin-Native platform bindings yet)
-                MIDIPacketListAdd(packetList.ptr, sendBufferSize.toULong(), curPacket, 0UL, length.toULong(), pinned.addressOf(offset).reinterpret())
-                    ?: throw CoreMidiException("Could not add message to send buffer. Trying increasing the buffer size.")
-                checkStatus {
-                    MIDISend(portRef, coreMidiPortDetails.endpoint, packetList.ptr)
-                }
+            val curPacket = MIDIPacketListInit(packetList.ptr)
+            // FIXME: use AudioGetCurrentHostTime() and mach_absolute_time() to calculate timestamps
+            //  (They do not exist in Kotlin-Native platform bindings yet)
+            MIDIPacketListAdd(packetList.ptr, sendBufferSize.toULong(), curPacket, 0UL, length.toULong(), pinned.addressOf(offset).reinterpret())
+                ?: throw CoreMidiException("Could not add message to send buffer. Trying increasing the buffer size.")
+            checkStatus {
+                MIDISend(portRef, coreMidiPortDetails.endpoint, packetList.ptr)
             }
         }
     }
