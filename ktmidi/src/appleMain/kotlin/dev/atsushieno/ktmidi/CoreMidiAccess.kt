@@ -14,10 +14,10 @@ abstract class CoreMidiAccess : MidiAccess() {
             // You can try to do so by explicitly creating UmpCoreMidiAccess instance.
             if (NSProcessInfo.processInfo.operatingSystemVersion.useContents {
                 // FIXME: How can I detect if I am on macOS or iOS in general??
-                if (false) // isiOS
-                    majorVersion >= 17
-                else
+                if (isRunningOnMacOS())
                     majorVersion >= 14
+                else
+                    majorVersion >= 17
             })
                 UmpCoreMidiAccess()
             else

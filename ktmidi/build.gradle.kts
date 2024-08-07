@@ -132,8 +132,9 @@ kotlin {
             dependsOn(nativeMain)
         }
         val appleTest by creating { dependsOn(nativeTest) }
-        val macosArm64Main by getting { dependsOn(appleMain) }
-        val macosX64Main by getting { dependsOn(appleMain) }
+        val macosMain by creating { dependsOn(appleMain) }
+        val macosArm64Main by getting { dependsOn(macosMain) }
+        val macosX64Main by getting { dependsOn(macosMain) }
         val iosMain by creating { dependsOn(appleMain) }
         val iosTest by creating { dependsOn(appleTest) }
         val iosArm64Main by getting { dependsOn(iosMain) }

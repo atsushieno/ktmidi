@@ -57,3 +57,5 @@ internal fun getPropertyInt(obj: MIDIObjectRef, property: CFStringRef?): Int {
         return i.value
     }
 }
+
+internal expect fun isRunningOnMacOS(): Boolean
