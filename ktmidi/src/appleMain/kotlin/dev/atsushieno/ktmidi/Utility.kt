@@ -52,8 +52,8 @@ internal fun getPropertyString(obj: MIDIObjectRef, property: CFStringRef?): Stri
 @OptIn(ExperimentalForeignApi::class)
 internal fun getPropertyInt(obj: MIDIObjectRef, property: CFStringRef?): Int {
     memScoped {
-        val i = cValue<SInt32Var>()
+        val i = alloc<SInt32Var>()
         checkStatus { MIDIObjectGetIntegerProperty(obj, property, i.ptr) }
-        return i.ptr.pointed.value
+        return i.value
     }
 }
