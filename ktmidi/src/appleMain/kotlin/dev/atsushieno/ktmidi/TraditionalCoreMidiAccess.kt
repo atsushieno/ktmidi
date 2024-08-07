@@ -1,24 +1,24 @@
 package dev.atsushieno.ktmidi
 
 import kotlinx.cinterop.*
-import platform.CoreFoundation.CFStringRefVar
 import platform.CoreMIDI.*
-import platform.posix.alloca
 
 // It is based on traditional CoreMIDI API. For MIDI 2.0 support, see UmpCoreMidiAccess.
-class TraditionalCoreMidiAccess : CoreMidiAccess() {
+class TraditionalCoreMidiAccess(val sendBufferSize: Int = 1024) : CoreMidiAccess() {
+    constructor() : this(1024)
+
     override val name = "CoreMIDI-Traditional"
 
     override suspend fun openInput(portId: String): MidiInput =
         TraditionalCoreMidiInput(ClientHolder(this), null, inputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun openOutput(portId: String): MidiOutput =
-        TraditionalCoreMidiOutput(ClientHolder(this), outputs.first { it.id == portId } as CoreMidiPortDetails)
+        TraditionalCoreMidiOutput(sendBufferSize, ClientHolder(this), outputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput {
         val holder = ClientHolder(this)
         val endpoint = createVirtualInputSource(holder.clientRef, context)
-        return TraditionalCoreMidiOutput(holder, CoreMidiPortDetails(endpoint))
+        return TraditionalCoreMidiOutput(sendBufferSize, holder, CoreMidiPortDetails(endpoint))
     }
 
     @OptIn(ExperimentalForeignApi::class)
@@ -108,7 +108,7 @@ private open class TraditionalCoreMidiInput(holder: ClientHolder, customReadProc
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private open class TraditionalCoreMidiOutput(holder: ClientHolder, private val coreMidiPortDetails: CoreMidiPortDetails)
+private open class TraditionalCoreMidiOutput(val sendBufferSize: Int, holder: ClientHolder, private val coreMidiPortDetails: CoreMidiPortDetails)
     : CoreMidiPort(holder, coreMidiPortDetails), MidiOutput
 {
     private val portRef = memScoped {
@@ -118,13 +118,20 @@ private open class TraditionalCoreMidiOutput(holder: ClientHolder, private val c
         port.value
     }
 
+    val arena = Arena()
+    val packetList by lazy { arena.alloc(sendBufferSize, 0) as MIDIPacketList }
+
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
         mevent.usePinned { pinned ->
             memScoped {
-                val packetList = alloc<MIDIPacketList>()
                 val curPacket = MIDIPacketListInit(packetList.ptr)
-                MIDIPacketListAdd(packetList.ptr, length.toULong(), curPacket, timestampInNanoseconds.toULong(), length.toULong(), pinned.addressOf(offset).reinterpret())
-                MIDISend(portRef, coreMidiPortDetails.endpoint, packetList.ptr)
+                // FIXME: use AudioGetCurrentHostTime() and mach_absolute_time() to calculate timestamps
+                //  (They do not exist in Kotlin-Native platform bindings yet)
+                MIDIPacketListAdd(packetList.ptr, sendBufferSize.toULong(), curPacket, 0UL, length.toULong(), pinned.addressOf(offset).reinterpret())
+                    ?: throw CoreMidiException("Could not add message to send buffer. Trying increasing the buffer size.")
+                checkStatus {
+                    MIDISend(portRef, coreMidiPortDetails.endpoint, packetList.ptr)
+                }
             }
         }
     }

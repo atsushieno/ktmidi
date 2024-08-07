@@ -53,36 +53,42 @@ suspend fun runMain(args: Array<String>) {
     val midiOutput = access.openOutput(portDetails.id)
 
     // load music from file
-    if (opts.musicFile != null) {
-        player = if (canReadFile(opts.musicFile)) {
-            try {
-                if (getFileExtension(opts.musicFile).lowercase() == "mid")
-                    // MIDI1 player
-                    Midi1Player(Midi1Music().apply { this.read(readFileContents(opts.musicFile)) }, midiOutput)
-                else {
-                    // MIDI2 player.
-                    // Note that the device transport might be MIDI1, where it will down-translate UMP to MIDI1 bytestream.
-                    // Also note that the UMP-based song file might contain MIDI1 UMP messages, which is still handled by this player.
-                    Midi2Player(Midi2Music().apply { this.read(readFileContents(opts.musicFile), true) }, midiOutput)
-                }
-            } catch (ex: Exception) {
-                println("File \"${opts.musicFile}\" could not be loaded: $ex")
-                ex.printStackTrace()
-                exitApplication(1)
-                throw Exception("Should not reach here")
+    player = if (opts.musicFile != null && canReadFile(opts.musicFile)) {
+        try {
+            if (getFileExtension(opts.musicFile).lowercase() == "mid")
+            // MIDI1 player
+                Midi1Player(Midi1Music().apply { this.read(readFileContents(opts.musicFile)) }, midiOutput)
+            else {
+                // MIDI2 player.
+                // Note that the device transport might be MIDI1, where it will down-translate UMP to MIDI1 bytestream.
+                // Also note that the UMP-based song file might contain MIDI1 UMP messages, which is still handled by this player.
+                Midi2Player(Midi2Music().apply { this.read(readFileContents(opts.musicFile), true) }, midiOutput)
             }
-        } else {
-            println("File \"${opts.musicFile}\" does not exist.")
-            showUsage(opts.api, protocol)
+        } catch (ex: Exception) {
+            println("File \"${opts.musicFile}\" could not be loaded: $ex")
+            ex.printStackTrace()
             exitApplication(1)
             throw Exception("Should not reach here")
         }
-    }
-    else {
-        println("Music file was not specified.")
-        showUsage(opts.api, protocol)
-        exitApplication(1)
-        return
+    } else {
+        if (opts.midi2)
+            Midi2Player(Midi2Music().apply {
+                tracks.add(Midi2Track().apply {
+                    messages.add(Ump(UmpFactory.deltaClockstamp(192)))
+                    messages.add(Ump(UmpFactory.midi2NoteOn(0, 0, 0x40, 0, 0xF800, 0)))
+                    messages.add(Ump(UmpFactory.deltaClockstamp(192)))
+                    messages.add(Ump(UmpFactory.midi2NoteOff(0, 0, 0x40, 0, 0, 0)))
+                })
+            }, midiOutput)
+        else
+            Midi1Player(Midi1Music().apply {
+                tracks.add(Midi1Track().apply {
+                    events.add(Midi1Event(0, Midi1SimpleMessage(MidiChannelStatus.CC, MidiCC.VOLUME, 0x78))) // volume 120
+                    events.add(Midi1Event(0, Midi1SimpleMessage(MidiChannelStatus.CC, MidiCC.EXPRESSION, 0x78))) // expression 120
+                    events.add(Midi1Event(192, Midi1SimpleMessage(MidiChannelStatus.NOTE_ON, 0x40, 0x78)))
+                    events.add(Midi1Event(192, Midi1SimpleMessage(MidiChannelStatus.NOTE_OFF, 0x40, 0)))
+                })
+            }, midiOutput)
     }
 
     println("Using ${portDetails.name}")
@@ -93,6 +99,7 @@ suspend fun runMain(args: Array<String>) {
     readln()
     player.stop()
 
+    // all sound off / all notes off
     (0xB0 until 0xBF).map { it.toByte() }.forEach { i ->
         midiOutput.send(byteArrayOf(i, 120, 0, i, 123, 0), 0, 6, 9) }
     println("done.")
