@@ -302,6 +302,7 @@ $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/inputs/#/PointingToDeclarat
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/outputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/outputs.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiException///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-exception/index.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiException/CoreMidiException/#[Error type: Unresolved type for OSStatus]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-exception/-core-midi-exception.html
+$dokka.location:dev.atsushieno.ktmidi/CoreMidiException/CoreMidiException/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-exception/-core-midi-exception.html
 $dokka.location:dev.atsushieno.ktmidi/Dc///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-dc/index.html
 $dokka.location:dev.atsushieno.ktmidi/Dc/Dc/#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-dc/-dc.html
 $dokka.location:dev.atsushieno.ktmidi/Dc/value/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-dc/value.html
@@ -1451,11 +1452,13 @@ $dokka.location:dev.atsushieno.ktmidi/TonicNoteField/NON_STANDARD/#/PointingToDe
 $dokka.location:dev.atsushieno.ktmidi/TonicNoteField/UNKNOWN/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-tonic-note-field/-u-n-k-n-o-w-n.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/index.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/TraditionalCoreMidiAccess/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/-traditional-core-midi-access.html
+$dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/TraditionalCoreMidiAccess/#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/-traditional-core-midi-access.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/createVirtualInputSender/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/create-virtual-input-sender.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/createVirtualOutputReceiver/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/create-virtual-output-receiver.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/name/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/name.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/openInput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/open-input.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/openOutput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/open-output.html
+$dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/sendBufferSize/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/send-buffer-size.html
 $dokka.location:dev.atsushieno.ktmidi/Ump.Companion///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump/-companion/index.html
 $dokka.location:dev.atsushieno.ktmidi/Ump.Companion/fromBytes/#kotlin.ByteArray#kotlin.Int#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump/-companion/from-bytes.html
 $dokka.location:dev.atsushieno.ktmidi/Ump///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump/index.html
