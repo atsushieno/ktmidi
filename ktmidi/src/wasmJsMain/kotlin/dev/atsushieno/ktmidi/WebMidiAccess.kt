@@ -26,18 +26,29 @@ private val midiAccess : MIDIAccess?
 private fun getCurrentMidiAccess() : MIDIAccess? = js("document['ktmidi_wasmJs_midiAccess']")
 
 class WebMidiAccess : MidiAccess() {
+    companion object {
+        val isReady: Boolean
+            get() = midiAccess != null
+    }
+
     override val name: String
         get() = "WebMIDI"
     override val inputs: Iterable<MidiPortDetails>
         get() {
             val list = mutableListOf<MIDIInput>()
-            midiAccess?.inputs?.forEach({i, _, _ -> list.add(i) })
+            if (midiAccess == null)
+                println("attempt to get MIDI inputs while MidiAccess is not initialized.")
+            else
+                midiAccess?.inputs?.forEach({i, _, _ -> list.add(i) })
             return list.map { WebMidiPortDetails(it) }
         }
     override val outputs: Iterable<MidiPortDetails>
         get() {
             val list = mutableListOf<MIDIOutput>()
-            midiAccess?.outputs?.forEach({i, _, _ -> list.add(i) })
+            if (midiAccess == null)
+                println("attempt to get MIDI outputs while MidiAccess is not initialized.")
+            else
+                midiAccess?.outputs?.forEach({i, _, _ -> list.add(i) })
             return list.map { WebMidiPortDetails(it) }
         }
 
