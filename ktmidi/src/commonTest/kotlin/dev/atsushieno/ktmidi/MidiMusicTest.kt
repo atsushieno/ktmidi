@@ -176,4 +176,12 @@ class Midi1MusicUnitTest {
         assertEquals(listOf(0xFF.toByte(), 0x7F.toByte()), Midi1Event.encode7BitLength(0x3FFF).toList(), "test6")
         assertEquals(listOf(0x80.toByte(), 0x80.toByte(), 1), Midi1Event.encode7BitLength(0x4000).toList(), "test7")
     }
+
+    @Test
+    fun emptyMusicProperties() {
+        val music = Midi1Music()
+        assertEquals(0, music.getTotalPlayTimeMilliseconds(), "getTotalPlayTimeMilliseconds()")
+        assertEquals(0, music.getTotalTicks(), "getTotalTicks()")
+        assertEquals(0, music.getTimePositionInMillisecondsForTick(0), "getTimePositionInMillisecondsForTick()")
+    }
 }
