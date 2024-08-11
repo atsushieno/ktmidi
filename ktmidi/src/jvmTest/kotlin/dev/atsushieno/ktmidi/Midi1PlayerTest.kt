@@ -16,6 +16,11 @@ class Midi1PlayerTest {
     }
 
     @Test
+    fun playEmptyMusic() {
+        Midi1Player(Midi1Music(), EmptyMidiAccess.output)
+    }
+
+    @Test
     fun playSimple() {
         runBlocking {
             delay(100)

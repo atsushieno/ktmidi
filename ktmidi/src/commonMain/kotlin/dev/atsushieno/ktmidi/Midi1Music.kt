@@ -269,7 +269,7 @@ internal class Midi1TrackMerger(private var source: Midi1Music) {
         }
 
         if (l.size == 0) {
-            val ret = Midi1Music()
+            val ret = Midi1Music().apply { addTrack(Midi1Track()) }
             ret.deltaTimeSpec = source.deltaTimeSpec // empty (why did you need to sort your song file?)
             return ret
         }

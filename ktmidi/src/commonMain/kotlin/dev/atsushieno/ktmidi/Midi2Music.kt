@@ -139,7 +139,7 @@ internal class Midi2TrackMerger(private var source: Midi2Music) {
         }
 
         if (l.size == 0)
-            return Midi2Music()
+            return Midi2Music().apply { addTrack(Midi2Track()) }
 
         // Simple sorter does not work as expected.
         // For example, it does not always preserve event orders on the same channels when the delta time
