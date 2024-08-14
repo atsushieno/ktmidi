@@ -89,7 +89,6 @@ kotlin {
 android {
     namespace = "dev.atsushieno.ktmidi.citool"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
-    compileSdkPreview = "VanillaIceCream"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res")
