@@ -1641,6 +1641,8 @@ $dokka.location:dev.atsushieno.ktmidi/VirtualMidiPlayerTimer/stop/#/PointingToDe
 $dokka.location:dev.atsushieno.ktmidi/VirtualMidiPlayerTimer/totalProceededSeconds/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-virtual-midi-player-timer/total-proceeded-seconds.html
 $dokka.location:dev.atsushieno.ktmidi/VirtualMidiPlayerTimer/totalWaitedSeconds/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-virtual-midi-player-timer/total-waited-seconds.html
 $dokka.location:dev.atsushieno.ktmidi/VirtualMidiPlayerTimer/waitBySeconds/#kotlin.Double/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-virtual-midi-player-timer/wait-by-seconds.html
+$dokka.location:dev.atsushieno.ktmidi/WebMidiAccess.Companion///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-web-midi-access/-companion/index.html
+$dokka.location:dev.atsushieno.ktmidi/WebMidiAccess.Companion/isReady/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-web-midi-access/-companion/is-ready.html
 $dokka.location:dev.atsushieno.ktmidi/WebMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-web-midi-access/index.html
 $dokka.location:dev.atsushieno.ktmidi/WebMidiAccess/WebMidiAccess/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-web-midi-access/-web-midi-access.html
 $dokka.location:dev.atsushieno.ktmidi/WebMidiAccess/inputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-web-midi-access/inputs.html
