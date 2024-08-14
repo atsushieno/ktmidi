@@ -5,7 +5,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
-import kotlin.jvm.Volatile
 
 internal abstract class MidiEventLooperBase {
     var starting: Runnable? = null
@@ -23,10 +22,6 @@ internal abstract class MidiEventLooperBase {
     var playDeltaTime: Int = 0
 
     private var eventLoopSemaphore : Semaphore? = null
-    @Volatile
-    var clientNeedsSpinWait = false
-    @Volatile
-    var clientNeedsCloseSpinWait = false
 
     init {
         state = PlayerState.STOPPED
@@ -36,13 +31,7 @@ internal abstract class MidiEventLooperBase {
         if(eventLoopSemaphore?.availablePermits == 0)
             eventLoopSemaphore?.release()
         if (state != PlayerState.STOPPED) {
-            clientNeedsCloseSpinWait = true
             stop()
-            var dummyCloseCounter = 0
-            while (clientNeedsCloseSpinWait) {
-                if (dummyCloseCounter++ < 0) //  spinwait, or overflow
-                    break
-            }
         }
     }
 
@@ -59,41 +48,36 @@ internal abstract class MidiEventLooperBase {
     }
 
     suspend fun playBlocking() {
-        try {
-            starting?.run()
+        starting?.run()
 
-            eventIdx = 0
-            playDeltaTime = 0
-            eventLoopSemaphore = Semaphore(1, 0)
-            var doWait = true
-            while (true) {
-                if (doWait) {
-                    eventLoopSemaphore?.acquire()
-                    clientNeedsSpinWait = false
-                    doWait = false
-                }
-                if (doStop)
-                    break
-                if (doPause) {
-                    doWait = true
-                    doPause = false
-                    state = PlayerState.PAUSED
-                    continue
-                }
-                if (isEventIndexAtEnd())
-                    break
-                processNextEvent()
-                eventIdx++
+        eventIdx = 0
+        playDeltaTime = 0
+        eventLoopSemaphore = Semaphore(1, 0)
+        var doWait = true
+        while (true) {
+            if (doWait) {
+                eventLoopSemaphore?.acquire()
+                doWait = false
             }
-            doStop = false
-            state = PlayerState.STOPPED
-            mute()
+            if (doStop)
+                break
+            if (doPause) {
+                doWait = true
+                doPause = false
+                state = PlayerState.PAUSED
+                continue
+            }
             if (isEventIndexAtEnd())
-                playbackCompletedToEnd?.run()
-            finished?.run()
-        } finally {
-            clientNeedsCloseSpinWait = false
+                break
+            processNextEvent()
+            eventIdx++
         }
+        doStop = false
+        state = PlayerState.STOPPED
+        mute()
+        if (isEventIndexAtEnd())
+            playbackCompletedToEnd?.run()
+        finished?.run()
     }
 
     abstract fun isEventIndexAtEnd() : Boolean
@@ -207,14 +191,9 @@ abstract class MidiPlayer internal constructor(internal val output: MidiOutput, 
     }
 
     private fun startLoop() {
-        looper.clientNeedsSpinWait = true
         syncPlayerTask = GlobalScope.launch {
             looper.playBlocking()
             syncPlayerTask = null
-        }
-        var counter = 0
-        while (looper.clientNeedsSpinWait) {
-            counter++ //  spinwait, or overflow
         }
     }
 
@@ -222,7 +201,8 @@ abstract class MidiPlayer internal constructor(internal val output: MidiOutput, 
         when (state) {
             PlayerState.PLAYING -> return // do nothing
             PlayerState.PAUSED -> {
-                looper.play(); return; }
+                looper.play()
+            }
             PlayerState.STOPPED -> {
                 if (syncPlayerTask == null)
                     startLoop()
