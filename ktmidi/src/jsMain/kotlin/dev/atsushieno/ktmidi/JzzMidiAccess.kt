@@ -1,15 +1,6 @@
 package dev.atsushieno.ktmidi
 
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
-import kotlin.js.Promise
-
 private external fun require(module: String): dynamic
-
-
-private suspend fun <T> Promise<T>.await(): T = suspendCoroutine { cont ->
-    then({ cont.resumeWith(it.unsafeCast<Result<T>>()) }, { cont.resumeWithException(it) })
-}
 
 // FIXME: we should also create JzzMidi2Access which is based on "JZZ.UMP" ...
 
@@ -20,7 +11,7 @@ class JzzMidiAccess private constructor(val useSysex: Boolean, private val jzz: 
     companion object {
         // We avoid exposing mismatches around suspend functions within this class itself by
         //  leaving asynchronous parts out of the class.
-        suspend fun create(useSysex: Boolean) : JzzMidiAccess {
+        fun create(useSysex: Boolean) : JzzMidiAccess {
             val jzz = require("jzz") (useSysex)
             return JzzMidiAccess(useSysex, jzz)
         }
