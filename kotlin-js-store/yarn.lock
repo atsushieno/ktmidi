@@ -1657,6 +1657,11 @@ jest-worker@^27.4.5:
     merge-stream "^2.0.0"
     supports-color "^8.0.0"
 
+js-synthesizer@1.10.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/js-synthesizer/-/js-synthesizer-1.10.0.tgz#b13fd5589697cd4f8a3bea221586e9c5919e3bf7"
+  integrity sha512-OR8j8QcWgAPvVcJ8LOtCx3Ypdm7lfyumYGQmxLUWIpZmnpzoUlb/HDYagHMv79je1D/rS6mEkq27F48MS87LMw==
+
 js-yaml@4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"

@@ -3,15 +3,16 @@ agp = "8.2.2"
 android-compileSdk = "35"
 android-minSdk = "23"
 android-targetSdk = "35"
-androidx-activityCompose = "1.9.0"
+androidx-activityCompose = "1.9.1"
 androidx-appcompat = "1.7.0"
 androidx-core-ktx = "1.13.1"
 androidx-espresso-core = "3.6.1"
 androidx-test-junit = "1.2.1"
-compose = "1.6.8"
-compose-plugin = "1.6.10"
+compose-components-resources = "1.7.0-alpha02"
+compose = "1.7.0-beta07"
+compose-plugin = "1.7.0-alpha02"
 junit = "4.13.2"
-kotlin = "2.0.0"
+kotlin = "2.0.10"
 dokka = "1.9.20"
 binary-compatibility-validator = "0.14.0"
 junit-jupiter-api = "5.10.2"
@@ -22,6 +23,8 @@ kotlinx-coroutines-core = "1.9.0-RC"
 kotlinx-datetime = "0.6.0"
 kotlinxSerialization = "1.7.0-RC"
 ktor-io = "2.3.11"
+filekitCore = "0.7.0"
+js-synthesizer = "1.10.0"
 
 mpfilepicker = "3.1.0"
 gradle-javacpp = "1.5.10"
@@ -30,6 +33,7 @@ alsa-javacpp = "0.1.0"
 rtmidi-javacpp = "0.1.5"
 
 [libraries]
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-components-resources" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -41,6 +45,8 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+filekit-compose = { module = "io.github.vinceglb:filekit-compose", version.ref = "filekitCore" }
+filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekitCore" }
 
 alsa-javacpp = { module = "dev.atsushieno:alsa-javacpp", version.ref = "alsa-javacpp" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter-api" }

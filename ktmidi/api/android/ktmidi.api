@@ -570,6 +570,15 @@ public final class dev/atsushieno/ktmidi/GeneralMidi2$Percussions {
 	public static final field VIBRASLAP I
 }
 
+public final class dev/atsushieno/ktmidi/MergedMidiAccess : dev/atsushieno/ktmidi/MidiAccess {
+	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public fun getInputs ()Ljava/lang/Iterable;
+	public fun getName ()Ljava/lang/String;
+	public fun getOutputs ()Ljava/lang/Iterable;
+	public fun openInput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun openOutput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
 public final class dev/atsushieno/ktmidi/MergedMidiModuleDatabase : dev/atsushieno/ktmidi/MidiModuleDatabase {
 	public fun <init> (Ljava/lang/Iterable;)V
 	public fun all ()Ljava/lang/Iterable;
