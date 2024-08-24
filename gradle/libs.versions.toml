@@ -28,6 +28,7 @@ gradle-javacpp = "1.5.10"
 
 alsa-javacpp = "0.1.0"
 rtmidi-javacpp = "0.1.5"
+libremidi-javacpp = "0.1.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -59,6 +60,8 @@ ktor-utils = { module = "io.ktor:ktor-utils", version.ref = "ktor-io" }
 mpfilepicker = { module = "com.darkrockstudios:mpfilepicker", version.ref = "mpfilepicker" }
 rtmidi-javacpp = { module = "dev.atsushieno:rtmidi-javacpp", version.ref = "rtmidi-javacpp" }
 rtmidi-javacpp-platform = { module = "dev.atsushieno:rtmidi-javacpp-platform", version.ref = "rtmidi-javacpp" }
+libremidi-javacpp = { module = "dev.atsushieno:libremidi-javacpp", version.ref = "libremidi-javacpp" }
+libremidi-javacpp-platform = { module = "dev.atsushieno:libremidi-javacpp-platform", version.ref = "libremidi-javacpp" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

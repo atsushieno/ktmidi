@@ -2,6 +2,7 @@ package dev.atsushieno.ktmidi.samples.playersample
 
 import dev.atsushieno.ktmidi.EmptyMidiAccess
 import dev.atsushieno.ktmidi.JvmMidiAccess
+import dev.atsushieno.ktmidi.LibreMidiAccess
 import dev.atsushieno.ktmidi.RtMidiAccess
 import java.io.File
 import kotlin.system.exitProcess
@@ -9,9 +10,11 @@ import kotlin.system.exitProcess
 actual fun getMidiAccessApi(api: String?, midiTransportProtocol: Int) = when (api) {
     "EMPTY" -> EmptyMidiAccess()
     "JVM" -> JvmMidiAccess()
-    else ->
+    "RtMidi" ->
         if (System.getProperty("os.name").contains("Windows")) JvmMidiAccess()
         else RtMidiAccess() // rtmidi-javacpp does not support Windows build nowadays.
+    else ->
+        LibreMidiAccess.create(midiTransportProtocol) // rtmidi-javacpp does not support Windows build nowadays.
 }
 
 actual fun exitApplication(code: Int): Unit = exitProcess(code)

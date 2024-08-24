@@ -25,6 +25,7 @@ kotlin {
                 implementation(project(":ktmidi"))
                 implementation(libs.alsa.javacpp)
                 api(libs.rtmidi.javacpp)
+                api(libs.libremidi.javacpp)
 
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.datetime)

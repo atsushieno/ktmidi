@@ -131,3 +131,7 @@ kotlin {
         }
     }
 }
+
+application {
+    mainClass.set("Driver")
+}

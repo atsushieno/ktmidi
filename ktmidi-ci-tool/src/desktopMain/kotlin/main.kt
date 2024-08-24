@@ -3,9 +3,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import dev.atsushieno.ktmidi.AlsaMidiAccess
-import dev.atsushieno.ktmidi.JvmMidiAccess
-import dev.atsushieno.ktmidi.RtMidiAccess
+import dev.atsushieno.ktmidi.*
 import dev.atsushieno.ktmidi.citool.view.App
 import dev.atsushieno.ktmidi.citool.AppModel
 import dev.atsushieno.ktmidi.citool.initializeAppModel
@@ -18,6 +16,11 @@ fun main(args: Array<String>) = application {
         else if (args.contains("jvm")) JvmMidiAccess()
         else if (System.getProperty("os.name").contains("Windows")) JvmMidiAccess()
         else RtMidiAccess() // rtmidi-javacpp does not support Windows build nowadays.
+         /*
+        MergedMidiAccess("LibreMidi1+2", listOf(
+            LibreMidiAccess.create(MidiTransportProtocol.UMP),
+            LibreMidiAccess.create(MidiTransportProtocol.MIDI1)
+        ))*/
     Window(onCloseRequest = ::exitApplication,
         state = rememberWindowState(),
         title = "midi-ci-tool") {

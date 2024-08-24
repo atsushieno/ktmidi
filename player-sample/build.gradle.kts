@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 buildscript {
     repositories {
         maven("https://plugins.gradle.org/m2/")
@@ -7,7 +9,7 @@ buildscript {
 plugins {
     id("application")
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.gradleJavacppPlatform) // required to resolve rtmidi-javacpp-platform appropriately
+    alias(libs.plugins.gradleJavacppPlatform) // required to resolve rtmidi-javacpp-platform and libremidi-javacpp-platform appropriately
 }
 
 kotlin {
@@ -21,6 +23,10 @@ kotlin {
         java {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
+            @OptIn(ExperimentalKotlinGradlePluginApi::class)
+            mainRun {
+                mainClass.set("DriverKt")
+            }
         }
     }
     /* TODO
