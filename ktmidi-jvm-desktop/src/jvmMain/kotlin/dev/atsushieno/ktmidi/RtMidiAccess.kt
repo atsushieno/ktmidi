@@ -9,7 +9,7 @@ import org.bytedeco.javacpp.Pointer
 
 import dev.atsushieno.rtmidi_javacpp.global.rtmidi as library
 
-class RtMidiAccess() : MidiAccess() {
+class RtMidiAccess : MidiAccess() {
     companion object {
 
         internal fun getPortName(rtmidi: Pointer, index: Int) : String {
@@ -150,7 +150,7 @@ class RtMidiAccess() : MidiAccess() {
         }
 
         override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
-            library.rtmidi_out_send_message(rtmidi, if (offset > 0) mevent.drop(offset).take(length).toByteArray() else mevent, length)
+            library.rtmidi_out_send_message(rtmidi, if (offset > 0 && mevent.size == length) mevent.drop(offset).take(length).toByteArray() else mevent, length)
         }
 
         init {
