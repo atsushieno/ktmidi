@@ -56,12 +56,16 @@ class RtMidiAccess : MidiAccess() {
 
     // Input/Output
 
+    @Deprecated("Use canCreateVirtualPort(PortCreatorContext) instead")
     override val canCreateVirtualPort: Boolean
         get() = when(library.rtmidi_out_get_current_api(library.rtmidi_out_create_default())) {
             library.RTMIDI_API_LINUX_ALSA,
             library.RTMIDI_API_MACOSX_CORE -> true
             else -> false
         }
+
+    override fun canCreateVirtualPort(context: PortCreatorContext): Boolean =
+        context.midiProtocol == MidiTransportProtocol.MIDI1 && canCreateVirtualPort
 
     override suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput =
         RtMidiVirtualOutput(context)

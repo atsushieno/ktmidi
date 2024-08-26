@@ -21,8 +21,10 @@ class AlsaMidiAccess : MidiAccess() {
 
     override val name: String
         get() = "ALSA"
+    @Deprecated("Use canCreateVirtualPort(PortCreatorContext) instead")
     override val canCreateVirtualPort: Boolean
         get() = true
+    override fun canCreateVirtualPort(context: PortCreatorContext): Boolean = true
     override val supportsUmpTransport: Boolean
         get() = true
 

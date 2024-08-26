@@ -25,7 +25,11 @@ abstract class MidiAccess {
     open val canDetectStateChanges = false
     var stateChanged : (StateChange, MidiPortDetails) -> Unit = { _, _ -> }
 
+    @Deprecated("Use canCreateVirtualPort(PortCreatorContext) instead")
     open val canCreateVirtualPort = false
+
+    open fun canCreateVirtualPort(context: PortCreatorContext): Boolean =
+        canCreateVirtualPort && if (context.midiProtocol == MidiTransportProtocol.UMP) supportsUmpTransport else true
 
     open suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput {
         throw UnsupportedOperationException()

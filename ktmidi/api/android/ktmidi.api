@@ -572,9 +572,14 @@ public final class dev/atsushieno/ktmidi/GeneralMidi2$Percussions {
 
 public final class dev/atsushieno/ktmidi/MergedMidiAccess : dev/atsushieno/ktmidi/MidiAccess {
 	public fun <init> (Ljava/lang/String;Ljava/util/List;)V
+	public fun canCreateVirtualPort (Ldev/atsushieno/ktmidi/PortCreatorContext;)Z
+	public fun createVirtualInputSender (Ldev/atsushieno/ktmidi/PortCreatorContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createVirtualOutputReceiver (Ldev/atsushieno/ktmidi/PortCreatorContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCanCreateVirtualPort ()Z
 	public fun getInputs ()Ljava/lang/Iterable;
 	public fun getName ()Ljava/lang/String;
 	public fun getOutputs ()Ljava/lang/Iterable;
+	public fun getSupportsUmpTransport ()Z
 	public fun openInput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun openOutput (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -1018,6 +1023,7 @@ public final class dev/atsushieno/ktmidi/Midi2TrackSplitter$Companion {
 
 public abstract class dev/atsushieno/ktmidi/MidiAccess {
 	public fun <init> ()V
+	public fun canCreateVirtualPort (Ldev/atsushieno/ktmidi/PortCreatorContext;)Z
 	public fun createVirtualInputSender (Ldev/atsushieno/ktmidi/PortCreatorContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun createVirtualOutputReceiver (Ldev/atsushieno/ktmidi/PortCreatorContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCanCreateVirtualPort ()Z

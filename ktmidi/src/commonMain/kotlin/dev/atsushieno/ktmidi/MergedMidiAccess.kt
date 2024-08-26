@@ -52,4 +52,23 @@ class MergedMidiAccess(override val name: String, private val list: List<MidiAcc
         val details = outputs.first { it.id == portId } as MidiPortDetailsWrapper
         return MidiOutputWrapper(details, details.midiAccess.openOutput(details.source.id))
     }
+
+    @Deprecated("Use canCreateVirtualPort(PortCreatorContext) instead")
+    override val canCreateVirtualPort: Boolean
+        get() = list.any { it.canCreateVirtualPort }
+
+    override val supportsUmpTransport: Boolean
+        get() = list.any { it.supportsUmpTransport }
+
+    override fun canCreateVirtualPort(context: PortCreatorContext) = list.any { it.canCreateVirtualPort(context) }
+
+    override suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput =
+        list.firstOrNull { it.canCreateVirtualPort(context) }
+            ?.createVirtualInputSender(context)
+            ?: throw UnsupportedOperationException()
+
+    override suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput =
+        list.firstOrNull { it.canCreateVirtualPort(context) }
+            ?.createVirtualOutputReceiver(context)
+            ?: throw UnsupportedOperationException()
 }

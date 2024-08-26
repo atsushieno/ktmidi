@@ -24,7 +24,10 @@ abstract class CoreMidiAccess : MidiAccess() {
                 TraditionalCoreMidiAccess()
     }
 
+    @Deprecated("Use canCreateVirtualPort(PortCreatorContext) instead")
     override val canCreateVirtualPort: Boolean = true
+
+    override fun canCreateVirtualPort(context: PortCreatorContext): Boolean = canCreateVirtualPort
 
     override val inputs: Iterable<MidiPortDetails>
         get() = (0UL until MIDIGetNumberOfSources())
