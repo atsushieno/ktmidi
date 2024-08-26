@@ -61,6 +61,7 @@ class MidiDeviceManager {
             virtualMidiOutput2 = midiAccessValue.createVirtualInputSender(pcIn2)
         } catch (ex: Exception) {
             println(ex)
+            ex.printStackTrace()
         }
     }
 

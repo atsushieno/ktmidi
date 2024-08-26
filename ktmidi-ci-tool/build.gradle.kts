@@ -69,8 +69,9 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(project(":ktmidi-jvm-desktop"))
             implementation(libs.mpfilepicker)
-            // without this, jnirtmidi.so will not be found at runtime.
+            // without this, jnirtmidi.so and jnilibremidi.so will not be found at runtime.
             api(libs.rtmidi.javacpp.platform)
+            api(libs.libremidi.javacpp.platform)
             implementation(libs.kotlinx.coroutines.swing)
         }
 
