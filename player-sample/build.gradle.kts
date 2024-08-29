@@ -10,17 +10,23 @@ plugins {
     alias(libs.plugins.gradleJavacppPlatform) // required to resolve rtmidi-javacpp-platform appropriately
 }
 
+/*
+application {
+    mainClass = "DriverKt"
+}*/
+
+tasks.getByName("run", JavaExec::class).standardInput = System.`in`
+
 kotlin {
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "11"
-        }
+        withJava()
         testRuns["test"].executionTask.configure {
             useJUnit()
         }
         java {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
+            application.mainClass = "DriverKt"
         }
     }
     /* TODO
@@ -77,6 +83,8 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project(":ktmidi-jvm-desktop"))
+                // It is annoying, but we have to run publishToMavenLocal first to ensure that we run the in-project modules.
+                api(libs.rtmidi.javacpp.platform)
             }
         }
         val jvmTest by getting {

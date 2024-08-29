@@ -45,7 +45,7 @@ fun runMain(args: Array<String>) {
         println("Device State Changed: $state $port")
     }
 
-    println("Using ${portDetails.name}")
+    println("Using ${access.name}, port: ${portDetails.name}")
 
     val midiInput = runBlocking { access.openInput(portDetails.id) }
     midiInput.setMessageReceivedListener(InputTester())
