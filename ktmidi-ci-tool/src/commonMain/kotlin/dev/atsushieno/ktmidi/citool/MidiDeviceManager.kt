@@ -34,9 +34,11 @@ class MidiDeviceManager {
                 midiProtocol = MidiTransportProtocol.MIDI1,
             )
 
-            virtualMidiInput = midiAccessValue.createVirtualOutputReceiver(pcOut)
-            midiInputOpened.forEach { it(virtualMidiInput!!) }
-            virtualMidiOutput = midiAccessValue.createVirtualInputSender(pcIn)
+            if (midiAccessValue.canCreateVirtualPort(pcIn) && midiAccessValue.canCreateVirtualPort(pcOut)) {
+                virtualMidiInput = midiAccessValue.createVirtualOutputReceiver(pcOut)
+                midiInputOpened.forEach { it(virtualMidiInput!!) }
+                virtualMidiOutput = midiAccessValue.createVirtualInputSender(pcIn)
+            }
 
             if (!midiAccessValue.supportsUmpTransport)
                 return
