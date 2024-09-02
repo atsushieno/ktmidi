@@ -117,10 +117,10 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
             val list = mutableListOf<MidiPortDetails>()
             val cb = object : Arg2_Pointer_libremidi_midi_in_port() {
                 override fun call(ctx: Pointer?, port: libremidi_midi_in_port) {
-                    val nameBuf = ByteArray(1024) // rtmidi returns the length with the null-terminator.
-                    val size = SizeTPointer(1024)
-                    checkReturn { library.libremidi_midi_in_port_name(port, nameBuf, size) }
-                    list.add(LibreMidiRealInPortDetails(this@LibreMidiAccess, "In_${list.size}", String(nameBuf), port))
+                    val name = withNameBuffer(1024) { namePtr, size ->
+                        checkReturn { library.libremidi_midi_in_port_name(port, namePtr, size) }
+                    }
+                    list.add(LibreMidiRealInPortDetails(this@LibreMidiAccess, "Out_${list.size}", name, port))
                 }
             }
             checkReturn { library.libremidi_midi_observer_enumerate_input_ports(observer, Pointer(), cb) }
@@ -132,20 +132,26 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
             val list = mutableListOf<MidiPortDetails>()
             val cb = object : Arg2_Pointer_libremidi_midi_out_port() {
                 override fun call(ctx: Pointer?, port: libremidi_midi_out_port) {
-                    val nameBuf = ByteBuffer.allocateDirect(1024)
-                    val namePtr = BytePointer(nameBuf)
-                    val size = SizeTPointer(0)
-                    // FIXME: it fails to copy names here
-                    checkReturn { library.libremidi_midi_out_port_name(port, PointerPointer<BytePointer>(namePtr), size) }
-                    val name = nameBuf.array().take(size.get().toInt()).toByteArray().decodeToString()
+                    val name = withNameBuffer(1024) { namePtr, size ->
+                        checkReturn { library.libremidi_midi_out_port_name(port, namePtr, size) }
+                    }
                     list.add(LibreMidiRealOutPortDetails(this@LibreMidiAccess, "Out_${list.size}", name, port))
                 }
             }
-            checkReturn {
-                library.libremidi_midi_observer_enumerate_output_ports(observer, null, cb)
-            }
+            checkReturn { library.libremidi_midi_observer_enumerate_output_ports(observer, null, cb) }
             return list
         }
+
+    private fun withNameBuffer(bufferSize: Int, func: (BytePointer, SizeTPointer) -> Unit): String {
+        // FIXME: can we indeed limit the name to this size?
+        val nameArray = ByteArray(bufferSize)
+        val nameBuf = ByteBuffer.wrap(nameArray)
+        val namePtr = BytePointer(nameBuf)
+        val size = SizeTPointer(0)
+        func(namePtr, size)
+        namePtr.asByteBuffer().get(nameArray)
+        return nameArray.take(size.get().toInt()).toByteArray().decodeToString()
+    }
 
     // Input/Output
 
