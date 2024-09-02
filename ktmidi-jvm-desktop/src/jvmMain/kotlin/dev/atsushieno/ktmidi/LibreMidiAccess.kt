@@ -68,6 +68,11 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
             }
     }
 
+    override val supportsUmpTransport = when (api) {
+        API.WindowsMidiServices, API.CoreMidiUmp, API.AlsaSeqUmp, API.AlsaRawUmp -> true
+        else -> false
+    }
+
     private val observerConfig = libremidi_observer_configuration().also {
         library.libremidi_midi_observer_configuration_init(it)
         it.track_virtual(true)
