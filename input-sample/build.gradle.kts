@@ -17,6 +17,7 @@ application {
 tasks.getByName("run", JavaExec::class).standardInput = System.`in`
 
 kotlin {
+    jvmToolchain(17)
     jvm {
         withJava()
         testRuns["test"].executionTask.configure {
