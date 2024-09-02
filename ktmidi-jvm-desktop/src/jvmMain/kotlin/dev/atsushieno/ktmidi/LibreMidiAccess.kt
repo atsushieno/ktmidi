@@ -108,14 +108,22 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         override val id: String,
         override val name: String,
         val port: libremidi_midi_in_port
-    ) : LibreMidiPortDetails(access, id, name)
+    ) : LibreMidiPortDetails(access, id, name), AutoCloseable {
+        override fun close() {
+            library.libremidi_midi_in_port_free(port)
+        }
+    }
 
     class LibreMidiRealOutPortDetails(
         private val access: LibreMidiAccess,
         override val id: String,
         override val name: String,
         val port: libremidi_midi_out_port
-    ) : LibreMidiPortDetails(access, id, name)
+    ) : LibreMidiPortDetails(access, id, name), AutoCloseable {
+        override fun close() {
+            library.libremidi_midi_out_port_free(port)
+        }
+    }
 
     override val inputs: Iterable<MidiPortDetails>
         get() {
@@ -125,7 +133,9 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
                     val name = withNameBuffer(1024) { namePtr, size ->
                         checkReturn { library.libremidi_midi_in_port_name(port, namePtr, size) }
                     }
-                    list.add(LibreMidiRealInPortDetails(this@LibreMidiAccess, "Out_${list.size}", name, port))
+                    val clone = libremidi_midi_in_port()
+                    library.libremidi_midi_in_port_clone(port, clone)
+                    list.add(LibreMidiRealInPortDetails(this@LibreMidiAccess, "In_${list.size}", name, clone))
                 }
             }
             checkReturn { library.libremidi_midi_observer_enumerate_input_ports(observer, Pointer(), cb) }
@@ -140,7 +150,9 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
                     val name = withNameBuffer(1024) { namePtr, size ->
                         checkReturn { library.libremidi_midi_out_port_name(port, namePtr, size) }
                     }
-                    list.add(LibreMidiRealOutPortDetails(this@LibreMidiAccess, "Out_${list.size}", name, port))
+                    val clone = libremidi_midi_out_port()
+                    library.libremidi_midi_out_port_clone(port, clone)
+                    list.add(LibreMidiRealOutPortDetails(this@LibreMidiAccess, "Out_${list.size}", name, clone))
                 }
             }
             checkReturn { library.libremidi_midi_observer_enumerate_output_ports(observer, null, cb) }
@@ -188,7 +200,7 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         val midiIn = libremidi_midi_in_handle().also {
             checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, it) }
         }
-        val idName = "VIn_${nextVirtualPortIndex++}"
+        val idName = "VOut_${nextVirtualPortIndex++}"
         val portDetails = LibreMidiPortDetails(this, idName, context.portName)
 
         return LibreMidiInput(midiIn, portDetails, dispatcher, this)
@@ -198,13 +210,12 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         val portDetails = inputs.first { it.id == portId } as LibreMidiRealInPortDetails
         val dispatcher = InputDispatcher()
         val midiConfig = createMidiConfig(portId, dispatcher, true)
-        val ptr = Pointer.calloc(Pointer.sizeof(libremidi_midi_in_handle::class.java).toLong(), 1)
-        val midiIn = libremidi_midi_in_handle(ptr).also {
+        val midiIn = libremidi_midi_in_handle().also {
             checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, it) }
         }
-        Pointer.free(ptr)
         return LibreMidiInput(midiIn, portDetails, dispatcher, this)
     }
+
     override suspend fun openOutput(portId: String): MidiOutput {
         val portDetails = outputs.first { it.id == portId } as LibreMidiRealOutPortDetails
         val midiConfig = libremidi_midi_configuration().also {
