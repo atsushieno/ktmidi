@@ -91,7 +91,7 @@ suspend fun runMain(args: Array<String>) {
             }, midiOutput)
     }
 
-    println("Using ${portDetails.name}")
+    println("Using ${access.name}, port: ${portDetails.name}")
 
     player.play()
 

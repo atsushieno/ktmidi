@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi.samples.playersample
 
+import dev.atsushieno.ktmidi.AlsaMidiAccess
 import dev.atsushieno.ktmidi.EmptyMidiAccess
 import dev.atsushieno.ktmidi.JvmMidiAccess
 import dev.atsushieno.ktmidi.LibreMidiAccess
@@ -10,6 +11,7 @@ import kotlin.system.exitProcess
 actual fun getMidiAccessApi(api: String?, midiTransportProtocol: Int) = when (api) {
     "EMPTY" -> EmptyMidiAccess()
     "JVM" -> JvmMidiAccess()
+    "ALSA" -> AlsaMidiAccess()
     "RtMidi" ->
         if (System.getProperty("os.name").contains("Windows")) JvmMidiAccess()
         else RtMidiAccess() // rtmidi-javacpp does not support Windows build nowadays.

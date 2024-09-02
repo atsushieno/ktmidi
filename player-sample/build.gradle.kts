@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-
 buildscript {
     repositories {
         maven("https://plugins.gradle.org/m2/")
@@ -9,24 +7,26 @@ buildscript {
 plugins {
     id("application")
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.gradleJavacppPlatform) // required to resolve rtmidi-javacpp-platform and libremidi-javacpp-platform appropriately
+    alias(libs.plugins.gradleJavacppPlatform) // required to resolve rtmidi-javacpp-platform appropriately
 }
+
+/*
+application {
+    mainClass = "DriverKt"
+}*/
+
+tasks.getByName("run", JavaExec::class).standardInput = System.`in`
 
 kotlin {
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "11"
-        }
+        withJava()
         testRuns["test"].executionTask.configure {
             useJUnit()
         }
         java {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
-            @OptIn(ExperimentalKotlinGradlePluginApi::class)
-            mainRun {
-                mainClass.set("DriverKt")
-            }
+            application.mainClass = "DriverKt"
         }
     }
     /* TODO
