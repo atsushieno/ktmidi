@@ -254,7 +254,6 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
             } else {
                 val midi1Callback = object: libremidi_midi_configuration.Callback_Pointer_BytePointer_long() {
                     override fun call(ctx: Pointer?, data: BytePointer, len: Long) {
-                        println("ZAPZAPZAP")
                         val array = ByteArray(len.toInt())
                         data.get(array)
                         // FIXME: support input timestamp (libremidi needs somewhat tricky code)
