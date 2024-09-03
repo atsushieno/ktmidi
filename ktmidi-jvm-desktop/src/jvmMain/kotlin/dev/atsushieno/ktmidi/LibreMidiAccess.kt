@@ -209,8 +209,9 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
     override suspend fun openInput(portId: String): MidiInput {
         val portDetails = inputs.first { it.id == portId } as LibreMidiRealInPortDetails
         val dispatcher = InputDispatcher()
-        val midiConfig = createMidiConfig(portId, dispatcher, true)
+        val midiConfig = createMidiConfig(portId, dispatcher, false)
         val midiIn = libremidi_midi_in_handle().also {
+            midiConfig.in_port(portDetails.port)
             checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, it) }
         }
         return LibreMidiInput(midiIn, portDetails, dispatcher, this)
