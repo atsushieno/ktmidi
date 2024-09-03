@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 buildscript {
     repositories {
         maven("https://plugins.gradle.org/m2/")
@@ -7,13 +9,10 @@ buildscript {
 plugins {
     id("application")
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.gradleJavacppPlatform) // required to resolve rtmidi-javacpp-platform appropriately
+    alias(libs.plugins.gradleJavacppPlatform) // required to resolve *-javacpp-platform appropriately
 }
 
-/*
-application {
-    mainClass = "DriverKt"
-}*/
+application.mainClass = "DriverKt"
 
 tasks.getByName("run", JavaExec::class).standardInput = System.`in`
 
@@ -27,7 +26,10 @@ kotlin {
         java {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
-            application.mainClass = "DriverKt"
+        }
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        mainRun {
+            mainClass = "DriverKt"
         }
     }
     /* TODO
@@ -84,6 +86,8 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project(":ktmidi-jvm-desktop"))
+                api(libs.rtmidi.javacpp.platform)
+                api(libs.libremidi.javacpp.platform)
             }
         }
         val jvmTest by getting {

@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+
 buildscript {
     repositories {
         maven("https://plugins.gradle.org/m2/")
@@ -7,14 +9,12 @@ buildscript {
 plugins {
     id("application")
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.gradleJavacppPlatform) // required to resolve rtmidi-javacpp-platform appropriately
-}
-
-application {
-    mainClass = "DriverKt"
+    alias(libs.plugins.gradleJavacppPlatform) // required to resolve *-javacpp-platform appropriately
 }
 
 tasks.getByName("run", JavaExec::class).standardInput = System.`in`
+
+application.mainClass = "DriverKt"
 
 kotlin {
     jvmToolchain(17)
@@ -26,7 +26,10 @@ kotlin {
         java {
             sourceCompatibility = JavaVersion.VERSION_17
             targetCompatibility = JavaVersion.VERSION_17
-            application.mainClass = "DriverKt"
+        }
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
+        mainRun {
+            mainClass = "DriverKt"
         }
     }
     /* TODO
@@ -83,8 +86,8 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(project(":ktmidi-jvm-desktop"))
-                // It is annoying, but we have to run publishToMavenLocal first to ensure that we run the in-project modules.
                 api(libs.rtmidi.javacpp.platform)
+                api(libs.libremidi.javacpp.platform)
             }
         }
         val jvmTest by getting {
@@ -138,8 +141,4 @@ kotlin {
             }
         }
     }
-}
-
-application {
-    mainClass.set("Driver")
 }

@@ -10,8 +10,7 @@ actual fun getMidiAccessApi(api: String?, midiTransportProtocol: Int) = when (ap
     "RtMidi" ->
         if (System.getProperty("os.name").contains("Windows")) JvmMidiAccess()
         else RtMidiAccess() // rtmidi-javacpp does not support Windows build nowadays.
-    else ->
-        LibreMidiAccess.create(midiTransportProtocol) // rtmidi-javacpp does not support Windows build nowadays.
+    else -> LibreMidiAccess.create(midiTransportProtocol) // rtmidi-javacpp does not support Windows build nowadays.
 }
 
 actual fun exitApplication(code: Int): Unit = exitProcess(code)
