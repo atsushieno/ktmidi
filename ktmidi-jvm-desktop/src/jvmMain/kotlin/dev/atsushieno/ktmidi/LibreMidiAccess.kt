@@ -172,6 +172,12 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
 
     // Input/Output
 
+    override fun canCreateVirtualPort(context: PortCreatorContext) =
+        when(api) {
+            API.AlsaSeqUmp, API.CoreMidiUmp, API.WindowsMidiServices -> context.midiProtocol == MidiTransportProtocol.UMP
+            else -> context.midiProtocol == MidiTransportProtocol.MIDI1
+        }
+
     override val canCreateVirtualPort: Boolean
         get() = when(api) {
             API.AlsaSeq, API.CoreMidi, API.AlsaSeqUmp, API.CoreMidiUmp, API.WindowsMidiServices -> true
