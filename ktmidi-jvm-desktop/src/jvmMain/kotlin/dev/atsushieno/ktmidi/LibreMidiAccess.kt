@@ -196,25 +196,25 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
 
     override suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput {
         val dispatcher = InputDispatcher()
-        val midiConfig = createMidiConfig(context.portName, dispatcher, true)
+        val (ctx, midiConfig) = createMidiConfig(context.portName, dispatcher, true)
         val midiIn = libremidi_midi_in_handle().also {
             checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, it) }
         }
         val idName = "VOut_${nextVirtualPortIndex++}"
         val portDetails = LibreMidiPortDetails(this, idName, context.portName)
 
-        return LibreMidiInput(midiIn, portDetails, dispatcher, this)
+        return LibreMidiInput(midiIn, portDetails, dispatcher, ctx, this)
     }
 
     override suspend fun openInput(portId: String): MidiInput {
         val portDetails = inputs.first { it.id == portId } as LibreMidiRealInPortDetails
         val dispatcher = InputDispatcher()
-        val midiConfig = createMidiConfig(portId, dispatcher, false)
+        val (ctx, midiConfig) = createMidiConfig(portId, dispatcher, false)
         val midiIn = libremidi_midi_in_handle().also {
             midiConfig.in_port(portDetails.port)
             checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, it) }
         }
-        return LibreMidiInput(midiIn, portDetails, dispatcher, this)
+        return LibreMidiInput(midiIn, portDetails, dispatcher, ctx, this)
     }
 
     override suspend fun openOutput(portId: String): MidiOutput {
@@ -235,38 +235,45 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         abstract override fun close()
     }
 
-    private fun createMidiConfig(name: String, dispatcher: InputDispatcher, virtualPort: Boolean) = libremidi_midi_configuration().also {
-        checkReturn { library.libremidi_midi_configuration_init(it) }
-        it.port_name(BytePointer(name))
-        if (supportsUmpTransport) {
-            val umpCallback = object: libremidi_midi_configuration.Callback_Pointer_IntPointer_long() {
-                override fun call(ctx: Pointer?, data: IntPointer, len: Long) {
-                    val array = ByteArray(len.toInt())
-                    BytePointer(data).get(array)
-                    // FIXME: support input timestamp (libremidi needs somewhat tricky code)
-                    dispatcher.listener?.onEventReceived(array, 0, len.toInt(), 0)
+    private fun createMidiConfig(name: String, dispatcher: InputDispatcher, virtualPort: Boolean): Pair<Any, libremidi_midi_configuration> {
+        lateinit var cb: Any
+        val conf = libremidi_midi_configuration().also {
+            checkReturn { library.libremidi_midi_configuration_init(it) }
+            it.port_name(BytePointer(name))
+            if (supportsUmpTransport) {
+                val umpCallback = object: libremidi_midi_configuration.Callback_Pointer_IntPointer_long() {
+                    override fun call(ctx: Pointer?, data: IntPointer, len: Long) {
+                        val array = ByteArray(len.toInt())
+                        BytePointer(data).get(array)
+                        // FIXME: support input timestamp (libremidi needs somewhat tricky code)
+                        dispatcher.listener?.onEventReceived(array, 0, len.toInt(), 0)
+                    }
                 }
-            }
-            it.on_midi2_message_callback(umpCallback)
-        } else {
-            val midi1Callback = object: libremidi_midi_configuration.Callback_Pointer_BytePointer_long() {
-                override fun call(ctx: Pointer?, data: BytePointer, len: Long) {
-                    val array = ByteArray(len.toInt())
-                    data.get(array)
-                    // FIXME: support input timestamp (libremidi needs somewhat tricky code)
-                    dispatcher.listener?.onEventReceived(array, 0, len.toInt(), 0)
+                it.on_midi2_message_callback(umpCallback)
+                cb = umpCallback
+            } else {
+                val midi1Callback = object: libremidi_midi_configuration.Callback_Pointer_BytePointer_long() {
+                    override fun call(ctx: Pointer?, data: BytePointer, len: Long) {
+                        println("ZAPZAPZAP")
+                        val array = ByteArray(len.toInt())
+                        data.get(array)
+                        // FIXME: support input timestamp (libremidi needs somewhat tricky code)
+                        dispatcher.listener?.onEventReceived(array, 0, len.toInt(), 0)
+                    }
                 }
+                it.on_midi1_message_callback(midi1Callback)
+                cb = midi1Callback
             }
-            it.on_midi1_message_callback(midi1Callback)
+            it.virtual_port(virtualPort)
         }
-        it.virtual_port(virtualPort)
+        return Pair(cb, conf)
     }
 
     class InputDispatcher {
         var listener: OnMidiReceivedEventListener? = null
     }
 
-    private class LibreMidiInput(private val midiIn: libremidi_midi_in_handle, private val portDetails: LibreMidiPortDetails, private val dispatcher: InputDispatcher, private val access: LibreMidiAccess) : MidiInput, LibreMidiPort() {
+    private class LibreMidiInput(private val midiIn: libremidi_midi_in_handle, private val portDetails: LibreMidiPortDetails, private val dispatcher: InputDispatcher, private val contextHolder: Any, private val access: LibreMidiAccess) : MidiInput, LibreMidiPort() {
         override var connectionState = MidiPortConnectionState.OPEN // at created state
 
         override val details: MidiPortDetails = portDetails
