@@ -181,12 +181,12 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
     private var nextVirtualPortIndex = 0
     override suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput {
         val midiConfig = libremidi_midi_configuration().also {
-            it.port_name(BytePointer(context.portName))
             checkReturn { library.libremidi_midi_configuration_init(it) }
+            it.port_name(BytePointer(context.portName))
             it.virtual_port(true)
         }
         val midiOut = libremidi_midi_out_handle().also {
-            //checkReturn { library.libremidi_midi_out_new(midiConfig, apiConfig, it) }
+            checkReturn { library.libremidi_midi_out_new(midiConfig, apiConfig, it) }
         }
         val idName = "VIn_${nextVirtualPortIndex++}"
         val portDetails = LibreMidiPortDetails(this, idName, context.portName)
