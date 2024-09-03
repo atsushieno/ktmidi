@@ -12,19 +12,14 @@ import java.io.File
 fun main(args: Array<String>) = application {
     initializeAppModel(this)
     AppModel.midiDeviceManager.midiAccess =
-        /*
         if (File("/dev/snd/seq").exists()) AlsaMidiAccess()
         else if (args.contains("jvm")) JvmMidiAccess()
         else if (System.getProperty("os.name").contains("Windows")) JvmMidiAccess()
-        else RtMidiAccess() // rtmidi-javacpp does not support Windows build nowadays.
-         */
-        LibreMidiAccess.create(MidiTransportProtocol.MIDI1)
-        /*
-        MergedMidiAccess("LibreMidi1+2", listOf(
+        // else RtMidiAccess()
+        else MergedMidiAccess("LibreMidiAccess-1+2", listOf(
             LibreMidiAccess.create(MidiTransportProtocol.UMP),
             LibreMidiAccess.create(MidiTransportProtocol.MIDI1)
         ))
-         */
     Window(onCloseRequest = ::exitApplication,
         state = rememberWindowState(),
         title = "midi-ci-tool") {

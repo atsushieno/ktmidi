@@ -58,9 +58,11 @@ class MidiDeviceManager {
                 midiProtocol = MidiTransportProtocol.UMP,
             )
 
-            virtualMidiInput2 = midiAccessValue.createVirtualOutputReceiver(pcOut2)
-            midiInputOpened.forEach { it(virtualMidiInput2!!) }
-            virtualMidiOutput2 = midiAccessValue.createVirtualInputSender(pcIn2)
+            if (midiAccessValue.canCreateVirtualPort(pcIn2) && midiAccessValue.canCreateVirtualPort(pcOut2)) {
+                virtualMidiInput2 = midiAccessValue.createVirtualOutputReceiver(pcOut2)
+                midiInputOpened.forEach { it(virtualMidiInput2!!) }
+                virtualMidiOutput2 = midiAccessValue.createVirtualInputSender(pcIn2)
+            }
         } catch (ex: Exception) {
             println(ex)
             ex.printStackTrace()
