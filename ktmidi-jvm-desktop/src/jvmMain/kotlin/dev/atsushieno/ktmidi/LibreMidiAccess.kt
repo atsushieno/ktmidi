@@ -15,6 +15,8 @@ private fun checkReturn(action: ()->Int) {
 
 class LibreMidiAccess(private val api: Int) : MidiAccess() {
     companion object {
+        private var sequentialIdSerial = 0
+
         private fun guessPlatform(): DesktopPlatform {
             val os = System.getProperty("os.name")
             return when {
@@ -68,6 +70,8 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
             }
     }
 
+    private val instanceIdSerial = sequentialIdSerial++
+
     override val supportsUmpTransport = when (api) {
         API.WindowsMidiServices, API.CoreMidiUmp, API.AlsaSeqUmp, API.AlsaRawUmp -> true
         else -> false
@@ -78,11 +82,10 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         it.track_virtual(true)
         it.track_any(true)
     }
-    val apiConfig = libremidi_api_configuration().also {
+    private val apiConfig = libremidi_api_configuration().also {
         checkReturn { library.libremidi_midi_api_configuration_init(it) }
         it.api(api)
     }
-
     private val observer = libremidi_midi_observer_handle().also {
         checkReturn { library.libremidi_midi_observer_new(observerConfig, apiConfig, it) }
     }
@@ -110,7 +113,7 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         val port: libremidi_midi_in_port
     ) : LibreMidiPortDetails(access, id, name), AutoCloseable {
         override fun close() {
-            library.libremidi_midi_in_port_free(port)
+            checkReturn { library.libremidi_midi_in_port_free(port) }
         }
     }
 
@@ -121,41 +124,54 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         val port: libremidi_midi_out_port
     ) : LibreMidiPortDetails(access, id, name), AutoCloseable {
         override fun close() {
-            library.libremidi_midi_out_port_free(port)
+            checkReturn { library.libremidi_midi_out_port_free(port) }
         }
     }
 
+    private val cachedInputs = mutableListOf<LibreMidiRealInPortDetails>()
+    private val cachedOutputs = mutableListOf<LibreMidiRealOutPortDetails>()
+
     override val inputs: Iterable<MidiPortDetails>
         get() {
-            val list = mutableListOf<MidiPortDetails>()
+            cachedInputs.forEach { it.close() }
+            cachedInputs.clear()
+
+            val list = mutableListOf<LibreMidiRealInPortDetails>()
             val cb = object : Arg2_Pointer_libremidi_midi_in_port() {
                 override fun call(ctx: Pointer?, port: libremidi_midi_in_port) {
                     val name = withNameBuffer(1024) { namePtr, size ->
                         checkReturn { library.libremidi_midi_in_port_name(port, namePtr, size) }
                     }
                     val clone = libremidi_midi_in_port()
-                    library.libremidi_midi_in_port_clone(port, clone)
-                    list.add(LibreMidiRealInPortDetails(this@LibreMidiAccess, "In_${list.size}", name, clone))
+                    checkReturn { library.libremidi_midi_in_port_clone(port, clone) }
+                    list.add(LibreMidiRealInPortDetails(this@LibreMidiAccess, "In_${instanceIdSerial}_${list.size}", name, clone))
                 }
             }
             checkReturn { library.libremidi_midi_observer_enumerate_input_ports(observer, Pointer(), cb) }
+
+            cachedInputs.addAll(list)
             return list
         }
 
     override val outputs: Iterable<MidiPortDetails>
         get() {
-            val list = mutableListOf<MidiPortDetails>()
+            cachedOutputs.forEach { it.close() }
+            cachedOutputs.clear()
+
+            val list = mutableListOf<LibreMidiRealOutPortDetails>()
             val cb = object : Arg2_Pointer_libremidi_midi_out_port() {
                 override fun call(ctx: Pointer?, port: libremidi_midi_out_port) {
                     val name = withNameBuffer(1024) { namePtr, size ->
                         checkReturn { library.libremidi_midi_out_port_name(port, namePtr, size) }
                     }
                     val clone = libremidi_midi_out_port()
-                    library.libremidi_midi_out_port_clone(port, clone)
-                    list.add(LibreMidiRealOutPortDetails(this@LibreMidiAccess, "Out_${list.size}", name, clone))
+                    checkReturn { library.libremidi_midi_out_port_clone(port, clone) }
+                    list.add(LibreMidiRealOutPortDetails(this@LibreMidiAccess, "Out_${instanceIdSerial}_${list.size}", name, clone))
                 }
             }
             checkReturn { library.libremidi_midi_observer_enumerate_output_ports(observer, null, cb) }
+
+            cachedOutputs.addAll(list)
             return list
         }
 
@@ -178,6 +194,7 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
             else -> context.midiProtocol == MidiTransportProtocol.MIDI1
         }
 
+    @Deprecated("Use canCreateVirtualPort(PortCreatorContext) instead")
     override val canCreateVirtualPort: Boolean
         get() = when(api) {
             API.AlsaSeq, API.CoreMidi, API.AlsaSeqUmp, API.CoreMidiUmp, API.WindowsMidiServices -> true
@@ -190,11 +207,13 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
             checkReturn { library.libremidi_midi_configuration_init(it) }
             it.port_name(BytePointer(context.portName))
             it.virtual_port(true)
+            it.version(
+                if (context.midiProtocol == MidiTransportProtocol.UMP) libremidi_midi_configuration.MIDI2
+                else libremidi_midi_configuration.MIDI1)
         }
-        val midiOut = libremidi_midi_out_handle().also {
-            checkReturn { library.libremidi_midi_out_new(midiConfig, apiConfig, it) }
-        }
-        val idName = "VIn_${nextVirtualPortIndex++}"
+        val midiOut = libremidi_midi_out_handle()
+        checkReturn { library.libremidi_midi_out_new(midiConfig, apiConfig, midiOut) }
+        val idName = "VIn_${instanceIdSerial}_${nextVirtualPortIndex++}"
         val portDetails = LibreMidiPortDetails(this, idName, context.portName)
 
         return LibreMidiOutput(midiOut, portDetails, this)
@@ -203,10 +222,9 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
     override suspend fun createVirtualOutputReceiver(context: PortCreatorContext): MidiInput {
         val dispatcher = InputDispatcher()
         val (ctx, midiConfig) = createMidiConfig(context.portName, dispatcher, true)
-        val midiIn = libremidi_midi_in_handle().also {
-            checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, it) }
-        }
-        val idName = "VOut_${nextVirtualPortIndex++}"
+        val midiIn = libremidi_midi_in_handle()
+        checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, midiIn) }
+        val idName = "VOut_${instanceIdSerial}_${nextVirtualPortIndex++}"
         val portDetails = LibreMidiPortDetails(this, idName, context.portName)
 
         return LibreMidiInput(midiIn, portDetails, dispatcher, ctx, this)
@@ -216,10 +234,9 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         val portDetails = inputs.first { it.id == portId } as LibreMidiRealInPortDetails
         val dispatcher = InputDispatcher()
         val (ctx, midiConfig) = createMidiConfig(portId, dispatcher, false)
-        val midiIn = libremidi_midi_in_handle().also {
-            midiConfig.in_port(portDetails.port)
-            checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, it) }
-        }
+        midiConfig.in_port(portDetails.port)
+        val midiIn = libremidi_midi_in_handle()
+        checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, midiIn) }
         return LibreMidiInput(midiIn, portDetails, dispatcher, ctx, this)
     }
 
@@ -228,6 +245,9 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         val midiConfig = libremidi_midi_configuration().also {
             checkReturn { library.libremidi_midi_configuration_init(it) }
             it.out_port(portDetails.port)
+            it.version(
+                if (portDetails.midiTransportProtocol == MidiTransportProtocol.UMP) libremidi_midi_configuration.MIDI2
+                else libremidi_midi_configuration.MIDI1)
         }
         val midiOut = libremidi_midi_out_handle().also {
             checkReturn { library.libremidi_midi_out_new(midiConfig, apiConfig, it) }
@@ -247,6 +267,7 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
             checkReturn { library.libremidi_midi_configuration_init(it) }
             it.port_name(BytePointer(name))
             if (supportsUmpTransport) {
+                it.version(libremidi_midi_configuration.MIDI2)
                 val umpCallback = object: libremidi_midi_configuration.Callback_Pointer_IntPointer_long() {
                     override fun call(ctx: Pointer?, data: IntPointer, len: Long) {
                         val array = ByteArray(len.toInt())
@@ -258,6 +279,7 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
                 it.on_midi2_message_callback(umpCallback)
                 cb = umpCallback
             } else {
+                it.version(libremidi_midi_configuration.MIDI1)
                 val midi1Callback = object: libremidi_midi_configuration.Callback_Pointer_BytePointer_long() {
                     override fun call(ctx: Pointer?, data: BytePointer, len: Long) {
                         val array = ByteArray(len.toInt())
