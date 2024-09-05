@@ -28,7 +28,7 @@ gradle-javacpp = "1.5.10"
 
 alsa-javacpp = "0.1.0"
 rtmidi-javacpp = "0.1.5"
-libremidi-javacpp = "0.1.0"
+libremidi-javacpp = "0.1.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
