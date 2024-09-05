@@ -116,6 +116,8 @@ class MidiDeviceManager {
     private fun MidiOutput.send(bytes: ByteArray, timestampInNanoseconds: Long) =
         send(bytes, 0, bytes.size, timestampInNanoseconds)
 
+    // `bytes` is a MIDI1 transport stream,
+    // so every time it tries to send to UMP port it needs to be translated to UMP.
     fun sendToAll(group: Byte, bytes: ByteArray, timestampInNanoseconds: Long) {
         try {
             if (midiOutputError.value == null) {
@@ -128,15 +130,12 @@ class MidiDeviceManager {
             Snapshot.withMutableSnapshot { midiOutputError.value = ex }
         }
         try {
-            if (virtualMidiOutput!!.details.midiTransportProtocol == MidiTransportProtocol.UMP) {
-                if (virtualMidiOutputError.value == null && virtualMidiOutput2 != null)
+            if (virtualMidiOutput2?.details?.midiTransportProtocol == MidiTransportProtocol.UMP) {
+                if (virtualMidiOutputError.value == null)
                     virtualMidiOutput2!!.send(translateMidi1BytesToUmp(bytes, group), timestampInNanoseconds)
-                else
-                    virtualMidiOutput2!!.send(bytes, 0, bytes.size, timestampInNanoseconds)
-            } else {
-                if (virtualMidiOutputError.value == null && virtualMidiOutput != null)
-                    virtualMidiOutput!!.send(translateMidi1BytesToUmp(bytes, group), timestampInNanoseconds)
-                else
+            }
+            if (virtualMidiOutput?.details?.midiTransportProtocol != MidiTransportProtocol.UMP) {
+                if (virtualMidiOutputError.value == null)
                     virtualMidiOutput!!.send(bytes, 0, bytes.size, timestampInNanoseconds)
             }
         } catch (ex: Exception) {

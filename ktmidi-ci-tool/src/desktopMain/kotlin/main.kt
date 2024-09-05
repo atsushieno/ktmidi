@@ -16,10 +16,7 @@ fun main(args: Array<String>) = application {
         else if (args.contains("jvm")) JvmMidiAccess()
         else if (System.getProperty("os.name").contains("Windows")) JvmMidiAccess()
         // else RtMidiAccess()
-        else MergedMidiAccess("LibreMidiAccess-1+2", listOf(
-            LibreMidiAccess.create(MidiTransportProtocol.UMP),
-            LibreMidiAccess.create(MidiTransportProtocol.MIDI1)
-        ))
+        else LibreMidiAccess.create(MidiTransportProtocol.UMP)
     Window(onCloseRequest = ::exitApplication,
         state = rememberWindowState(),
         title = "midi-ci-tool") {
