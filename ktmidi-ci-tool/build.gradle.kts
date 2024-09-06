@@ -1,6 +1,4 @@
-import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -12,7 +10,7 @@ plugins {
 }
 
 kotlin {
-    @OptIn(ExperimentalWasmDsl::class)
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
         moduleName = "ktmidi-ci-tool"
         browser {
@@ -23,7 +21,7 @@ kotlin {
         //nodejs {}
         binaries.executable()
     }
-    
+
     androidTarget {
         compilations.all {
             kotlinOptions {

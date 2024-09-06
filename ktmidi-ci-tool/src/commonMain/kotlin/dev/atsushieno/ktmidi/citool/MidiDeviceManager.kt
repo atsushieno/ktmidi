@@ -130,11 +130,11 @@ class MidiDeviceManager {
             Snapshot.withMutableSnapshot { midiOutputError.value = ex }
         }
         try {
-            if (virtualMidiOutput2?.details?.midiTransportProtocol == MidiTransportProtocol.UMP) {
+            if (virtualMidiOutput2 != null) {
                 if (virtualMidiOutputError.value == null)
                     virtualMidiOutput2!!.send(translateMidi1BytesToUmp(bytes, group), timestampInNanoseconds)
             }
-            if (virtualMidiOutput?.details?.midiTransportProtocol != MidiTransportProtocol.UMP) {
+            if (virtualMidiOutput != null) {
                 if (virtualMidiOutputError.value == null)
                     virtualMidiOutput!!.send(bytes, 0, bytes.size, timestampInNanoseconds)
             }

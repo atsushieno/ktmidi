@@ -58,45 +58,50 @@ class CIDeviceManager(val owner: CIToolRepository, config: MidiCIDeviceConfigura
         }
     }
 
+    private val bufferedSysex7 = mutableListOf<Byte>()
+    private val bufferedSysex8 = mutableListOf<Byte>()
     fun processUmpInput(data: ByteArray, start: Int, length: Int) {
         ViewHelper.runInUIContext {
             val umpList = Ump.fromBytes(data, start, length).iterator()
-            val bytes = mutableListOf<Byte>()
             while (umpList.hasNext()) {
                 val ump = umpList.next()
                 when (ump.messageType) {
                     MidiMessageType.SYSEX7 -> {
-                        if (ump.statusCode == Midi2BinaryChunkStatus.START &&
-                            ((ump.int1 shr 8) and 0xFF).toByte() == MidiCIConstants.UNIVERSAL_SYSEX &&
-                            (ump.int2 shr 24).toByte() == MidiCIConstants.SYSEX_SUB_ID_MIDI_CI) {
-                            // It is a beginning of MIDI-CI SysEx7 message
-                            bytes.clear()
-                            UmpRetriever.getSysex7Data({
-                                bytes.addAll(it)
-                            }, iterator {
-                                yield(ump)
-                                yieldAll(umpList)
-                            })
-                            device.processCIMessage(ump.group.toByte(), bytes)
-                            continue
+                        if (ump.statusCode == Midi2BinaryChunkStatus.START)
+                            bufferedSysex7.clear() // It is a beginning of MIDI-CI SysEx7 message
+
+                        UmpRetriever.getSysex7Data({ bufferedSysex7.addAll(it) }, iterator { yield(ump) })
+
+                        when (ump.statusCode) {
+                            Midi2BinaryChunkStatus.END,
+                            Midi2BinaryChunkStatus.COMPLETE_PACKET ->
+                            if (bufferedSysex7.size > 2 &&
+                                bufferedSysex7[0] == MidiCIConstants.UNIVERSAL_SYSEX &&
+                                bufferedSysex7[2] == MidiCIConstants.SYSEX_SUB_ID_MIDI_CI) {
+                                device.processCIMessage(ump.group.toByte(), bufferedSysex7)
+                                bufferedSysex7.clear()
+                            }
                         }
+                        continue
                     }
                     MidiMessageType.SYSEX8_MDS -> {
                         // FIXME: we need message chunking mechanism, which should be rather implemented in ktmidi itself
-                        if (ump.statusCode == Midi2BinaryChunkStatus.START &&
-                            (ump.int1 shr 24).toByte() == MidiCIConstants.UNIVERSAL_SYSEX &&
-                            (ump.int2 and 0xFF0000) == (MidiCIConstants.SYSEX_SUB_ID_MIDI_CI shl 16)) {
-                            // It is a beginning of MIDI-CI SysEx8 message
-                            bytes.clear()
-                            UmpRetriever.getSysex8Data({
-                                bytes.addAll(it)
-                            }, iterator {
-                                yield(ump)
-                                yieldAll(umpList)
-                            })
-                            device.processCIMessage(ump.group.toByte(), bytes)
-                            continue
+                        if (ump.statusCode == Midi2BinaryChunkStatus.START)
+                            bufferedSysex8.clear() // It is a beginning of MIDI-CI SysEx8 message
+
+                        UmpRetriever.getSysex8Data({ bufferedSysex8.addAll(it) }, iterator { yield(ump) })
+
+                        when (ump.statusCode) {
+                            Midi2BinaryChunkStatus.END,
+                            Midi2BinaryChunkStatus.COMPLETE_PACKET ->
+                                if (bufferedSysex8.size > 2 &&
+                                    bufferedSysex8[0] == MidiCIConstants.UNIVERSAL_SYSEX &&
+                                    bufferedSysex8[2] == MidiCIConstants.SYSEX_SUB_ID_MIDI_CI) {
+                                    device.processCIMessage(ump.group.toByte(), bufferedSysex8)
+                                    bufferedSysex8.clear()
+                                }
                         }
+                        continue
                     }
                 }
 
@@ -113,7 +118,7 @@ class CIDeviceManager(val owner: CIToolRepository, config: MidiCIDeviceConfigura
                     device.chunkedMessages.addAll(ump.toPlatformNativeBytes().toList())
                 } else
                 // received some message. No idea why, but log anyway.
-                    owner.log("[received UMP] " + data.drop(start).take(length), MessageDirection.In)
+                    owner.log("[received UMP] " + data.drop(start).take(length).joinToString(",") { it.toString(16) }, MessageDirection.In)
             }
         }
     }
