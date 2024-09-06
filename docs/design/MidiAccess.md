@@ -16,10 +16,11 @@ Unlike [managed-midi](https://github.com/atsushieno/managed-midi) which was the 
 We have the following platform-specific implementations:
 
 - `AndroidMidiAccess`: based on `android.media.midi` API, on Kotlin/JVM. The feature is limited due to Android platform limitation.
-- `JvmMidiAccess`: based on `javax.sound.midi` API, on Kotlin/JVM. The feature is quite limited because of Java's poor support and classic design to make everything in G.C.M. It is not recommended to use it; use RtMidiAccess for better feature sets.
+- `JvmMidiAccess`: based on `javax.sound.midi` API, on Kotlin/JVM. The feature is quite limited because of Java's poor support and classic design to make everything in G.C.M. It is not recommended to use it; use `RtMidiAccess` or `LibreMidiAccess` for better feature sets.
 - `AlsaMidiAccess`: based on [atsushieno/alsakt](https://github.com/atsushieno/alsakt), on Kotlin/JVM. Supports virtual MIDI ports, and partial device detection. More importantly, it is based on ALSA sequencer API which covers much more than javax.sound.midi which is based on ALSA rawmidi (which lacks support for virtual instruments etc.).
-- `RtMidiAccess`: based on [thestk/rtmidi](https://github.com/thestk/rtmidi), on Kotlin/JVM. Supports virtual MIDI ports (wherever supported), no device detection. It should be used the default cross-platform desktop implementation on Mac and Windows.
+- `RtMidiAccess`: based on [thestk/rtmidi](https://github.com/thestk/rtmidi), on Kotlin/JVM. Supports virtual MIDI ports (wherever supported), no device detection.
 - `RtMidiNativeAccess`: same as `RtMidiAccess`, but for Kotlin/Native.
+- `LibreMidiAccess`: based on [celtera/libremidi](https://github.com/celtera/libremidi), on Kotlin/JVM. Supports virtual MIDI ports (wherever supported), supports MIDI 2.0 UMP ports, no device detection (due to [binder limitation](https://github.com/atsushieno/libremidi-javacpp/issues/2)). It should be used the default cross-platform desktop implementation on Linux, Mac and Windows ([TODO](https://github.com/atsushieno/libremidi-javacpp/issues/4)).
 - `JzzMidiAccess` : based on [Jazz-Soft/JZZ](https://jazz-soft.net/doc/JZZ/), on Kotlin/JS. Not really tested yet.
 - `WebMidiAccess` : direct Web MIDI API implementation for Kotlin/Wasm.
 
@@ -36,7 +37,7 @@ For now, `MidiAccess` class basically starts with what Web MIDI API provides.
 Listing available ports may be unreliable depending on the platforms. WinMM does not provide such functionality, so it needs to repeatedlly check available ports to detect any diffs from the previously checked list.
 If you really need it, you can observe Inputs and Outputs of `MidiAccess` using simple timer loop.
 
-It also provides functionality to create arbitrary virtual input and output ports. It is doable only with Linux (ALSA / RtMidi) and Mac/iOS probably (RtMidi, untested). Windows does not support virtual ports and therefore we do not support them either.
+It also provides functionality to create arbitrary virtual input and output ports. It is doable only with Linux (ALSA / RtMidi / LibreMidi), Mac JVM (RtMidi / LibreMidi), Mac Native (RtMidiNative), and probably iOS (CoreMidi, untested). Windows does not support virtual ports and therefore we do not support them either.
 
 
 ## asynchronous API
@@ -67,4 +68,4 @@ Since `MidiAccess` API is generally based on what Web MIDI API provides, and Web
 
 Combining those concepts brought in an interesting problem: what if we need a bidirectional UMP ports? Currently we only have `createVirtualInputSender()` and `createVirtualOutputReceiver()` and it is impossible to have them as bidirection. Should there be a unified `MidiInput` and `MidiOutput` interface like `MidiDuplex` and `createVirtualDuplexHandler()` ? We don't have any design decision yet.
 
-Currently only CoreMIDI and ALSA have support for virtual UMP ports, and currently they have no problem as long as what ktmidi provides. But those input and output ports are enumerated as different devices underneath (not sure about CoreMIDI, but ALSA `aconnect -l` tells us how those ALSA clients and ports are structured).
+Currently LibreMidi and CoreMIDI have support for virtual UMP ports (ALSA not yet working), and currently they have no problem as long as what ktmidi provides. But those input and output ports are enumerated as different devices underneath (not sure about CoreMIDI, but ALSA `aconnect -l` tells us how those ALSA clients and ports are structured).

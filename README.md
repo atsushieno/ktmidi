@@ -87,7 +87,13 @@ dependencies {
 }
 ```
 
-... and use `AlsaMidiAccess` on Linux, or `RtMidiAccess` elsewhere. I use `if (File.exists("/dev/snd/seq")) AlsaMidiAccess() else RtMidiAccess()` (or `JvmMidiAccess` instead of `RtMidiAccess`) to create best `MidiAccess` instance.
+... and use any of the following:
+
+- Windows: `JvmMidiAccess`
+- Linux: `AlsaMidiAccess`, `RtMidiAccess`, or `LibreMidiAccess`
+- Mac: `LibreMidiAccess` or `RtMidiAccess`
+
+For example, @atsushieno uses `if (File.exists("/dev/snd/seq")) AlsaMidiAccess() else if (System.getProperty("os.name").contains("Windows")) JvmMidiAccess() else LibreMidiAccess(MidiTransportProtocol.MIDI1)` (or `RtMidiAccess` instead of `LibreMidiAccess`) to create best `MidiAccess` instance.
 
 **NOTE**: if you are building a desktop MIDI library using `ktmidi-jvm-desktop`, your *application* needs to add javacpp-platform Gradle plugin:
 
@@ -97,7 +103,17 @@ plugins {
 }
 ```
 
-This Gradle plugin replaces the reference to javacpp library with the platform-specific ones. So if you do this in your *library* build, it will result in that your library is useful only on the same platform as your building environment(!)
+and the following lines for `dependencies`:
+
+```
+dependencies {
+    (...)
+    api(libs.rtmidi.javacpp.platform)
+    api(libs.libremidi.javacpp.platform)
+}
+```
+
+The JavaCPP Platform Gradle plugin replaces the reference to `*.javacpp.platform` library with the actual platform-specific ones. (You should NOT do this in your *library* build, as it will result in that your library is useful only on the same platform as your building environment(!))
 
 ktmidi is released at sonatype and hence available at Maven Central.
 
