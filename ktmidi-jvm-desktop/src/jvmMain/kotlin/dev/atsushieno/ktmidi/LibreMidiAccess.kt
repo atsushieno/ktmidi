@@ -4,6 +4,7 @@ import dev.atsushieno.ktmidi.LibreMidiAccess.LibreMidiException
 import dev.atsushieno.libremidi_javacpp.*
 import org.bytedeco.javacpp.*
 import java.nio.ByteBuffer
+import java.nio.IntBuffer
 
 import dev.atsushieno.libremidi_javacpp.global.libremidi as library
 
@@ -270,10 +271,13 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
                 it.version(libremidi_midi_configuration.MIDI2)
                 val umpCallback = object: libremidi_midi_configuration.Callback_Pointer_IntPointer_long() {
                     override fun call(ctx: Pointer?, data: IntPointer, len: Long) {
-                        val array = ByteArray(len.toInt())
-                        BytePointer(data).get(array)
+                        // It feels a bit awkward, but `data.asBuffer()` returns such an IntBuffer that has only capacity = 1,
+                        // so it is useless here. We need to create another BytePointer and its resulting ByteBuffer.
+                        val buf = BytePointer(data).capacity(len * 4)
+                        val array = ByteArray(len.toInt() * 4)
+                        ByteBuffer.wrap(array).put(buf.asByteBuffer())
                         // FIXME: support input timestamp (libremidi needs somewhat tricky code)
-                        dispatcher.listener?.onEventReceived(array, 0, len.toInt(), 0)
+                        dispatcher.listener?.onEventReceived(array, 0, len.toInt() * 4, 0)
                     }
                 }
                 it.on_midi2_message_callback(umpCallback)
@@ -331,8 +335,15 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
 
         override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
             val msg = if (offset > 0 && mevent.size == length) mevent.drop(offset).take(length).toByteArray() else mevent
-            if (access.supportsUmpTransport)
-                checkReturn { library.libremidi_midi_out_schedule_ump(midiOut, timestampInNanoseconds, ByteBuffer.wrap(msg).asIntBuffer(), length.toLong()) }
+            if (access.supportsUmpTransport) {
+                checkReturn {
+                    val byteBuffer = ByteBuffer.allocateDirect(length)
+                    byteBuffer.put(msg)
+                    byteBuffer.position(0)
+                    val intBuffer = byteBuffer.asIntBuffer()
+                    library.libremidi_midi_out_schedule_ump(midiOut, timestampInNanoseconds, intBuffer, (msg.size / 4).toLong())
+                }
+            }
             else
                 checkReturn { library.libremidi_midi_out_schedule_message(midiOut, timestampInNanoseconds, msg, length.toLong()) }
         }
