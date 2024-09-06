@@ -13,14 +13,17 @@ It provides various MIDI features, including implementations for MIDI 1.0, Stand
 In `ktmidi` module:
 
 - MIDI 1.0 bytestream messages and 2.0 UMPs everywhere.
-- `MidiAccess` : MIDI access abstraction API like what Web MIDI API 1.0 provides.
-  - It also supports MIDI 2.0 UMP ports since v0.8.0, if the underlying API supports them. Currently Android 15 (preview API) is supported.
+- `MidiAccess` : MIDI access abstraction API like [Web MIDI API](https://www.w3.org/TR/webmidi/).
   - There are actual implementations for some platform specific MIDI API within this library, and you can implement your own backend if you need.
+  - It also supports MIDI 2.0 UMP ports, if the underlying API supports them.
   - Unlike `javax.sound.midi` API, this API also covers creating virtual ports wherever possible.
-    - `ktmidi-jvm-desktop` module contains ALSA backend (`AlsaMidiAccess`), as well as [RtMidi](https://github.com/thestk/rtmidi) backend (`RtMidiAccess`) via [atsushieno/rtmidi-javacpp](https://github.com/atsushieno/rtmidi-javacpp) for Linux and MacOS 
-      - Windows needs JavaCPP build improvements and left unsupported (it does not matter, WinMM does not support virtual ports either way)
-    - `ktmidi-native-ext` module contains RtMidi *native* backend (`RtMidiNativeAccess`) for Kotlin-Native. `player-sample-native` sample app uses it.
-  - For Kotlin/Native and Apple OSes (macOS, iOS, etc.) there are `UmpCoreMidiAccess` (supports access to MIDI 2.0 and 1.0 devices, only on newer OSes) and `TraditionalCoreMidiAccess` (supports access to MIDI 1.0 devices).
+    - `ktmidi-jvm-desktop` module contains the following extra backends:
+      - ALSA (`AlsaMidiAccess`)
+      - [RtMidi](https://github.com/thestk/rtmidi) (`RtMidiAccess`) via [atsushieno/rtmidi-javacpp](https://github.com/atsushieno/rtmidi-javacpp) for Linux and MacOS
+        - Windows needs JavaCPP build improvements and left unsupported (it does not matter, WinMM does not support virtual ports either way)
+      - [libremidi](https://github.com/celtera/libremidi) (`LibreMidiAccess`) via [atsushieno/libremidi-javacpp](https://github.com/atsushieno/libremidi-javacpp) for Linux, MacOS, and Windows
+    - `ktmidi-native-ext` module contains RtMidi *native* backend (`RtMidiNativeAccess`) for Kotlin-Native. `input-sample` and player-sample` Multiplatform apps support it.
+  - For Kotlin/Native on Apple OSes (macOS, iOS, etc.) there are `UmpCoreMidiAccess` (supports access to MIDI 2.0 and 1.0 devices, only on newer OSes) and `TraditionalCoreMidiAccess` (supports access to MIDI 1.0 devices).
   - For Kotlin/JS, `JzzMidiAccess` which wraps [Jazz-Soft JZZ](https://jazz-soft.net/doc/JZZ/) is included in `ktmidi` module. It should cover both node.js and web browsers.
   - For Kotlin/Wasm on browsers, `WebMidiAccess` in `ktmidi` module makes use of Web MIDI API directly. (Node/Deno via wasmWasi is not covered yet.)
 - `MidiMusic` and `Midi2Music` : represents Standard MIDI File format structure, with reader and writer. (MIDI 2.0 support only partially based on standard; `Midi2Track` follows MIDI Clip File specification but there is no multi-track comparable specification to SMF for MIDI 2.0 yet.)
