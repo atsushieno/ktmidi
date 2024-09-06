@@ -9,7 +9,7 @@ enum class MessageDirection {
 }
 
 data class LogEntry(val timestamp: LocalDateTime, val direction: MessageDirection, val data: Any) {
-    override fun toString() = "[${timestamp.time.toString().substring(0, 8)}] $data}"
+    override fun toString() = "[${timestamp.time.toString().substring(0, 8)}] $data"
 }
 
 class Logger {
