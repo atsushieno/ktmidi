@@ -297,6 +297,7 @@ $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess.Companion/create/#/Pointing
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/index.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/CoreMidiAccess/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/-core-midi-access.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/canCreateVirtualPort/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/can-create-virtual-port.html
+$dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/canCreateVirtualPort/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/can-create-virtual-port.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/canDetectStateChanges/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/can-detect-state-changes.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/inputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/inputs.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/outputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/outputs.html
@@ -747,6 +748,18 @@ $dokka.location:dev.atsushieno.ktmidi/JzzMidiAccess/openOutput/#kotlin.String/Po
 $dokka.location:dev.atsushieno.ktmidi/JzzMidiAccess/outputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jzz-midi-access/outputs.html
 $dokka.location:dev.atsushieno.ktmidi/JzzMidiAccess/useSysex/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-jzz-midi-access/use-sysex.html
 $dokka.location:dev.atsushieno.ktmidi/KtorByteOrder///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ktor-byte-order/index.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/index.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess/MergedMidiAccess/#kotlin.String#kotlin.collections.List[dev.atsushieno.ktmidi.MidiAccess]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/-merged-midi-access.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess/canCreateVirtualPort/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/can-create-virtual-port.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess/canCreateVirtualPort/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/can-create-virtual-port.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess/createVirtualInputSender/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/create-virtual-input-sender.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess/createVirtualOutputReceiver/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/create-virtual-output-receiver.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess/inputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/inputs.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess/name/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/name.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess/openInput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/open-input.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess/openOutput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/open-output.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess/outputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/outputs.html
+$dokka.location:dev.atsushieno.ktmidi/MergedMidiAccess/supportsUmpTransport/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-access/supports-ump-transport.html
 $dokka.location:dev.atsushieno.ktmidi/MergedMidiModuleDatabase///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-module-database/index.html
 $dokka.location:dev.atsushieno.ktmidi/MergedMidiModuleDatabase/MergedMidiModuleDatabase/#kotlin.collections.Iterable[dev.atsushieno.ktmidi.MidiModuleDatabase]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-module-database/-merged-midi-module-database.html
 $dokka.location:dev.atsushieno.ktmidi/MergedMidiModuleDatabase/all/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-merged-midi-module-database/all.html
@@ -1008,6 +1021,7 @@ $dokka.location:dev.atsushieno.ktmidi/MidiAccess.StateChange/values/#/PointingTo
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/index.html
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess/MidiAccess/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/-midi-access.html
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess/canCreateVirtualPort/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/can-create-virtual-port.html
+$dokka.location:dev.atsushieno.ktmidi/MidiAccess/canCreateVirtualPort/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/can-create-virtual-port.html
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess/canDetectStateChanges/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/can-detect-state-changes.html
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess/createVirtualInputSender/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/create-virtual-input-sender.html
 $dokka.location:dev.atsushieno.ktmidi/MidiAccess/createVirtualOutputReceiver/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-midi-access/create-virtual-output-receiver.html
