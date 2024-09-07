@@ -14,7 +14,7 @@ navigator.permissions.query({ name: "midi" }).then((result) => {
     if (result.state == "prompt" || result.state =="granted") {
         navigator.requestMIDIAccess({"sysex": true, "software": true})
             .then((access) => {
-                console.log("ktmidi: Web MIDI Access is ready for ktmidi-ci-tool");
+                console.log("ktmidi: Web MIDI Access is ready for ktmidi");
                 document["ktmidi_wasmJs_midiAccess"] = access;
             });
     }
