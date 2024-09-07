@@ -13,7 +13,7 @@ plugins {
 
 allprojects {
     group = 'dev.atsushieno'
-    version = '0.9.3'
+    version = '0.10.0'
 }
 
 apply from: "${rootDir}/publish-root.gradle"
