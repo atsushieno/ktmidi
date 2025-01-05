@@ -158,7 +158,7 @@ interface Midi1Message {
                     yield(Midi1CompoundMessage(0xF0, 0, 0, bytes.drop(i).take(size).toByteArray()))
                     i += size
                 } else {
-                    if (end < i + fixedDataSize(bytes[i]))
+                    if (end <= i + fixedDataSize(bytes[i]))
                         throw Midi1Exception("Received data was incomplete to build MIDI status message for '${bytes[i]}' status.")
                     val z = fixedDataSize(bytes[i])
                     yield(

@@ -1,10 +1,7 @@
 package dev.atsushieno.ktmidi
 
 import kotlin.math.round
-import kotlin.test.Test
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 
 @kotlin.ExperimentalUnsignedTypes
@@ -164,6 +161,13 @@ class Midi1MusicUnitTest {
         val msgs = Midi1Message.convert (bytes, 0, bytes.size).asIterable().toList()
         assertEquals(1, msgs.size, "message length")
         assertEquals(bytes.size, (msgs.first() as Midi1CompoundMessage).extraDataLength)
+    }
+
+    @Test
+    fun convertInsufficient() {
+        assertFailsWith<Midi1Exception> {
+            Midi1Message.convert(byteArrayOf(0x90.toByte(), 0x30, 0x70, 0x80.toByte(), 0x30, 0), 0, 5, null).toList()
+        }
     }
 
     @Test
