@@ -2,21 +2,23 @@ package dev.atsushieno.ktmidi
 
 import kotlinx.cinterop.*
 import platform.CoreMIDI.*
-import platform.posix.alloca
 
-class UmpCoreMidiAccess : CoreMidiAccess() {
+class UmpCoreMidiAccess(val sendBufferSize: Int) : CoreMidiAccess() {
+    // It is kept for ABI backward compatibility...
+    constructor() : this(1024)
+
     override val name = "CoreMIDI-UMP"
 
     override suspend fun openInput(portId: String): MidiInput =
         UmpCoreMidiInput(ClientHolder(this), null, inputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun openOutput(portId: String): MidiOutput =
-        UmpCoreMidiOutput(ClientHolder(this), outputs.first { it.id == portId } as CoreMidiPortDetails)
+        UmpCoreMidiOutput(sendBufferSize, ClientHolder(this), outputs.first { it.id == portId } as CoreMidiPortDetails)
 
     override suspend fun createVirtualInputSender(context: PortCreatorContext): MidiOutput {
         val holder = ClientHolder(this)
         val endpoint = createVirtualInputSource(holder.clientRef, context)
-        return UmpCoreMidiOutput(holder, CoreMidiPortDetails(endpoint))
+        return UmpCoreMidiOutput(sendBufferSize, holder, CoreMidiPortDetails(endpoint))
     }
 
     @OptIn(ExperimentalForeignApi::class)
@@ -104,7 +106,7 @@ private class UmpCoreMidiInput(holder: ClientHolder, customReceiveBlockHolder: R
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private class UmpCoreMidiOutput(holder: ClientHolder, private val coreMidiPortDetails: CoreMidiPortDetails)
+private class UmpCoreMidiOutput(val sendBufferSize: Int, holder: ClientHolder, private val coreMidiPortDetails: CoreMidiPortDetails)
     : CoreMidiPort(holder, coreMidiPortDetails), MidiOutput
 {
     private val portRef by lazy {
@@ -117,13 +119,14 @@ private class UmpCoreMidiOutput(holder: ClientHolder, private val coreMidiPortDe
     }
     private val protocol = if (details.midiTransportProtocol == MidiTransportProtocol.UMP) kMIDIProtocol_2_0 else kMIDIProtocol_1_0
 
+    val arena = Arena()
+    val eventList by lazy { arena.alloc(sendBufferSize, 0) as MIDIEventList }
+
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
         mevent.usePinned { pinned ->
-            val eventListPtr = alloca(length.toULong()) ?: return
-            val eventListRef: CValuesRef<MIDIEventList> = eventListPtr.reinterpret()
-            MIDIEventListInit(eventListRef, protocol)
-            MIDIEventListAdd(eventListRef, 1U, null, timestampInNanoseconds.toULong(), length.toULong(), pinned.addressOf(offset).reinterpret())
-            MIDISendEventList(portRef, coreMidiPortDetails.endpoint, eventListRef)
+            val packet = MIDIEventListInit(eventList.ptr, protocol)
+            MIDIEventListAdd(eventList.ptr, 1U, packet, timestampInNanoseconds.toULong(), length.toULong(), pinned.addressOf(offset).reinterpret())
+            MIDISendEventList(portRef, coreMidiPortDetails.endpoint, eventList.ptr)
         }
     }
 }
