@@ -19,10 +19,10 @@ kotlin-test-junit = "1.9.0"
 jzz = "1.8.1"
 
 kotlinx-browser = "0.3"
-kotlinx-coroutines-core = "1.9.0-RC"
+kotlinx-coroutines-core = "1.9.0"
 kotlinx-datetime = "0.6.0"
-kotlinxSerialization = "1.7.0-RC"
-ktor-io = "2.3.11"
+kotlinxSerialization = "1.8.0"
+ktor-io = "3.0.3"
 
 mpfilepicker = "3.1.0"
 gradle-javacpp = "1.5.10"
