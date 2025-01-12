@@ -1,5 +1,5 @@
 [versions]
-agp = "8.2.2"
+agp = "8.7.3"
 android-compileSdk = "35"
 android-minSdk = "23"
 android-targetSdk = "35"
@@ -8,16 +8,17 @@ androidx-appcompat = "1.7.0"
 androidx-core-ktx = "1.15.0"
 androidx-espresso-core = "3.6.1"
 androidx-test-junit = "1.2.1"
-compose = "1.7.5"
+compose = "1.7.6"
 compose-plugin = "1.6.11"
 junit = "4.13.2"
-kotlin = "2.0.20"
+kotlin = "2.1.0"
 dokka = "1.9.20"
-binary-compatibility-validator = "0.14.0"
+binary-compatibility-validator = "0.17.0"
 junit-jupiter-api = "5.10.2"
 kotlin-test-junit = "1.9.0"
 jzz = "1.8.1"
 
+kotlinx-browser = "0.3"
 kotlinx-coroutines-core = "1.9.0-RC"
 kotlinx-datetime = "0.6.0"
 kotlinxSerialization = "1.7.0-RC"
@@ -49,6 +50,7 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", vers
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines-core" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines-core" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines-core" }
+kotlinx-browser = { module = "org.jetbrains.kotlinx:kotlinx-browser", version.ref = "kotlinx-browser" }
 kotlinx-coroutines-core-js = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-js", version.ref = "kotlinx-coroutines-core" }
 kotlinx-coroutines-core-wasmjs = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core-wasmjs", version.ref = "kotlinx-coroutines-core" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines-core" }

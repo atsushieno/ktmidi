@@ -108,6 +108,7 @@ kotlin {
         val jsTest by getting
         val wasmJsMain by getting {
             dependencies {
+                implementation(libs.kotlinx.browser)
                 implementation(npm("jzz", libs.versions.jzz.get()))
             }
         }
