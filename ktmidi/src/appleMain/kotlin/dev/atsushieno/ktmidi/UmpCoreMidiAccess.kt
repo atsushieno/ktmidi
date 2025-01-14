@@ -109,17 +109,18 @@ private class UmpCoreMidiInput(holder: ClientHolder, customReceiveBlockHolder: R
 private class UmpCoreMidiOutput(val sendBufferSize: Int, holder: ClientHolder, private val coreMidiPortDetails: CoreMidiPortDetails)
     : CoreMidiPort(holder, coreMidiPortDetails), MidiOutput
 {
+    val arena = Arena()
+
     private val portRef by lazy {
         memScoped {
             val portName = "KTMidiOutputPort"
-            val port = alloc<MIDIPortRefVar>()
+            val port = arena.alloc<MIDIPortRefVar>()
             checkStatus { MIDIOutputPortCreate(clientRef, portName.toCFStringRef(), port.ptr) }
             port.value
         }
     }
     private val protocol = if (details.midiTransportProtocol == MidiTransportProtocol.UMP) kMIDIProtocol_2_0 else kMIDIProtocol_1_0
 
-    val arena = Arena()
     val eventList by lazy { arena.alloc(sendBufferSize, 0) as MIDIEventList }
 
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {

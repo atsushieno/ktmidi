@@ -33,6 +33,9 @@ class TraditionalCoreMidiAccess(val sendBufferSize: Int = 1024) : CoreMidiAccess
         readProcHolder.input = input
         return input
     }
+
+    @OptIn(ExperimentalForeignApi::class)
+    val arena = Arena()
 }
 
 private class ReadProcHolder(var input: TraditionalCoreMidiInput?) {
@@ -111,14 +114,15 @@ private open class TraditionalCoreMidiInput(holder: ClientHolder, customReadProc
 private open class TraditionalCoreMidiOutput(val sendBufferSize: Int, holder: ClientHolder, private val coreMidiPortDetails: CoreMidiPortDetails)
     : CoreMidiPort(holder, coreMidiPortDetails), MidiOutput
 {
+    val arena = Arena()
+
     private val portRef = memScoped {
         val portName = "KTMidiOutputPort"
-        val port = alloc<MIDIPortRefVar>()
+        val port = arena.alloc<MIDIPortRefVar>()
         checkStatus { MIDIOutputPortCreate(clientRef, portName.toCFStringRef(), port.ptr) }
         port.value
     }
 
-    val arena = Arena()
     val packetList by lazy { arena.alloc(sendBufferSize, 0) as MIDIPacketList }
 
     override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
