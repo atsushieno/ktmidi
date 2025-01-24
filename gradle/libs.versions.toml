@@ -9,10 +9,10 @@ androidx-core-ktx = "1.15.0"
 androidx-espresso-core = "3.6.1"
 androidx-test-junit = "1.2.1"
 compose = "1.7.6"
-compose-plugin = "1.6.11"
+compose-multiplatform = "1.7.0"
 junit = "4.13.2"
 kotlin = "2.1.0"
-dokka = "1.9.20"
+dokka = "2.0.0"
 binary-compatibility-validator = "0.17.0"
 junit-jupiter-api = "5.10.2"
 kotlin-test-junit = "1.9.0"
@@ -40,7 +40,11 @@ androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-espresso-core" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
+compose-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "compose" }
 compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
+compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose" }
+compose-components-resources = { module = "androidx.compose.components:resources", version.ref = "compose" }
 compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 
@@ -68,7 +72,6 @@ libremidi-javacpp-platform = { module = "dev.atsushieno:libremidi-javacpp-platfo
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
-jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -78,6 +81,7 @@ gradleJavacppPlatform = { id = "org.bytedeco.gradle-javacpp-platform", version.r
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 binaryCompatibilityValidatorPlugin = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary-compatibility-validator" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 
 [bundles]
 
