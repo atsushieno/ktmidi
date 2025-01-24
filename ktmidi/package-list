@@ -57,7 +57,7 @@ $dokka.location:dev.atsushieno.ktmidi////PointingToDeclaration/ktmidi/dev.atsus
 $dokka.location:dev.atsushieno.ktmidi//JR_TIMESTAMP_TICKS_PER_SECOND/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-j-r_-t-i-m-e-s-t-a-m-p_-t-i-c-k-s_-p-e-r_-s-e-c-o-n-d.html
 $dokka.location:dev.atsushieno.ktmidi//MIDI_2_0_RESERVED/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-m-i-d-i_2_0_-r-e-s-e-r-v-e-d.html
 $dokka.location:dev.atsushieno.ktmidi//asNSString/kotlin.String#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/as-n-s-string.html
-$dokka.location:dev.atsushieno.ktmidi//asString/[Error type: Unresolved type for NSString]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/as-string.html
+$dokka.location:dev.atsushieno.ktmidi//asString/platform.Foundation.NSString#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/as-string.html
 $dokka.location:dev.atsushieno.ktmidi//channelInGroup/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/channel-in-group.html
 $dokka.location:dev.atsushieno.ktmidi//chordNameAlter1/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/chord-name-alter1.html
 $dokka.location:dev.atsushieno.ktmidi//chordNameAlter2/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/chord-name-alter2.html
@@ -106,7 +106,7 @@ $dokka.location:dev.atsushieno.ktmidi//functionBlockIndex/dev.atsushieno.ktmidi.
 $dokka.location:dev.atsushieno.ktmidi//functionBlockMaxSysEx8/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-max-sys-ex8.html
 $dokka.location:dev.atsushieno.ktmidi//functionBlockMidi1Port/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-midi1-port.html
 $dokka.location:dev.atsushieno.ktmidi//functionBlockUiHint/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/function-block-ui-hint.html
-$dokka.location:dev.atsushieno.ktmidi//getString/[Error type: Unresolved type for CFStringRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/get-string.html
+$dokka.location:dev.atsushieno.ktmidi//getString/kotlinx.cinterop.CPointer[cnames.structs.__CFString]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/get-string.html
 $dokka.location:dev.atsushieno.ktmidi//group/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/group.html
 $dokka.location:dev.atsushieno.ktmidi//groupAndChannel/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/group-and-channel.html
 $dokka.location:dev.atsushieno.ktmidi//groupByte/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/group-byte.html
@@ -202,12 +202,12 @@ $dokka.location:dev.atsushieno.ktmidi//tempo/dev.atsushieno.ktmidi.Ump#/Pointing
 $dokka.location:dev.atsushieno.ktmidi//timeSignatureDenominator/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/time-signature-denominator.html
 $dokka.location:dev.atsushieno.ktmidi//timeSignatureNumberOf32thNotes/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/time-signature-number-of32th-notes.html
 $dokka.location:dev.atsushieno.ktmidi//timeSignatureNumerator/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/time-signature-numerator.html
-$dokka.location:dev.atsushieno.ktmidi//toCFStringRef/[Error type: Unresolved type for NSString]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-c-f-string-ref.html
 $dokka.location:dev.atsushieno.ktmidi//toCFStringRef/kotlin.String#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-c-f-string-ref.html
-$dokka.location:dev.atsushieno.ktmidi//toCFTypeRef/[Error type: Unresolved type for NSObject]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-c-f-type-ref.html
+$dokka.location:dev.atsushieno.ktmidi//toCFStringRef/platform.Foundation.NSString#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-c-f-string-ref.html
+$dokka.location:dev.atsushieno.ktmidi//toCFTypeRef/platform.darwin.NSObject#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-c-f-type-ref.html
 $dokka.location:dev.atsushieno.ktmidi//toInts/dev.atsushieno.ktmidi.Ump#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-ints.html
-$dokka.location:dev.atsushieno.ktmidi//toNSObjectReleased/[Error type: Unresolved type for CFTypeRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-object-released.html
-$dokka.location:dev.atsushieno.ktmidi//toNSStringReleased/[Error type: Unresolved type for CFStringRef]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-string-released.html
+$dokka.location:dev.atsushieno.ktmidi//toNSObjectReleased/kotlinx.cinterop.CPointer[kotlinx.cinterop.CPointed]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-object-released.html
+$dokka.location:dev.atsushieno.ktmidi//toNSStringReleased/kotlinx.cinterop.CPointer[cnames.structs.__CFString]#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-n-s-string-released.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformBytes/dev.atsushieno.ktmidi.Ump#dev.atsushieno.ktmidi.ByteOrder/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformBytes/dev.atsushieno.ktmidi.Ump#kotlin.ByteArray#kotlin.Int#dev.atsushieno.ktmidi.ByteOrder/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-bytes.html
 $dokka.location:dev.atsushieno.ktmidi//toPlatformBytes/dev.atsushieno.ktmidi.Ump#kotlin.ByteArray#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/to-platform-bytes.html
@@ -302,7 +302,7 @@ $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/canDetectStateChanges/#/Poi
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/inputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/inputs.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiAccess/outputs/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-access/outputs.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiException///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-exception/index.html
-$dokka.location:dev.atsushieno.ktmidi/CoreMidiException/CoreMidiException/#[Error type: Unresolved type for OSStatus]/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-exception/-core-midi-exception.html
+$dokka.location:dev.atsushieno.ktmidi/CoreMidiException/CoreMidiException/#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-exception/-core-midi-exception.html
 $dokka.location:dev.atsushieno.ktmidi/CoreMidiException/CoreMidiException/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-core-midi-exception/-core-midi-exception.html
 $dokka.location:dev.atsushieno.ktmidi/Dc///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-dc/index.html
 $dokka.location:dev.atsushieno.ktmidi/Dc/Dc/#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-dc/-dc.html
@@ -1467,6 +1467,7 @@ $dokka.location:dev.atsushieno.ktmidi/TonicNoteField/UNKNOWN/#/PointingToDeclara
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/index.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/TraditionalCoreMidiAccess/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/-traditional-core-midi-access.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/TraditionalCoreMidiAccess/#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/-traditional-core-midi-access.html
+$dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/arena/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/arena.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/createVirtualInputSender/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/create-virtual-input-sender.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/createVirtualOutputReceiver/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/create-virtual-output-receiver.html
 $dokka.location:dev.atsushieno.ktmidi/TraditionalCoreMidiAccess/name/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-traditional-core-midi-access/name.html
@@ -1491,11 +1492,13 @@ $dokka.location:dev.atsushieno.ktmidi/UmpBinaryRetrieverFallback/valueOf/#kotlin
 $dokka.location:dev.atsushieno.ktmidi/UmpBinaryRetrieverFallback/values/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-binary-retriever-fallback/values.html
 $dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/index.html
 $dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/UmpCoreMidiAccess/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/-ump-core-midi-access.html
+$dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/UmpCoreMidiAccess/#kotlin.Int/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/-ump-core-midi-access.html
 $dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/createVirtualInputSender/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/create-virtual-input-sender.html
 $dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/createVirtualOutputReceiver/#dev.atsushieno.ktmidi.PortCreatorContext/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/create-virtual-output-receiver.html
 $dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/name/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/name.html
 $dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/openInput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/open-input.html
 $dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/openOutput/#kotlin.String/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/open-output.html
+$dokka.location:dev.atsushieno.ktmidi/UmpCoreMidiAccess/sendBufferSize/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-core-midi-access/send-buffer-size.html
 $dokka.location:dev.atsushieno.ktmidi/UmpDiscoveryFlags///PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-discovery-flags/index.html
 $dokka.location:dev.atsushieno.ktmidi/UmpDiscoveryFlags/ALL/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-discovery-flags/-a-l-l.html
 $dokka.location:dev.atsushieno.ktmidi/UmpDiscoveryFlags/DEVICE_IDENTITY/#/PointingToDeclaration/ktmidi/dev.atsushieno.ktmidi/-ump-discovery-flags/-d-e-v-i-c-e_-i-d-e-n-t-i-t-y.html
