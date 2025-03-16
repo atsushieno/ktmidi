@@ -43,10 +43,10 @@ jobs:
         run: |
           sudo apt-get update
           echo y | sudo apt-get install doxygen cmake ninja-build libasound2-dev libjack-jackd2-0
-      - name: set up JDK 17
+      - name: set up JDK 22
         uses: actions/setup-java@v4
         with:
-          java-version: 17
+          java-version: 22
           distribution: temurin
 
         # Only for release tags

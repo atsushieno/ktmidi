@@ -6,12 +6,12 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(22)
 
     jvm {
         java {
-            sourceCompatibility = JavaVersion.VERSION_11
-            targetCompatibility = JavaVersion.VERSION_11
+            sourceCompatibility = JavaVersion.VERSION_22
+            targetCompatibility = JavaVersion.VERSION_22
         }
 
         //test { useJUnit() }
@@ -25,7 +25,7 @@ kotlin {
                 implementation(project(":ktmidi"))
                 implementation(libs.alsa.javacpp)
                 api(libs.rtmidi.javacpp)
-                api(libs.libremidi.javacpp)
+                implementation(libs.libremidi.panama)
 
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.datetime)

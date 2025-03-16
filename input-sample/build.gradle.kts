@@ -17,7 +17,7 @@ tasks.getByName("run", JavaExec::class).standardInput = System.`in`
 application.mainClass = "DriverKt"
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(22)
     jvm {
         withJava()
         testRuns["test"].executionTask.configure {
@@ -25,7 +25,7 @@ kotlin {
         }
         java {
             sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_22
         }
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
@@ -88,7 +88,6 @@ kotlin {
             dependencies {
                 implementation(project(":ktmidi-jvm-desktop"))
                 api(libs.rtmidi.javacpp.platform)
-                api(libs.libremidi.javacpp.platform)
             }
         }
         val jvmTest by getting {
