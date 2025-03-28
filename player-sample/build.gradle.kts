@@ -7,12 +7,9 @@ buildscript {
 }
 
 plugins {
-    id("application")
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.gradleJavacppPlatform) // required to resolve *-javacpp-platform appropriately
 }
-
-application.mainClass = "DriverKt"
 
 tasks.withType<JavaExec> {
     standardInput = System.`in`
@@ -21,7 +18,6 @@ tasks.withType<JavaExec> {
 kotlin {
     jvmToolchain(22)
     jvm {
-        withJava()
         testRuns["test"].executionTask.configure {
             useJUnit()
         }
