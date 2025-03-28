@@ -7,16 +7,16 @@ expect fun getMidiAccessApi(api: String?, midiTransportProtocol: Int): MidiAcces
 expect fun exitApplication(code: Int)
 expect fun runLoop(body: ()->Unit)
 
-data class CommandLineOptions(val api: String? = null, val port: String? = null, val musicFile: String? = null, val midi2: Boolean = false)
+data class CommandLineOptions(val api: String? = null, val port: String? = null, val musicFile: String? = null, val midi2: Boolean = false, val ump: Boolean = false)
 
 fun parseCommandLineArgs(args: Array<String>) = CommandLineOptions(
     api = args.firstOrNull { it.startsWith("-a:") }?.substring(3),
     port = args.firstOrNull { it.startsWith("-p:") }?.substring(3),
-    midi2 = args.contains("-2")
+    ump = args.contains("-u")
 )
 
 fun showUsage(api: String?, midiTransportProtocol: Int) {
-    println("USAGE: InputSample [-a:api] [-p:port]")
+    println("USAGE: InputSample [-a:api] [-p:port] [-u]")
     println()
     println("Available ports for -p option:")
     getMidiAccessApi(api, midiTransportProtocol).inputs.forEach { println(" - ${it.id} : ${it.name}") }
@@ -24,7 +24,7 @@ fun showUsage(api: String?, midiTransportProtocol: Int) {
 
 fun runMain(args: Array<String>) {
     val opts = parseCommandLineArgs(args)
-    val protocol = if (opts.midi2) MidiTransportProtocol.UMP else MidiTransportProtocol.MIDI1
+    val protocol = if (opts.ump) MidiTransportProtocol.UMP else MidiTransportProtocol.MIDI1
 
     if (args.contains("-?") || args.contains("-h") || args.contains("--help")) {
         showUsage(opts.api, protocol)
