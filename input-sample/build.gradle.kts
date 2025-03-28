@@ -12,7 +12,9 @@ plugins {
     alias(libs.plugins.gradleJavacppPlatform) // required to resolve *-javacpp-platform appropriately
 }
 
-tasks.getByName("run", JavaExec::class).standardInput = System.`in`
+tasks.withType<JavaExec> {
+    standardInput = System.`in`
+}
 
 application.mainClass = "DriverKt"
 

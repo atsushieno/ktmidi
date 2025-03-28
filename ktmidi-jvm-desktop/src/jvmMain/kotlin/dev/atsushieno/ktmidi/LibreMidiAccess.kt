@@ -231,8 +231,9 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
             if (context.midiProtocol == MidiTransportProtocol.UMP) library.MIDI2()
             else library.MIDI1())
 
-        val midiOut = arena.allocate(ValueLayout.ADDRESS_UNALIGNED)
-        checkReturn { library.libremidi_midi_out_new(midiConfig, apiConfig, midiOut) }
+        val midiOutPtr = arena.allocate(ValueLayout.ADDRESS_UNALIGNED)
+        checkReturn { library.libremidi_midi_out_new(midiConfig, apiConfig, midiOutPtr) }
+        val midiOut = midiOutPtr.get(ValueLayout.ADDRESS_UNALIGNED, 0)
         val idName = "VIn_${instanceIdSerial}_${nextVirtualPortIndex++}"
         val portDetails = LibreMidiPortDetails(this, idName, context.portName)
 
@@ -243,8 +244,9 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         val dispatcher = InputDispatcher()
         val (ctx, midiConfig) = createMidiConfig(context.portName, dispatcher, true)
 
-        val midiIn = arena.allocate(ValueLayout.ADDRESS_UNALIGNED)
-        checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, midiIn) }
+        val midiInPtr = arena.allocate(ValueLayout.ADDRESS_UNALIGNED)
+        checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, midiInPtr) }
+        val midiIn = midiInPtr.get(ValueLayout.ADDRESS_UNALIGNED, 0)
         val idName = "VOut_${instanceIdSerial}_${nextVirtualPortIndex++}"
         val portDetails = LibreMidiPortDetails(this, idName, context.portName)
 
@@ -257,8 +259,9 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         val (ctx, midiConfig) = createMidiConfig(portId, dispatcher, false)
         val ioUnion = libremidi_midi_configuration.in_or_out_port(midiConfig)
         libremidi_midi_configuration.in_or_out_port.in_port(ioUnion, portDetails.port)
-        val midiIn = arena.allocate(ValueLayout.ADDRESS_UNALIGNED)
-        checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, midiIn) }
+        val midiInPtr = arena.allocate(ValueLayout.ADDRESS_UNALIGNED)
+        checkReturn { library.libremidi_midi_in_new(midiConfig, apiConfig, midiInPtr) }
+        val midiIn = midiInPtr.get(ValueLayout.ADDRESS_UNALIGNED, 0)
         return LibreMidiInput(midiIn, portDetails, dispatcher, ctx, this)
     }
 
@@ -272,9 +275,9 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
             if (portDetails.midiTransportProtocol == MidiTransportProtocol.UMP) library.MIDI2()
             else library.MIDI1())
 
-        val midiOut = arena.allocate(ValueLayout.ADDRESS_UNALIGNED).also {
-            checkReturn { library.libremidi_midi_out_new(midiConfig, apiConfig, it) }
-        }
+        val midiOutPtr = arena.allocate(ValueLayout.ADDRESS_UNALIGNED)
+        checkReturn { library.libremidi_midi_out_new(midiConfig, apiConfig, midiOutPtr) }
+        val midiOut = midiOutPtr.get(ValueLayout.ADDRESS_UNALIGNED, 0)
 
         return LibreMidiOutput(midiOut, portDetails, this)
     }
@@ -290,12 +293,12 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         checkReturn { library.libremidi_midi_configuration_init(conf) }
 
         val onError = libremidi_midi_configuration.on_error(conf)
-        val callbackFunc = libremidi_midi_configuration.libremidi_midi_configuration_on_error.callback.allocate({ ctx: MemorySegment, error: MemorySegment, errorLen: Long, location: MemorySegment ->
+        val errorCallback = libremidi_midi_configuration.libremidi_midi_configuration_on_error.callback.allocate({ ctx: MemorySegment, error: MemorySegment, errorLen: Long, location: MemorySegment ->
             val errorString = StandardCharsets.UTF_8.decode(error.reinterpret(errorLen).asByteBuffer())
             // FIXME: maybe implement better logging
             println("libremidi onError: $errorString")
         }, arena)
-        libremidi_midi_configuration.libremidi_midi_configuration_on_error.callback(onError, callbackFunc)
+        libremidi_midi_configuration.libremidi_midi_configuration_on_error.callback(onError, errorCallback)
 
         val nameArray = name.toUtf8ByteArray()
         val nameCopy = arena.allocate(nameArray.size.toLong())
@@ -304,28 +307,32 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
 
         if (supportsUmpTransport) {
             libremidi_midi_configuration.version(conf, library.MIDI2())
+            val cbUnion = libremidi_midi_configuration.on_midi_1_or_2_callback(conf)
             val umpCallback = libremidi_midi2_callback.allocate(arena)
-            val cbFunc = libremidi_midi2_callback.callback.allocate({ data, timestamp, symbol, len ->
+            val callbackFunc = libremidi_midi2_callback.callback.Function { context, timestamp, data, len ->
                 // It feels a bit awkward, but `data.asBuffer()` returns such an IntBuffer that has only capacity = 1,
                 // so it is useless here. We need to create another BytePointer and its resulting ByteBuffer.
-                val array = ByteArray(len.toInt() * 4)
-                data.asByteBuffer().get(array)
-                dispatcher.listener?.onEventReceived(array, 0, len.toInt() * 4, timestamp)
-            }, arena)
+                val size = len.toInt() * 4
+                val umpArray = ByteArray(size)
+                val src = data.reinterpret(size.toLong()).asByteBuffer()
+                src.get(umpArray)
+                dispatcher.listener?.onEventReceived(umpArray, 0, size, timestamp)
+            }
+            val cbFunc = libremidi_midi2_callback.callback.allocate(callbackFunc, arena)
             libremidi_midi2_callback.callback(umpCallback, cbFunc)
-            val cbUnion = libremidi_midi_configuration.on_midi_1_or_2_callback(conf)
             libremidi_midi_configuration.on_midi_1_or_2_callback.on_midi2_message(cbUnion, umpCallback)
             cb = umpCallback
         } else {
             libremidi_midi_configuration.version(conf, library.MIDI1())
+            val cbUnion = libremidi_midi_configuration.on_midi_1_or_2_callback(conf)
             val midi1Callback = libremidi_midi1_callback.allocate(arena)
-            val cbFunc = libremidi_midi1_callback.callback.allocate({ data, timestamp, symbol, len ->
+            val cbFunc = libremidi_midi1_callback.callback.allocate({ context, timestamp, data, len ->
+                println("midi1 callback invoked")
                 val array = ByteArray(len.toInt())
                 data.asByteBuffer().get(array)
                 dispatcher.listener?.onEventReceived(array, 0, len.toInt(), timestamp)
             }, arena)
             libremidi_midi1_callback.callback(midi1Callback, cbFunc)
-            val cbUnion = libremidi_midi_configuration.on_midi_1_or_2_callback(conf)
             libremidi_midi_configuration.on_midi_1_or_2_callback.on_midi1_message(cbUnion, midi1Callback)
             cb = midi1Callback
         }
@@ -379,15 +386,16 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
             val msg = if (offset > 0 && mevent.size == length) mevent.drop(offset).take(length).toByteArray() else mevent
             if (access.supportsUmpTransport) {
-                checkReturn {
-                    val byteBuffer = ByteBuffer.allocateDirect(length)
-                    byteBuffer.put(msg)
-                    byteBuffer.position(0)
-                    library.libremidi_midi_out_schedule_ump(midiOut, timestampInNanoseconds, MemorySegment.ofBuffer(byteBuffer), (msg.size / 4).toLong())
-                }
+                val byteBuffer = ByteBuffer.allocateDirect(length)
+                byteBuffer.put(msg)
+                byteBuffer.position(0)
+                checkReturn { library.libremidi_midi_out_schedule_ump(midiOut, timestampInNanoseconds, MemorySegment.ofBuffer(byteBuffer), (msg.size / 4).toLong()) }
+            } else {
+                val buf = arena.allocate(length.toLong())
+                buf.copyFrom(MemorySegment.ofArray(msg.sliceArray(IntRange(offset, offset + length - 1))))
+                println("send $timestampInNanoseconds $length " + mevent.drop(offset).take(length).joinToString { it.toUnsigned().toString(16) })
+                checkReturn { library.libremidi_midi_out_schedule_message(midiOut, timestampInNanoseconds, buf, length.toLong()) }
             }
-            else
-                checkReturn { library.libremidi_midi_out_schedule_message(midiOut, timestampInNanoseconds, MemorySegment.ofArray(msg), length.toLong()) }
         }
     }
 }

@@ -14,7 +14,9 @@ plugins {
 
 application.mainClass = "DriverKt"
 
-tasks.getByName("run", JavaExec::class).standardInput = System.`in`
+tasks.withType<JavaExec> {
+    standardInput = System.`in`
+}
 
 kotlin {
     jvmToolchain(22)
