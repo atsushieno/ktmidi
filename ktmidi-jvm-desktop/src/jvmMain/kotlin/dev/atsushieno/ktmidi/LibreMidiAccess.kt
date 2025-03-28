@@ -384,10 +384,9 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         override fun send(mevent: ByteArray, offset: Int, length: Int, timestampInNanoseconds: Long) {
             val msg = if (offset > 0 && mevent.size == length) mevent.drop(offset).take(length).toByteArray() else mevent
             if (access.supportsUmpTransport) {
-                val byteBuffer = ByteBuffer.allocateDirect(length)
-                byteBuffer.put(msg)
-                byteBuffer.position(0)
-                checkReturn { library.libremidi_midi_out_schedule_ump(midiOut, timestampInNanoseconds, MemorySegment.ofBuffer(byteBuffer), (msg.size / 4).toLong()) }
+                val buf = arena.allocate(length.toLong())
+                buf.copyFrom(MemorySegment.ofArray(msg.sliceArray(IntRange(offset, offset + length - 1))))
+                checkReturn { library.libremidi_midi_out_schedule_ump(midiOut, timestampInNanoseconds, buf, (msg.size / 4).toLong()) }
             } else {
                 val buf = arena.allocate(length.toLong())
                 buf.copyFrom(MemorySegment.ofArray(msg.sliceArray(IntRange(offset, offset + length - 1))))
