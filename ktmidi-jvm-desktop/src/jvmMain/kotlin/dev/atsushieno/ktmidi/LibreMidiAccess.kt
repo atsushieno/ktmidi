@@ -305,17 +305,16 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
         nameCopy.copyFrom(MemorySegment.ofArray(nameArray))
         libremidi_midi_configuration.port_name(conf, nameCopy)
 
+        val cbUnion = libremidi_midi_configuration.on_midi_1_or_2_callback(conf)
         if (supportsUmpTransport) {
             libremidi_midi_configuration.version(conf, library.MIDI2())
-            val cbUnion = libremidi_midi_configuration.on_midi_1_or_2_callback(conf)
             val umpCallback = libremidi_midi2_callback.allocate(arena)
             val callbackFunc = libremidi_midi2_callback.callback.Function { context, timestamp, data, len ->
                 // It feels a bit awkward, but `data.asBuffer()` returns such an IntBuffer that has only capacity = 1,
                 // so it is useless here. We need to create another BytePointer and its resulting ByteBuffer.
                 val size = len.toInt() * 4
                 val umpArray = ByteArray(size)
-                val src = data.reinterpret(size.toLong()).asByteBuffer()
-                src.get(umpArray)
+                data.reinterpret(size.toLong()).asByteBuffer().get(umpArray)
                 dispatcher.listener?.onEventReceived(umpArray, 0, size, timestamp)
             }
             val cbFunc = libremidi_midi2_callback.callback.allocate(callbackFunc, arena)
@@ -324,14 +323,13 @@ class LibreMidiAccess(private val api: Int) : MidiAccess() {
             cb = umpCallback
         } else {
             libremidi_midi_configuration.version(conf, library.MIDI1())
-            val cbUnion = libremidi_midi_configuration.on_midi_1_or_2_callback(conf)
             val midi1Callback = libremidi_midi1_callback.allocate(arena)
-            val cbFunc = libremidi_midi1_callback.callback.allocate({ context, timestamp, data, len ->
-                println("midi1 callback invoked")
+            val callbackFunc = libremidi_midi1_callback.callback.Function { context, timestamp, data, len ->
                 val array = ByteArray(len.toInt())
-                data.asByteBuffer().get(array)
+                data.reinterpret(len).asByteBuffer().get(array)
                 dispatcher.listener?.onEventReceived(array, 0, len.toInt(), timestamp)
-            }, arena)
+            }
+            val cbFunc = libremidi_midi1_callback.callback.allocate(callbackFunc, arena)
             libremidi_midi1_callback.callback(midi1Callback, cbFunc)
             libremidi_midi_configuration.on_midi_1_or_2_callback.on_midi1_message(cbUnion, midi1Callback)
             cb = midi1Callback
