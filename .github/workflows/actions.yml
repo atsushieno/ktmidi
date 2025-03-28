@@ -69,8 +69,8 @@ jobs:
       - name: build RtMidi for Kotlin/Native
         run: ./build-rtmidi.sh
       # Workaround rtmidi-javacpp reference resolution failure issue
-      - name: build and publishToMavenLocal rtmidi-javacpp (just for local platform is fine)
-        run: cd external/rtmidi-javacpp && ./gradlew --no-daemon build publishToMavenLocal; cd ../..
+      #- name: build and publishToMavenLocal rtmidi-javacpp (just for local platform is fine)
+      #  run: cd external/rtmidi-javacpp && ./gradlew --no-daemon build publishToMavenLocal; cd ../..
 
       # only for NON-releases on macos-13
       - name: macos-13 lightweight build with Gradle for libs
