@@ -19,9 +19,9 @@ In `ktmidi` module:
   - Unlike `javax.sound.midi` API, this API also covers creating virtual ports wherever possible.
     - `ktmidi-jvm-desktop` module contains the following extra backends:
       - ALSA (`AlsaMidiAccess`)
-      - [RtMidi](https://github.com/thestk/rtmidi) (`RtMidiAccess`) via [atsushieno/rtmidi-javacpp](https://github.com/atsushieno/rtmidi-javacpp) for Linux and MacOS
+      - [libremidi](https://github.com/celtera/libremidi) (`LibreMidiAccess`) via [atsushieno/libremidi-panama](https://github.com/atsushieno/libremidi-panama) for Linux, MacOS, and Windows
+      - (legacy) [RtMidi](https://github.com/thestk/rtmidi) (`RtMidiAccess`) via [atsushieno/rtmidi-javacpp](https://github.com/atsushieno/rtmidi-javacpp) for Linux and MacOS
         - Windows needs JavaCPP build improvements and left unsupported (it does not matter, WinMM does not support virtual ports either way)
-      - [libremidi](https://github.com/celtera/libremidi) (`LibreMidiAccess`) via [atsushieno/libremidi-javacpp](https://github.com/atsushieno/libremidi-javacpp) for Linux, MacOS, and Windows
     - `ktmidi-native-ext` module contains RtMidi *native* backend (`RtMidiNativeAccess`) for Kotlin-Native. `input-sample` and player-sample` Multiplatform apps support it.
   - For Kotlin/Native on Apple OSes (macOS, iOS, etc.) there are `UmpCoreMidiAccess` (supports access to MIDI 2.0 and 1.0 devices, only on newer OSes) and `TraditionalCoreMidiAccess` (supports access to MIDI 1.0 devices).
   - For Kotlin/JS, `JzzMidiAccess` which wraps [Jazz-Soft JZZ](https://jazz-soft.net/doc/JZZ/) is included in `ktmidi` module. It should cover both node.js and web browsers.
@@ -77,28 +77,17 @@ dependencies {
 
 The actual artifact might be platform dependent like `dev.atsushieno:ktmidi-android:+` or `dev.atsushieno:ktmidi-js:+`, depending on the project targets.
 
-If you want to bring better user experience on desktop (which @atsushieno recommends as `javax.sound.midi` on Linux is quite featureless), add `ktmidi-jvm-desktop` too,
-
+If you want to bring better user experience on desktop (which @atsushieno recommends because `javax.sound.midi` on Linux is quite featureless), add `ktmidi-jvm-desktop` too,
 
 ```
-plugins { // skip this if you are rather building a library (not an app)
-    id("org.bytedeco.gradle-javacpp-platform") version "1.5.10"
-}
-
 dependencies {
     implementation "dev.atsushieno:ktmidi-jvm-desktop:+" // replace + with the actual version
 }
 ```
 
-... and use any of the following:
+... and use `LibreMidiAccess` for best cross-platform compatibility as well as best MIDI 2.0 support state.
 
-- Windows: `JvmMidiAccess`
-- Linux: `AlsaMidiAccess`, `RtMidiAccess`, or `LibreMidiAccess`
-- Mac: `LibreMidiAccess` or `RtMidiAccess`
-
-For example, @atsushieno uses `if (File.exists("/dev/snd/seq")) AlsaMidiAccess() else if (System.getProperty("os.name").contains("Windows")) JvmMidiAccess() else LibreMidiAccess(MidiTransportProtocol.MIDI1)` (or `RtMidiAccess` instead of `LibreMidiAccess`) to create best `MidiAccess` instance.
-
-**NOTE**: if you are building a desktop MIDI library using `ktmidi-jvm-desktop`, your *application* needs to add javacpp-platform Gradle plugin:
+**NOTE**: if you are building a desktop MIDI library using `RtMidiAccess` in `ktmidi-jvm-desktop`, your *application* needs to add javacpp-platform Gradle plugin:
 
 ```
 plugins {
@@ -112,11 +101,12 @@ and the following lines for `dependencies`:
 dependencies {
     (...)
     api(libs.rtmidi.javacpp.platform)
-    api(libs.libremidi.javacpp.platform)
 }
 ```
 
 The JavaCPP Platform Gradle plugin replaces the reference to `*.javacpp.platform` library with the actual platform-specific ones. (You should NOT do this in your *library* build, as it will result in that your library is useful only on the same platform as your building environment(!))
+
+Also note that JavaCPP Platform Gradle plugin has problem that it fails to retrieve its native dependency from Maven package. You are supposed to publish rtmidi-javacpp or libremidi-javacpp (if you resort to it) to `mavenLocal`. (It is really annoying so we deprecated them.)
 
 ktmidi is released at sonatype and hence available at Maven Central.
 
@@ -126,15 +116,16 @@ For platform MIDI access API, we cover the following APIs:
 
 - `AndroidMidiAccess`: Android MIDI API (in Kotlin)
 - `AlsaMidiAccess`: ALSA sequencer
-- `RtMidiAccess`: RtMidi (which covers Windows, Mac, Linux, and iOS, but iOS is in general excluded in JVM solution. Note that [rtmidi-javacpp](https://github.com/atsushieno/rtmidi-javacpp) contains prebuilt binaries only for those x86_64 desktop targets. For other platforms, **you are supposed to set up rtmidi 5.0.x locally.**.
-- `RtMidiNativeAccess`: RtMidi access for Kotln/Native implementation. Note tha there is [a static linking issue](https://github.com/atsushieno/ktmidi/issues/39) to be resolved.
+- `LibreMidiAccess` : libremidi (which covers Windows, Mac, and Linux). Supports both MIDI 1.0 and 2.0 where available.
+- `RtMidiAccess`: rtmidi (which covers Windows, Mac, Linux, and iOS, but iOS is in general excluded in JVM solution. Note that [rtmidi-javacpp](https://github.com/atsushieno/rtmidi-javacpp) contains prebuilt binaries only for those x86_64 desktop targets. For other platforms, **you are supposed to set up rtmidi 5.0.x locally.**.)
+- `RtMidiNativeAccess`: rtmidi access for Kotln/Native implementation. Note tha there is [a static linking issue](https://github.com/atsushieno/ktmidi/issues/39) to be resolved.
 - `UmpCoreMidiAccess`: Apple CoreMIDI API on Kotlin/Native. MIDI 2.0 or 1.0, but only on [newer OSes](https://developer.apple.com/documentation/coremidi/3566488-midiinputportcreatewithprotocol).
 - `TraditionalCoreMidiAccess`: Apple CoreMIDI API on Kotlin/Native. MIDI 1.0 only.
-- `JvmMidiAccess`: javax.sound.midi API (with limited feature set).
+- `JvmMidiAccess`: javax.sound.midi API (has limited feature set by Java API nature).
 - `WebMidiAccess` : Web MIDI API for Kotlin/Wasm target (browser only).
 - `JzzMidiAccess` : Web MIDI API for Kotlin/JS target (browser and nodejs, experimental, untested).
 
-For dependency resolution reason, ALSA implementation and RtMidi implementation are split from `ktmidi-jvm` and formed as `ktmidi-jvm-desktop`.
+For dependency resolution reason, ALSA implementation, libremidi implementation, and rtmidi implementation are split from `ktmidi-jvm` and formed as `ktmidi-jvm-desktop`.
 
 ktmidi builds for Kotlin/JVM, Kotlin/JS and Kotlin/Native (though I only develop with Kotlin/JVM and Kotlin/JS so far).
 
@@ -142,17 +133,17 @@ The entire API is still subject to change, and it had been actually radically ch
 
 ## MIDI 2.0 support
 
-### Potential field of usages
-
 ktmidi supports MIDI 2.0 UMPs, and MIDI-CI if you count it as part of MIDI 2.0.
 
-UMPs It can be sent and received in our own manner (i.e. it presumes MIDI 2.0 protocol is already established elsewhere). There was a now-deprecated way to promote MIDI protocols using Protocol Negotiation and some apps like [atsushieno/kmmk](https://github.com/atsushieno/kmmk) made use of it (Protocol Negotiation is gone in MIDI-CI version 1.2 specification). Now that it is gone, you are supposed to establish UMP-enabled transports by your own somehow.
+UMPs It can be sent and received to and from device where the underlying API supports them. `MidiAccess` supports either MIDI 1.0 or 2.0, sometimes both. `MidiPort` and `MidiPortDetails` have `midiTransportProtocol` property to identify which is supported.
+
+### Potential field of usages
 
 ktmidi assumes there are various other use-cases without those message exchanges e.g. use of UMPs in MIDI 2.0-only messaging in apps or audio plugins (for example, [Audio Plugins For Android](https://github.com/atsushieno/aap-core) along with [resident-midi-keyboard](https://github.com/atsushieno/resident-midi-keyboard)).
 
 Since you can derive from `MidiAccess` abstract API, you can create your own MIDI access implementation and don't have to wait for platform native API to support MIDI 2.0.
 
-It would be useful for general MIDI 2.0 software tools such as MIDI 2.0 UMP player.
+It would be useful for general MIDI 2.0 software tools such as MIDI 2.0 UMP player. [kmdsp](https://github.com/atsushieno/kmdsp) aims to achieve it (once MIDI 2.0 devices are available).
 
 ### Implemented features
 
@@ -164,7 +155,11 @@ Here is a list of MIDI 2.0 extensibility in this API:
 - `UmpFactory` class contains a bunch of utility functions that are used to construct UMP integer values.
 - `dev.atsushieno.ktmidi.ci` package contains a bunch of utility functions that are used to construct MIDI-CI system exclusive packets.
 
-[atsushieno/kmmk](https://github.com/atsushieno/kmmk) supports "MIDI 2.0 mode" which sends MIDI messages in MIDI 2.0 UMPs. There is also an ongoing experimental project to process MIDI 2.0 UMPs in [audio plugins on Android](https://github.com/atsushieno/android-audio-plugin-framework).
+[atsushieno/kmmk](https://github.com/atsushieno/kmmk), a virtual MIDI keyboard app, supports "MIDI 2.0 mode" which sends MIDI messages in MIDI 2.0 UMPs. There is also an ongoing experimental project to process MIDI 2.0 UMPs in [audio plugins on Android](https://github.com/atsushieno/android-audio-plugin-framework).
+
+[atsushieno/kmdsp](https://github.com/atsushieno/kmdsp), a visual MIDI player, has MIDI 2.0 mode as well (unverified and not known to work, we need MIDI 2.0 devices).
+
+[atsushieno/compose-audio-controls](https://github.com/atsushieno/compose-audio-controls/) comes with a keyboard control for Compose Multiplatform, with option ktmidi integration.
 
 ### SMF alternative format
 
@@ -202,7 +197,9 @@ There are couple of API/implementation design docs:
 
 You can also find some real-world usage examples of these API components:
 
-- [kmmk](https://github.com/atsushieno/kmmk/blob/e431452aadb50ae1925dd9b9b0eb25948694758f/common/src/commonMain/kotlin/dev/atsushieno/kmmk/MidiDeviceManager.kt) for `MidiAccess`/`MidiOutput`
+- [kmdsp](https://github.com/atsushieno/kmdsp) for `MidiAccess`/`MidiOutput`
+- [compose-audio-controls](https://github.com/atsushieno/kmdsp): ditto
+- [kmmk](https://github.com/atsushieno/kmmk/blob/e431452aadb50ae1925dd9b9b0eb25948694758f/common/src/commonMain/kotlin/dev/atsushieno/kmmk/MidiDeviceManager.kt): ditto
 - [mugene-ng](https://github.com/atsushieno/mugene-ng/blob/3bc55304a0ffc8014c3cf1df97d2bffea4ebda29/mugene/src/commonMain/kotlin/dev/atsushieno/mugene/mml_smf_generator.kt) for SMF/MIDI2 file generator
 - [augene-ng](https://github.com/atsushieno/augene-ng/blob/47e624d6030060bad72bc56dbfb0503af3e1ad85/augene-project/augene/src/commonMain/kotlin/dev/atsushieno/augene/Midi2ToTracktionEditConverter.kt) for SMF/MIDI2 file reader
 
