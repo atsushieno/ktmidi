@@ -4,11 +4,9 @@ android-compileSdk = "35"
 android-minSdk = "23"
 android-targetSdk = "35"
 androidx-activityCompose = "1.10.1"
-androidx-appcompat = "1.7.0"
 androidx-core-ktx = "1.15.0"
 androidx-espresso-core = "3.6.1"
 androidx-test-junit = "1.2.1"
-compose = "1.7.8"
 compose-multiplatform = "1.7.0"
 junit = "4.13.2"
 kotlin = "2.0.21"
@@ -38,15 +36,7 @@ junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
 androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-junit" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-espresso-core" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
-compose-runtime = { module = "androidx.compose.runtime:runtime", version.ref = "compose" }
-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose" }
-compose-components-resources = { module = "androidx.compose.components:resources", version.ref = "compose" }
-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 
 alsa-javacpp = { module = "dev.atsushieno:alsa-javacpp", version.ref = "alsa-javacpp" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter-api" }
@@ -75,7 +65,6 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
-gradleJavacppBuild = { id = "org.bytedeco.gradle-javacpp-build", version.ref = "gradle-javacpp" }
 gradleJavacppPlatform = { id = "org.bytedeco.gradle-javacpp-platform", version.ref = "gradle-javacpp" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 binaryCompatibilityValidatorPlugin = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary-compatibility-validator" }

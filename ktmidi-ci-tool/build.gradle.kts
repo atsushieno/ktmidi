@@ -46,7 +46,7 @@ kotlin {
         val desktopMain by getting
 
         androidMain.dependencies {
-            implementation(libs.compose.ui.tooling.preview)
+            implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.mpfilepicker)
         }
@@ -56,6 +56,7 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
+            implementation(compose.components.uiToolingPreview)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
             //implementation(libs.ktor.io)
@@ -66,7 +67,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(project(":ktmidi-jvm-desktop"))
             implementation(libs.mpfilepicker)
-            // without this, jnirtmidi.so and jnilibremidi.so will not be found at runtime.
+            // without this, jnirtmidi.so will not be found at runtime.
             //api(libs.rtmidi.javacpp.platform)
             implementation(libs.kotlinx.coroutines.swing)
         }
@@ -118,7 +119,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
     dependencies {
-        debugImplementation(libs.compose.ui.tooling)
+        debugImplementation(compose.uiTooling)
     }
 }
 
