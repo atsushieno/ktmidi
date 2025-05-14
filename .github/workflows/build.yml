@@ -54,7 +54,7 @@ jobs:
       # only for releases on macos-14
       - name: macos-14 lightweight publish with Gradle for libs and apps
         if: ${{ startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-14') }}
-        run: ./gradlew --no-daemon --warning-mode all iosArm64Binaries packageDmg publishMacosArm64PublicationToMevenCentralRepository PublishIosArm64PublicationToMevenCentralRepository PublishIosSimulatorArm64PublicationToMevenCentralRepository
+        run: ./gradlew --no-daemon --warning-mode all iosArm64Binaries packageDmg publishMacosArm64PublicationToMavenCentralRepository PublishIosArm64PublicationToMavenCentralRepository PublishIosSimulatorArm64PublicationToMavenCentralRepository
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
