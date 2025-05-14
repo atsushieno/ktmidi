@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.gradleJavacppPlatform) apply false
     alias(libs.plugins.binaryCompatibilityValidatorPlugin) apply false
     alias(libs.plugins.kotlinAndroid) apply false
+    alias(libs.plugins.vanniktech.maven.publish) apply false
 }
 
 allprojects {

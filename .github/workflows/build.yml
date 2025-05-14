@@ -1,0 +1,75 @@
+name: build dist
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-13, macos-14]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: setup apt packages on Linux
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          echo y | sudo apt-get install doxygen cmake ninja-build libasound2-dev libjack-jackd2-0
+      - name: set up JDK 22
+        uses: actions/setup-java@v4
+        with:
+          java-version: 22
+          distribution: temurin
+
+      - name: build RtMidi for Kotlin/Native
+        run: ./build-rtmidi.sh
+
+      # only on macos-13
+      - name: macos-13 lightweight build with Gradle for libs
+        if: contains(matrix.os, 'macos-13')
+        run: ./gradlew --warning-mode all publishToMavenLocal
+      # only on macos-14
+      - name: macos-14 lightweight build with Gradle for libs and apps
+        if: contains(matrix.os, 'macos-14')
+        run: ./gradlew --warning-mode all publishToMavenLocal iosArm64Binaries
+      # only on Linux
+      - name: linux build with Gradle
+        if: contains(matrix.os, 'ubuntu-22.04')
+        run: ./gradlew --warning-mode all build
+
+      - name: upload build failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-failure-logs-${{ matrix.os }}
+          path: |
+            ktmidi/build/reports/
+            ktmidi-jvm-desktop/build/reports/
+            ktmidi/*.log
+            ktmidi-ci/*.log
+            ktmidi-native-ext/*.log
+            ktmidi-jvm-desktop/*.log
+      - name: upload artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ktmidi-artifacts-${{ matrix.os }}
+          path: |
+            ktmidi/build/libs/*.jar
+            ktmidi/build/outputs/aar/*.aar
+            ktmidi-ci/build/libs/*.jar
+            ktmidi-ci/build/outputs/aar/*.aar
+            ktmidi-native-ext/build/bin
+            ktmidi-jvm-desktop/build/libs/*.jar
+            ktmidi-ci-tool/build/bin/iosArm64
+            ktmidi-ci-tool/build/compose/binaries/main/dmg

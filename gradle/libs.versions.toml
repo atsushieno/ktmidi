@@ -29,6 +29,8 @@ alsa-javacpp = "0.1.0"
 rtmidi-javacpp = "0.1.5"
 libremidi-panama = "0.2.5"
 
+vanniktech-maven-publish = "0.31.0"
+
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
@@ -70,6 +72,7 @@ kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", versio
 binaryCompatibilityValidatorPlugin = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binary-compatibility-validator" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+vanniktech-maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-maven-publish" }
 
 [bundles]
 
