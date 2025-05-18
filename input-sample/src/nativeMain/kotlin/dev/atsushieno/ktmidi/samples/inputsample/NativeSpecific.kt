@@ -12,3 +12,5 @@ actual fun getMidiAccessApi(api: String?, midiTransportProtocol: Int): MidiAcces
 expect fun getNativeMidiAccessApi(midiTransportProtocol: Int): MidiAccess
 
 actual fun exitApplication(code: Int): Unit = exitProcess(code)
+
+actual fun readLine() { readln() }

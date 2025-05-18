@@ -30,19 +30,18 @@ kotlin {
             mainClass = "DriverKt"
         }
     }
-    /* TODO
-    js(BOTH) {
+    js {
         browser {
             testTask {
                 useKarma {
                     useChromeHeadless()
-                    webpackConfig.cssSupport.enabled = true
                 }
             }
         }
         nodejs {
+            binaries.executable()
         }
-    }*/
+    }
     val hostOs = System.getProperty("os.name")
     val isArm64 = System.getProperty("os.arch") == "aarch64"
     val isMingwX64 = hostOs.startsWith("Windows")

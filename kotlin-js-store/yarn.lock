@@ -242,6 +242,11 @@
   resolved "https://registry.yarnpkg.com/@types/webmidi/-/webmidi-2.0.10.tgz#1e0caf9997cb06cdf38a03c2a958d8c5129bbcf0"
   integrity sha512-4RmTFMB6mN2h8XbJa1x3cOs9IOkXvFyHGcPUpUvWfmATuKg/J+dsFiMVgCE2EkpS+/8a8AP2tE3rQT1mLG7vEg==
 
+"@types/webmidi@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@types/webmidi/-/webmidi-2.1.0.tgz#085ec7279a9c9c13453589db9ecebbcfa4bf771b"
+  integrity sha512-k898MjEUSHB+6rSeCPQk/kLgie0wgWZ2t78GlWj86HbTQ+XmtbBafYg5LNjn8bVHfItEhPGZPf579Xfc6keV6w==
+
 "@types/ws@^8.5.5":
   version "8.5.12"
   resolved "https://registry.yarnpkg.com/@types/ws/-/ws-8.5.12.tgz#619475fe98f35ccca2a2f6c137702d85ec247b7e"
@@ -1572,6 +1577,14 @@ jzz@1.8.1:
   integrity sha512-L5jWc6xOB6FybF7vYJD/3pL29sCq/ZGW5sfg7dLEB07qcVH1zxUG9YxAC4jHfztzZu0oAaKe03QOV1rAFskhCw==
   dependencies:
     "@types/webmidi" "^2.0.10"
+    jazz-midi "^1.7.9"
+
+jzz@1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/jzz/-/jzz-1.9.3.tgz#4730d2cc38b9616d8b9bc394cdd8872e3108fc06"
+  integrity sha512-DXQ7xXuJzC4YxNbQZy9pfHC/DOXM6IHgceTXnkhk1/+lU/qDk8W9xUaNpgCH6t1QDQ9roz7FSVtFc0/JhYQFxg==
+  dependencies:
+    "@types/webmidi" "^2.1.0"
     jazz-midi "^1.7.9"
 
 karma-chrome-launcher@3.2.0:
