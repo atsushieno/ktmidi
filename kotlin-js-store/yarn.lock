@@ -237,11 +237,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/webmidi@^2.0.10":
-  version "2.0.10"
-  resolved "https://registry.yarnpkg.com/@types/webmidi/-/webmidi-2.0.10.tgz#1e0caf9997cb06cdf38a03c2a958d8c5129bbcf0"
-  integrity sha512-4RmTFMB6mN2h8XbJa1x3cOs9IOkXvFyHGcPUpUvWfmATuKg/J+dsFiMVgCE2EkpS+/8a8AP2tE3rQT1mLG7vEg==
-
 "@types/webmidi@^2.1.0":
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/@types/webmidi/-/webmidi-2.1.0.tgz#085ec7279a9c9c13453589db9ecebbcfa4bf771b"
@@ -1570,14 +1565,6 @@ jsonfile@^4.0.0:
   integrity sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==
   optionalDependencies:
     graceful-fs "^4.1.6"
-
-jzz@1.8.1:
-  version "1.8.1"
-  resolved "https://registry.yarnpkg.com/jzz/-/jzz-1.8.1.tgz#09eec1204c662e9cc78699e669f6f935650db546"
-  integrity sha512-L5jWc6xOB6FybF7vYJD/3pL29sCq/ZGW5sfg7dLEB07qcVH1zxUG9YxAC4jHfztzZu0oAaKe03QOV1rAFskhCw==
-  dependencies:
-    "@types/webmidi" "^2.0.10"
-    jazz-midi "^1.7.9"
 
 jzz@1.9.3:
   version "1.9.3"
