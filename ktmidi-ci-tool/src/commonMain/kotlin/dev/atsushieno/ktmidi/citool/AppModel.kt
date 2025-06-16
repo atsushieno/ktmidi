@@ -1,6 +1,7 @@
 package dev.atsushieno.ktmidi.citool
 
 import dev.atsushieno.ktmidi.ci.LogEntry
+import dev.atsushieno.ktmidi.ci.Logger
 import dev.atsushieno.ktmidi.ci.MessageDirection
 import dev.atsushieno.ktmidi.toUtf8ByteArray
 import getPlatform
@@ -27,6 +28,8 @@ fun initializeAppModel(context: Any?) {
 lateinit var AppModel: CIToolRepository
 
 class CIToolRepository {
+
+    val logger = Logger().also { it.logEventReceived.add { msg, direction -> log(msg, direction) }}
 
     private val logs = mutableListOf<LogEntry>()
 

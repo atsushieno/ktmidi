@@ -32,13 +32,10 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
                     MessageDirection.Out
                 )
                 midiMessageReportOutputSender(group, data)
-            }
+            },
+            logger = parent.owner.logger
         ).apply {
             // initiator
-            logger.logEventReceived.add { msg, direction ->
-                parent.owner.log(msg, direction)
-            }
-
             connectionsChanged.add { change, conn ->
                 val cml = this@CIDeviceModel.connections
                 when (change) {
