@@ -64,6 +64,7 @@ class JsonSchemaClassGenerator {
                 className = "${options.classNamePrefix}${baseName.toPascalCase()}${counter}${options.classNameSuffix}"
                 counter++
             }
+            generatedClassNames.add(className)
             return className
         }
     }
@@ -109,7 +110,6 @@ class JsonSchemaClassGenerator {
             appendLine("            if (jsonValue.token.type != Json.TokenType.Object) {")
             appendLine("                throw JsonSchemaException(\"Expected object, got \${jsonValue.token.type}\")")
             appendLine("            }")
-            appendLine("            val obj = jsonValue.objectValue")
             appendLine("            return $finalClassName(")
             
             generateFromJsonValueBody(schema, context).forEach { line ->
@@ -229,57 +229,57 @@ class JsonSchemaClassGenerator {
                     if (propSchema.enum != null) {
                         val enumType = getKotlinType(propSchema, propName, context)
                         if (isRequired) {
-                            lines.add("$kotlinName = $enumType.fromString(obj[Json.JsonValue(\"$propName\")]?.stringValue ?: \"\") ?: throw JsonSchemaException(\"Invalid enum value for $propName\"),")
+                            lines.add("$kotlinName = $enumType.fromString(jsonValue.getObjectValue(\"$propName\")?.stringValue ?: \"\") ?: throw JsonSchemaException(\"Invalid enum value for $propName\"),")
                         } else {
-                            lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.stringValue?.let { $enumType.fromString(it) },")
+                            lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.stringValue?.let { $enumType.fromString(it) },")
                         }
                     } else {
                         if (isRequired) {
-                            lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.stringValue ?: throw JsonSchemaException(\"Missing required property: $propName\"),")
+                            lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.stringValue ?: throw JsonSchemaException(\"Missing required property: $propName\"),")
                         } else {
-                            lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.stringValue,")
+                            lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.stringValue,")
                         }
                     }
                 }
                 JsonSchemaType.NUMBER -> {
                     if (isRequired) {
-                        lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.numberValue?.toDouble() ?: throw JsonSchemaException(\"Missing required property: $propName\"),")
+                        lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.numberValue?.toDouble() ?: throw JsonSchemaException(\"Missing required property: $propName\"),")
                     } else {
-                        lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.numberValue?.toDouble(),")
+                        lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.numberValue?.toDouble(),")
                     }
                 }
                 JsonSchemaType.INTEGER -> {
                     if (isRequired) {
-                        lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.numberValue?.toInt() ?: throw JsonSchemaException(\"Missing required property: $propName\"),")
+                        lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.numberValue?.toInt() ?: throw JsonSchemaException(\"Missing required property: $propName\"),")
                     } else {
-                        lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.numberValue?.toInt(),")
+                        lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.numberValue?.toInt(),")
                     }
                 }
                 JsonSchemaType.BOOLEAN -> {
                     if (isRequired) {
-                        lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.isBooleanTrue ?: throw JsonSchemaException(\"Missing required property: $propName\"),")
+                        lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.isBooleanTrue ?: throw JsonSchemaException(\"Missing required property: $propName\"),")
                     } else {
-                        lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.let { it.isBooleanTrue },")
+                        lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.let { it.isBooleanTrue },")
                     }
                 }
                 JsonSchemaType.ARRAY -> {
                     val itemType = propSchema.items?.let { getKotlinType(it, "${propName}Item", context) } ?: "Json.JsonValue"
                     if (itemType == "Json.JsonValue") {
-                        lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.arrayValue?.toList() ?: ${if (isRequired) "emptyList()" else "null"},")
+                        lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.arrayValue?.toList() ?: ${if (isRequired) "emptyList()" else "null"},")
                     } else {
-                        lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.arrayValue?.map { $itemType.fromJsonValue(it) }?.toList() ?: ${if (isRequired) "emptyList()" else "null"},")
+                        lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.arrayValue?.map { $itemType.fromJsonValue(it) }?.toList() ?: ${if (isRequired) "emptyList()" else "null"},")
                     }
                 }
                 JsonSchemaType.OBJECT -> {
                     val objectType = getKotlinType(propSchema, propName, context)
                     if (isRequired) {
-                        lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.let { $objectType.fromJsonValue(it) } ?: throw JsonSchemaException(\"Missing required property: $propName\"),")
+                        lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.let { $objectType.fromJsonValue(it) } ?: throw JsonSchemaException(\"Missing required property: $propName\"),")
                     } else {
-                        lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")]?.let { $objectType.fromJsonValue(it) },")
+                        lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\")?.let { $objectType.fromJsonValue(it) },")
                     }
                 }
                 else -> {
-                    lines.add("$kotlinName = obj[Json.JsonValue(\"$propName\")],")
+                    lines.add("$kotlinName = jsonValue.getObjectValue(\"$propName\"),")
                 }
             }
         }
