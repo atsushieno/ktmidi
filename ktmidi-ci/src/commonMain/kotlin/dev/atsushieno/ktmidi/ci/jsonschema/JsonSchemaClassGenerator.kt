@@ -49,6 +49,8 @@ class JsonSchemaClassGenerator {
     private inner class GenerationContext(val options: GenerationOptions) {
         val nestedClasses = mutableListOf<GeneratedClass>()
         val generatedClassNames = mutableSetOf<String>()
+        val enumClassCache = mutableMapOf<String, String>()
+        val objectClassCache = mutableMapOf<String, String>()
         
         fun addNestedClass(generatedClass: GeneratedClass) {
             if (!generatedClassNames.contains(generatedClass.className)) {
@@ -64,7 +66,6 @@ class JsonSchemaClassGenerator {
                 className = "${options.classNamePrefix}${baseName.toPascalCase()}${counter}${options.classNameSuffix}"
                 counter++
             }
-            generatedClassNames.add(className)
             return className
         }
     }
@@ -180,10 +181,13 @@ class JsonSchemaClassGenerator {
                 "List<$itemType>"
             }
             JsonSchemaType.OBJECT -> {
-                val nestedClassName = context.generateUniqueClassName(propertyName)
+                val schemaKey = "${propertyName}_${schema.hashCode()}"
+                context.objectClassCache[schemaKey]?.let { return it }
+                
                 val nestedClass = generateClass(schema, propertyName, context)
                 context.addNestedClass(nestedClass)
-                nestedClassName
+                context.objectClassCache[schemaKey] = nestedClass.className
+                nestedClass.className
             }
             JsonSchemaType.NULL -> "Json.JsonValue"
             null -> "Json.JsonValue"
@@ -191,8 +195,13 @@ class JsonSchemaClassGenerator {
     }
     
     private fun generateEnumClass(schema: JsonSchema, propertyName: String, context: GenerationContext): String {
-        val enumClassName = context.generateUniqueClassName("${propertyName}Enum")
         val enumValues = schema.enum ?: emptyList()
+        val cacheKey = "${propertyName}_${enumValues.joinToString(",")}"
+        
+        // Check if we already generated this enum class
+        context.enumClassCache[cacheKey]?.let { return it }
+        
+        val enumClassName = context.generateUniqueClassName("${propertyName}Enum")
         
         val enumSourceCode = buildString {
             appendLine("package ${context.options.packageName}")
@@ -214,6 +223,7 @@ class JsonSchemaClassGenerator {
         }
         
         context.addNestedClass(GeneratedClass(enumClassName, context.options.packageName, enumSourceCode))
+        context.enumClassCache[cacheKey] = enumClassName
         return enumClassName
     }
     
