@@ -55,12 +55,12 @@ fun LocalPropertyConfiguration(vm: ResponderViewModel) {
         if (sp != null) {
             val value = vm.model.properties.first { it.id == sp }
             val def = vm.getPropertyMetadata(sp) as CommonRulesPropertyMetadata
-            val subscribedClients = vm.model.connections.filter { conn -> conn.subscriptions.any { sub -> sub.propertyId == sp } }
+            val subscribedClients = vm.model.subscriptions
             LocalPropertyDetails(def, value,
                 updatePropertyValue = { id, resId, data -> vm.updatePropertyValue(id, resId, data) },
                 metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) },
-                subscribedClients = subscribedClients.map { it.conn.targetMUID.toString() },
-                unsubscribeRequestedByIndex = { idx -> vm.shutdownSubscription(subscribedClients[idx].conn.targetMUID, sp) }
+                subscribedClients = subscribedClients.map { it.muid.toString() },
+                unsubscribeRequestedByIndex = { idx -> vm.shutdownSubscription(subscribedClients[idx].muid, sp) }
             )
         }
     }

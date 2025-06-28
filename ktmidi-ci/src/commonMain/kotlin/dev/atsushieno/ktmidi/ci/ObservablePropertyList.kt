@@ -3,6 +3,7 @@ package dev.atsushieno.ktmidi.ci
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesKnownMimeTypes
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyMetadata
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
+import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
 import kotlinx.serialization.Serializable
 
 /**
@@ -164,4 +165,10 @@ class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private 
             PropertyValue(it.propertyId, null, it.mediaTypes?.firstOrNull() ?: "", listOf())
         } ?: listOf())
     }
+}
+
+class ObservablePropertySubscriptionList(private val propertyService: MidiCIServicePropertyRules) {
+    val items: List<SubscriptionEntry> by propertyService::subscriptions
+
+    val subscriptionsUpdated by propertyService::subscruotionsUpdated
 }

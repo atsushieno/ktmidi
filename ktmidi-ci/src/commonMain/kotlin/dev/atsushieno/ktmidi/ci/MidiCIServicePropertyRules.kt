@@ -30,6 +30,12 @@ interface MidiCIServicePropertyRules {
     fun getHeaderFieldString(header: List<Byte>, field: String): String?
     fun createShutdownSubscriptionHeader(propertyId: String): List<Byte>
 
-    val subscriptions: List<SubscriptionEntry>
     val propertyCatalogUpdated: MutableList<() -> Unit>
+    val subscriptions: List<SubscriptionEntry>
+    val subscruotionsUpdated: MutableList<(subscription: SubscriptionEntry, action: SubscriptionUpdateAction) -> Unit>
+}
+
+enum class SubscriptionUpdateAction {
+    Added,
+    Removed
 }

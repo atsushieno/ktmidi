@@ -57,7 +57,7 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
 
     internal val propertyService: MidiCIServicePropertyRules by lazy { CommonRulesPropertyService(device) }
     val properties by lazy { ServiceObservablePropertyList(config.propertyValues, propertyService) }
-    val subscriptions: List<SubscriptionEntry> by propertyService::subscriptions
+    val subscriptions by lazy { ObservablePropertySubscriptionList(propertyService) }
 
     var notifyPropertyUpdatesToSubscribers: (propertyId: String, data: List<Byte>, isPartial: Boolean) -> Unit = { propertyId, data, isPartial ->
         createPropertyNotification(propertyId, data, isPartial).forEach { msg ->
@@ -67,7 +67,7 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
     private fun createPropertyNotification(propertyId: String, data: List<Byte>, isPartial: Boolean): Sequence<Message.SubscribeProperty> = sequence {
         var lastEncoding: String? = null
         var lastEncodedData = data
-        subscriptions.filter { it.resource == propertyId }.forEach {
+        subscriptions.items.filter { it.resource == propertyId }.forEach {
             val encodedData = if (it.encoding == lastEncoding) lastEncodedData else if (it.encoding == null) data else propertyService.encodeBody(data, it.encoding)
             // do not invoke encodeBody() many times.
             if (it.encoding != lastEncoding && it.encoding != null) {

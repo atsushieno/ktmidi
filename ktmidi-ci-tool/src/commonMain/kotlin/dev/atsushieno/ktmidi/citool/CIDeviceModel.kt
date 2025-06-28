@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.profilecommonrules.DefaultControlChangesProfile
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
+import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
 
 class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDeviceConfiguration,
                     private val ciOutputSender: (group: Byte, ciBytes: List<Byte>) -> Unit,
@@ -119,6 +120,7 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
 
     // Local property exchange
     val properties = mutableStateListOf<PropertyValue>().apply { addAll(device.propertyHost.properties.values)}
+    val subscriptions = mutableStateListOf<SubscriptionEntry>()
 
     fun addLocalProperty(property: PropertyMetadata) = device.propertyHost.addProperty(property)
 
@@ -196,6 +198,13 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
                 properties.removeAt(index)
                 properties.add(index, entry)
             }
+        }
+
+        device.propertyHost.subscriptions.subscriptionsUpdated.add { entry, action ->
+            if (action == SubscriptionUpdateAction.Added)
+                subscriptions.add(entry)
+            else
+                subscriptions.remove(entry)
         }
 
         device.connectionsChanged.add { change, conn ->

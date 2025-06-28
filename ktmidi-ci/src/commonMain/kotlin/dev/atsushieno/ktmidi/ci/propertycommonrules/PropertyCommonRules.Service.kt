@@ -75,6 +75,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     // MidiCIPropertyService implementation
     override val subscriptions = mutableListOf<SubscriptionEntry>()
+    override val subscruotionsUpdated = mutableListOf<(SubscriptionEntry, SubscriptionUpdateAction) -> Unit>()
 
     override fun getPropertyIdForHeader(header: List<Byte>) = helper.getPropertyIdentifierInternal(header)
     override fun getHeaderFieldString(header: List<Byte>, field: String) = helper.getHeaderFieldString(header, field)
@@ -326,6 +327,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         val header = getPropertyHeader(headerJson)
         val subscription = SubscriptionEntry(header.resource, subscriberMUID, header.mutualEncoding, createNewSubscriptionId())
         subscriptions.add(subscription)
+        subscruotionsUpdated.forEach { it(subscription, SubscriptionUpdateAction.Added) }
         // body is empty
         return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, subscribeId = subscription.subscribeId)), Json.JsonValue(mapOf()))
     }
@@ -333,7 +335,10 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
     fun unsubscribe(resource: String, subscribeId: String?) : Pair<Json.JsonValue, Json.JsonValue> {
         val existing = subscriptions.firstOrNull { subscribeId != null && it.subscribeId == subscribeId }
             ?: subscriptions.firstOrNull { it.resource == resource }
-        subscriptions.remove(existing)
+        if (existing != null) {
+            subscriptions.remove(existing)
+            subscruotionsUpdated.forEach { it(existing, SubscriptionUpdateAction.Removed) }
+        }
         // body is empty
         return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, subscribeId = subscribeId)), Json.JsonValue(mapOf()))
     }
