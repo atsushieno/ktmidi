@@ -4,8 +4,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.profilecommonrules.DefaultControlChangesProfile
+import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyMetadata
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
 import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
+import kotlin.random.Random
 
 class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDeviceConfiguration,
                     private val ciOutputSender: (group: Byte, ciBytes: List<Byte>) -> Unit,
@@ -159,6 +161,12 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
 
     fun updateJsonSchemaString(value: String) {
         device.config.jsonSchemaString = value
+    }
+
+    fun createNewProperty(): PropertyMetadata {
+        val property = CommonRulesPropertyMetadata().apply { resource = "X-${Random.nextInt(9999)}" }
+        addLocalProperty(property)
+        return property
     }
 
     val localProperties by device.propertyHost::properties

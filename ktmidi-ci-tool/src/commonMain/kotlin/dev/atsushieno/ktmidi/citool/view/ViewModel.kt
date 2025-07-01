@@ -151,9 +151,8 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 
     fun createNewProperty() {
-        val property = CommonRulesPropertyMetadata().apply { resource = "X-${Random.nextInt(9999)}" }
-        model.addLocalProperty(property)
-        selectedProperty.value = property.resource
+        val property = model.createNewProperty()
+        selectedProperty.value = property.propertyId
     }
 
     fun removeSelectedProperty() {
