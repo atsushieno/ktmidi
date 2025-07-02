@@ -800,7 +800,8 @@ public final class dev/atsushieno/ktmidi/ci/MidiCIConverter {
 }
 
 public final class dev/atsushieno/ktmidi/ci/MidiCIDevice {
-	public fun <init> (ILdev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;)V
+	public fun <init> (ILdev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Ldev/atsushieno/ktmidi/ci/Logger;)V
+	public synthetic fun <init> (ILdev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;Lkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function3;Ldev/atsushieno/ktmidi/ci/Logger;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getConfig ()Ldev/atsushieno/ktmidi/ci/MidiCIDeviceConfiguration;
 	public final fun getConnections ()Ljava/util/Map;
 	public final fun getConnectionsChanged ()Ljava/util/List;
@@ -1042,6 +1043,7 @@ public abstract interface class dev/atsushieno/ktmidi/ci/MidiCIServicePropertyRu
 	public abstract fun getPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)Ljava/lang/Object;
 	public abstract fun getPropertyIdForHeader (Ljava/util/List;)Ljava/lang/String;
 	public abstract fun getSubscriptions ()Ljava/util/List;
+	public abstract fun getSubscruotionsUpdated ()Ljava/util/List;
 	public abstract fun removeMetadata (Ljava/lang/String;)V
 	public abstract fun setPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$SetPropertyData;)Ljava/lang/Object;
 	public abstract fun subscribeProperty-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)Ljava/lang/Object;
@@ -1153,6 +1155,12 @@ public final class dev/atsushieno/ktmidi/ci/ObservablePropertyListKt {
 	public static final fun getMediaTypes (Ldev/atsushieno/ktmidi/ci/PropertyMetadata;)Ljava/util/List;
 }
 
+public final class dev/atsushieno/ktmidi/ci/ObservablePropertySubscriptionList {
+	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIServicePropertyRules;)V
+	public final fun getItems ()Ljava/util/List;
+	public final fun getSubscriptionsUpdated ()Ljava/util/List;
+}
+
 public final class dev/atsushieno/ktmidi/ci/ProfileClientFacade {
 	public fun <init> (Ldev/atsushieno/ktmidi/ci/MidiCIDevice;Ldev/atsushieno/ktmidi/ci/ClientConnection;)V
 	public final fun getProfiles ()Ldev/atsushieno/ktmidi/ci/ObservableProfileList;
@@ -1222,7 +1230,7 @@ public final class dev/atsushieno/ktmidi/ci/PropertyHostFacade {
 	public final fun getMetadataList ()Ljava/util/List;
 	public final fun getNotifyPropertyUpdatesToSubscribers ()Lkotlin/jvm/functions/Function3;
 	public final fun getProperties ()Ldev/atsushieno/ktmidi/ci/ServiceObservablePropertyList;
-	public final fun getSubscriptions ()Ljava/util/List;
+	public final fun getSubscriptions ()Ldev/atsushieno/ktmidi/ci/ObservablePropertySubscriptionList;
 	public final fun processGetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)V
 	public final fun processSetPropertyData (Ldev/atsushieno/ktmidi/ci/Message$SetPropertyData;)V
 	public final fun processSubscribeProperty (Ldev/atsushieno/ktmidi/ci/Message$SubscribeProperty;)V
@@ -1294,6 +1302,14 @@ public final class dev/atsushieno/ktmidi/ci/SubscriptionActionState : java/lang/
 	public static fun getEntries ()Lkotlin/enums/EnumEntries;
 	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/SubscriptionActionState;
 	public static fun values ()[Ldev/atsushieno/ktmidi/ci/SubscriptionActionState;
+}
+
+public final class dev/atsushieno/ktmidi/ci/SubscriptionUpdateAction : java/lang/Enum {
+	public static final field Added Ldev/atsushieno/ktmidi/ci/SubscriptionUpdateAction;
+	public static final field Removed Ldev/atsushieno/ktmidi/ci/SubscriptionUpdateAction;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Ldev/atsushieno/ktmidi/ci/SubscriptionUpdateAction;
+	public static fun values ()[Ldev/atsushieno/ktmidi/ci/SubscriptionUpdateAction;
 }
 
 public final class dev/atsushieno/ktmidi/ci/json/Json {
@@ -1490,6 +1506,7 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPrope
 	public fun getPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$GetPropertyData;)Ljava/lang/Object;
 	public fun getPropertyIdForHeader (Ljava/util/List;)Ljava/lang/String;
 	public fun getSubscriptions ()Ljava/util/List;
+	public fun getSubscruotionsUpdated ()Ljava/util/List;
 	public fun removeMetadata (Ljava/lang/String;)V
 	public fun setPropertyData-IoAF18A (Ldev/atsushieno/ktmidi/ci/Message$SetPropertyData;)Ljava/lang/Object;
 	public final fun setPropertyData-gIAlu-s (Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;Ljava/util/List;)Ljava/lang/Object;
