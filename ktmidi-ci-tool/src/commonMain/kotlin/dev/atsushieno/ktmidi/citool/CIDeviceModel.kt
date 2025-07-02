@@ -124,8 +124,6 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
     val properties = mutableStateListOf<PropertyValue>().apply { addAll(device.propertyHost.properties.values)}
     val subscriptions = mutableStateListOf<SubscriptionEntry>()
 
-    fun addLocalProperty(property: PropertyMetadata) = device.propertyHost.addProperty(property)
-
     fun removeLocalProperty(propertyId: String) = device.propertyHost.removeProperty(propertyId)
 
     fun updatePropertyMetadata(oldPropertyId: String, property: PropertyMetadata) =
@@ -165,7 +163,7 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
 
     fun createNewProperty(): PropertyMetadata {
         val property = CommonRulesPropertyMetadata().apply { resource = "X-${Random.nextInt(9999)}" }
-        addLocalProperty(property)
+        device.propertyHost.addProperty(property)
         return property
     }
 

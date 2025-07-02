@@ -46,20 +46,20 @@ class PropertyFacadesTest {
 
         // subscribe -> update value -> notify
         client.sendSubscribeProperty(id)
-        assertEquals(1, host.subscriptions.size, "subscriptions.size after subscription")
+        assertEquals(1, host.subscriptions.items.size, "subscriptions.size after subscription")
         host.setPropertyValue(id, null, bytes, false)
         // it should be reflected on the client side
         assertContentEquals(bytes, client.properties.getProperty(id), "getProperty at client after subscribed property update")
         client.sendUnsubscribeProperty(id)
-        assertEquals(0, host.subscriptions.size, "subscriptions.size after unsubscription")
+        assertEquals(0, host.subscriptions.items.size, "subscriptions.size after unsubscription")
 
         // subscribe again, but this time unsubscribe from host
         client.sendSubscribeProperty(id)
-        assertEquals(1, host.subscriptions.size, "subscriptions.size after subscription, 2nd")
-        val sub = host.subscriptions.first()
+        assertEquals(1, host.subscriptions.items.size, "subscriptions.size after subscription, 2nd")
+        val sub = host.subscriptions.items.first()
         host.shutdownSubscription(sub.muid, sub.resource)
         assertEquals(0, client.subscriptions.size, "client subscriptions.size after unsubscription by host")
-        assertEquals(0, host.subscriptions.size, "host subscriptions.size after unsubscription by host")
+        assertEquals(0, host.subscriptions.items.size, "host subscriptions.size after unsubscription by host")
     }
 
     @Test
