@@ -100,3 +100,5 @@ jobs:
             ktmidi-jvm-desktop/build/libs/*.jar
             ktmidi-ci-tool/build/bin/iosArm64
             ktmidi-ci-tool/build/compose/binaries/main/dmg
+            ktmidi-ci-tool/build/outputs/apk
+            ktmidi-ci-tool/build/outputs/bundle
