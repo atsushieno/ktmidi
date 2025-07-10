@@ -63,11 +63,11 @@ jobs:
       # only for NON-releases on Linux
       - name: linux build with Gradle
         if: ${{ !startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'ubuntu-24.04') }}
-        run: ./gradlew --warning-mode all build
+        run: ./gradlew --warning-mode all build bundle
       # only for releases on Linux
       - name: publish
         if: ${{ startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'ubuntu-24.04') }}
-        run: ./gradlew --warning-mode=all publishToMavenCentral dokkaHtml
+        run: ./gradlew --warning-mode=all bundle publishToMavenCentral dokkaHtml
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
