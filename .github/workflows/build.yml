@@ -79,7 +79,7 @@ jobs:
         uses: r0adkll/sign-android-release@v1
         if: ${{ contains(matrix.os, 'ubuntu-24.04') }}
         with:
-          releaseDirectory: app/build/outputs/bundle/release
+          releaseDirectory: ktmidi-ci-tool/build/outputs/bundle/release
           signingKeyBase64: ${{ secrets.AAB_SIGNING_KEY_BASE64 }}
           alias: ${{ secrets.AAB_SIGNING_KEY_ALIAS }}
           keyStorePassword: ${{ secrets.AAB_SIGNING_KEY_STORE_PASSWORD }}
