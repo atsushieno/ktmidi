@@ -203,11 +203,11 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         Json.JsonValue(ChannelInfoPropertyNames.PROGRAM_TITLE) to
                 if (programTitle == null) null else Json.JsonValue(programTitle),
         Json.JsonValue(ChannelInfoPropertyNames.BANK_PC) to
-                if (bankPC.all { it.toInt() == 0 }) null else Json.JsonValue(bankPC.map { Json.JsonValue(it.toDouble()) }),
+                if (bankPC.all { it?.toInt() == 0 }) null else Json.JsonValue(bankPC.map { Json.JsonValue(it?.toDouble() ?: 0.0) }),
         Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_CHANNEL_START) to
-                if (clusterChannelStart <= 1) null else Json.JsonValue(clusterChannelStart.toDouble()),
+                if ((clusterChannelStart ?: 0) <= 1) null else Json.JsonValue(clusterChannelStart?.toDouble() ?: 0.0),
         Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_LENGTH) to
-                if (clusterChannelStart <= 1) null else Json.JsonValue(clusterLength.toDouble()),
+                if ((clusterChannelStart ?: 0) <= 1) null else Json.JsonValue(clusterLength?.toDouble() ?: 0.0),
         Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_MIDI_MODE) to
                 if (clusterMidiMode.toInt() == 3) null else Json.JsonValue(clusterMidiMode.toDouble()),
         Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_TYPE) to
