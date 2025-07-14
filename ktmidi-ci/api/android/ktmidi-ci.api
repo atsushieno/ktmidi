@@ -1566,6 +1566,17 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/DeviceInfoProper
 	public static final field VERSION_ID Ljava/lang/String;
 }
 
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/FundamentalResources {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/FundamentalResources;
+	public final fun parseChannelList (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;
+	public final fun parseDeviceInfo (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public final fun parseJsonSchema (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun parseResourceList (Ljava/util/List;)Ljava/util/List;
+	public final fun toJsonValue (Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun toJsonValue (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public final fun toJsonValue (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+}
+
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIControl {
 	public static final field Companion Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIControl$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Byte;Ljava/lang/Byte;Ljava/lang/Byte;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;[Lkotlin/UInt;Z)V
@@ -1727,10 +1738,6 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRe
 	public final fun getSetPartial ()Ljava/lang/Boolean;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
-}
-
-public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRules_ServiceKt {
-	public static final fun toJsonValue (Ldev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPropertyMetadata;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonRules_androidKt {

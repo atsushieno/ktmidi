@@ -12,40 +12,6 @@ private val defaultPropertyList = listOf(
     CommonRulesPropertyMetadata(PropertyResourceNames.JSON_SCHEMA).apply { originator = CommonRulesPropertyMetadata.Originator.SYSTEM }
 )
 
-
-fun CommonRulesPropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
-    sequence {
-        yield(Pair(Json.JsonValue(PropertyResourceFields.RESOURCE), Json.JsonValue(resource)))
-        if (!canGet)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_GET), if (canGet) Json.TrueValue else Json.FalseValue))
-        if (canSet != PropertySetAccess.NONE)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_SET), Json.JsonValue(canSet)))
-        if (canSubscribe)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_SUBSCRIBE), if (canSubscribe) Json.TrueValue else Json.FalseValue))
-        if (requireResId)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.REQUIRE_RES_ID), if (requireResId) Json.TrueValue else Json.FalseValue))
-        if (mediaTypes.size != 1 || mediaTypes[0] != CommonRulesKnownMimeTypes.APPLICATION_JSON)
-            yield(Pair(
-                Json.JsonValue(PropertyResourceFields.MEDIA_TYPE),
-                Json.JsonValue(mediaTypes.map { s -> Json.JsonValue(s) })
-            ))
-        if (encodings.size != 1 || encodings[0] != PropertyDataEncoding.ASCII)
-            yield(Pair(
-                Json.JsonValue(PropertyResourceFields.ENCODINGS),
-                Json.JsonValue(encodings.map { s -> Json.JsonValue(s) })
-            ))
-        if (schema != null)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.SCHEMA), Json.parse(schema!!)))
-        if (canPaginate)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_PAGINATE), if (canPaginate) Json.TrueValue else Json.FalseValue))
-        if (columns.any())
-            yield(Pair(
-                Json.JsonValue(PropertyResourceFields.COLUMNS),
-                Json.JsonValue(columns.map { c -> c.toJsonValue() })
-            ))
-    }.toMap()
-)
-
 class CommonRulesPropertyService(private val device: MidiCIDevice)
     : MidiCIServicePropertyRules {
     private val helper = CommonRulesPropertyHelper(device)
@@ -167,53 +133,6 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     val linkedResources = mutableMapOf<String, List<Byte>>()
 
-    private fun bytesToJsonArray(list: List<Byte>) = list.map { Json.JsonValue(it.toDouble()) }
-    private fun getDeviceInfoJson(): Json.JsonValue {
-        return Json.JsonValue(
-            mapOf(
-                Pair(
-                    Json.JsonValue(DeviceInfoPropertyNames.MANUFACTURER_ID),
-                    Json.JsonValue(bytesToJsonArray(deviceInfo.manufacturerIdBytes()))
-                ),
-                Pair(
-                    Json.JsonValue(DeviceInfoPropertyNames.FAMILY_ID),
-                    Json.JsonValue(bytesToJsonArray(deviceInfo.familyIdBytes()))
-                ),
-                Pair(
-                    Json.JsonValue(DeviceInfoPropertyNames.MODEL_ID),
-                    Json.JsonValue(bytesToJsonArray(deviceInfo.modelIdBytes()))
-                ),
-                Pair(
-                    Json.JsonValue(DeviceInfoPropertyNames.VERSION_ID),
-                    Json.JsonValue(bytesToJsonArray(deviceInfo.versionIdBytes()))
-                ),
-                Pair(Json.JsonValue(DeviceInfoPropertyNames.MANUFACTURER), Json.JsonValue(deviceInfo.manufacturer)),
-                Pair(Json.JsonValue(DeviceInfoPropertyNames.FAMILY), Json.JsonValue(deviceInfo.family)),
-                Pair(Json.JsonValue(DeviceInfoPropertyNames.MODEL), Json.JsonValue(deviceInfo.model)),
-                Pair(Json.JsonValue(DeviceInfoPropertyNames.VERSION), Json.JsonValue(deviceInfo.version)),
-            ) + if (deviceInfo.serialNumber != null) mapOf(
-                Pair(Json.JsonValue(DeviceInfoPropertyNames.SERIAL_NUMBER), Json.JsonValue(deviceInfo.serialNumber!!)),
-            ) else mapOf()
-        )
-    }
-
-    private fun MidiCIChannel.toJson() = Json.JsonValue(mapOf(
-        Json.JsonValue(ChannelInfoPropertyNames.TITLE) to Json.JsonValue(title),
-        Json.JsonValue(ChannelInfoPropertyNames.CHANNEL) to Json.JsonValue(channel.toDouble()),
-        Json.JsonValue(ChannelInfoPropertyNames.PROGRAM_TITLE) to
-                if (programTitle == null) null else Json.JsonValue(programTitle),
-        Json.JsonValue(ChannelInfoPropertyNames.BANK_PC) to
-                if (bankPC.all { it?.toInt() == 0 }) null else Json.JsonValue(bankPC.map { Json.JsonValue(it?.toDouble() ?: 0.0) }),
-        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_CHANNEL_START) to
-                if ((clusterChannelStart ?: 0) <= 1) null else Json.JsonValue(clusterChannelStart?.toDouble() ?: 0.0),
-        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_LENGTH) to
-                if ((clusterChannelStart ?: 0) <= 1) null else Json.JsonValue(clusterLength?.toDouble() ?: 0.0),
-        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_MIDI_MODE) to
-                if (clusterMidiMode.toInt() == 3) null else Json.JsonValue(clusterMidiMode.toDouble()),
-        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_TYPE) to
-                if (clusterType == null || clusterType == ClusterType.OTHER) null else Json.JsonValue(clusterType)
-    ).filterValues { it != null }.map { Pair(it.key, it.value!!) }.toMap())
-
     private fun getPropertyHeader(json: Json.JsonValue) =
         PropertyCommonRequestHeader(
             json.getObjectValue(PropertyCommonHeaderKeys.RESOURCE)?.stringValue ?: "",
@@ -243,14 +162,10 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     private fun getPropertyDataJson(header: PropertyCommonRequestHeader): Pair<Json.JsonValue, Json.JsonValue> {
         val body = when(header.resource) {
-            PropertyResourceNames.RESOURCE_LIST ->
-                Json.JsonValue(getMetadataList().map { (it as CommonRulesPropertyMetadata).toJsonValue() })
-            PropertyResourceNames.DEVICE_INFO ->
-                getDeviceInfoJson()
-            PropertyResourceNames.CHANNEL_LIST ->
-                if (channelList.channels.isEmpty()) null else Json.JsonValue(channelList.channels.map { it.toJson() })
-            PropertyResourceNames.JSON_SCHEMA ->
-                if (device.config.jsonSchemaString.isNotBlank()) Json.parse(device.config.jsonSchemaString) else null
+            PropertyResourceNames.RESOURCE_LIST -> FundamentalResources.toJsonValue(getMetadataList())
+            PropertyResourceNames.DEVICE_INFO -> FundamentalResources.toJsonValue(deviceInfo)
+            PropertyResourceNames.CHANNEL_LIST -> FundamentalResources.toJsonValue(channelList)
+            PropertyResourceNames.JSON_SCHEMA -> if (device.config.jsonSchemaString.isNotBlank()) Json.parse(device.config.jsonSchemaString) else null
             else -> {
                 val bytes = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body
                     ?: throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")

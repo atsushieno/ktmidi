@@ -31,65 +31,36 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
     }
 
     override fun propertyValueUpdated(propertyId: String, data: List<Byte>) {
+        // Here we only care about Fundamental Resources.
+        // Other standard properties should be handled at `ObservablePropertyList.valueUpdated`.
         when (propertyId) {
             // If it is about ResourceList, then store the list internally.
             PropertyResourceNames.RESOURCE_LIST -> {
-                val list = getMetadataListForBody(data)
-                resourceList.clear()
-                resourceList.addAll(list)
-                propertyCatalogUpdated.forEach { it() }
+                try {
+                    val list = FundamentalResources.parseResourceList(data)
+                    resourceList.clear()
+                    resourceList.addAll(list)
+                    propertyCatalogUpdated.forEach { it() }
 
-                // If the parsed body contained an entry for DeviceInfo, and
-                //  if it is configured as auto-queried, then send another Get Property Data request for it.
-                if (device.config.autoSendGetDeviceInfo) {
-                    val def = getMetadataList().firstOrNull { it.propertyId == PropertyResourceNames.DEVICE_INFO } as CommonRulesPropertyMetadata?
-                    if (def != null)
-                        conn.propertyClient.sendGetPropertyData(PropertyResourceNames.DEVICE_INFO, def.encodings.firstOrNull())
-                }
-            }
-            // If it is about DeviceInfo, then store the list internally.
-            PropertyResourceNames.DEVICE_INFO -> {
-                val json = convertApplicationJsonBytesToJson(data)
-                conn.deviceInfo = MidiCIDeviceInfo(
-                    json.getObjectValue(DeviceInfoPropertyNames.MANUFACTURER_ID)?.numberValue?.toInt() ?: 0,
-                    json.getObjectValue(DeviceInfoPropertyNames.FAMILY_ID)?.numberValue?.toShort() ?: 0,
-                    json.getObjectValue(DeviceInfoPropertyNames.MODEL_ID)?.numberValue?.toShort() ?: 0,
-                    json.getObjectValue(DeviceInfoPropertyNames.VERSION_ID)?.numberValue?.toInt() ?: 0,
-                    json.getObjectValue(DeviceInfoPropertyNames.MANUFACTURER)?.stringValue ?: "",
-                    json.getObjectValue(DeviceInfoPropertyNames.FAMILY)?.stringValue ?: "",
-                    json.getObjectValue(DeviceInfoPropertyNames.MODEL)?.stringValue ?: "",
-                    json.getObjectValue(DeviceInfoPropertyNames.VERSION)?.stringValue ?: "",
-                    json.getObjectValue(DeviceInfoPropertyNames.SERIAL_NUMBER)?.stringValue ?: "",
-                    )
-            }
-            // If it is about DeviceInfo, then store the list internally.
-            PropertyResourceNames.CHANNEL_LIST -> {
-                val json = convertApplicationJsonBytesToJson(data)
-                conn.channelList = MidiCIChannelList().apply {
-                    json.arrayValue.map {
-                        val bankPC = json.getObjectValue(ChannelInfoPropertyNames.BANK_PC)?.arrayValue?.toList()
-                        val midiMode = json.getObjectValue(ChannelInfoPropertyNames.CLUSTER_MIDI_MODE)?.numberValue?.toInt()
-                        channels.add(
-                            MidiCIChannel(
-                                json.getObjectValue(ChannelInfoPropertyNames.TITLE)?.stringValue ?: "",
-                                (json.getObjectValue(ChannelInfoPropertyNames.CHANNEL)?.numberValue?.toInt() ?: 1) - 1,
-                                json.getObjectValue(ChannelInfoPropertyNames.PROGRAM_TITLE)?.stringValue,
-                                (if (bankPC == null) 0 else bankPC[0].numberValue).toByte(),
-                                (if (bankPC == null) 0 else bankPC[1].numberValue).toByte(),
-                                (if (bankPC == null) 0 else bankPC[2].numberValue).toByte(),
-                                (json.getObjectValue(ChannelInfoPropertyNames.CLUSTER_CHANNEL_START)?.numberValue?.toInt() ?: 1) - 1,
-                                json.getObjectValue(ChannelInfoPropertyNames.CLUSTER_LENGTH)?.numberValue?.toInt() ?: 1,
-                                if (midiMode == null) false else ((midiMode - 1) and 1) != 0,
-                                if (midiMode == null) false else ((midiMode - 1) and 2) != 0,
-                                json.getObjectValue(ChannelInfoPropertyNames.CLUSTER_TYPE)?.stringValue
-                            )
-                        )
+                    // If the parsed body contained an entry for DeviceInfo, and
+                    //  if it is configured as auto-queried, then send another Get Property Data request for it.
+                    if (device.config.autoSendGetDeviceInfo) {
+                        val def = getMetadataList().firstOrNull { it.propertyId == PropertyResourceNames.DEVICE_INFO } as CommonRulesPropertyMetadata?
+                        if (def != null)
+                            conn.propertyClient.sendGetPropertyData(PropertyResourceNames.DEVICE_INFO, def.encodings.firstOrNull())
                     }
+                } catch(ex: JsonParserException) {
+                    logger.logError(ex.message!!)
                 }
             }
-
+            // If it is about DeviceInfo, then store the list internally.
+            PropertyResourceNames.DEVICE_INFO ->
+                conn.deviceInfo = FundamentalResources.parseDeviceInfo(data)
+            // If it is about ChannelList, then store the list internally.
+            PropertyResourceNames.CHANNEL_LIST ->
+                conn.channelList = FundamentalResources.parseChannelList(data)
             PropertyResourceNames.JSON_SCHEMA ->
-                conn.jsonSchema = convertApplicationJsonBytesToJson(data)
+                conn.jsonSchema = FundamentalResources.parseJsonSchema(data)
         }
     }
 
@@ -179,52 +150,4 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
     val subscriptions = mutableListOf<SubscriptionEntry>()
 
     private val resourceList = mutableListOf<PropertyMetadata>()
-
-    private fun convertApplicationJsonBytesToJson(data: List<Byte>) =
-        Json.parse(MidiCIConverter.decodeASCIIToString(data.toByteArray().decodeToString()))
-
-    private fun getMetadataListForBody(body: List<Byte>): List<PropertyMetadata> {
-        try {
-            val json = convertApplicationJsonBytesToJson(body)
-            return getMetadataListForBody(json)
-        } catch(ex: JsonParserException) {
-            logger.logError(ex.message!!)
-            return listOf()
-        }
-    }
-
-    private fun getMetadataListForBody(body: Json.JsonValue): List<PropertyMetadata> {
-        // list of entries (name: value such as {"resource": "foo", "canSet": "partial"})
-        val list = body.token.seq.toList()
-        return list.map { entry ->
-            val res = CommonRulesPropertyMetadata()
-            entry.token.map.forEach {
-                val v = it.value
-                when (it.key.stringValue) {
-                    PropertyResourceFields.RESOURCE -> res.resource = v.stringValue
-                    PropertyResourceFields.CAN_GET -> res.canGet = v.token.type == Json.TokenType.True
-                    PropertyResourceFields.CAN_SET -> res.canSet = v.stringValue
-                    PropertyResourceFields.CAN_SUBSCRIBE -> res.canSubscribe = v.token.type == Json.TokenType.True
-                    PropertyResourceFields.REQUIRE_RES_ID -> res.requireResId = v.token.type == Json.TokenType.True
-                    PropertyResourceFields.ENCODINGS -> res.encodings = v.token.seq.map { e -> e.stringValue }.toList()
-                    PropertyResourceFields.MEDIA_TYPE -> res.mediaTypes = v.token.seq.map { e -> e.stringValue }.toList()
-                    PropertyResourceFields.SCHEMA -> res.schema = Json.getUnescapedString(v)
-                    PropertyResourceFields.CAN_PAGINATE -> res.canPaginate = v.token.type == Json.TokenType.True
-                    PropertyResourceFields.COLUMNS -> res.columns = v.token.seq.map { c ->
-                        val col = PropertyResourceColumn()
-                        c.token.map.forEach { prc ->
-                            val cv = prc.value
-                            when (prc.key.stringValue) {
-                                PropertyResourceColumnFields.PROPERTY -> col.property = cv.stringValue
-                                PropertyResourceColumnFields.LINK -> col.link = cv.stringValue
-                                PropertyResourceColumnFields.TITLE -> col.title = cv.stringValue
-                            }
-                        }
-                        col
-                    }.toList()
-                }
-            }
-            res
-        }.toList()
-    }
 }
