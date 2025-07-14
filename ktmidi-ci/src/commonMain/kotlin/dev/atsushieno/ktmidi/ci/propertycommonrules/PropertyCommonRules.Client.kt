@@ -37,7 +37,7 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
             // If it is about ResourceList, then store the list internally.
             PropertyResourceNames.RESOURCE_LIST -> {
                 try {
-                    val list = FundamentalResources.parseResourceList(data)
+                    val list = FoundationalResources.parseResourceList(data)
                     resourceList.clear()
                     resourceList.addAll(list)
                     propertyCatalogUpdated.forEach { it() }
@@ -53,14 +53,6 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
                     logger.logError(ex.message!!)
                 }
             }
-            // If it is about DeviceInfo, then store the list internally.
-            PropertyResourceNames.DEVICE_INFO ->
-                conn.deviceInfo = FundamentalResources.parseDeviceInfo(data)
-            // If it is about ChannelList, then store the list internally.
-            PropertyResourceNames.CHANNEL_LIST ->
-                conn.channelList = FundamentalResources.parseChannelList(data)
-            PropertyResourceNames.JSON_SCHEMA ->
-                conn.jsonSchema = FundamentalResources.parseJsonSchema(data)
         }
     }
 

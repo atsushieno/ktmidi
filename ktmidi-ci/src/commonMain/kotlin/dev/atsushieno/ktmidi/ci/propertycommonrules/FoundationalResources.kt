@@ -6,10 +6,13 @@ import dev.atsushieno.ktmidi.ci.MidiCIChannel
 import dev.atsushieno.ktmidi.ci.MidiCIChannelList
 import dev.atsushieno.ktmidi.ci.MidiCIConverter
 import dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo
+import dev.atsushieno.ktmidi.ci.ObservablePropertyList
 import dev.atsushieno.ktmidi.ci.PropertyMetadata
+import dev.atsushieno.ktmidi.ci.PropertyValue
 import dev.atsushieno.ktmidi.ci.json.Json
+import dev.atsushieno.ktmidi.ci.propertycommonrules.FoundationalResources
 
-object FundamentalResources {
+object FoundationalResources {
 
     // JSON bytes to strongly-typed info
 
@@ -189,3 +192,12 @@ object FundamentalResources {
                 if (clusterType == null || clusterType == ClusterType.OTHER) null else Json.JsonValue(clusterType)
     ).filterValues { it != null }.map { Pair(it.key, it.value!!) }.toMap())
 }
+
+val ObservablePropertyList.resourceList
+    get() = values.firstOrNull { it.id == PropertyResourceNames.RESOURCE_LIST }?.let { FoundationalResources.parseResourceList(it.body ) }
+val ObservablePropertyList.deviceInfo
+    get() = values.firstOrNull { it.id == PropertyResourceNames.DEVICE_INFO }?.let { FoundationalResources.parseDeviceInfo(it.body) }
+val ObservablePropertyList.channelList
+    get() = values.firstOrNull { it.id == PropertyResourceNames.CHANNEL_LIST }?.let { FoundationalResources.parseChannelList(it.body) }
+val ObservablePropertyList.jsonSchema
+    get() = values.firstOrNull { it.id == PropertyResourceNames.JSON_SCHEMA }?.let { FoundationalResources.parseJsonSchema(it.body) }

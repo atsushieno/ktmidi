@@ -135,9 +135,6 @@ public final class dev/atsushieno/ktmidi/ci/ClientConnection {
 	public final fun getProfileClient ()Ldev/atsushieno/ktmidi/ci/ProfileClientFacade;
 	public final fun getPropertyClient ()Ldev/atsushieno/ktmidi/ci/PropertyClientFacade;
 	public final fun getTargetMUID ()I
-	public final fun setChannelList (Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;)V
-	public final fun setDeviceInfo (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)V
-	public final fun setJsonSchema (Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;)V
 	public final fun setMaxSimultaneousPropertyRequests (B)V
 	public final fun setProductInstanceId (Ljava/lang/String;)V
 }
@@ -1566,8 +1563,8 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/DeviceInfoProper
 	public static final field VERSION_ID Ljava/lang/String;
 }
 
-public final class dev/atsushieno/ktmidi/ci/propertycommonrules/FundamentalResources {
-	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/FundamentalResources;
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/FoundationalResources {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/FoundationalResources;
 	public final fun parseChannelList (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;
 	public final fun parseDeviceInfo (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
 	public final fun parseJsonSchema (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
@@ -1575,6 +1572,13 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/FundamentalResou
 	public final fun toJsonValue (Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
 	public final fun toJsonValue (Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
 	public final fun toJsonValue (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/FoundationalResourcesKt {
+	public static final fun getChannelList (Ldev/atsushieno/ktmidi/ci/ObservablePropertyList;)Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;
+	public static final fun getDeviceInfo (Ldev/atsushieno/ktmidi/ci/ObservablePropertyList;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
+	public static final fun getJsonSchema (Ldev/atsushieno/ktmidi/ci/ObservablePropertyList;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+	public static final fun getResourceList (Ldev/atsushieno/ktmidi/ci/ObservablePropertyList;)Ljava/util/List;
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIControl {

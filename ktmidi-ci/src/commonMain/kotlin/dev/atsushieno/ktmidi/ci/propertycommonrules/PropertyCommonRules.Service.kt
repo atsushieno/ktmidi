@@ -162,9 +162,9 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     private fun getPropertyDataJson(header: PropertyCommonRequestHeader): Pair<Json.JsonValue, Json.JsonValue> {
         val body = when(header.resource) {
-            PropertyResourceNames.RESOURCE_LIST -> FundamentalResources.toJsonValue(getMetadataList())
-            PropertyResourceNames.DEVICE_INFO -> FundamentalResources.toJsonValue(deviceInfo)
-            PropertyResourceNames.CHANNEL_LIST -> FundamentalResources.toJsonValue(channelList)
+            PropertyResourceNames.RESOURCE_LIST -> FoundationalResources.toJsonValue(getMetadataList())
+            PropertyResourceNames.DEVICE_INFO -> FoundationalResources.toJsonValue(deviceInfo)
+            PropertyResourceNames.CHANNEL_LIST -> FoundationalResources.toJsonValue(channelList)
             PropertyResourceNames.JSON_SCHEMA -> if (device.config.jsonSchemaString.isNotBlank()) Json.parse(device.config.jsonSchemaString) else null
             else -> {
                 val bytes = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body

@@ -85,8 +85,6 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
             when (entry.id) {
                 PropertyResourceNames.DEVICE_INFO ->
                     deviceInfo.value = conn.deviceInfo
-                PropertyResourceNames.JSON_SCHEMA ->
-                    conn.jsonSchema = Json.parse(entry.body.toByteArray().decodeToString())
             }
         }
 
