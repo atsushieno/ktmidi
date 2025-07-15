@@ -1550,6 +1550,26 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/CommonRulesPrope
 	public final fun unsubscribe (Ljava/lang/String;Ljava/lang/String;)Lkotlin/Pair;
 }
 
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/ControlPropertyNames {
+	public static final field CHANNEL Ljava/lang/String;
+	public static final field CTRL_INDEX Ljava/lang/String;
+	public static final field CTRL_MAP_ID Ljava/lang/String;
+	public static final field CTRL_TYPE Ljava/lang/String;
+	public static final field DEFAULT Ljava/lang/String;
+	public static final field DEFAULT_CC_MAP Ljava/lang/String;
+	public static final field DESCRIPTION Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/ControlPropertyNames;
+	public static final field MIN_MAX Ljava/lang/String;
+	public static final field NUM_SIG_BITS Ljava/lang/String;
+	public static final field PARAM_PATH Ljava/lang/String;
+	public static final field PRIORITY Ljava/lang/String;
+	public static final field RECOGNIZE Ljava/lang/String;
+	public static final field STEP_COUNT Ljava/lang/String;
+	public static final field TITLE Ljava/lang/String;
+	public static final field TRANSMIT Ljava/lang/String;
+	public static final field TYPE_HINT Ljava/lang/String;
+}
+
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/DeviceInfoPropertyNames {
 	public static final field FAMILY Ljava/lang/String;
 	public static final field FAMILY_ID Ljava/lang/String;
@@ -1575,6 +1595,7 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/FoundationalReso
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/FoundationalResourcesKt {
+	public static final fun convertApplicationJsonBytesToJson (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
 	public static final fun getChannelList (Ldev/atsushieno/ktmidi/ci/ObservablePropertyList;)Ldev/atsushieno/ktmidi/ci/MidiCIChannelList;
 	public static final fun getDeviceInfo (Ldev/atsushieno/ktmidi/ci/ObservablePropertyList;)Ldev/atsushieno/ktmidi/ci/MidiCIDeviceInfo;
 	public static final fun getJsonSchema (Ldev/atsushieno/ktmidi/ci/ObservablePropertyList;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
@@ -1583,13 +1604,13 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/FoundationalReso
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIControl {
 	public static final field Companion Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIControl$Companion;
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Byte;Ljava/lang/Byte;Ljava/lang/Byte;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;[Lkotlin/UInt;Z)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Byte;Ljava/lang/Byte;Ljava/lang/Byte;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;[Lkotlin/UInt;ZILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Byte;Ljava/lang/Byte;Ljava/lang/Byte;ILjava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;[Lkotlin/UInt;ZLkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getChannel ()Ljava/lang/Byte;
 	public final fun getCtrlIndex ()[Ljava/lang/Byte;
 	public final fun getCtrlMapId ()Ljava/lang/String;
 	public final fun getCtrlType ()Ljava/lang/String;
-	public final fun getDefault ()I
+	public final fun getDefault-pVg5ArA ()I
 	public final fun getDefaultCCMap ()Z
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getMinMax ()[Lkotlin/UInt;
@@ -1649,24 +1670,40 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIControlTyp
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState {
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;)V
+	public static final field Companion Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/Integer;)V
 	public final fun component1 ()Ljava/lang/String;
 	public final fun component2 ()Ljava/lang/String;
 	public final fun component3 ()Ljava/lang/String;
-	public final fun component4 ()Ljava/lang/Integer;
+	public final fun component4 ()Ljava/lang/Long;
 	public final fun component5 ()Ljava/lang/String;
 	public final fun component6 ()Ljava/lang/Integer;
-	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState;
-	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState;
+	public final fun copy (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/Integer;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState;
+	public static synthetic fun copy$default (Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/Integer;ILjava/lang/Object;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState;
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getDescription ()Ljava/lang/String;
 	public final fun getSize ()Ljava/lang/Integer;
 	public final fun getStateId ()Ljava/lang/String;
 	public final fun getStateRev ()Ljava/lang/String;
-	public final fun getTimestamp ()Ljava/lang/Integer;
+	public final fun getTimestamp ()Ljava/lang/Long;
 	public final fun getTitle ()Ljava/lang/String;
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public synthetic class dev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Ldev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/MidiCIState$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertyCommonConverter {
@@ -1857,6 +1894,23 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/PropertySetAcces
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/PropertySetAccess;
 	public static final field NONE Ljava/lang/String;
 	public static final field PARTIAL Ljava/lang/String;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/StandardProperties {
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/StandardProperties;
+	public final fun parseControlList (Ljava/util/List;)Ljava/util/List;
+	public final fun parseStateList (Ljava/util/List;)Ljava/util/List;
+	public final fun toJson (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/StatePropertyNames {
+	public static final field DESCRIPTION Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/StatePropertyNames;
+	public static final field SIZE Ljava/lang/String;
+	public static final field STATE_ID Ljava/lang/String;
+	public static final field STATE_REV Ljava/lang/String;
+	public static final field TIMESTAMP Ljava/lang/String;
+	public static final field TITLE Ljava/lang/String;
 }
 
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/SubscriptionEntry {
