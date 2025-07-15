@@ -8,17 +8,13 @@ import dev.atsushieno.ktmidi.ci.MidiCIConverter
 import dev.atsushieno.ktmidi.ci.MidiCIDeviceInfo
 import dev.atsushieno.ktmidi.ci.ObservablePropertyList
 import dev.atsushieno.ktmidi.ci.PropertyMetadata
-import dev.atsushieno.ktmidi.ci.PropertyValue
 import dev.atsushieno.ktmidi.ci.json.Json
-import dev.atsushieno.ktmidi.ci.propertycommonrules.FoundationalResources
+
+// JSON bytes to strongly-typed info
+fun convertApplicationJsonBytesToJson(data: List<Byte>) =
+    Json.parse(MidiCIConverter.decodeASCIIToString(data.toByteArray().decodeToString()))
 
 object FoundationalResources {
-
-    // JSON bytes to strongly-typed info
-
-    private fun convertApplicationJsonBytesToJson(data: List<Byte>) =
-        Json.parse(MidiCIConverter.decodeASCIIToString(data.toByteArray().decodeToString()))
-
     fun parseResourceList(data: List<Byte>): List<PropertyMetadata> =
         getMetadataListForBody(data)
 

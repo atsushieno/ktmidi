@@ -1,4 +1,4 @@
-package dev.atsushieno.ktmidi.ci
+package dev.atsushieno.ktmidi.ci 
 
 import kotlinx.serialization.Serializable
 
