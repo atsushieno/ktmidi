@@ -1,7 +1,14 @@
 package dev.atsushieno.ktmidi.ci.propertycommonrules
 
+import dev.atsushieno.ktmidi.ci.ObservablePropertyList
 import dev.atsushieno.ktmidi.ci.json.Json
 import kotlinx.serialization.Serializable
+
+object StandardPropertyNames {
+    const val STATE_LIST = "StateList"
+    const val ALL_CTRL_LIST = "AllCtrlList"
+    const val CH_CTRL_LIST = "ChCtrlList"
+}
 
 // StateList entries
 @Serializable
@@ -146,3 +153,10 @@ object StandardProperties {
         })
     }
 }
+
+val ObservablePropertyList.stateList
+    get() = values.firstOrNull { it.id == StandardPropertyNames.STATE_LIST }?.let { StandardProperties.parseStateList(it.body) }
+val ObservablePropertyList.allCtrlList
+    get() = values.firstOrNull { it.id == StandardPropertyNames.ALL_CTRL_LIST }?.let { StandardProperties.parseControlList(it.body) }
+val ObservablePropertyList.chCtrlList
+    get() = values.firstOrNull { it.id == StandardPropertyNames.CH_CTRL_LIST }?.let { StandardProperties.parseControlList(it.body) }

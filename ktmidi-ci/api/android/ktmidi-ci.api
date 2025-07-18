@@ -1906,6 +1906,19 @@ public final class dev/atsushieno/ktmidi/ci/propertycommonrules/StandardProperti
 	public final fun toJson (Ljava/util/List;)Ldev/atsushieno/ktmidi/ci/json/Json$JsonValue;
 }
 
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/StandardPropertiesKt {
+	public static final fun getAllCtrlList (Ldev/atsushieno/ktmidi/ci/ObservablePropertyList;)Ljava/util/List;
+	public static final fun getChCtrlList (Ldev/atsushieno/ktmidi/ci/ObservablePropertyList;)Ljava/util/List;
+	public static final fun getStateList (Ldev/atsushieno/ktmidi/ci/ObservablePropertyList;)Ljava/util/List;
+}
+
+public final class dev/atsushieno/ktmidi/ci/propertycommonrules/StandardPropertyNames {
+	public static final field ALL_CTRL_LIST Ljava/lang/String;
+	public static final field CH_CTRL_LIST Ljava/lang/String;
+	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/StandardPropertyNames;
+	public static final field STATE_LIST Ljava/lang/String;
+}
+
 public final class dev/atsushieno/ktmidi/ci/propertycommonrules/StatePropertyNames {
 	public static final field DESCRIPTION Ljava/lang/String;
 	public static final field INSTANCE Ldev/atsushieno/ktmidi/ci/propertycommonrules/StatePropertyNames;
