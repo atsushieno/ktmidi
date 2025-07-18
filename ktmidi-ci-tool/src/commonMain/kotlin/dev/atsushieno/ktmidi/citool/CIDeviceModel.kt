@@ -149,8 +149,8 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
         // FIXME: if resId is specified, this property value updating does not make sense.
         // It might be partial update, in that case we have to retrieve
         // the partial application result from MidiCIPropertyService processing.
-        properties.first { it.id == propertyId }.body =
-            localProperties.getPropertyValue(propertyId)?.body ?: listOf()
+        properties.first { it.id == propertyId && (resId.isNullOrBlank() || it.resId == resId) }.body =
+            localProperties.getPropertyValue(propertyId, resId)?.body ?: listOf()
     }
 
     fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {

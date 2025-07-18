@@ -35,29 +35,29 @@ class PropertyFacadesTest {
 
         val client = conn.propertyClient
 
-        client.sendGetPropertyData(id)
-        assertContentEquals(bytes, client.properties.getProperty(id), "client.getProperty")
+        client.sendGetPropertyData(id, null)
+        assertContentEquals(bytes, client.properties.getPropertyValue(id, null)?.body, "client.getProperty")
 
         // test set property
         client.sendSetPropertyData(id, null, bytes2)
-        assertContentEquals(bytes2, host.properties.getProperty(id), "host.getProperty")
+        assertContentEquals(bytes2, host.properties.getPropertyValue(id, null)?.body, "host.getProperty")
         assertContentEquals(bytes2, host.properties.values.first { it.id == id }.body, "host.properties.values entry")
-        assertContentEquals(bytes2, client.properties.getProperty(id), "client.getProperty2")
+        assertContentEquals(bytes2, client.properties.getPropertyValue(id, null)?.body, "client.getProperty2")
 
         // subscribe -> update value -> notify
-        client.sendSubscribeProperty(id)
+        client.sendSubscribeProperty(id, null)
         assertEquals(1, host.subscriptions.items.size, "subscriptions.size after subscription")
         host.setPropertyValue(id, null, bytes, false)
         // it should be reflected on the client side
-        assertContentEquals(bytes, client.properties.getProperty(id), "getProperty at client after subscribed property update")
-        client.sendUnsubscribeProperty(id)
+        assertContentEquals(bytes, client.properties.getPropertyValue(id, null)?.body, "getProperty at client after subscribed property update")
+        client.sendUnsubscribeProperty(id, null)
         assertEquals(0, host.subscriptions.items.size, "subscriptions.size after unsubscription")
 
         // subscribe again, but this time unsubscribe from host
-        client.sendSubscribeProperty(id)
+        client.sendSubscribeProperty(id, null)
         assertEquals(1, host.subscriptions.items.size, "subscriptions.size after subscription, 2nd")
         val sub = host.subscriptions.items.first()
-        host.shutdownSubscription(sub.muid, sub.resource)
+        host.shutdownSubscription(sub.muid, sub.resource, null)
         assertEquals(0, client.subscriptions.size, "client subscriptions.size after unsubscription by host")
         assertEquals(0, host.subscriptions.items.size, "host subscriptions.size after unsubscription by host")
     }
@@ -72,7 +72,7 @@ class PropertyFacadesTest {
 
         device1.sendDiscovery()
         val conn = device1.connections[device2.muid]!!
-        val channelList = conn.propertyClient.properties.getProperty("ChannelList")
+        val channelList = conn.propertyClient.properties.getPropertyValue("ChannelList", null)?.body
         assertNotNull(channelList, "ChannelList should not be null")
     }
 }

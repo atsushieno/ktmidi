@@ -34,9 +34,8 @@ abstract class ObservablePropertyList(protected val internalValues: MutableList<
 
     abstract fun getMetadataList(): List<PropertyMetadata>?
 
-    fun getProperty(propertyId: String): List<Byte>? = getPropertyValue(propertyId)?.body
-    fun getPropertyValue(propertyId: String): PropertyValue? =
-        internalValues.firstOrNull { it.id == propertyId }
+    fun getPropertyValue(propertyId: String, resId: String?): PropertyValue? =
+        internalValues.firstOrNull { it.id == propertyId && (resId.isNullOrBlank() || it.resId == resId) }
 
     val valueUpdated = mutableListOf<(propertyValue: PropertyValue) -> Unit>()
     val propertiesCatalogUpdated = mutableListOf<() -> Unit>()
