@@ -17,6 +17,7 @@ import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
  */
 interface MidiCIServicePropertyRules {
     fun getPropertyIdForHeader(header: List<Byte>): String
+    fun getResIdForHeader(header: List<Byte>): String?
     fun createUpdateNotificationHeader(propertyId: String, fields: Map<String, Any?>): List<Byte>
     fun getMetadataList(): List<PropertyMetadata>?
     fun getPropertyData(msg: Message.GetPropertyData) : Result<Message.GetPropertyDataReply>
@@ -28,7 +29,7 @@ interface MidiCIServicePropertyRules {
     fun encodeBody(data: List<Byte>, encoding: String?): List<Byte>
     fun decodeBody(header: List<Byte>, body: List<Byte>): List<Byte>
     fun getHeaderFieldString(header: List<Byte>, field: String): String?
-    fun createShutdownSubscriptionHeader(propertyId: String): List<Byte>
+    fun createShutdownSubscriptionHeader(propertyId: String, resId: String?): List<Byte>
 
     val propertyCatalogUpdated: MutableList<() -> Unit>
     val subscriptions: List<SubscriptionEntry>

@@ -129,8 +129,8 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
     fun updatePropertyMetadata(oldPropertyId: String, property: PropertyMetadata) =
         device.propertyHost.updatePropertyMetadata(oldPropertyId, property)
 
-    fun shutdownSubscription(destinationMUID: Int, resource: String) {
-        device.propertyHost.shutdownSubscription(destinationMUID, resource)
+    fun shutdownSubscription(destinationMUID: Int, resource: String, resId: String?) {
+        device.propertyHost.shutdownSubscription(destinationMUID, resource, resId)
     }
 
     fun addTestProfileItems() {

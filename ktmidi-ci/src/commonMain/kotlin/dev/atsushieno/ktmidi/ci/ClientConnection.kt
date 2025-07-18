@@ -11,7 +11,7 @@ enum class SubscriptionActionState {
     Unsubscribing,
     Unsubscribed
 }
-data class ClientSubscription(var pendingRequestId: Byte?, var subscriptionId: String?, val propertyId: String, var state: SubscriptionActionState)
+data class ClientSubscription(var pendingRequestId: Byte?, var subscriptionId: String?, val propertyId: String, val resId: String?, var state: SubscriptionActionState)
 
 class ClientConnection(
     parent: MidiCIDevice,

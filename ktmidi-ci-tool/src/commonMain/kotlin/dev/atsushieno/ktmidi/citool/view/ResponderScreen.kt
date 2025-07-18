@@ -51,6 +51,7 @@ fun LocalPropertyConfiguration(vm: ResponderViewModel) {
 
         // So far we only support full updates...
         val selectedProperty by remember { vm.selectedProperty }
+        val selectedResId by remember { vm.selectedResId }
         val sp = selectedProperty
         if (sp != null) {
             val value = vm.model.properties.first { it.id == sp }
@@ -60,7 +61,7 @@ fun LocalPropertyConfiguration(vm: ResponderViewModel) {
                 updatePropertyValue = { id, resId, data -> vm.updatePropertyValue(id, resId, data) },
                 metadataUpdateCommitted = { vm.updatePropertyMetadata(sp, it) },
                 subscribedClients = subscribedClients.map { it.muid.toString() },
-                unsubscribeRequestedByIndex = { idx -> vm.shutdownSubscription(subscribedClients[idx].muid, sp) }
+                unsubscribeRequestedByIndex = { idx -> vm.shutdownSubscription(subscribedClients[idx].muid, sp, selectedResId) }
             )
         }
     }

@@ -28,17 +28,17 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
 
     fun getMetadataList() = conn.propertyClient.propertyRules.getMetadataList()
 
-    data class SubscriptionState(val propertyId: String, var state: MutableState<SubscriptionActionState>)
+    data class SubscriptionState(val propertyId: String, val resId: String?, var state: MutableState<SubscriptionActionState>)
     var subscriptions = mutableStateListOf<SubscriptionState>()
 
-    fun getPropertyData(resource: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
-        conn.propertyClient.sendGetPropertyData(resource, encoding, paginateOffset, paginateLimit)
-    fun setPropertyData(resource: String, resId: String?, data: List<Byte>, encoding: String?, isPartial: Boolean) =
-        conn.propertyClient.sendSetPropertyData(resource, resId, data, encoding, isPartial)
-    fun subscribeProperty(resource: String, mutualEncoding: String?) =
-        conn.propertyClient.sendSubscribeProperty(resource, mutualEncoding)
-    fun unsubscribeProperty(resource: String) =
-        conn.propertyClient.sendUnsubscribeProperty(resource)
+    fun getPropertyData(propertyId: String, resId: String?, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
+        conn.propertyClient.sendGetPropertyData(propertyId, resId, encoding, paginateOffset, paginateLimit)
+    fun setPropertyData(propertyId: String, resId: String?, data: List<Byte>, encoding: String?, isPartial: Boolean) =
+        conn.propertyClient.sendSetPropertyData(propertyId, resId, data, encoding, isPartial)
+    fun subscribeProperty(propertyId: String, resId: String?, mutualEncoding: String?) =
+        conn.propertyClient.sendSubscribeProperty(propertyId, resId, mutualEncoding)
+    fun unsubscribeProperty(propertyId: String, resId: String?) =
+        conn.propertyClient.sendUnsubscribeProperty(propertyId, resId)
 
     fun requestMidiMessageReport(address: Byte, targetMUID: Int,
                                  messageDataControl: Byte = MidiMessageReportDataControl.Full,
@@ -95,9 +95,9 @@ class ClientConnectionModel(val parent: CIDeviceModel, val conn: ClientConnectio
 
         conn.propertyClient.subscriptionUpdated.add { sub ->
             if (sub.state == SubscriptionActionState.Subscribing)
-                subscriptions.add(SubscriptionState(sub.propertyId, mutableStateOf(sub.state)))
+                subscriptions.add(SubscriptionState(sub.propertyId, sub.resId, mutableStateOf(sub.state)))
             else {
-                val state = subscriptions.firstOrNull { sub.propertyId == it.propertyId } ?: return@add
+                val state = subscriptions.firstOrNull { sub.propertyId == it.propertyId && (sub.resId.isNullOrBlank() || sub.resId == it.resId) } ?: return@add
                 state.state.value = sub.state
                 if (sub.state == SubscriptionActionState.Unsubscribed)
                     subscriptions.remove(state)

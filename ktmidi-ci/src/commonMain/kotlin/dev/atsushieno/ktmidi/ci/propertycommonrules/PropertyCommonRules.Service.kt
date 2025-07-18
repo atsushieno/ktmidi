@@ -43,14 +43,17 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
     override val subscriptions = mutableListOf<SubscriptionEntry>()
     override val subscruotionsUpdated = mutableListOf<(SubscriptionEntry, SubscriptionUpdateAction) -> Unit>()
 
-    override fun getPropertyIdForHeader(header: List<Byte>) = helper.getPropertyIdentifierInternal(header)
+    override fun getPropertyIdForHeader(header: List<Byte>) = helper.getHeaderFieldString(header, PropertyCommonHeaderKeys.RESOURCE) ?: "" // empty should not happen
+    override fun getResIdForHeader(header: List<Byte>) = helper.getHeaderFieldString(header, PropertyCommonHeaderKeys.RES_ID)
     override fun getHeaderFieldString(header: List<Byte>, field: String) = helper.getHeaderFieldString(header, field)
 
     override fun createUpdateNotificationHeader(propertyId: String, fields: Map<String, Any?>) =
         helper.createSubscribePropertyHeaderBytes(
             fields[PropertyCommonHeaderKeys.SUBSCRIBE_ID] as String,
             if (fields[PropertyCommonHeaderKeys.SET_PARTIAL] as Boolean)
-                MidiCISubscriptionCommand.PARTIAL else MidiCISubscriptionCommand.FULL
+                MidiCISubscriptionCommand.PARTIAL
+            else
+                MidiCISubscriptionCommand.FULL
         )
 
     override fun getMetadataList(): List<PropertyMetadata> {
@@ -100,7 +103,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
         val result =
             if (jsonHeader.getObjectValue(PropertyCommonHeaderKeys.COMMAND)?.stringValue == MidiCISubscriptionCommand.END)
-                unsubscribe(getPropertyIdForHeader(msg.header), jsonHeader.getObjectValue(PropertyCommonHeaderKeys.SUBSCRIBE_ID)?.stringValue)
+                unsubscribe(getPropertyIdForHeader(msg.header), getResIdForHeader(msg.header), jsonHeader.getObjectValue(PropertyCommonHeaderKeys.SUBSCRIBE_ID)?.stringValue)
             else
                 subscribe(msg.sourceMUID, jsonHeader)
 
@@ -122,8 +125,8 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
 
-    override fun createShutdownSubscriptionHeader(propertyId: String): List<Byte> {
-        val sub = subscriptions.firstOrNull { it.resource == propertyId } ?: throw MidiCIException("Specified property $propertyId is not at subscribed state")
+    override fun createShutdownSubscriptionHeader(propertyId: String, resId: String?): List<Byte> {
+        val sub = subscriptions.firstOrNull { it.resource == propertyId && (resId.isNullOrBlank() || it.resId == resId) } ?: throw MidiCIException("Specified property $propertyId ${if (resId.isNullOrBlank()) "" else "(resId $resId) "}is not at subscribed state")
         val header = helper.createSubscribePropertyHeaderBytes(sub.subscribeId, MidiCISubscriptionCommand.END)
         subscriptions.remove(sub)
         return header
@@ -240,16 +243,16 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     fun subscribe(subscriberMUID: Int, headerJson: Json.JsonValue) : Pair<Json.JsonValue, Json.JsonValue> {
         val header = getPropertyHeader(headerJson)
-        val subscription = SubscriptionEntry(header.resource, subscriberMUID, header.mutualEncoding, createNewSubscriptionId())
+        val subscription = SubscriptionEntry(header.resource, header.resId, subscriberMUID, header.mutualEncoding, createNewSubscriptionId())
         subscriptions.add(subscription)
         subscruotionsUpdated.forEach { it(subscription, SubscriptionUpdateAction.Added) }
         // body is empty
         return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, subscribeId = subscription.subscribeId)), Json.JsonValue(mapOf()))
     }
 
-    fun unsubscribe(resource: String, subscribeId: String?) : Pair<Json.JsonValue, Json.JsonValue> {
+    fun unsubscribe(resource: String, resId: String?, subscribeId: String?) : Pair<Json.JsonValue, Json.JsonValue> {
         val existing = subscriptions.firstOrNull { subscribeId != null && it.subscribeId == subscribeId }
-            ?: subscriptions.firstOrNull { it.resource == resource }
+            ?: subscriptions.firstOrNull { it.resource == resource && (resId.isNullOrBlank() || it.resId == resId) }
         if (existing != null) {
             subscriptions.remove(existing)
             subscruotionsUpdated.forEach { it(existing, SubscriptionUpdateAction.Removed) }

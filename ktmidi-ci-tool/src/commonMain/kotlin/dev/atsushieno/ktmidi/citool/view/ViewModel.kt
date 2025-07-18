@@ -76,21 +76,22 @@ class ConnectionViewModel(val conn: ClientConnectionModel) {
         ciDeviceManager.device.sendProfileDetailsInquiry(address, conn.conn.targetMUID, profile, target)
     }
 
-    fun selectProperty(propertyId: String) {
-        Snapshot.withMutableSnapshot { selectedProperty.value = propertyId }
+    fun selectProperty(propertyId: String, resId: String?) {
+        selectedProperty.value = propertyId
         val metadata = conn.conn.propertyClient.propertyRules.getMetadataList()?.firstOrNull { it.propertyId == propertyId }
                 as CommonRulesPropertyMetadata
-        conn.getPropertyData(propertyId, encoding = metadata.encodings.firstOrNull(), paginateOffset = 0, paginateLimit = 10)
+        conn.getPropertyData(propertyId, resId, encoding = metadata.encodings.firstOrNull(), paginateOffset = 0, paginateLimit = 10)
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
+    var selectedResId = mutableStateOf<String?>(null)
 
-    fun refreshPropertyValue(propertyId: String, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
-        conn.getPropertyData(propertyId, encoding, paginateOffset, paginateLimit)
-    fun subscribeProperty(propertyId: String, mutualEncoding: String?) =
-        conn.subscribeProperty(propertyId, mutualEncoding)
-    fun unsubscribeProperty(propertyId: String) =
-        conn.unsubscribeProperty(propertyId)
+    fun refreshPropertyValue(propertyId: String, resId: String?, encoding: String?, paginateOffset: Int?, paginateLimit: Int?) =
+        conn.getPropertyData(propertyId, resId, encoding, paginateOffset, paginateLimit)
+    fun subscribeProperty(propertyId: String, resId: String?, mutualEncoding: String?) =
+        conn.subscribeProperty(propertyId, resId, mutualEncoding)
+    fun unsubscribeProperty(propertyId: String, resId: String?) =
+        conn.unsubscribeProperty(propertyId, resId)
     fun sendSetPropertyDataRequest(propertyId: String, resId: String?, bytes: List<Byte>, encoding: String?, isPartial: Boolean) =
         conn.setPropertyData(propertyId, resId, bytes, encoding, isPartial)
     fun setProfile(group: Byte, address: Byte, profile: MidiCIProfileId, newEnabled: Boolean, newNumChannelsRequested: Short) =
@@ -162,6 +163,8 @@ class ResponderViewModel(val model: CIDeviceModel) {
     }
 
     var selectedProperty = mutableStateOf<String?>(null)
+    var selectedResId = mutableStateOf<String?>(null)
+
     fun getPropertyMetadata(propertyId: String) =
         device.propertyHost.metadataList?.firstOrNull { it.propertyId == propertyId }
 
@@ -196,8 +199,8 @@ class ResponderViewModel(val model: CIDeviceModel) {
         model.addTestProfileItems()
     }
 
-    fun shutdownSubscription(targetMUID: Int, sp: String) =
-        model.shutdownSubscription(targetMUID, sp)
+    fun shutdownSubscription(targetMUID: Int, propertyId: String, resId: String?) =
+        model.shutdownSubscription(targetMUID, propertyId, resId)
 
     init {
         device.propertyHost.properties.propertiesCatalogUpdated.add {

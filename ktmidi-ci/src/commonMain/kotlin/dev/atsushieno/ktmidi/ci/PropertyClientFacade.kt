@@ -48,25 +48,26 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
         )
     }
 
-    private fun addPendingSubscription(requestId: Byte, subscriptionId: String?, propertyId: String) {
+    private fun addPendingSubscription(requestId: Byte, subscriptionId: String?, propertyId: String, resId: String?) {
         val sub = ClientSubscription(
             requestId,
             subscriptionId,
             propertyId,
+            resId,
             SubscriptionActionState.Subscribing
         )
         subscriptions.add(sub)
         subscriptionUpdated.forEach { it(sub) }
     }
 
-    private fun promoteSubscriptionAsUnsubscribing(propertyId: String, newRequestId: Byte) {
-        val sub = subscriptions.firstOrNull { it.propertyId == propertyId }
+    private fun promoteSubscriptionAsUnsubscribing(propertyId: String, resId: String?, newRequestId: Byte) {
+        val sub = subscriptions.firstOrNull { it.propertyId == propertyId && (resId.isNullOrBlank() || it.resId == resId) }
         if (sub == null) {
-            logger.logError("Cannot unsubscribe property as not found: $propertyId")
+            logger.logError("Cannot unsubscribe property as not found: $propertyId (resId: $resId)")
             return
         }
         if (sub.state == SubscriptionActionState.Unsubscribing) {
-            logger.logError("Unsubscription for the property is already underway (property: ${sub.propertyId}, subscriptionId: ${sub.subscriptionId}, state: ${sub.state})")
+            logger.logError("Unsubscription for the property is already underway (property: ${sub.propertyId}, resId: ${sub.resId}, subscriptionId: ${sub.subscriptionId}, state: ${sub.state})")
             return
         }
         sub.pendingRequestId = newRequestId
@@ -98,7 +99,7 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
         when (sub.state) {
             SubscriptionActionState.Subscribed,
             SubscriptionActionState.Unsubscribed -> {
-                logger.logError("Received Subscription Reply, but it is unexpected (existing subscription: property = ${sub.propertyId}, subscriptionId = ${sub.subscriptionId}, state = ${sub.state})")
+                logger.logError("Received Subscription Reply, but it is unexpected (existing subscription: property = ${sub.propertyId}, resId = ${sub.resId}, subscriptionId = ${sub.subscriptionId}, state = ${sub.state})")
                 return
             }
             else -> {}
@@ -120,8 +121,9 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
     }
 
     // It is Common Rules specific
-    fun sendGetPropertyData(resource: String, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
+    fun sendGetPropertyData(resource: String, resId: String?, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
         val header = propertyRules.createDataRequestHeader(resource, mapOf(
+            PropertyCommonHeaderKeys.RES_ID to resId,
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
             PropertyCommonHeaderKeys.SET_PARTIAL to false,
             PropertyCommonHeaderKeys.OFFSET to paginateOffset,
@@ -164,7 +166,7 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
         messenger.send(msg)
     }
 
-    fun sendSubscribeProperty(resource: String, mutualEncoding: String? = null, subscriptionId: String? = null) {
+    fun sendSubscribeProperty(resource: String, resId: String?, mutualEncoding: String? = null, subscriptionId: String? = null) {
         val header = propertyRules.createSubscriptionHeader(resource, mapOf(
             PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.START,
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to mutualEncoding))
@@ -172,20 +174,20 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
             Message.Common(muid, targetMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, device.config.group),
             messenger.requestIdSerial++, header, listOf()
         )
-        addPendingSubscription(msg.requestId, subscriptionId, resource)
+        addPendingSubscription(msg.requestId, subscriptionId, resource, resId)
         messenger.send(msg)
     }
 
-    fun sendUnsubscribeProperty(propertyId: String) {
+    fun sendUnsubscribeProperty(propertyId: String, resId: String?) {
         val newRequestId = messenger.requestIdSerial++
         val header = propertyRules.createSubscriptionHeader(propertyId, mapOf(
             PropertyCommonHeaderKeys.COMMAND to MidiCISubscriptionCommand.END,
-            PropertyCommonHeaderKeys.SUBSCRIBE_ID to subscriptions.firstOrNull { it.propertyId == propertyId}?.subscriptionId))
+            PropertyCommonHeaderKeys.SUBSCRIBE_ID to subscriptions.firstOrNull { it.propertyId == propertyId && (resId.isNullOrBlank() || it.resId == resId )}?.subscriptionId))
         val msg = Message.SubscribeProperty(
             Message.Common(muid, targetMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, device.config.group),
             newRequestId, header, listOf()
         )
-        promoteSubscriptionAsUnsubscribing(propertyId, newRequestId)
+        promoteSubscriptionAsUnsubscribing(propertyId, resId, newRequestId)
         messenger.send(msg)
     }
 
@@ -234,6 +236,8 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
             messenger.send(reply.second!!)
         // If the update was NOTIFY, then it is supposed to send Get Data request.
         if (reply.first == MidiCISubscriptionCommand.NOTIFY)
-            sendGetPropertyData(propertyRules.getPropertyIdForHeader(msg.header))
+            sendGetPropertyData(
+                propertyRules.getPropertyIdForHeader(msg.header),
+                propertyRules.getHeaderFieldString(msg.header, PropertyCommonHeaderKeys.RES_ID))
     }
 }

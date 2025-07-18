@@ -47,6 +47,7 @@ abstract class ObservablePropertyList(protected val internalValues: MutableList<
             val newEntries = mutableListOf<PropertyValue>()
             val list = getMetadataList()
             list?.forEach { entry ->
+                // FIXME: should we deal with resId here?
                 val existing = internalValues.firstOrNull { it.id == entry.propertyId }
                 if (existing != null)
                     newEntries.add(existing)
@@ -149,8 +150,9 @@ class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private 
     }
 
     // The `header` and `body` are from SetPropertyData
-    fun updateValue(propertyId: String, header: List<Byte>, body: List<Byte>) {
+    fun updateValue(header: List<Byte>, body: List<Byte>) {
         // FIXME: unnecessary Common Rules for PE exposure
+        val propertyId = propertyService.getPropertyIdForHeader(header)
         val resId = propertyService.getHeaderFieldString(header, PropertyCommonHeaderKeys.RES_ID)
         val mediaType = propertyService.getHeaderFieldString(header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
         val decodedBody = propertyService.decodeBody(header, body)

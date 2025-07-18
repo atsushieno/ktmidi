@@ -15,7 +15,7 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
     override fun createSubscriptionHeader(propertyId: String, fields: Map<String, Any?>): List<Byte> =
         helper.createSubscribeHeaderBytes(propertyId, fields[PropertyCommonHeaderKeys.COMMAND] as String, fields[PropertyCommonHeaderKeys.MUTUAL_ENCODING] as String?)
 
-    override fun getPropertyIdForHeader(header: List<Byte>) = helper.getPropertyIdentifierInternal(header)
+    override fun getPropertyIdForHeader(header: List<Byte>) = helper.getHeaderFieldString(header, PropertyCommonHeaderKeys.RESOURCE) ?: "" // empty should not happen
 
     override fun getMetadataList(): List<PropertyMetadata> = resourceList
 
@@ -83,11 +83,11 @@ class CommonRulesPropertyClient(private val device: MidiCIDevice, private val co
 
         if (sub.state == SubscriptionActionState.Unsubscribing)
             // should we rather compare subscribeId? Can we subscribe to one property multiple times? (If yes then this code is wrong)
-            subscriptions.removeAll { it.resource == sub.propertyId }
+            subscriptions.removeAll { it.resource == sub.propertyId && (sub.resId.isNullOrBlank() || it.resId == sub.resId) }
         else
             // does this MUID matter...?
             // does encoding matter...? It could be explicitly specified by client itself, but responder should specify it anyway.
-            subscriptions.add(SubscriptionEntry(sub.propertyId, msg.destinationMUID, null, subscribeId))
+            subscriptions.add(SubscriptionEntry(sub.propertyId, sub.resId, msg.destinationMUID, null, subscribeId))
     }
 
     override fun createStatusHeader(status: Int): List<Byte> =

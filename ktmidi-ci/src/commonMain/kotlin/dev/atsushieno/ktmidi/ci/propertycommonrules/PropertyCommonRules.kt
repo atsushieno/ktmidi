@@ -207,5 +207,5 @@ class PropertyResourceColumn {
     )
 }
 
-data class SubscriptionEntry(val resource: String, val muid: Int, val encoding: String?, val subscribeId: String)
+data class SubscriptionEntry(val resource: String, val resId: String?, val muid: Int, val encoding: String?, val subscribeId: String)
 
