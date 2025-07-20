@@ -1,8 +1,17 @@
 package dev.atsushieno.ktmidi.ci.propertycommonrules
 
+import dev.atsushieno.ktmidi.ci.MidiCIConverter
+import dev.atsushieno.ktmidi.ci.MidiCIDevice
 import dev.atsushieno.ktmidi.ci.ObservablePropertyList
+import dev.atsushieno.ktmidi.ci.PropertyHostFacade
+import dev.atsushieno.ktmidi.ci.PropertyValue
+import dev.atsushieno.ktmidi.ci.ServiceObservablePropertyList
 import dev.atsushieno.ktmidi.ci.json.Json
+import dev.atsushieno.ktmidi.ci.propertycommonrules.StandardProperties.controlListToJson
+import dev.atsushieno.ktmidi.ci.propertycommonrules.StandardProperties.stateListToJson
+import dev.atsushieno.ktmidi.ci.toASCIIByteArray
 import kotlinx.serialization.Serializable
+import kotlin.collections.listOf
 
 object StandardPropertyNames {
     const val STATE_LIST = "StateList"
@@ -139,7 +148,7 @@ object StandardProperties {
         }.toList()
     }
 
-    fun toJson(stateList: List<MidiCIState>): Json.JsonValue {
+    fun stateListToJson(stateList: List<MidiCIState>): Json.JsonValue {
         return Json.JsonValue(stateList.map {
             val map = mapOf(
                 Json.JsonValue(StatePropertyNames.TITLE) to Json.JsonValue(it.title),
@@ -152,11 +161,65 @@ object StandardProperties {
             Json.JsonValue(map)
         })
     }
+
+    fun controlListToJson(controlList: List<MidiCIControl>): Json.JsonValue {
+        return Json.JsonValue(controlList.map { it ->
+            val map = sequence {
+                yield(Json.JsonValue(ControlPropertyNames.TITLE) to Json.JsonValue(it.title))
+                if (it.description != null)
+                    yield(Json.JsonValue(ControlPropertyNames.DESCRIPTION) to Json.JsonValue(it.description))
+                yield(Json.JsonValue(ControlPropertyNames.CTRL_TYPE) to Json.JsonValue(it.ctrlType))
+                if (it.ctrlIndex != null)
+                    yield(Json.JsonValue(ControlPropertyNames.CTRL_INDEX) to Json.JsonValue(it.ctrlIndex.map { e -> Json.JsonValue(e.toDouble()) }))
+                if (it.channel != null)
+                    yield(Json.JsonValue(ControlPropertyNames.CHANNEL) to Json.JsonValue(it.channel.toDouble()))
+                if (it.priority != null)
+                    yield(Json.JsonValue(ControlPropertyNames.PRIORITY) to Json.JsonValue(it.priority.toDouble()))
+                yield(Json.JsonValue(ControlPropertyNames.DEFAULT) to Json.JsonValue(it.default.toDouble()))
+                yield(Json.JsonValue(ControlPropertyNames.TRANSMIT) to Json.JsonValue(it.transmit))
+                yield(Json.JsonValue(ControlPropertyNames.RECOGNIZE) to Json.JsonValue(it.recognize))
+                yield(Json.JsonValue(ControlPropertyNames.NUM_SIG_BITS) to Json.JsonValue(it.numSigBits.toDouble()))
+                if (it.paramPath != null)
+                    yield(Json.JsonValue(ControlPropertyNames.PARAM_PATH) to Json.JsonValue(it.paramPath))
+                if (it.typeHint != null)
+                    yield(Json.JsonValue(ControlPropertyNames.TYPE_HINT) to Json.JsonValue(it.typeHint))
+                if (it.ctrlMapId != null)
+                    yield(Json.JsonValue(ControlPropertyNames.CTRL_MAP_ID) to Json.JsonValue(it.ctrlMapId))
+                if (it.stepCount != null)
+                    yield(Json.JsonValue(ControlPropertyNames.STEP_COUNT) to Json.JsonValue(it.stepCount.toDouble()))
+                if (it.minMax != null)
+                    yield(Json.JsonValue(ControlPropertyNames.MIN_MAX) to Json.JsonValue(it.minMax.map { e -> Json.JsonValue(e.toDouble()) }))
+                if (it.defaultCCMap)
+                    yield(Json.JsonValue(ControlPropertyNames.DEFAULT_CC_MAP) to if (it.defaultCCMap) Json.TrueValue else Json.FalseValue)
+            }.toMap()
+            Json.JsonValue(map)
+        })
+    }
 }
 
+private fun Json.JsonValue.jsonToASCIIStringBytes() =
+    MidiCIConverter.encodeStringToASCII(Json.serialize(this)).toASCIIByteArray().toList()
+
+private val ObservablePropertyList.stateListProperty: PropertyValue?
+    get() = values.firstOrNull { it.id == StandardPropertyNames.STATE_LIST }
 val ObservablePropertyList.stateList
-    get() = values.firstOrNull { it.id == StandardPropertyNames.STATE_LIST }?.let { StandardProperties.parseStateList(it.body) }
-val ObservablePropertyList.allCtrlList
-    get() = values.firstOrNull { it.id == StandardPropertyNames.ALL_CTRL_LIST }?.let { StandardProperties.parseControlList(it.body) }
-val ObservablePropertyList.chCtrlList
-    get() = values.firstOrNull { it.id == StandardPropertyNames.CH_CTRL_LIST }?.let { StandardProperties.parseControlList(it.body) }
+    get() = stateListProperty?.let { StandardProperties.parseStateList(it.body) }
+var MidiCIDevice.stateList: List<MidiCIState>?
+    get() = propertyHost.properties.stateList
+    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.STATE_LIST, null, stateListToJson(value).jsonToASCIIStringBytes(), false) }
+
+private val ObservablePropertyList.allCtrlListProperty: PropertyValue?
+    get() = values.firstOrNull { it.id == StandardPropertyNames.ALL_CTRL_LIST }
+val ObservablePropertyList.allCtrlList: List<MidiCIControl>?
+    get() = allCtrlListProperty?.let { StandardProperties.parseControlList(it.body) }
+var MidiCIDevice.allCtrlList: List<MidiCIControl>?
+    get() = propertyHost.properties.allCtrlList
+    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.ALL_CTRL_LIST, null, controlListToJson(value).jsonToASCIIStringBytes(), false) }
+
+private val ObservablePropertyList.chCtrlListProperty: PropertyValue?
+    get() = values.firstOrNull { it.id == StandardPropertyNames.CH_CTRL_LIST }
+val ObservablePropertyList.chCtrlList: List<MidiCIControl> ?
+    get() = chCtrlListProperty?.let { StandardProperties.parseControlList(it.body) }
+var MidiCIDevice.chCtrlList: List<MidiCIControl>?
+    get() = propertyHost.properties.chCtrlList
+    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.CH_CTRL_LIST, null, controlListToJson(value).jsonToASCIIStringBytes(), false) }

@@ -60,9 +60,17 @@ kotlin {
     linuxX64()
     mingwX64()
 
+    apiValidation {
+        ignoredPackages.addAll(listOf(
+            "dev.atsushieno.ktmidi.ci",
+            "dev.atsushieno.ktmidi.ci.*",
+            "dev.atsushieno.ktmidi.musicdevice" // not part of build
+        ))
+    }
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(project(":ktmidi"))
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.datetime)
                 //implementation(libs.ktor.io)
