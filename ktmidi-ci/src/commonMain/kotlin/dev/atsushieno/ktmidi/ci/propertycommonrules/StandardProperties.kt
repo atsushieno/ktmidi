@@ -3,20 +3,16 @@ package dev.atsushieno.ktmidi.ci.propertycommonrules
 import dev.atsushieno.ktmidi.ci.MidiCIConverter
 import dev.atsushieno.ktmidi.ci.MidiCIDevice
 import dev.atsushieno.ktmidi.ci.ObservablePropertyList
-import dev.atsushieno.ktmidi.ci.PropertyHostFacade
 import dev.atsushieno.ktmidi.ci.PropertyValue
-import dev.atsushieno.ktmidi.ci.ServiceObservablePropertyList
 import dev.atsushieno.ktmidi.ci.json.Json
-import dev.atsushieno.ktmidi.ci.propertycommonrules.StandardProperties.controlListToJson
-import dev.atsushieno.ktmidi.ci.propertycommonrules.StandardProperties.stateListToJson
 import dev.atsushieno.ktmidi.ci.toASCIIByteArray
 import kotlinx.serialization.Serializable
-import kotlin.collections.listOf
 
 object StandardPropertyNames {
     const val STATE_LIST = "StateList"
     const val ALL_CTRL_LIST = "AllCtrlList"
     const val CH_CTRL_LIST = "ChCtrlList"
+    const val PROGRAM_LIST = "ProgramList"
 }
 
 // StateList entries
@@ -81,6 +77,15 @@ class MidiCIControl(
     val defaultCCMap: Boolean = false
 )
 
+// ProgramList entries
+@Serializable
+class MidiCIProgram(
+    val title: String,
+    val bankPC: Array<Byte>, // minItems = 3, maxItems = 3
+    val category: Array<String>?, // minItems = 1, minLength = 1
+    val tags: Array<String>? // minItems = 1, minLength = 1
+)
+
 object StatePropertyNames {
     const val TITLE = "title"
     const val STATE_ID = "stateId"
@@ -109,6 +114,13 @@ object ControlPropertyNames {
     const val DEFAULT_CC_MAP = "defaultCCMap"
 }
 
+object ProgramPropertyNames {
+    const val TITLE = "title"
+    const val BANK_PC = "bankPC"
+    const val CATEGORY = "category"
+    const val TAGS = "tags"
+}
+
 object StandardProperties {
     fun parseStateList(data: List<Byte>): List<MidiCIState> {
         val json = convertApplicationJsonBytesToJson(data)
@@ -134,8 +146,10 @@ object StandardProperties {
             val channel = json.getObjectValue(ControlPropertyNames.CHANNEL)?.numberValue?.toByte()
             val priority = json.getObjectValue(ControlPropertyNames.PRIORITY)?.numberValue?.toByte()
             val default = json.getObjectValue(ControlPropertyNames.DEFAULT)?.numberValue?.toLong()?.toUInt() ?: 0u
-            val transmit = json.getObjectValue(ControlPropertyNames.TRANSMIT)?.stringValue ?: MidiCIControlTransmit.ABSOLUTE
-            val recognize = json.getObjectValue(ControlPropertyNames.RECOGNIZE)?.stringValue ?: MidiCIControlTransmit.ABSOLUTE
+            val transmit =
+                json.getObjectValue(ControlPropertyNames.TRANSMIT)?.stringValue ?: MidiCIControlTransmit.ABSOLUTE
+            val recognize =
+                json.getObjectValue(ControlPropertyNames.RECOGNIZE)?.stringValue ?: MidiCIControlTransmit.ABSOLUTE
             val numSigBits = json.getObjectValue(ControlPropertyNames.NUM_SIG_BITS)?.numberValue?.toInt() ?: 32
             val paramPath = json.getObjectValue(ControlPropertyNames.PARAM_PATH)?.stringValue
             val typeHint = json.getObjectValue(ControlPropertyNames.TYPE_HINT)?.stringValue
@@ -144,7 +158,39 @@ object StandardProperties {
             val minMax = json.getObjectValue(ControlPropertyNames.MIN_MAX)
                 ?.arrayValue?.map { it.numberValue.toLong().toUInt() }?.toList()?.toTypedArray() ?: arrayOf()
             val defaultCCMap = json.getObjectValue(ControlPropertyNames.DEFAULT_CC_MAP)?.isBooleanTrue == true
-            MidiCIControl(title, ctrlType, description, ctrlIndex, channel, priority, default, transmit, recognize, numSigBits, paramPath, typeHint, ctrlMapId, stepCount, minMax, defaultCCMap)
+            MidiCIControl(
+                title,
+                ctrlType,
+                description,
+                ctrlIndex,
+                channel,
+                priority,
+                default,
+                transmit,
+                recognize,
+                numSigBits,
+                paramPath,
+                typeHint,
+                ctrlMapId,
+                stepCount,
+                minMax,
+                defaultCCMap
+            )
+        }.toList()
+    }
+
+    fun parseProgramList(data: List<Byte>): List<MidiCIProgram> {
+        val jsonArray = convertApplicationJsonBytesToJson(data)
+        return jsonArray.arrayValue.map { json ->
+            val title = json.getObjectValue(ProgramPropertyNames.TITLE)?.stringValue ?: ""
+            val bankPC = json.getObjectValue(ProgramPropertyNames.BANK_PC)
+                ?.arrayValue?.map { it.numberValue.toByte() }?.toList()?.toTypedArray() ?: arrayOf()
+            val category =
+                json.getObjectValue(ProgramPropertyNames.CATEGORY)?.arrayValue?.map { it.stringValue }?.toList()
+                    ?.toTypedArray()
+            val tags = json.getObjectValue(ProgramPropertyNames.TAGS)?.arrayValue?.map { it.stringValue }?.toList()
+                ?.toTypedArray()
+            MidiCIProgram(title, bankPC, category, tags)
         }.toList()
     }
 
@@ -170,7 +216,11 @@ object StandardProperties {
                     yield(Json.JsonValue(ControlPropertyNames.DESCRIPTION) to Json.JsonValue(it.description))
                 yield(Json.JsonValue(ControlPropertyNames.CTRL_TYPE) to Json.JsonValue(it.ctrlType))
                 if (it.ctrlIndex != null)
-                    yield(Json.JsonValue(ControlPropertyNames.CTRL_INDEX) to Json.JsonValue(it.ctrlIndex.map { e -> Json.JsonValue(e.toDouble()) }))
+                    yield(Json.JsonValue(ControlPropertyNames.CTRL_INDEX) to Json.JsonValue(it.ctrlIndex.map { e ->
+                        Json.JsonValue(
+                            e.toDouble()
+                        )
+                    }))
                 if (it.channel != null)
                     yield(Json.JsonValue(ControlPropertyNames.CHANNEL) to Json.JsonValue(it.channel.toDouble()))
                 if (it.priority != null)
@@ -188,9 +238,31 @@ object StandardProperties {
                 if (it.stepCount != null)
                     yield(Json.JsonValue(ControlPropertyNames.STEP_COUNT) to Json.JsonValue(it.stepCount.toDouble()))
                 if (it.minMax != null)
-                    yield(Json.JsonValue(ControlPropertyNames.MIN_MAX) to Json.JsonValue(it.minMax.map { e -> Json.JsonValue(e.toDouble()) }))
+                    yield(Json.JsonValue(ControlPropertyNames.MIN_MAX) to Json.JsonValue(it.minMax.map { e ->
+                        Json.JsonValue(
+                            e.toDouble()
+                        )
+                    }))
                 if (it.defaultCCMap)
                     yield(Json.JsonValue(ControlPropertyNames.DEFAULT_CC_MAP) to if (it.defaultCCMap) Json.TrueValue else Json.FalseValue)
+            }.toMap()
+            Json.JsonValue(map)
+        })
+    }
+
+    fun programListToJson(programList: List<MidiCIProgram>): Json.JsonValue {
+        return Json.JsonValue(programList.map { it ->
+            val map = sequence {
+                yield(Json.JsonValue(ProgramPropertyNames.TITLE) to Json.JsonValue(it.title))
+                yield(Json.JsonValue(ProgramPropertyNames.BANK_PC) to Json.JsonValue(it.bankPC.map { Json.JsonValue(it.toDouble()) }))
+                if (it.category != null)
+                    yield(Json.JsonValue(ProgramPropertyNames.CATEGORY) to Json.JsonValue(it.category.map {
+                        Json.JsonValue(
+                            it
+                        )
+                    }))
+                if (it.tags != null)
+                    yield(Json.JsonValue(ProgramPropertyNames.TAGS) to Json.JsonValue(it.tags.map { Json.JsonValue(it) }))
             }.toMap()
             Json.JsonValue(map)
         })
@@ -206,7 +278,7 @@ val ObservablePropertyList.stateList
     get() = stateListProperty?.let { StandardProperties.parseStateList(it.body) }
 var MidiCIDevice.stateList: List<MidiCIState>?
     get() = propertyHost.properties.stateList
-    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.STATE_LIST, null, stateListToJson(value).jsonToASCIIStringBytes(), false) }
+    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.STATE_LIST, null, StandardProperties.stateListToJson(value).jsonToASCIIStringBytes(), false) }
 
 private val ObservablePropertyList.allCtrlListProperty: PropertyValue?
     get() = values.firstOrNull { it.id == StandardPropertyNames.ALL_CTRL_LIST }
@@ -214,12 +286,20 @@ val ObservablePropertyList.allCtrlList: List<MidiCIControl>?
     get() = allCtrlListProperty?.let { StandardProperties.parseControlList(it.body) }
 var MidiCIDevice.allCtrlList: List<MidiCIControl>?
     get() = propertyHost.properties.allCtrlList
-    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.ALL_CTRL_LIST, null, controlListToJson(value).jsonToASCIIStringBytes(), false) }
+    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.ALL_CTRL_LIST, null, StandardProperties.controlListToJson(value).jsonToASCIIStringBytes(), false) }
 
 private val ObservablePropertyList.chCtrlListProperty: PropertyValue?
     get() = values.firstOrNull { it.id == StandardPropertyNames.CH_CTRL_LIST }
-val ObservablePropertyList.chCtrlList: List<MidiCIControl> ?
+val ObservablePropertyList.chCtrlList: List<MidiCIControl>?
     get() = chCtrlListProperty?.let { StandardProperties.parseControlList(it.body) }
 var MidiCIDevice.chCtrlList: List<MidiCIControl>?
     get() = propertyHost.properties.chCtrlList
-    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.CH_CTRL_LIST, null, controlListToJson(value).jsonToASCIIStringBytes(), false) }
+    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.CH_CTRL_LIST, null, StandardProperties.controlListToJson(value).jsonToASCIIStringBytes(), false) }
+
+private val ObservablePropertyList.programListProperty: PropertyValue?
+    get() = values.firstOrNull { it.id == StandardPropertyNames.PROGRAM_LIST }
+val ObservablePropertyList.programList: List<MidiCIProgram>?
+    get() = programListProperty?.let { StandardProperties.parseProgramList(it.body) }
+var MidiCIDevice.programList: List<MidiCIProgram>?
+    get() = propertyHost.properties.programList
+    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.PROGRAM_LIST, null, StandardProperties.programListToJson(value).jsonToASCIIStringBytes(), false) }
