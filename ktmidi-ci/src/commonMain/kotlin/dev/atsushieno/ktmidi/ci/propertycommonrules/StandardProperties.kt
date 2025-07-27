@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 
 object StandardPropertyNames {
     const val STATE_LIST = "StateList"
+    const val STATE = "State"
     const val ALL_CTRL_LIST = "AllCtrlList"
     const val CH_CTRL_LIST = "ChCtrlList"
     const val PROGRAM_LIST = "ProgramList"
@@ -17,7 +18,7 @@ object StandardPropertyNames {
 
 // StateList entries
 @Serializable
-data class MidiCIState(
+data class MidiCIStateEntry(
     val title: String,
     val stateId: String,
     val stateRev: String?,
@@ -122,7 +123,130 @@ object ProgramPropertyNames {
 }
 
 object StandardProperties {
-    fun parseStateList(data: List<Byte>): List<MidiCIState> {
+
+    // FIXME: they should be populated from JSON Schema
+    val stateListMetadata = CommonRulesPropertyMetadata().apply {
+        canSet = PropertySetAccess.NONE
+        canSubscribe = false
+        canPaginate = false
+        columns = listOf(
+            // FIXME: this list is incomplete
+            PropertyResourceColumn().apply {
+                property = StatePropertyNames.TITLE
+                title = "State Title"
+            },
+            PropertyResourceColumn().apply {
+                property = StatePropertyNames.STATE_ID
+                title = "State ID"
+            },
+            PropertyResourceColumn().apply {
+                property = StatePropertyNames.STATE_REV
+                title = "State Revision"
+            },
+            PropertyResourceColumn().apply {
+                property = StatePropertyNames.TIMESTAMP
+                title = "UNIX Timestamp"
+            },
+            PropertyResourceColumn().apply {
+                property = StatePropertyNames.DESCRIPTION
+                title = "Description"
+            },
+            PropertyResourceColumn().apply {
+                property = StatePropertyNames.SIZE
+                title = "Byte Size"
+            }
+        )
+    }
+    val stateMetadata = CommonRulesPropertyMetadata().apply {
+        canSubscribe = false
+        requireResId = true
+    }
+    val allCtrlListMetadata = CommonRulesPropertyMetadata().apply {
+        columns = getCtrlListColumns()
+    }
+    val chCtrlListMetadata = CommonRulesPropertyMetadata().apply {
+        columns = getCtrlListColumns()
+    }
+    private fun getCtrlListColumns() = listOf(
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.TITLE
+            title = "Active Controller Title"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.DESCRIPTION
+            title = "Description"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.CTRL_TYPE
+            title = "Type"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.CTRL_INDEX
+            title = "Controller Message index"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.CHANNEL
+            title = "MIDI Channel"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.PRIORITY
+            title = "Priority"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.DEFAULT
+            title = "Default Value"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.TRANSMIT
+            title = "Transmit"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.RECOGNIZE
+            title = "Recognize"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.NUM_SIG_BITS
+            title = "Number of significant bits"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.TYPE_HINT
+            title = "Type Hint"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.CTRL_MAP_ID
+            title = "Control Map Id"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.STEP_COUNT
+            title = "Step Count"
+        },
+        PropertyResourceColumn().apply {
+            property = ControlPropertyNames.MIN_MAX
+            title = "Min/Max"
+        },
+    )
+    val programListMetadata = CommonRulesPropertyMetadata().apply {
+        columns = listOf(
+            PropertyResourceColumn().apply {
+                property = ProgramPropertyNames.TITLE
+                title = "Program Title"
+            },
+            PropertyResourceColumn().apply {
+                property = ProgramPropertyNames.BANK_PC
+                title = "Bank MSB, LSB and Program Change"
+            },
+            PropertyResourceColumn().apply {
+                property = ProgramPropertyNames.CATEGORY
+                title = "Categories"
+            },
+            PropertyResourceColumn().apply {
+                property = ProgramPropertyNames.TAGS
+                title = "Meta-tags"
+            },
+        )
+    }
+
+    fun parseStateList(data: List<Byte>): List<MidiCIStateEntry> {
         val json = convertApplicationJsonBytesToJson(data)
         return json.arrayValue.map {
             val title = json.getObjectValue(StatePropertyNames.TITLE)?.stringValue ?: ""
@@ -131,7 +255,7 @@ object StandardProperties {
             val timestamp = json.getObjectValue(StatePropertyNames.TIMESTAMP)?.numberValue?.toLong()
             val description = json.getObjectValue(StatePropertyNames.DESCRIPTION)?.stringValue
             val size = json.getObjectValue(StatePropertyNames.SIZE)?.numberValue?.toInt()
-            MidiCIState(title, stateId, stateRev, timestamp, description, size)
+            MidiCIStateEntry(title, stateId, stateRev, timestamp, description, size)
         }.toList()
     }
 
@@ -194,7 +318,7 @@ object StandardProperties {
         }.toList()
     }
 
-    fun stateListToJson(stateList: List<MidiCIState>): Json.JsonValue {
+    fun stateListToJson(stateList: List<MidiCIStateEntry>): Json.JsonValue {
         return Json.JsonValue(stateList.map {
             val map = mapOf(
                 Json.JsonValue(StatePropertyNames.TITLE) to Json.JsonValue(it.title),
@@ -276,9 +400,18 @@ private val ObservablePropertyList.stateListProperty: PropertyValue?
     get() = values.firstOrNull { it.id == StandardPropertyNames.STATE_LIST }
 val ObservablePropertyList.stateList
     get() = stateListProperty?.let { StandardProperties.parseStateList(it.body) }
-var MidiCIDevice.stateList: List<MidiCIState>?
+var MidiCIDevice.stateList: List<MidiCIStateEntry>?
     get() = propertyHost.properties.stateList
-    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.STATE_LIST, null, StandardProperties.stateListToJson(value).jsonToASCIIStringBytes(), false) }
+    set(value) { propertyHost.setPropertyValue(StandardPropertyNames.STATE_LIST, null, if (value == null) listOf() else StandardProperties.stateListToJson(value).jsonToASCIIStringBytes(), false) }
+private fun ObservablePropertyList.getStateProperty(stateId: String): PropertyValue? =
+    values.firstOrNull { it.id == StandardPropertyNames.STATE && it.resId == stateId }
+fun ObservablePropertyList.getState(stateId: String): List<Byte>? =
+    getStateProperty(stateId)?.body
+fun MidiCIDevice.getState(stateId: String) =
+    propertyHost.properties.getState(stateId)
+fun MidiCIDevice.setState(stateId: String, data: List<Byte>) {
+    propertyHost.setPropertyValue(StandardPropertyNames.STATE, stateId, data, false)
+}
 
 private val ObservablePropertyList.allCtrlListProperty: PropertyValue?
     get() = values.firstOrNull { it.id == StandardPropertyNames.ALL_CTRL_LIST }
@@ -286,7 +419,7 @@ val ObservablePropertyList.allCtrlList: List<MidiCIControl>?
     get() = allCtrlListProperty?.let { StandardProperties.parseControlList(it.body) }
 var MidiCIDevice.allCtrlList: List<MidiCIControl>?
     get() = propertyHost.properties.allCtrlList
-    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.ALL_CTRL_LIST, null, StandardProperties.controlListToJson(value).jsonToASCIIStringBytes(), false) }
+    set(value) { propertyHost.setPropertyValue(StandardPropertyNames.ALL_CTRL_LIST, null, if (value == null) listOf() else StandardProperties.controlListToJson(value).jsonToASCIIStringBytes(), false) }
 
 private val ObservablePropertyList.chCtrlListProperty: PropertyValue?
     get() = values.firstOrNull { it.id == StandardPropertyNames.CH_CTRL_LIST }
@@ -294,7 +427,7 @@ val ObservablePropertyList.chCtrlList: List<MidiCIControl>?
     get() = chCtrlListProperty?.let { StandardProperties.parseControlList(it.body) }
 var MidiCIDevice.chCtrlList: List<MidiCIControl>?
     get() = propertyHost.properties.chCtrlList
-    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.CH_CTRL_LIST, null, StandardProperties.controlListToJson(value).jsonToASCIIStringBytes(), false) }
+    set(value) { propertyHost.setPropertyValue(StandardPropertyNames.CH_CTRL_LIST, null, if (value == null) listOf() else StandardProperties.controlListToJson(value).jsonToASCIIStringBytes(), false) }
 
 private val ObservablePropertyList.programListProperty: PropertyValue?
     get() = values.firstOrNull { it.id == StandardPropertyNames.PROGRAM_LIST }
@@ -302,4 +435,4 @@ val ObservablePropertyList.programList: List<MidiCIProgram>?
     get() = programListProperty?.let { StandardProperties.parseProgramList(it.body) }
 var MidiCIDevice.programList: List<MidiCIProgram>?
     get() = propertyHost.properties.programList
-    set(value) { if (value != null) propertyHost.setPropertyValue(StandardPropertyNames.PROGRAM_LIST, null, StandardProperties.programListToJson(value).jsonToASCIIStringBytes(), false) }
+    set(value) { propertyHost.setPropertyValue(StandardPropertyNames.PROGRAM_LIST, null, if (value == null) listOf() else StandardProperties.programListToJson(value).jsonToASCIIStringBytes(), false) }
