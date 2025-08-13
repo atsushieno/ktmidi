@@ -13,6 +13,7 @@ object StandardPropertyNames {
     const val STATE = "State"
     const val ALL_CTRL_LIST = "AllCtrlList"
     const val CH_CTRL_LIST = "ChCtrlList"
+    const val CTRL_MAP_LIST = "CtrlMapList"
     const val PROGRAM_LIST = "ProgramList"
 }
 
@@ -62,7 +63,7 @@ class MidiCIControl(
     val description: String? = "", // format: commonmark
     val ctrlIndex: Array<Byte>? = arrayOf(0), // array of 0-127, min length 1, max length 2
     val channel: Byte?,  // 1-16
-    // LAMESPEC: lack of the default value will cause significant implementation incompatiblity
+    // LAMESPEC: lack of the default value will cause significant implementation incompatibility
     val priority: Byte?, // 1-5
     val default: UInt = 0u,
     val transmit: String = MidiCIControlTransmit.ABSOLUTE,
@@ -76,6 +77,12 @@ class MidiCIControl(
     val minMax: Array<UInt>? = arrayOf(0u, UInt.MAX_VALUE),
     // LAMESPEC: it's missing from AllCtrlList
     val defaultCCMap: Boolean = false
+)
+
+@Serializable
+class MidiCIControlMap(
+    val value: UInt,
+    val title: String,
 )
 
 // ProgramList entries
@@ -113,6 +120,11 @@ object ControlPropertyNames {
     const val STEP_COUNT = "stepCount"
     const val MIN_MAX = "minMax"
     const val DEFAULT_CC_MAP = "defaultCCMap"
+}
+
+object ControlMapPropertyNames {
+    const val VALUE = "value"
+    const val TITLE = "title"
 }
 
 object ProgramPropertyNames {
@@ -225,6 +237,18 @@ object StandardProperties {
             title = "Min/Max"
         },
     )
+    val ctrlMapListMetadata = CommonRulesPropertyMetadata().apply {
+        columns = listOf(
+            PropertyResourceColumn().apply {
+                property = ControlMapPropertyNames.VALUE
+                title = "Value"
+            },
+            PropertyResourceColumn().apply {
+                property = ControlMapPropertyNames.TITLE
+                title = "Title"
+            },
+        )
+    }
     val programListMetadata = CommonRulesPropertyMetadata().apply {
         columns = listOf(
             PropertyResourceColumn().apply {
@@ -303,6 +327,15 @@ object StandardProperties {
         }.toList()
     }
 
+    fun parseControlMapList(data: List<Byte>): List<MidiCIControlMap> {
+        val jsonArray = convertApplicationJsonBytesToJson(data)
+        return jsonArray.arrayValue.map { json ->
+            val value = json.getObjectValue(ControlMapPropertyNames.VALUE)?.numberValue?.toLong()?.toUInt() ?: 0u
+            val title = json.getObjectValue(ControlMapPropertyNames.TITLE)?.stringValue?: ""
+            MidiCIControlMap(value, title)
+        }.toList()
+    }
+
     fun parseProgramList(data: List<Byte>): List<MidiCIProgram> {
         val jsonArray = convertApplicationJsonBytesToJson(data)
         return jsonArray.arrayValue.map { json ->
@@ -374,6 +407,16 @@ object StandardProperties {
         })
     }
 
+    fun ctrlMapListToJson(ctrlMapList: List<MidiCIControlMap>): Json.JsonValue {
+        return Json.JsonValue(ctrlMapList.map { it ->
+            val map = sequence {
+                yield(Json.JsonValue(ControlMapPropertyNames.VALUE) to Json.JsonValue(it.value.toDouble()))
+                yield(Json.JsonValue(ControlMapPropertyNames.TITLE) to Json.JsonValue(it.title))
+            }.toMap()
+            Json.JsonValue(map)
+        })
+    }
+
     fun programListToJson(programList: List<MidiCIProgram>): Json.JsonValue {
         return Json.JsonValue(programList.map { it ->
             val map = sequence {
@@ -428,6 +471,16 @@ val ObservablePropertyList.chCtrlList: List<MidiCIControl>?
 var MidiCIDevice.chCtrlList: List<MidiCIControl>?
     get() = propertyHost.properties.chCtrlList
     set(value) { propertyHost.setPropertyValue(StandardPropertyNames.CH_CTRL_LIST, null, if (value == null) listOf() else StandardProperties.controlListToJson(value).jsonToASCIIStringBytes(), false) }
+
+private fun ObservablePropertyList.getCtrlMapListProperty(control: String): PropertyValue? =
+    values.firstOrNull { it.id == StandardPropertyNames.CTRL_MAP_LIST && it.resId == control }
+fun ObservablePropertyList.getCtrlMapList(control: String): List<MidiCIControlMap>? =
+    getCtrlMapListProperty(control)?.let { StandardProperties.parseControlMapList(it.body) }
+fun MidiCIDevice.getCtrlMapList(control: String) =
+    propertyHost.properties.getState(control)
+fun MidiCIDevice.setCtrlMapList(control: String, value: List<MidiCIControlMap>?) {
+    propertyHost.setPropertyValue(StandardPropertyNames.CTRL_MAP_LIST, control,  if (value == null) listOf() else StandardProperties.ctrlMapListToJson(value).jsonToASCIIStringBytes(), false)
+}
 
 private val ObservablePropertyList.programListProperty: PropertyValue?
     get() = values.firstOrNull { it.id == StandardPropertyNames.PROGRAM_LIST }
