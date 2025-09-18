@@ -1,5 +1,5 @@
 [versions]
-agp = "8.11.0"
+agp = "8.11.2"
 android-compileSdk = "36"
 android-minSdk = "23"
 android-targetSdk = "36"
@@ -27,7 +27,7 @@ gradle-javacpp = "1.5.10"
 
 alsa-javacpp = "0.1.0"
 rtmidi-javacpp = "0.1.5"
-libremidi-panama = "0.2.5"
+libremidi-panama = "0.3.0"
 
 vanniktech-maven-publish = "0.31.0"
 
