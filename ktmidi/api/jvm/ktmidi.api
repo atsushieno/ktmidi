@@ -693,13 +693,13 @@ public final class dev/atsushieno/ktmidi/Midi1MachineChannel {
 
 public abstract interface class dev/atsushieno/ktmidi/Midi1Message {
 	public static final field Companion Ldev/atsushieno/ktmidi/Midi1Message$Companion;
-	public abstract fun getChannel ()B
-	public abstract fun getEventType ()B
-	public abstract fun getLsb ()B
-	public abstract fun getMetaType ()B
-	public abstract fun getMsb ()B
-	public abstract fun getStatusByte ()B
-	public abstract fun getStatusCode ()B
+	public fun getChannel ()B
+	public fun getEventType ()B
+	public fun getLsb ()B
+	public fun getMetaType ()B
+	public fun getMsb ()B
+	public fun getStatusByte ()B
+	public fun getStatusCode ()B
 	public abstract fun getValue ()I
 }
 

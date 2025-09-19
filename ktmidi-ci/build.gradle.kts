@@ -12,7 +12,6 @@ plugins {
 kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "ktmidi-ci"
         browser {
             testTask {
                 enabled = false
@@ -26,9 +25,6 @@ kotlin {
     }
 
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
-        }
         testRuns["test"].executionTask.configure {
             useJUnit()
         }
@@ -51,11 +47,9 @@ kotlin {
     }
 
     iosArm64 { binaries { framework { baseName = "ktmidi-ci" } } }
-    iosX64 { binaries { framework { baseName = "ktmidi-ci" } } }
     iosSimulatorArm64 { binaries {framework { baseName = "ktmidi-ci" } } }
 
     macosArm64()
-    macosX64()
     linuxArm64()
     linuxX64()
     mingwX64()
@@ -105,7 +99,6 @@ kotlin {
         val nativeMain by creating
         val nativeTest by creating
         val macosArm64Main by getting
-        val macosX64Main by getting
         val linuxArm64Main by getting
         val linuxX64Main by getting
         val mingwX64Main by getting
@@ -113,8 +106,6 @@ kotlin {
         val iosArm64Test by getting
         val iosSimulatorArm64Main by getting
         val iosSimulatorArm64Test by getting
-        val iosX64Main by getting
-        val iosX64Test by getting
         val wasmJsMain by getting
         val wasmJsTest by getting
     }

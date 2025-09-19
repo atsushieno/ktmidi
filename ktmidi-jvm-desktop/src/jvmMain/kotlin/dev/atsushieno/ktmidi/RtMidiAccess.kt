@@ -9,6 +9,7 @@ import org.bytedeco.javacpp.Pointer
 
 import dev.atsushieno.rtmidi_javacpp.global.rtmidi as library
 
+@Deprecated("Use LibreMidiAccess instead. JavaCPP bindings cannot resolve native libraries from jar bundles.")
 class RtMidiAccess : MidiAccess() {
     companion object {
 

@@ -11,7 +11,6 @@ plugins {
 
 kotlin {
     wasmJs {
-        moduleName = "ktmidi-ci-tool"
         browser {
             commonWebpackConfig {
                 outputFileName = "ktmidi-ci-tool.js"
@@ -22,17 +21,11 @@ kotlin {
     }
 
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
-        }
     }
     
     jvm("desktop")
     
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -78,7 +71,6 @@ kotlin {
                 implementation(libs.mpfilepicker)
             }
         }
-        val iosX64Main by getting { dependsOn(iosMain) }
         val iosArm64Main by getting { dependsOn(iosMain) }
         val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
         val wasmJsMain by getting {

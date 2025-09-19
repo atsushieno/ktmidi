@@ -2,8 +2,9 @@ package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.Message.Companion.muidString
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
-import kotlinx.datetime.Clock
 import kotlin.experimental.and
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 class Messenger(
     private val device: MidiCIDevice,
@@ -563,6 +564,7 @@ class Messenger(
 
     private val localPendingChunkManager = PropertyChunkManager()
 
+    @OptIn(ExperimentalTime::class)
     private fun handleChunk(common: Message.Common, requestId: Byte, chunkIndex: Short, numChunks: Short,
                             header: List<Byte>, body: List<Byte>,
                             onComplete: (header: List<Byte>, body: List<Byte>) -> Unit) {

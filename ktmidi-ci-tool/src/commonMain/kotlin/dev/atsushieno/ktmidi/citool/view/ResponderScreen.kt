@@ -5,8 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.Snapshot
@@ -92,7 +90,9 @@ fun LocalProfileList(vm: ResponderViewModel) {
                 vm.addNewProfile(state)
                 editedProfileName = state.profile.toString()
             }, enabled = !vm.isSelectedProfileIdEditing.value && profileIds.all { it != emptyId }) {
-                Image(Icons.Default.Add, "Add")
+                // FIXME: they are gone around Compose Multiplatform 1.9.0
+                //Image(Icons.Default.Add, "Add")
+                Text("Add")
             }
             if (vm.isSelectedProfileIdEditing.value) {
                 Button(onClick = {
@@ -103,19 +103,25 @@ fun LocalProfileList(vm: ResponderViewModel) {
                         vm.updateProfileName(vm.selectedProfile.value!!, newProfileId)
                     }
                 }) {
-                    Image(Icons.Default.Done, "Commit changes")
+                    // FIXME: they are gone around Compose Multiplatform 1.9.0
+                    //Image(Icons.Default.Done, "Commit changes")
+                    Text("Commit changes")
                 }
                 Button(onClick = {
                     vm.isSelectedProfileIdEditing.value = false
                 }) {
-                    Image(Icons.Default.Close, "Discard changes")
+                    // FIXME: they are gone around Compose Multiplatform 1.9.0
+                    //Image(Icons.Default.Close, "Discard changes")
+                    Text("Discard changes")
                 }
             } else {
                 Button(onClick = {
                     editedProfileName = vm.selectedProfile.value?.toString() ?: ""
                     vm.isSelectedProfileIdEditing.value = true
                 }, enabled = vm.selectedProfile.value != null) {
-                    Image(Icons.Default.Edit, "Edit")
+                    // FIXME: they are gone around Compose Multiplatform 1.9.0
+                    //Image(Icons.Default.Edit, "Edit")
+                    Text("Edit")
                 }
 
             }
@@ -125,7 +131,9 @@ fun LocalProfileList(vm: ResponderViewModel) {
             Button(onClick = {
                 vm.addTestProfileItems()
             }, enabled = !vm.isSelectedProfileIdEditing.value) {
-                Image(Icons.Default.Add, "Add test items")
+                // FIXME: they are gone around Compose Multiplatform 1.9.0
+                //Image(Icons.Default.Add, "Add test items")
+                Text("Add test items")
             }
         }
     }
@@ -177,7 +185,9 @@ fun LocalProfileDetails(vm: ResponderViewModel, profile: MidiCIProfileId) {
                     onClick = { vm.removeProfileTarget(it.group.value, it.address.value, it.profile) },
                     enabled = !vm.isSelectedProfileIdEditing.value,
                     modifier = Modifier.padding(12.dp, 0.dp)) {
-                    Image(Icons.Default.Delete, "Delete")
+                    // FIXME: they are gone around Compose Multiplatform 1.9.0
+                    //Image(Icons.Default.Delete, "Delete")
+                    Text("Delete")
                 }
             }
         }
@@ -187,7 +197,9 @@ fun LocalProfileDetails(vm: ResponderViewModel, profile: MidiCIProfileId) {
                 vm.addNewProfileTarget(state)
                 vm.selectedProfile.value = state.profile
             }, enabled = vm.selectedProfile.value != null && vm.model.localProfileStates.all { it.profile != profile || it.address.value != MidiCIConstants.ADDRESS_FUNCTION_BLOCK }) {
-                Image(Icons.Default.Add, "Add")
+                // FIXME: they are gone around Compose Multiplatform 1.9.0
+                //Image(Icons.Default.Add, "Add")
+                Text("Add")
             }
         }
     }
@@ -244,10 +256,14 @@ fun LocalPropertyList(properties: List<String>,
         }
         Row {
             Button(onClick = { createNewProperty() }) {
-                Image(Icons.Default.Add, "Add")
+                // FIXME: they are gone around Compose Multiplatform 1.9.0
+                //Image(Icons.Default.Add, "Add")
+                Text("Add")
             }
             Button(onClick = { removeSelectedProperty() }) {
-                Image(Icons.Default.Delete, "Delete")
+                // FIXME: they are gone around Compose Multiplatform 1.9.0
+                //Image(Icons.Default.Delete, "Delete")
+                Text("Delete")
             }
         }
     }

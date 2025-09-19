@@ -9,15 +9,11 @@ plugins {
 kotlin {
     @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "ktmidi"
         browser {}
         //nodejs {}
     }
 
     jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
-        }
         testRuns["test"].executionTask.configure {
             useJUnit()
         }
@@ -41,7 +37,6 @@ kotlin {
 
     val iosTargets = listOf(
         iosArm64(),
-        iosX64(),
         iosSimulatorArm64()
     ).onEach {
         it.binaries {
@@ -51,7 +46,6 @@ kotlin {
 
     val appleTargets = listOf(
         macosArm64(),
-        macosX64()
     ) + iosTargets
     linuxArm64()
     linuxX64()
@@ -130,15 +124,12 @@ kotlin {
         val appleTest by creating { dependsOn(nativeTest) }
         val macosMain by creating { dependsOn(appleMain) }
         val macosArm64Main by getting { dependsOn(macosMain) }
-        val macosX64Main by getting { dependsOn(macosMain) }
         val iosMain by creating { dependsOn(appleMain) }
         val iosTest by creating { dependsOn(appleTest) }
         val iosArm64Main by getting { dependsOn(iosMain) }
         val iosArm64Test by getting { dependsOn(iosTest) }
         val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
         val iosSimulatorArm64Test by getting { dependsOn(iosTest) }
-        val iosX64Main by getting { dependsOn(iosMain) }
-        val iosX64Test by getting { dependsOn(iosTest) }
     }
 }
 
