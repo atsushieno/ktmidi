@@ -131,15 +131,20 @@ class Midi1Event(val deltaTime: Int, val message: Midi1Message) {
 
 interface Midi1Message {
     companion object {
-        @Deprecated("Use convert(bytes, index, size, sysExChunkProcessor. It's better if you supply Midi1SysExChunkProcessor() (it is null by default for backward compatibility).", ReplaceWith("convert(bytes, index, size, null)"))
+        @Deprecated("Use convert(bytes, index, size, sysExChunkProcessor). It's better if you supply Midi1SysExChunkProcessor() (it is null by default for backward compatibility).", ReplaceWith("convert(bytes, index, size, null)"))
         fun convert(bytes: ByteArray, index: Int, size: Int): Sequence<Midi1Message> = convert(bytes, index, size, null)
 
-        fun convert(bytes: ByteArray, index: Int, size: Int,
-                    sysExChunkProcessor: Midi1SysExChunkProcessor? = Midi1SysExChunkProcessor()
-        ): Sequence<Midi1Message> = convert(bytes.drop(index).take(size), sysExChunkProcessor)
-
+        @Deprecated("Use convert(...) in the ByteArray version. It's more efficient.")
         fun convert(bytes: List<Byte>,
-                    sysExChunkProcessor: Midi1SysExChunkProcessor? = Midi1SysExChunkProcessor()
+                    sysExChunkProcessor: Midi1SysExChunkProcessor? = DefaultMidi1SysExChunkProcessor()
+        ): Sequence<Midi1Message> = convert(bytes.toByteArray())
+
+        fun convert(bytes: ByteArray, index: Int, size: Int,
+                    sysExChunkProcessor: Midi1SysExChunkProcessor? = DefaultMidi1SysExChunkProcessor()
+        ): Sequence<Midi1Message> = convert(bytes.copyOfRange(index, index + size), sysExChunkProcessor)
+
+        fun convert(bytes: ByteArray,
+                    sysExChunkProcessor: Midi1SysExChunkProcessor? = DefaultMidi1SysExChunkProcessor()
         ): Sequence<Midi1Message> = sequence {
             if (sysExChunkProcessor == null)
                 yieldAll(convertInternal(bytes))
@@ -149,7 +154,7 @@ interface Midi1Message {
                     .forEach { yieldAll(it) }
         }
 
-        private fun convertInternal(bytes: List<Byte>): Sequence<Midi1Message> = sequence {
+        private fun convertInternal(bytes: ByteArray): Sequence<Midi1Message> = sequence {
             var i = 0
             val size = bytes.size
             val end = bytes.size

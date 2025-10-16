@@ -14,10 +14,10 @@ class Midi1SysExChunkProcessorTest {
                 0x7E, 0x7F, 0x0D, 0x7E, 1,
                 0x10, 0x10, 0x10, 0x10, 0x7F, 0x7F, 0x7F, 0x7F, 0x20, 0x20, 0x20, 0x20,
                 0xF7).map { it.toByte() }
-            val seq1 = processor.process(sysex.take(10)).flatMap { it }
+            val seq1 = processor.process(sysex.take(10).toByteArray()).flatMap { it.toList() }
             // The inputs are still stored.
             assertFalse(seq1.iterator().hasNext(), "round $it: #1")
-            val seq2 = processor.process(sysex.drop(10)).flatMap { it }
+            val seq2 = processor.process(sysex.drop(10).toByteArray()).flatMap { it.toList() }
             // the pending inputs are flushed now (and should not remain: https://github.com/atsushieno/ktmidi/issues/81#issuecomment-2253261161)
             assertContentEquals(sysex, seq2.toList(), "round $it: #2")
         }

@@ -1,38 +1,90 @@
 package dev.atsushieno.ktmidi
 
-class Midi1SysExChunkProcessor {
-    val remaining = mutableListOf<Byte>()
-    // Returns a sequence of "event list" that are "complete" i.e. not pending.
-    // Any incomplete sysex buffer is stored in `remaining`.
-    // If there is no buffer and the input is an incomplete SysEx buffer, then only an empty sequence is returned.
-    fun process(input: List<Byte>): Sequence<List<Byte>> = sequence {
+/**
+ * Processor class meant to handle large System Exclusive (SysEx) messages.
+ */
+interface Midi1SysExChunkProcessor {
+    /**
+     * Process incoming raw data and check for SysEyx Start/End bytes.
+     * To handle large SysEx messages correctly, data needs to be stored in a buffer until
+     * the SysEx End Byte is received.
+     * @param input The received midi data that should be processed
+     * @return chunks of midi data, preferably (but not necessarily) each containing one or more fully valid midi messages
+     */
+    fun process(input: ByteArray): Sequence<ByteArray>
+}
+
+/**
+ * Default implementation of [Midi1SysExChunkProcessor].
+ * Ensures correct handling of large SysEx files according to Midi Specs
+ * This includes handling foreign Status Bytes during an ongoing SysEx transfer.
+ * In this case, the SysEx transfer is terminated and the incomplete SysEx messages is
+ * forwarded so a consuming app might process the partial data.
+ */
+class DefaultMidi1SysExChunkProcessor: Midi1SysExChunkProcessor {
+    // For incomplete SysEx data in between invocations
+    private var remaining = ByteArray(0)
+
+    /**
+     * Processes incoming MIDI bytes and yields complete messages (as ByteArrays).
+     * Incomplete SysEx messages are buffered internally.
+     */
+    override fun process(input: ByteArray): Sequence<ByteArray> = sequence {
+        var buffer: ByteArray
+        var bufferPos = 0
+
+        // Start with remaining data (if any) in buffer
         if (remaining.isNotEmpty()) {
-            val f7Pos = input.indexOf(0xF7.toByte())
-            if (f7Pos < 0)
-                remaining.addAll(input)
-            else {
-                yield(remaining + input.take(f7Pos + 1))
-                remaining.clear()
-                // process the remaining recursively
-                yieldAll(process(input.drop(f7Pos + 1)))
-            }
+            buffer = ByteArray(remaining.size + input.size)
+            remaining.copyInto(buffer)
+            input.copyInto(buffer, remaining.size)
+            bufferPos = remaining.size + input.size
+            remaining = ByteArray(0)
         } else {
-            // If sysex is found then check if it is incomplete.
-            // F0 must occur only as the beginning of SysEx, so simply check it by indexOf().
-            val f0Pos = input.indexOf(0xF0.toByte())
-            if (f0Pos < 0)
-                yield(input)
-            else {
-                yield(input.take(f0Pos))
-                val f7Pos = input.indexOf(0xF7.toByte())
-                if (f7Pos < 0)
-                    remaining.addAll(input)
-                else {
-                    yield(input.take(f7Pos + 1))
-                    // process the remaining recursively
-                    yieldAll(process(input.drop(f7Pos + 1)))
+            buffer = input
+            bufferPos = input.size
+        }
+
+        var pos = 0
+        var msgStart = 0
+        var inSysEx = false
+
+        while (pos < bufferPos) {
+            val b = buffer[pos]
+
+            when {
+                // SysEx Start
+                b == 0xF0.toByte() -> {
+                    // Yield all bytes before SysEx (e.g. normal channel messages)
+                    if (!inSysEx && pos > msgStart) {
+                        yield(buffer.copyOfRange(msgStart, pos))
+                    }
+                    msgStart = pos
+                    inSysEx = true
+                }
+
+                // SysEx End
+                b == 0xF7.toByte() && inSysEx -> {
+                    yield(buffer.copyOfRange(msgStart, pos + 1))
+                    msgStart = pos + 1
+                    inSysEx = false
+                }
+
+                // Status byte outside of SysEx (>= 0x80)
+                (b.toInt() and 0x80) != 0 && !inSysEx && pos > msgStart -> {
+                    yield(buffer.copyOfRange(msgStart, pos))
+                    msgStart = pos
                 }
             }
+            pos++
+        }
+
+        // If there is an ongoing (incomplete) SysEx message, save it in 'remaining'
+        if (inSysEx) {
+            remaining = buffer.copyOfRange(msgStart, bufferPos)
+        } else if (msgStart < bufferPos) {
+            // Default path, no SysEx
+            yield(buffer.copyOfRange(msgStart, bufferPos))
         }
     }
 }
