@@ -134,7 +134,6 @@ interface Midi1Message {
         @Deprecated("Use convert(bytes, index, size, sysExChunkProcessor). It's better if you supply Midi1SysExChunkProcessor() (it is null by default for backward compatibility).", ReplaceWith("convert(bytes, index, size, null)"))
         fun convert(bytes: ByteArray, index: Int, size: Int): Sequence<Midi1Message> = convert(bytes, index, size, null)
 
-        @Deprecated("Use convert(...) in the ByteArray version. It's more efficient.")
         fun convert(bytes: List<Byte>,
                     sysExChunkProcessor: Midi1SysExChunkProcessor? = DefaultMidi1SysExChunkProcessor()
         ): Sequence<Midi1Message> = convert(bytes.toByteArray())
