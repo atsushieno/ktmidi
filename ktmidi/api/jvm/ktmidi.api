@@ -75,6 +75,11 @@ public final class dev/atsushieno/ktmidi/Dc {
 	public fun toString ()Ljava/lang/String;
 }
 
+public final class dev/atsushieno/ktmidi/DefaultMidi1SysExChunkProcessor : dev/atsushieno/ktmidi/Midi1SysExChunkProcessor {
+	public fun <init> ()V
+	public fun process ([B)Lkotlin/sequences/Sequence;
+}
+
 public final class dev/atsushieno/ktmidi/DefaultMidiModuleDatabase : dev/atsushieno/ktmidi/MidiModuleDatabase {
 	public static final field Companion Ldev/atsushieno/ktmidi/DefaultMidiModuleDatabase$Companion;
 	public fun <init> ()V
@@ -707,8 +712,10 @@ public final class dev/atsushieno/ktmidi/Midi1Message$Companion {
 	public final fun convert (Ljava/util/List;Ldev/atsushieno/ktmidi/Midi1SysExChunkProcessor;)Lkotlin/sequences/Sequence;
 	public final fun convert ([BII)Lkotlin/sequences/Sequence;
 	public final fun convert ([BIILdev/atsushieno/ktmidi/Midi1SysExChunkProcessor;)Lkotlin/sequences/Sequence;
+	public final fun convert ([BLdev/atsushieno/ktmidi/Midi1SysExChunkProcessor;)Lkotlin/sequences/Sequence;
 	public static synthetic fun convert$default (Ldev/atsushieno/ktmidi/Midi1Message$Companion;Ljava/util/List;Ldev/atsushieno/ktmidi/Midi1SysExChunkProcessor;ILjava/lang/Object;)Lkotlin/sequences/Sequence;
 	public static synthetic fun convert$default (Ldev/atsushieno/ktmidi/Midi1Message$Companion;[BIILdev/atsushieno/ktmidi/Midi1SysExChunkProcessor;ILjava/lang/Object;)Lkotlin/sequences/Sequence;
+	public static synthetic fun convert$default (Ldev/atsushieno/ktmidi/Midi1Message$Companion;[BLdev/atsushieno/ktmidi/Midi1SysExChunkProcessor;ILjava/lang/Object;)Lkotlin/sequences/Sequence;
 	public final fun fixedDataSize (B)B
 }
 
@@ -806,10 +813,8 @@ public final class dev/atsushieno/ktmidi/Midi1Status {
 	public static final field SYSEX_END I
 }
 
-public final class dev/atsushieno/ktmidi/Midi1SysExChunkProcessor {
-	public fun <init> ()V
-	public final fun getRemaining ()Ljava/util/List;
-	public final fun process (Ljava/util/List;)Lkotlin/sequences/Sequence;
+public abstract interface class dev/atsushieno/ktmidi/Midi1SysExChunkProcessor {
+	public abstract fun process ([B)Lkotlin/sequences/Sequence;
 }
 
 public final class dev/atsushieno/ktmidi/Midi1SystemCommon {

@@ -7,7 +7,7 @@ import kotlin.test.assertFalse
 class Midi1SysExChunkProcessorTest {
     @Test
     fun process1() {
-        val processor = Midi1SysExChunkProcessor()
+        val processor = DefaultMidi1SysExChunkProcessor()
         (1..3).forEach {
             val sysex = listOf(0xF0,
                 // invalidate MUID example
