@@ -159,7 +159,7 @@ interface Midi1Message {
             val end = bytes.size
             while (i < end) {
                 if (bytes[i].toUnsigned() == 0xF0) {
-                    yield(Midi1CompoundMessage(0xF0, 0, 0, bytes.drop(i).take(size).toByteArray()))
+                    yield(Midi1CompoundMessage(0xF0, 0, 0, bytes.copyOfRange(i, i + size)))
                     i += size
                 } else {
                     if (end <= i + fixedDataSize(bytes[i]))
