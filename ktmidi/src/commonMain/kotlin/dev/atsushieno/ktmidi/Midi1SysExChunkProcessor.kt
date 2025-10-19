@@ -5,8 +5,11 @@ package dev.atsushieno.ktmidi
  * This includes handling foreign Status Bytes during an ongoing SysEx transfer.
  * In this case, the SysEx transfer is terminated and the incomplete SysEx messages is
  * forwarded so a consuming app might process the partial data.
+ * @param returnCancelledSysEx if true, incomplete SysEx messages will be yielded to the sequence
+ * if the first received status byte after F0 is any other than F7. If false, the incomplete
+ * message is discarded
  */
-class Midi1SysExChunkProcessor: Midi1Processor {
+class Midi1SysExChunkProcessor(val returnCancelledSysEx: Boolean = false): Midi1Processor {
     // For incomplete SysEx data in between invocations
     private var remaining: ByteSource? = null
 
@@ -36,16 +39,6 @@ class Midi1SysExChunkProcessor: Midi1Processor {
             val b = buffer[pos]
 
             when {
-                // SysEx Start
-                b == 0xF0.toByte() -> {
-                    // Yield all bytes before SysEx (e.g. normal channel messages)
-                    if (!inSysEx && pos > msgStart) {
-                        yield(buffer.copyOfRange(msgStart, pos))
-                    }
-                    msgStart = pos
-                    inSysEx = true
-                }
-
                 // SysEx End
                 b == 0xF7.toByte() && inSysEx -> {
                     yield(buffer.copyOfRange(msgStart, pos + 1))
@@ -53,7 +46,23 @@ class Midi1SysExChunkProcessor: Midi1Processor {
                     inSysEx = false
                 }
 
-                // Status byte outside of SysEx (>= 0x80)
+                // Status byte inside SysEx
+                (b.toInt() and 0x80) != 0 && inSysEx -> {
+                    if (returnCancelledSysEx && pos > msgStart) {
+                        yield(buffer.copyOfRange(msgStart, pos))
+                    }
+                    // If new SysEx, we'll start it below
+                    msgStart = pos
+                    inSysEx = b == 0xF0.toByte()
+                }
+
+                // SysEx Start
+                b == 0xF0.toByte() -> {
+                    msgStart = pos
+                    inSysEx = true
+                }
+
+                // Status byte outside of SysEx
                 (b.toInt() and 0x80) != 0 && !inSysEx && pos > msgStart -> {
                     yield(buffer.copyOfRange(msgStart, pos))
                     msgStart = pos
