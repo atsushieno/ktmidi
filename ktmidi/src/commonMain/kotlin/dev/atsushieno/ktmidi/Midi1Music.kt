@@ -131,50 +131,28 @@ class Midi1Event(val deltaTime: Int, val message: Midi1Message) {
 
 interface Midi1Message {
     companion object {
-        @Deprecated("Use convert(bytes, index, size, sysExChunkProcessor). It's better if you supply Midi1SysExChunkProcessor() (it is null by default for backward compatibility).", ReplaceWith("convert(bytes, index, size, null)"))
-        fun convert(bytes: ByteArray, index: Int, size: Int): Sequence<Midi1Message> = convert(bytes, index, size, null)
+        @Deprecated(
+            "Use convert(bytes, index, size, midiProcessor). It's better if you supply Midi1SysExChunkProcessor() (it is null by default for backward compatibility).",
+            ReplaceWith("convert(bytes, index, size, null)")
+        )
+        fun convert(bytes: ByteArray, index: Int, size: Int): Sequence<Midi1Message> =
+            convert(bytes, index, size, null)
 
-        fun convert(bytes: List<Byte>,
-                    sysExChunkProcessor: Midi1SysExChunkProcessor? = DefaultMidi1SysExChunkProcessor()
-        ): Sequence<Midi1Message> = convert(bytes.toByteArray())
-
-        fun convert(bytes: ByteArray, index: Int, size: Int,
-                    sysExChunkProcessor: Midi1SysExChunkProcessor? = DefaultMidi1SysExChunkProcessor()
-        ): Sequence<Midi1Message> = convert(bytes.copyOfRange(index, index + size), sysExChunkProcessor)
-
-        fun convert(bytes: ByteArray,
-                    sysExChunkProcessor: Midi1SysExChunkProcessor? = DefaultMidi1SysExChunkProcessor()
-        ): Sequence<Midi1Message> = sequence {
-            if (sysExChunkProcessor == null)
-                yieldAll(convertInternal(bytes))
-            else
-                sysExChunkProcessor.process(bytes)
-                    .map { convertInternal(it) }
-                    .forEach { yieldAll(it) }
+        fun convert(
+            bytes: List<Byte>, midiProcessor: Midi1Processor? = Midi1SysExChunkProcessor()
+        ): Sequence<Midi1Message> = with(midiProcessor ?: Midi1SimpleProcessor) {
+            this.process(bytes)
         }
 
-        private fun convertInternal(bytes: ByteArray): Sequence<Midi1Message> = sequence {
-            var i = 0
-            val size = bytes.size
-            val end = bytes.size
-            while (i < end) {
-                if (bytes[i].toUnsigned() == 0xF0) {
-                    yield(Midi1CompoundMessage(0xF0, 0, 0, bytes.copyOfRange(i, i + size)))
-                    i += size
-                } else {
-                    if (end <= i + fixedDataSize(bytes[i]))
-                        throw Midi1Exception("Received data was incomplete to build MIDI status message for '${bytes[i]}' status.")
-                    val z = fixedDataSize(bytes[i])
-                    yield(
-                        Midi1SimpleMessage(
-                            bytes[i].toUnsigned(),
-                            (if (z > 0) bytes[i + 1].toUnsigned() else 0),
-                            (if (z > 1) bytes[i + 2].toUnsigned() else 0),
-                        )
-                    )
-                    i += z + 1
-                }
-            }
+        fun convert(
+            bytes: ByteArray, index: Int, size: Int,
+            midiProcessor: Midi1Processor? = Midi1SysExChunkProcessor()
+        ): Sequence<Midi1Message> = convert(bytes.copyOfRange(index, index + size), midiProcessor)
+
+        fun convert(
+            bytes: ByteArray, midiProcessor: Midi1Processor? = Midi1SysExChunkProcessor()
+        ): Sequence<Midi1Message> = with(midiProcessor ?: Midi1SimpleProcessor) {
+            this.process(bytes)
         }
 
         fun fixedDataSize(statusByte: Byte): Byte =

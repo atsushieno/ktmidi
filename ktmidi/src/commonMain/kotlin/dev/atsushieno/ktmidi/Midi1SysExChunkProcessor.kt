@@ -1,49 +1,32 @@
 package dev.atsushieno.ktmidi
 
 /**
- * Processor class meant to handle large System Exclusive (SysEx) messages.
- */
-interface Midi1SysExChunkProcessor {
-    /**
-     * Process incoming raw data and check for SysEyx Start/End bytes.
-     * To handle large SysEx messages correctly, data needs to be stored in a buffer until
-     * the SysEx End Byte is received.
-     * @param input The received midi data that should be processed
-     * @return chunks of midi data, preferably (but not necessarily) each containing one or more fully valid midi messages
-     */
-    fun process(input: ByteArray): Sequence<ByteArray>
-}
-
-/**
- * Default implementation of [Midi1SysExChunkProcessor].
  * Ensures correct handling of large SysEx files according to Midi Specs
  * This includes handling foreign Status Bytes during an ongoing SysEx transfer.
  * In this case, the SysEx transfer is terminated and the incomplete SysEx messages is
  * forwarded so a consuming app might process the partial data.
  */
-class DefaultMidi1SysExChunkProcessor: Midi1SysExChunkProcessor {
+class Midi1SysExChunkProcessor: Midi1Processor {
     // For incomplete SysEx data in between invocations
-    private var remaining = ByteArray(0)
+    private var remaining: ByteSource? = null
+
+    override fun process(input: List<Byte>): Sequence<Midi1Message> =
+        process(ByteSource.BytesList(input))
+
+    override fun process(input: ByteArray): Sequence<Midi1Message> =
+        process(ByteSource.Bytes(input))
 
     /**
      * Processes incoming MIDI bytes and yields complete messages (as ByteArrays).
      * Incomplete SysEx messages are buffered internally.
      */
-    override fun process(input: ByteArray): Sequence<ByteArray> = sequence {
-        var buffer: ByteArray
+    private fun process(input: ByteSource): Sequence<Midi1Message> = sequence {
         var bufferPos = 0
 
         // Start with remaining data (if any) in buffer
-        if (remaining.isNotEmpty()) {
-            buffer = ByteArray(remaining.size + input.size)
-            remaining.copyInto(buffer)
-            input.copyInto(buffer, remaining.size)
-            bufferPos = remaining.size + input.size
-            remaining = ByteArray(0)
-        } else {
-            buffer = input
-            bufferPos = input.size
-        }
+        val buffer = remaining?.append(input) ?: input
+        bufferPos = buffer.size
+        remaining = null
 
         var pos = 0
         var msgStart = 0
@@ -86,5 +69,8 @@ class DefaultMidi1SysExChunkProcessor: Midi1SysExChunkProcessor {
             // Default path, no SysEx
             yield(buffer.copyOfRange(msgStart, bufferPos))
         }
-    }
+    }.flatMap { item -> when(item) {
+        is ByteSource.Bytes -> Midi1SimpleProcessor.process(item.asByteArray())
+        is ByteSource.BytesList -> Midi1SimpleProcessor.process(item.asList())
+    } }
 }
