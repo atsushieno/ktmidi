@@ -33,7 +33,7 @@ internal sealed class ByteSource {
 
     fun copyOfRange(fromIndex: Int, toIndex: Int): ByteSource = when(this) {
         is Bytes -> Bytes(array.copyOfRange(fromIndex, toIndex))
-        is BytesList -> BytesList(list.subList(fromIndex, toIndex))
+        is BytesList -> BytesList(list.subList(fromIndex, toIndex).toList()) // toList() ensures copy
     }
 
     fun append(other: ByteSource): ByteSource = when (this) {
