@@ -32,6 +32,7 @@ object PropertyCommonHeaderKeys {
 
 object CommonRulesKnownMimeTypes {
     const val APPLICATION_JSON = "application/json"
+    const val APPLICATION_OCTET_STREAM = "application/octet-stream"
 }
 
 object PropertyExchangeStatus {

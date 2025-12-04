@@ -28,6 +28,10 @@ data class MidiCIStateEntry(
     val size: Int?,
 )
 
+object MidiCIStatePredefinedNames {
+    const val FULL_STATE = "fullState"
+}
+
 object MidiCIControlType {
     const val CC = "cc"
     const val CH_PRESS = "chPress"
@@ -138,6 +142,7 @@ object StandardProperties {
 
     // FIXME: they should be populated from JSON Schema
     val stateListMetadata = CommonRulesPropertyMetadata().apply {
+        resource = "StateList"
         canSet = PropertySetAccess.NONE
         canSubscribe = false
         canPaginate = false
@@ -170,13 +175,19 @@ object StandardProperties {
         )
     }
     val stateMetadata = CommonRulesPropertyMetadata().apply {
-        canSubscribe = false
+        resource = "State"
+        canSet = PropertySetAccess.FULL
         requireResId = true
+        canSubscribe = false
+        encodings = listOf(PropertyDataEncoding.MCODED7)
+        mediaTypes = listOf(CommonRulesKnownMimeTypes.APPLICATION_OCTET_STREAM)
     }
     val allCtrlListMetadata = CommonRulesPropertyMetadata().apply {
+        resource = "AllCtrlList"
         columns = getCtrlListColumns()
     }
     val chCtrlListMetadata = CommonRulesPropertyMetadata().apply {
+        resource = "ChCtrlList"
         columns = getCtrlListColumns()
     }
     private fun getCtrlListColumns() = listOf(
@@ -238,6 +249,7 @@ object StandardProperties {
         },
     )
     val ctrlMapListMetadata = CommonRulesPropertyMetadata().apply {
+        resource = "CtrlMapList"
         columns = listOf(
             PropertyResourceColumn().apply {
                 property = ControlMapPropertyNames.VALUE
@@ -250,6 +262,7 @@ object StandardProperties {
         )
     }
     val programListMetadata = CommonRulesPropertyMetadata().apply {
+        resource = "ProgramList"
         columns = listOf(
             PropertyResourceColumn().apply {
                 property = ProgramPropertyNames.TITLE
