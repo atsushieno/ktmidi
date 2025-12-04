@@ -12,7 +12,7 @@ private val defaultPropertyList = listOf(
     CommonRulesPropertyMetadata(PropertyResourceNames.JSON_SCHEMA).apply { originator = CommonRulesPropertyMetadata.Originator.SYSTEM }
 )
 
-class CommonRulesPropertyService(private val device: MidiCIDevice)
+open class CommonRulesPropertyService(private val device: MidiCIDevice)
     : MidiCIServicePropertyRules {
     private val helper = CommonRulesPropertyHelper(device)
     private val logger by device::logger
@@ -70,7 +70,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
             return Result.failure(ex)
         }
 
-        val result = getPropertyData(jsonInquiry)
+        val result = getPropertyDataEncoded(jsonInquiry)
 
         val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toASCIIByteArray().toList()
         val replyBody = result.second
@@ -136,6 +136,18 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     val linkedResources = mutableMapOf<String, List<Byte>>()
 
+    /**
+     * Gets a binary resource by resource ID.
+     * Override this method to provide dynamic resource retrieval.
+     * The default implementation uses the linkedResources map.
+     *
+     * @param resId The resource ID to retrieve
+     * @return The binary data for the resource, or null if not found
+     */
+    open fun getBinaryResource(resId: String?): List<Byte>? {
+        return if (resId != null) linkedResources[resId] else null
+    }
+
     private fun getPropertyHeader(json: Json.JsonValue) =
         PropertyCommonRequestHeader(
             json.getObjectValue(PropertyCommonHeaderKeys.RESOURCE)?.stringValue ?: "",
@@ -170,7 +182,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
             PropertyResourceNames.CHANNEL_LIST -> FoundationalResources.toJsonValue(channelList)
             PropertyResourceNames.JSON_SCHEMA -> if (device.config.jsonSchemaString.isNotBlank()) Json.parse(device.config.jsonSchemaString) else null
             else -> {
-                val bytes = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body
+                val bytes = getBinaryResource(header.resId) ?: values.firstOrNull { it.id == header.resource }?.body
                     ?: throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")
                 if (bytes.any()) Json.parse(bytes.toByteArray().decodeToString()) else Json.EmptyObject
             }
@@ -189,8 +201,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, mutualEncoding = header.mutualEncoding, totalCount = totalCount)), paginatedBody ?: Json.EmptyObject)
     }
 
-    // It returns the *encoded* result.
-    private fun getPropertyData(headerJson: Json.JsonValue): Pair<Json.JsonValue, List<Byte>> {
+    private fun getPropertyDataEncoded(headerJson: Json.JsonValue): Pair<Json.JsonValue, List<Byte>> {
         val header = getPropertyHeader(headerJson)
         if (header.mediaType == null || header.mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON) {
             val ret = getPropertyDataJson(header)
@@ -198,7 +209,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
             val encodedBody = encodeBody(body, header.mutualEncoding)
             return Pair(ret.first, encodedBody)
         } else {
-            val body = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body
+            val body = getBinaryResource(header.resId) ?: values.firstOrNull { it.id == header.resource }?.body
                 ?: listOf()
             val encodedBody = encodeBody(body, header.mutualEncoding)
             val replyHeader = getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, mutualEncoding = header.mutualEncoding))
