@@ -104,6 +104,10 @@ class MusicDevice(
         get() = ciSession.device.propertyHost.propertyBinaryGetter
         set(value) { ciSession.device.propertyHost.propertyBinaryGetter = value }
 
+    var propertyBinarySetter: (propertyId: String, resId: String?, mediaType: String, body: List<Byte>) -> Boolean
+        get() = ciSession.device.propertyHost.propertyBinarySetter
+        set(value) { ciSession.device.propertyHost.propertyBinarySetter = value }
+
     fun send(data: List<Byte>, offset: Int, length: Int, timestampInNanoseconds: Long) =
         sender.send(data, offset, length, timestampInNanoseconds)
 }

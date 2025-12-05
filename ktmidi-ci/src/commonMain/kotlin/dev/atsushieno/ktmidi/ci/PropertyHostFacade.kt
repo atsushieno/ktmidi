@@ -52,6 +52,10 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
         get() = (propertyService as? CommonRulesPropertyService)?.propertyBinaryGetter ?: { _, _ -> null }
         set(value) { (propertyService as? CommonRulesPropertyService)?.propertyBinaryGetter = value }
 
+    var propertyBinarySetter: (propertyId: String, resId: String?, mediaType: String, body: List<Byte>) -> Boolean
+        get() = (propertyService as? CommonRulesPropertyService)?.propertyBinarySetter ?: { _, _, _, _ -> false }
+        set(value) { (propertyService as? CommonRulesPropertyService)?.propertyBinarySetter = value }
+
     // These members were moved from `PropertyExchangeResponder` and might be still unsorted.
 
     private val muid by device::muid

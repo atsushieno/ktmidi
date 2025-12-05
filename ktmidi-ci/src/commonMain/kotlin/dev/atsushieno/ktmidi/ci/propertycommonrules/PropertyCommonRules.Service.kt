@@ -140,6 +140,17 @@ open class CommonRulesPropertyService(private val device: MidiCIDevice)
         if (resId != null) linkedResources[resId] else null
     }
 
+    var propertyBinarySetter: (propertyId: String, resId: String?, mediaType: String, body: List<Byte>) -> Boolean = { propertyId, resId, mediaType, body ->
+        val existing = values.firstOrNull { it.id == propertyId }
+        if (existing != null) {
+            existing.body = body
+            true
+        } else {
+            device.config.propertyValues.add(PropertyValue(propertyId, resId, mediaType, body))
+            true
+        }
+    }
+
     private fun getPropertyHeader(json: Json.JsonValue) =
         PropertyCommonRequestHeader(
             json.getObjectValue(PropertyCommonHeaderKeys.RESOURCE)?.stringValue ?: "",
@@ -234,10 +245,11 @@ open class CommonRulesPropertyService(private val device: MidiCIDevice)
                     existing.body = result.second.getSerializedBytes()
             }
         }
-        else if (existing != null)
-            existing.body = decodedBody
-        else
-            device.config.propertyValues.add(PropertyValue(header.resource, header.resId, header.mediaType ?: CommonRulesKnownMimeTypes.APPLICATION_JSON, decodedBody))
+        else {
+            val success = propertyBinarySetter(header.resource, header.resId, header.mediaType ?: CommonRulesKnownMimeTypes.APPLICATION_JSON, decodedBody)
+            if (!success)
+                return Result.failure(PropertyExchangeException("Failed to set property: ${header.resource}"))
+        }
         return Result.success(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)))
     }
 
