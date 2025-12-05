@@ -48,6 +48,10 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
             p.jsonSchemaString = stringValue
     }
 
+    var propertyBinaryGetter: (propertyId: String, resId: String?) -> List<Byte>?
+        get() = (propertyService as? CommonRulesPropertyService)?.propertyBinaryGetter ?: { _, _ -> null }
+        set(value) { (propertyService as? CommonRulesPropertyService)?.propertyBinaryGetter = value }
+
     // These members were moved from `PropertyExchangeResponder` and might be still unsorted.
 
     private val muid by device::muid

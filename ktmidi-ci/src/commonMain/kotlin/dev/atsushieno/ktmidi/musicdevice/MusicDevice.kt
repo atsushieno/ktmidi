@@ -100,6 +100,10 @@ class MusicDevice(
     val chCtrlList: List<MidiCIControl>?
         get() = properties?.chCtrlList
 
+    var propertyBinaryGetter: (propertyId: String, resId: String?) -> List<Byte>?
+        get() = ciSession.device.propertyHost.propertyBinaryGetter
+        set(value) { ciSession.device.propertyHost.propertyBinaryGetter = value }
+
     fun send(data: List<Byte>, offset: Int, length: Int, timestampInNanoseconds: Long) =
         sender.send(data, offset, length, timestampInNanoseconds)
 }

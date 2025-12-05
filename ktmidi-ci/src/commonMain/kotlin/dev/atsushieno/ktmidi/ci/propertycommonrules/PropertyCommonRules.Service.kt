@@ -136,16 +136,8 @@ open class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     val linkedResources = mutableMapOf<String, List<Byte>>()
 
-    /**
-     * Gets a binary resource by resource ID.
-     * Override this method to provide dynamic resource retrieval.
-     * The default implementation uses the linkedResources map.
-     *
-     * @param resId The resource ID to retrieve
-     * @return The binary data for the resource, or null if not found
-     */
-    open fun getBinaryResource(resId: String?): List<Byte>? {
-        return if (resId != null) linkedResources[resId] else null
+    var propertyBinaryGetter: (propertyId: String, resId: String?) -> List<Byte>? = { _, resId ->
+        if (resId != null) linkedResources[resId] else null
     }
 
     private fun getPropertyHeader(json: Json.JsonValue) =
@@ -182,7 +174,7 @@ open class CommonRulesPropertyService(private val device: MidiCIDevice)
             PropertyResourceNames.CHANNEL_LIST -> FoundationalResources.toJsonValue(channelList)
             PropertyResourceNames.JSON_SCHEMA -> if (device.config.jsonSchemaString.isNotBlank()) Json.parse(device.config.jsonSchemaString) else null
             else -> {
-                val bytes = getBinaryResource(header.resId) ?: values.firstOrNull { it.id == header.resource }?.body
+                val bytes = propertyBinaryGetter(header.resource, header.resId) ?: values.firstOrNull { it.id == header.resource }?.body
                     ?: throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")
                 if (bytes.any()) Json.parse(bytes.toByteArray().decodeToString()) else Json.EmptyObject
             }
@@ -209,7 +201,7 @@ open class CommonRulesPropertyService(private val device: MidiCIDevice)
             val encodedBody = encodeBody(body, header.mutualEncoding)
             return Pair(ret.first, encodedBody)
         } else {
-            val body = getBinaryResource(header.resId) ?: values.firstOrNull { it.id == header.resource }?.body
+            val body = propertyBinaryGetter(header.resource, header.resId) ?: values.firstOrNull { it.id == header.resource }?.body
                 ?: listOf()
             val encodedBody = encodeBody(body, header.mutualEncoding)
             val replyHeader = getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, mutualEncoding = header.mutualEncoding))
