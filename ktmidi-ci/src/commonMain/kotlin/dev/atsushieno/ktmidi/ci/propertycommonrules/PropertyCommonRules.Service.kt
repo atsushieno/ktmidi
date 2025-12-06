@@ -134,10 +134,8 @@ open class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     // impl
 
-    val linkedResources = mutableMapOf<String, List<Byte>>()
-
-    var propertyBinaryGetter: (propertyId: String, resId: String?) -> List<Byte>? = { _, resId ->
-        if (resId != null) linkedResources[resId] else null
+    var propertyBinaryGetter: (propertyId: String, resId: String?) -> List<Byte>? = { propertyId, resId ->
+        values.firstOrNull { it.id == propertyId && (resId.isNullOrBlank() || it.resId == resId) }?.body
     }
 
     var propertyBinarySetter: (propertyId: String, resId: String?, mediaType: String, body: List<Byte>) -> Boolean = { propertyId, resId, mediaType, body ->
