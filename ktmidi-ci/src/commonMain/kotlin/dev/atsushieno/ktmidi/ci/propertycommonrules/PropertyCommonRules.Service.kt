@@ -204,7 +204,8 @@ open class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     private fun getPropertyDataEncoded(headerJson: Json.JsonValue): Pair<Json.JsonValue, List<Byte>> {
         val header = getPropertyHeader(headerJson)
-        if (header.mediaType == null || header.mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON) {
+        if ((header.mediaType == null || header.mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON) &&
+            (header.mutualEncoding == null || header.mutualEncoding == PropertyDataEncoding.ASCII)) {
             val ret = getPropertyDataJson(header)
             val body = MidiCIConverter.encodeStringToASCII(Json.serialize(ret.second)).toASCIIByteArray().toList()
             val encodedBody = encodeBody(body, header.mutualEncoding)
