@@ -3,6 +3,8 @@ package dev.atsushieno.ktmidi.ci
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyClient
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyExchangeStatus
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class PropertyClientFacade(private val device: MidiCIDevice, private val conn: ClientConnection) {
     private val muid by device::muid
@@ -15,6 +17,8 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
     val properties = ClientObservablePropertyList(logger, propertyRules)
 
     private val openRequests = mutableListOf<Message.PropertyMessage>()
+    private val pendingGetPropertyCallbacks = mutableMapOf<Byte, (Message.GetPropertyDataReply) -> Unit>()
+    private val pendingSetPropertyCallbacks = mutableMapOf<Byte, (Message.SetPropertyDataReply) -> Unit>()
     val subscriptions = mutableListOf<ClientSubscription>()
     val subscriptionUpdated = mutableListOf<(sub: ClientSubscription)->Unit>()
 
@@ -121,7 +125,8 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
     }
 
     // It is Common Rules specific
-    fun sendGetPropertyData(resource: String, resId: String?, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null) {
+    fun sendGetPropertyData(resource: String, resId: String?, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null): Byte {
+        val requestId = messenger.requestIdSerial++
         val header = propertyRules.createDataRequestHeader(resource, mapOf(
             PropertyCommonHeaderKeys.RES_ID to resId,
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
@@ -131,9 +136,10 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
         ).filter { it.value != null })
         val msg = Message.GetPropertyData(
             Message.Common(muid, targetMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, device.config.group),
-            messenger.requestIdSerial++, header
+            requestId, header
         )
         sendGetPropertyData(msg)
+        return requestId
     }
 
     // unlike the other overload, it is not specific to Common Rules for PE
@@ -143,7 +149,8 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
     }
 
     // It is Common Rules specific
-    fun sendSetPropertyData(resource: String, resId: String?, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false) {
+    fun sendSetPropertyData(resource: String, resId: String?, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false): Byte {
+        val requestId = messenger.requestIdSerial++
         val header = propertyRules.createDataRequestHeader(resource, mapOf(
             PropertyCommonHeaderKeys.RES_ID to resId,
             PropertyCommonHeaderKeys.MUTUAL_ENCODING to encoding,
@@ -152,9 +159,10 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
         val msg =
             Message.SetPropertyData(
                 Message.Common(muid, targetMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, device.config.group),
-                messenger.requestIdSerial++, header, encodedBody
+                requestId, header, encodedBody
             )
         sendSetPropertyData(msg)
+        return requestId
     }
 
     // unlike the other overload, it is not specific to Common Rules for PE
@@ -164,6 +172,24 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
         // To ensure that, we store `msg` as a pending request.
         openRequests.add(msg)
         messenger.send(msg)
+    }
+
+    suspend fun getPropertyData(resource: String, resId: String?, encoding: String? = null, paginateOffset: Int? = null, paginateLimit: Int? = null): Message.GetPropertyDataReply = suspendCancellableCoroutine { cont ->
+        val requestId = sendGetPropertyData(resource, resId, encoding, paginateOffset, paginateLimit)
+        pendingGetPropertyCallbacks[requestId] = { reply -> cont.resume(reply) }
+        cont.invokeOnCancellation {
+            pendingGetPropertyCallbacks.remove(requestId)
+            openRequests.removeAll { it.requestId == requestId }
+        }
+    }
+
+    suspend fun setPropertyData(resource: String, resId: String?, data: List<Byte>, encoding: String? = null, isPartial: Boolean = false): Message.SetPropertyDataReply = suspendCancellableCoroutine { cont ->
+        val requestId = sendSetPropertyData(resource, resId, data, encoding, isPartial)
+        pendingSetPropertyCallbacks[requestId] = { reply -> cont.resume(reply) }
+        cont.invokeOnCancellation {
+            pendingSetPropertyCallbacks.remove(requestId)
+            openRequests.removeAll { it.requestId == requestId }
+        }
     }
 
     fun sendSubscribeProperty(resource: String, resId: String?, mutualEncoding: String? = null, subscriptionId: String? = null) {
@@ -205,6 +231,7 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
         val req = openRequests.firstOrNull { it.requestId == msg.requestId }
             ?: return
         openRequests.remove(req)
+        pendingGetPropertyCallbacks.remove(msg.requestId)?.invoke(msg)
         val status = propertyRules.getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS)
             ?: return
         if (status == PropertyExchangeStatus.OK) {
@@ -218,6 +245,7 @@ class PropertyClientFacade(private val device: MidiCIDevice, private val conn: C
         val req = openRequests.firstOrNull { it.requestId == msg.requestId }
             ?: return
         openRequests.remove(req)
+        pendingSetPropertyCallbacks.remove(msg.requestId)?.invoke(msg)
         val status = propertyRules.getHeaderFieldInteger(msg.header, PropertyCommonHeaderKeys.STATUS)
             ?: return
         if (status == PropertyExchangeStatus.OK) {
