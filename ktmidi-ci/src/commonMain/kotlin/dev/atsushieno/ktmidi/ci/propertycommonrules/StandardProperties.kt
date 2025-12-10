@@ -177,7 +177,6 @@ object StandardProperties {
     val stateMetadata = CommonRulesPropertyMetadata().apply {
         resource = "State"
         canSet = PropertySetAccess.FULL
-        requireResId = true
         canSubscribe = false
         encodings = listOf(PropertyDataEncoding.MCODED7)
         mediaTypes = listOf(CommonRulesKnownMimeTypes.APPLICATION_OCTET_STREAM)
