@@ -35,18 +35,16 @@ kotlin {
         }
     }
 
-    val iosTargets = listOf(
+    listOf(
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
+        macosArm64()
     ).onEach {
         it.binaries {
             framework { baseName = "ktmidi" }
         }
     }
 
-    val appleTargets = listOf(
-        macosArm64(),
-    ) + iosTargets
     linuxArm64()
     linuxX64()
     mingwX64()
@@ -166,7 +164,7 @@ val devEmail = "atsushieno@gmail.com"
 
 // Common copy-pasted
 mavenPublishing {
-    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
     if (project.hasProperty("mavenCentralUsername") || System.getenv("ORG_GRADLE_PROJECT_mavenCentralUsername") != null)
         signAllPublications()
     coordinates(group.toString(), project.name, version.toString())
