@@ -1000,6 +1000,7 @@ public final class dev/atsushieno/ktmidi/Midi2ReaderWriterKt {
 	public static final fun read (Ldev/atsushieno/ktmidi/Midi2Music;Ljava/util/List;)V
 	public static final fun read (Ldev/atsushieno/ktmidi/Midi2Music;Ljava/util/List;Z)V
 	public static synthetic fun read$default (Ldev/atsushieno/ktmidi/Midi2Music;Ljava/util/List;ZILjava/lang/Object;)V
+	public static final fun serializeMidi2TrackAsSmf2Clip-i8woANY (Ldev/atsushieno/ktmidi/Midi2Track;S)Ljava/util/List;
 	public static final fun write (Ldev/atsushieno/ktmidi/Midi2Music;Ljava/util/List;)V
 }
 
