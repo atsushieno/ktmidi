@@ -1,17 +1,23 @@
 package dev.atsushieno.alsakt
-import dev.atsushieno.alsa.javacpp.*
-import dev.atsushieno.alsa.javacpp.global.Alsa
-import dev.atsushieno.alsa.javacpp.global.HackyPoll
+import AlsaClientInfo
 import dev.atsushieno.ktmidi.MidiTransportProtocol
 import dev.atsushieno.ktmidi.Ump
 import dev.atsushieno.ktmidi.sizeInInts
 import dev.atsushieno.ktmidi.umpSizeInInts
+import dev.atsushieno.panama.alsa.alsa_seq_h
+import dev.atsushieno.panama.alsa.alsa_seq_midi_event_h
+import dev.atsushieno.panama.alsa.poll_h
+import dev.atsushieno.panama.alsa.snd_midi_event_t
+import dev.atsushieno.panama.alsa.snd_seq_addr_t
+import dev.atsushieno.panama.alsa.snd_seq_event_t
+import dev.atsushieno.panama.alsa.snd_seq_t
+import dev.atsushieno.panama.alsa.snd_seq_ump_event_payload_t
+import dev.atsushieno.panama.alsa.snd_seq_ump_event_t
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.bytedeco.javacpp.BytePointer
-import org.bytedeco.javacpp.Loader
-import org.bytedeco.javacpp.Loader.sizeof
+import java.lang.foreign.Arena
+import java.lang.foreign.MemorySegment
 import java.nio.ByteBuffer
 
 @Suppress("unused")
@@ -20,71 +26,64 @@ class AlsaSequencer(
     val driverName: String = "default"
 ) : AutoCloseable {
 
-    private val seq: snd_seq_t
-    private var driverNameHandle : BytePointer? = null
+    private val seq: MemorySegment
 
-    internal val sequencerHandle : snd_seq_t?
+    internal val sequencerHandle : MemorySegment
         get() = seq
 
     override fun close() {
         if (midiEventParserOutput != null) {
-            Alsa.snd_midi_event_free(midiEventParserOutput)
+            alsa_seq_midi_event_h.snd_midi_event_free(midiEventParserOutput)
             midiEventParserOutput = null
         }
-        driverNameHandle?.deallocate()
-        driverNameHandle = null
-        portNameHandle?.deallocate()
-        portNameHandle = null
-        nameHandle?.deallocate()
-        nameHandle = null
         if (seq != null)
-            Alsa.snd_seq_close(seq)
+            alsa_seq_h.snd_seq_close(seq)
     }
 
     val name :String
-        get() = Alsa.snd_seq_name(seq).string
+        get() = alsa_seq_h.snd_seq_name(seq).getString(0)
 
     val sequencerType: Int
-        get() = Alsa.snd_seq_type(seq)
+        get() = alsa_seq_h.snd_seq_type(seq)
 
     fun setNonBlockingMode(toNonBlockingMode: Boolean) {
-        Alsa.snd_seq_nonblock(seq, if (toNonBlockingMode) 1 else 0)
+        alsa_seq_h.snd_seq_nonblock(seq, if (toNonBlockingMode) 1 else 0)
     }
 
     val currentClientId: Int
-        get() = Alsa.snd_seq_client_id(seq)
+        get() = alsa_seq_h.snd_seq_client_id(seq)
 
     var inputBufferSize: Long
-        get() = Alsa.snd_seq_get_input_buffer_size(seq)
-        set(value) { Alsa.snd_seq_set_input_buffer_size(seq, value) }
+        get() = alsa_seq_h.snd_seq_get_input_buffer_size(seq)
+        set(value) { alsa_seq_h.snd_seq_set_input_buffer_size(seq, value) }
 
     var outputBufferSize: Long
-        get() = Alsa.snd_seq_get_output_buffer_size(seq)
-        set(value) { Alsa.snd_seq_set_output_buffer_size(seq, value) }
+        get() = alsa_seq_h.snd_seq_get_output_buffer_size(seq)
+        set(value) { alsa_seq_h.snd_seq_set_output_buffer_size(seq, value) }
 
     val targetPortType: Int
         get() = AlsaPortType.MidiGeneric or AlsaPortType.Synth or AlsaPortType.Application
 
     fun queryNextClient(client: AlsaClientInfo): Boolean {
-        val ret = Alsa.snd_seq_query_next_client(seq, client.handle)
+        val ret = alsa_seq_h.snd_seq_query_next_client(seq, client.handle)
         return ret >= 0
     }
 
     fun queryNextPort(port: AlsaPortInfo): Boolean {
-        val ret = Alsa.snd_seq_query_next_port(seq, port.handle)
+        val ret = alsa_seq_h.snd_seq_query_next_port(seq, port.handle)
         return ret >= 0
     }
 
     var clientInfo: AlsaClientInfo
         get() {
             val info = AlsaClientInfo()
-            val ret = Alsa.snd_seq_get_client_info(seq, info.handle)
+            val ret = alsa_seq_h.snd_seq_get_client_info(seq, info.handle)
             if (ret != 0)
                 throw AlsaException(ret)
             return info
         }
         set(value) {
-            val ret = Alsa.snd_seq_set_client_info(seq, value.handle)
+            val ret = alsa_seq_h.snd_seq_set_client_info(seq, value.handle)
             if (ret != 0)
                 throw AlsaException(ret)
         }
@@ -94,7 +93,7 @@ class AlsaSequencer(
 
     fun getAnyClient(client: Int): AlsaClientInfo {
         val info = AlsaClientInfo()
-        val ret = Alsa.snd_seq_get_any_client_info(seq, client, info.handle)
+        val ret = alsa_seq_h.snd_seq_get_any_client_info(seq, client, info.handle)
         if (ret != 0)
             throw AlsaException(ret)
         return info
@@ -102,7 +101,7 @@ class AlsaSequencer(
 
     fun getPortInfo(port: Int): AlsaPortInfo {
         val info = AlsaPortInfo()
-        val err = Alsa.snd_seq_get_port_info(seq, port, info.handle)
+        val err = alsa_seq_h.snd_seq_get_port_info(seq, port, info.handle)
         if (err != 0)
             throw AlsaException(err)
         return info
@@ -113,64 +112,63 @@ class AlsaSequencer(
 
     fun getAnyPortInfo(client: Int, port: Int): AlsaPortInfo {
         val info = AlsaPortInfo()
-        val err = Alsa.snd_seq_get_any_port_info(seq, client, port, info.handle)
+        val err = alsa_seq_h.snd_seq_get_any_port_info(seq, client, port, info.handle)
         if (err != 0)
             throw AlsaException(err)
         return info
     }
 
     fun setPortInfo(port: Int, info: AlsaPortInfo) {
-        val err = Alsa.snd_seq_set_port_info(seq, port, info.handle)
+        val err = alsa_seq_h.snd_seq_set_port_info(seq, port, info.handle)
         if (err != 0)
             throw AlsaException(err)
     }
 
-    private var portNameHandle : BytePointer? = null
+    private var portNameHandle = Arena.ofShared().allocate(256)
 
     fun createSimplePort(name: String?, caps: Int, type: Int): Int {
-        portNameHandle?.deallocate()
-        portNameHandle = if (name == null) null else BytePointer(name)
-        return Alsa.snd_seq_create_simple_port(seq, portNameHandle, caps, type)
+        if (name != null)
+            portNameHandle.setString(0, name)
+        return alsa_seq_h.snd_seq_create_simple_port(seq, portNameHandle, caps, type)
     }
 
     fun deleteSimplePort(port: Int) {
-        val ret = Alsa.snd_seq_delete_simple_port(seq, port)
+        val ret = alsa_seq_h.snd_seq_delete_simple_port(seq, port)
         if (ret != 0)
             throw AlsaException(ret)
     }
 
-    private var nameHandle: BytePointer? = null
+    private var nameHandle = Arena.ofShared().allocate(256)
 
     fun setClientName(name: String) {
         if (name == null)
             throw IllegalArgumentException("name is null")
 
-        nameHandle?.deallocate()
-        nameHandle = BytePointer(name)
-        Alsa.snd_seq_set_client_name(seq, nameHandle)
+        nameHandle.setString(0, name)
+        alsa_seq_h.snd_seq_set_client_name(seq, nameHandle)
     }
 
     //#region Subscription
 
     fun subscribePort(subs: AlsaPortSubscription) {
-        val err = Alsa.snd_seq_subscribe_port(seq, subs.handle)
+        val err = alsa_seq_h.snd_seq_subscribe_port(seq, subs.handle)
         if (err != 0)
             throw AlsaException(err)
     }
 
     fun unsubscribePort(sub: AlsaPortSubscription) {
-        Alsa.snd_seq_unsubscribe_port(seq, sub.handle)
+        alsa_seq_h.snd_seq_unsubscribe_port(seq, sub.handle)
     }
 
     fun queryPortSubscribers(query: AlsaSubscriptionQuery): Boolean {
-        val ret = Alsa.snd_seq_query_port_subscribers(seq, query.handle)
+        val ret = alsa_seq_h.snd_seq_query_port_subscribers(seq, query.handle)
         return ret == 0
     }
 
     // simplified SubscribePort()
     // formerly connectFrom()
     fun connectSource(portToReceive: Int, sourceClient: Int, sourcePort: Int) {
-        val err = Alsa.snd_seq_connect_from(seq, portToReceive, sourceClient, sourcePort)
+        val err = alsa_seq_h.snd_seq_connect_from(seq, portToReceive, sourceClient, sourcePort)
         if (err != 0)
             throw  AlsaException(err)
     }
@@ -178,7 +176,7 @@ class AlsaSequencer(
     // simplified SubscribePort()
     // formerly connectTo()
     fun connectDestination(portToSendFrom: Int, destinationClient: Int, destinationPort: Int) {
-        val err = Alsa.snd_seq_connect_to(seq, portToSendFrom, destinationClient, destinationPort)
+        val err = alsa_seq_h.snd_seq_connect_to(seq, portToSendFrom, destinationClient, destinationPort)
         if (err != 0)
             throw AlsaException (err)
     }
@@ -186,7 +184,7 @@ class AlsaSequencer(
     // simplified UnsubscribePort()
     // formerly disconnectFrom()
     fun disconnectSource(portToReceive: Int, sourceClient: Int, sourcePort: Int) {
-        val err = Alsa.snd_seq_disconnect_from(seq, portToReceive, sourceClient, sourcePort)
+        val err = alsa_seq_h.snd_seq_disconnect_from(seq, portToReceive, sourceClient, sourcePort)
         if (err != 0)
             throw  AlsaException(err)
     }
@@ -194,7 +192,7 @@ class AlsaSequencer(
     // simplified UnsubscribePort()
     // formerly disconnectTo
     fun disconnectDestination(portToSendFrom: Int, destinationClient: Int, destinationPort: Int) {
-        val err = Alsa.snd_seq_disconnect_to(seq, portToSendFrom, destinationClient, destinationPort)
+        val err = alsa_seq_h.snd_seq_disconnect_to(seq, portToSendFrom, destinationClient, destinationPort)
         if (err != 0)
             throw  AlsaException(err)
     }
@@ -202,18 +200,18 @@ class AlsaSequencer(
     //#endregion // Subscription
 
     fun resetPoolInput() {
-        Alsa.snd_seq_reset_pool_input(seq)
+        alsa_seq_h.snd_seq_reset_pool_input(seq)
     }
 
     fun resetPoolOutput() {
-        Alsa.snd_seq_reset_pool_output(seq)
+        alsa_seq_h.snd_seq_reset_pool_output(seq)
     }
 
     //#region Events
 
     private val midiEventBufferSize : Long = 256
-    private var eventBufferOutput = BytePointer(midiEventBufferSize)
-    private var midiEventParserOutput: snd_midi_event_t? = null
+    private var eventBufferOutput = Arena.ofShared().allocate(midiEventBufferSize)
+    private var midiEventParserOutput: MemorySegment? = null
 
     // FIXME: should this be moved to AlsaMidiApi? It's a bit too high level.
     fun send(port: Int, data: ByteArray, index: Int, count: Int) {
@@ -227,29 +225,30 @@ class AlsaSequencer(
 
     private fun sendMidi1(port: Int, data: ByteArray, index: Int, count: Int) {
         if (midiEventParserOutput == null) {
-            val ptr = snd_midi_event_t()
-            val ret = Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
+            val ptr = MemorySegment.NULL
+            val ret = alsa_seq_midi_event_h.snd_midi_event_new(midiEventBufferSize, ptr)
             if (ret < 0)
                 throw AlsaException(ret.toInt())
             midiEventParserOutput = ptr
         }
 
         val buffer = ByteBuffer.wrap(data)
-        val pointer = BytePointer(buffer)
-        val ev = snd_seq_event_t(eventBufferOutput)
+        val pointer = MemorySegment.ofBuffer(buffer)
+        val ev = eventBufferOutput
         var i = index
         while (i < index + count) {
-            val ret = Alsa.snd_midi_event_encode(
-                midiEventParserOutput, pointer.position(i.toLong()), index + count - i.toLong(), ev)
+            val ret = alsa_seq_midi_event_h.snd_midi_event_encode(
+                midiEventParserOutput,  pointer.asSlice(i.toLong()), index + count - i.toLong(), ev)
             if (ret < 0)
                 throw AlsaException(ret.toInt())
             if (ret > 0) {
-                eventBufferOutput.put(seq_evt_off_source_port, port.toByte())
-                eventBufferOutput.put(seq_evt_off_dest_client, AddressSubscribers.toByte())
-                eventBufferOutput.put(seq_evt_off_dest_port, AddressUnknown.toByte())
-                eventBufferOutput.put(seq_evt_off_queue, QueueDirect.toByte())
+                val b = eventBufferOutput.asByteBuffer()
+                b.alignedSlice(seq_evt_off_source_port).put(port.toByte())
+                b.alignedSlice(seq_evt_off_dest_client).put(AddressSubscribers.toByte())
+                b.alignedSlice(seq_evt_off_dest_port).put(AddressUnknown.toByte())
+                b.alignedSlice(seq_evt_off_queue).put(QueueDirect.toByte())
                 // FIXME: should we provide error handler and catch it?
-                val ret = Alsa.snd_seq_event_output_direct(seq, ev)
+                val ret = alsa_seq_h.snd_seq_event_output_direct(seq, ev)
                 if (ret < 0)
                     throw AlsaException(ret)
             }
@@ -259,33 +258,33 @@ class AlsaSequencer(
 
     private fun sendUmp(port: Int, data: ByteArray, index: Int, count: Int) {
         if (midiEventParserOutput == null) {
-            val ptr = snd_midi_event_t()
-            Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
+            val ptr = snd_midi_event_t.allocate(Arena.ofShared())
+            alsa_seq_midi_event_h.snd_midi_event_new(midiEventBufferSize, ptr)
             midiEventParserOutput = ptr
         }
 
-        val ev = snd_seq_ump_event_t()
-        val source = snd_seq_addr_t()
-        source.client(clientInfo.client.toByte())
-        source.port(port.toByte())
-        ev.source(source)
-        val dest = snd_seq_addr_t()
-        dest.client(AddressSubscribers.toByte())
-        dest.port(AddressUnknown.toByte())
-        ev.queue(QueueDirect.toByte())
-        ev.type(Alsa.SND_SEQ_EVENT_NONE.toByte())
+        val ev = snd_seq_ump_event_t.allocate(Arena.ofShared())
+        val source = snd_seq_addr_t.allocate(Arena.ofShared())
+        snd_seq_addr_t.client(source, clientInfo.client.toByte())
+        snd_seq_addr_t.port(source, port.toByte())
+        snd_seq_ump_event_t.source(ev, source)
+        val dest = snd_seq_addr_t.allocate(Arena.ofShared())
+        snd_seq_addr_t.client(dest, AddressSubscribers.toByte())
+        snd_seq_addr_t.port(dest, AddressUnknown.toByte())
+        snd_seq_ump_event_t.queue(ev, QueueDirect.toByte())
+        snd_seq_ump_event_t.type(ev, alsa_seq_h.SND_SEQ_EVENT_NONE.toByte())
 
         Ump.fromBytes(data, index, count).forEach { ump ->
             val size = ump.sizeInInts
-            ev.ump(0, ump.int1)
+            snd_seq_ump_event_payload_t.ump(ev, 0, ump.int1)
             if (size > 1)
-                ev.ump(1, ump.int2)
+                snd_seq_ump_event_payload_t.ump(ev, 1, ump.int2)
             if (size > 2)
-                ev.ump(2, ump.int3)
+                snd_seq_ump_event_payload_t.ump(ev, 2, ump.int3)
             if (size > 3)
-                ev.ump(3, ump.int4)
+                snd_seq_ump_event_payload_t.ump(ev, 3, ump.int4)
             // FIXME: should we provide error handler and catch it?
-            Alsa.snd_seq_ump_event_output_direct(seq, ev)
+            alsa_seq_h.snd_seq_ump_event_output_direct(seq, ev)
         }
     }
 
@@ -300,7 +299,7 @@ class AlsaSequencer(
     fun stopListening(loop: SequencerLoopContext) { loop.stopListening() }
 
     class SequencerLoopContext(private val sequencer: AlsaSequencer, private val midiEventBufferSize: Long) {
-        private val seq: snd_seq_t = sequencer.sequencerHandle!!
+        private val seq: MemorySegment = sequencer.sequencerHandle!!
         private var eventLoopStopped = false
         private lateinit var eventLoopBuffer: ByteArray
         private var inputTimeout: Int = 0
@@ -326,18 +325,18 @@ class AlsaSequencer(
         private fun eventLoop(port: Int) {
 
             val pollfdSizeDummy = 8
-            val count = Alsa.snd_seq_poll_descriptors_count(seq, POLLIN.toShort())
-            val pollfdArrayRef = BytePointer((count * pollfdSizeDummy).toLong())
-            val fd = pollfd()
-            fd.put<BytePointer>(pollfdArrayRef)
-            val ret = Alsa.snd_seq_poll_descriptors(seq, fd, count, POLLIN.toShort())
+            val count = alsa_seq_h.snd_seq_poll_descriptors_count(seq, POLLIN.toShort())
+            //val pollfdArrayRef = BytePointer((count * pollfdSizeDummy).toLong())
+            //val fd = MemorySegment.ofAddress(pollfdArrayRef.address())
+            val fd = Arena.ofShared().allocate(count * pollfdSizeDummy.toLong())
+            val ret = alsa_seq_h.snd_seq_poll_descriptors(seq, fd, count, POLLIN.toShort())
             if (ret < 0)
                 throw AlsaException(ret)
 
             val midiProtocol = sequencer.clientInfo.midiVersion
 
             while (!eventLoopStopped) {
-                val rt = HackyPoll.poll(fd, count.toLong(), inputTimeout)
+                val rt = poll_h.poll(fd, count.toLong(), inputTimeout)
                 if (rt > 0) {
                     if (midiProtocol == 2) {
                         val len = receiveUmp(port, eventLoopBuffer, 0, eventLoopBuffer.size)
@@ -350,27 +349,27 @@ class AlsaSequencer(
             }
         }
 
-        private var midiEventParserInput: snd_midi_event_t? = null
+        private var midiEventParserInput: MemorySegment? = null
 
         private fun receiveMidi1(port: Int, data: ByteArray, index: Int, count: Int): Int {
             var received = 0
 
             if (midiEventParserInput == null) {
-                val ptr = snd_midi_event_t()
-                Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
+                val ptr = snd_midi_event_t.allocate(Arena.ofShared())
+                alsa_seq_midi_event_h.snd_midi_event_new(midiEventBufferSize, ptr)
                 midiEventParserInput = ptr
             }
 
             var remaining = true
             while (remaining && index + received < count) {
-                val sevt = snd_seq_event_t()
-                val ret = Alsa.snd_seq_event_input(seq, sevt)
-                remaining = Alsa.snd_seq_event_input_pending(seq, 0) > 0
+                val sevt = snd_seq_event_t.allocate(Arena.ofShared())
+                val ret = alsa_seq_h.snd_seq_event_input(seq, sevt)
+                remaining = alsa_seq_h.snd_seq_event_input_pending(seq, 0) > 0
                 if (ret < 0)
                     throw AlsaException(ret)
-                val converted = Alsa.snd_midi_event_decode(
+                val converted = alsa_seq_midi_event_h.snd_midi_event_decode(
                     midiEventParserInput,
-                    ByteBuffer.wrap(data, index + received, data.size - index - received),
+                    MemorySegment.ofBuffer(ByteBuffer.wrap(data, index + received, data.size - index - received)),
                     (count - received).toLong(),
                     sevt
                 )
@@ -383,17 +382,17 @@ class AlsaSequencer(
         private fun receiveUmp(port: Int, data: ByteArray, index: Int, count: Int): Int {
             var received = 0
 
-            val numEvents = Alsa.snd_seq_event_input_pending(seq, 1)
+            val numEvents = alsa_seq_h.snd_seq_event_input_pending(seq, 1)
             var eventsProcessed = 0
 
             while (index + received < count) {
-                val sevt = snd_seq_ump_event_t()
-                val ret = Alsa.snd_seq_ump_event_input(seq, sevt)
+                val sevt = snd_seq_ump_event_t.allocate(Arena.ofShared())
+                val ret = alsa_seq_h.snd_seq_ump_event_input(seq, sevt)
                 if (ret < 0)
                     throw AlsaException(ret)
-                val size = umpSizeInInts(sevt.ump(0))
-                val bytes = sevt.ump().asByteBuffer()
-                bytes.get(data, index + received, size * 4)
+                val size = umpSizeInInts(snd_seq_ump_event_payload_t.ump(sevt, 0))
+                val bytes = snd_seq_ump_event_payload_t.ump(sevt)
+                bytes.asByteBuffer().get(data, index + received, size * 4)
                 received += size * 4
                 if (++eventsProcessed == numEvents)
                     break
@@ -409,10 +408,10 @@ class AlsaSequencer(
         const val POLLIN = 1
 
         private val seq_evt_size: Int
-        private val seq_evt_off_source_port: Long
-        private val seq_evt_off_dest_client: Long
-        private val seq_evt_off_dest_port: Long
-        private val seq_evt_off_queue: Long
+        private val seq_evt_off_source_port: Int
+        private val seq_evt_off_dest_client: Int
+        private val seq_evt_off_dest_port: Int
+        private val seq_evt_off_queue: Int
 
         const val AddressUnknown = 253
         const val AddressSubscribers = 254
@@ -421,25 +420,23 @@ class AlsaSequencer(
         const val QueueDirect = 253
 
         init {
-            Loader.load(snd_seq_t::class.java) // FIXME: this should not be required...
-
-            seq_evt_size = sizeof(snd_seq_event_t::class.java)
-            seq_evt_off_source_port =
-                snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "source") +
-                        snd_seq_event_t.offsetof(snd_seq_addr_t::class.java, "port").toLong()
-            seq_evt_off_dest_client =
-                snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "dest") +
-                        snd_seq_event_t.offsetof(snd_seq_addr_t::class.java, "client").toLong()
-            seq_evt_off_dest_port =
-                snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "dest") +
-                        snd_seq_event_t.offsetof(snd_seq_addr_t::class.java, "port").toLong()
-            seq_evt_off_queue = snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "queue").toLong()
+            val evtLayout = snd_seq_event_t.layout()
+            val addrLayout = snd_seq_addr_t.layout()
+            seq_evt_size = snd_seq_event_t.sizeof().toInt()
+            val getEvtOffset = { name: String -> evtLayout.memberLayouts().first { it.name()?.get() == name }.byteOffset().toInt() }
+            val getAddrOffset = { name: String -> addrLayout.memberLayouts().first { it.name()?.get() == name }.byteOffset().toInt() }
+            seq_evt_off_source_port = getEvtOffset("source") + getAddrOffset("port")
+            seq_evt_off_dest_client = getEvtOffset("dest") + getAddrOffset("client")
+            seq_evt_off_dest_port = getEvtOffset("dest") + getAddrOffset("port")
+            seq_evt_off_queue = getEvtOffset("queue")
         }
     }
 
     init {
-        val ptr = snd_seq_t()
-        val err = Alsa.snd_seq_open(ptr, driverName, ioType, ioMode)
+        val nameBytes = driverName.toByteArray(Charsets.UTF_8)
+        val driverNameMS = MemorySegment.ofBuffer(ByteBuffer.wrap(nameBytes))
+        val ptr = snd_seq_t.allocate(Arena.ofShared())
+        val err = alsa_seq_h.snd_seq_open(ptr, driverNameMS, ioType, ioMode)
         if (err != 0)
             throw AlsaException(err)
         seq = ptr

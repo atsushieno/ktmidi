@@ -1,20 +1,23 @@
 @file:Suppress("unused")
 
 package dev.atsushieno.alsakt
-import dev.atsushieno.alsa.javacpp.global.Alsa
-import dev.atsushieno.alsa.javacpp.snd_seq_query_subscribe_t
 
-class AlsaSubscriptionQuery(var handle: snd_seq_query_subscribe_t?, val freeFunc: (snd_seq_query_subscribe_t?) -> Unit) {
+import dev.atsushieno.panama.alsa.alsa_seq_h
+import dev.atsushieno.panama.alsa.snd_seq_query_subscribe_t
+import java.lang.foreign.Arena
+import java.lang.foreign.MemorySegment
+
+class AlsaSubscriptionQuery(var handle: MemorySegment?, val freeFunc: (MemorySegment?) -> Unit) {
     companion object {
-        private fun malloc(): snd_seq_query_subscribe_t? {
-            val ptr = snd_seq_query_subscribe_t()
-            Alsa.snd_seq_query_subscribe_malloc(ptr)
+        private fun malloc(): MemorySegment? {
+            val ptr = snd_seq_query_subscribe_t.allocate(Arena.ofShared())
+            alsa_seq_h.snd_seq_query_subscribe_malloc(ptr)
             return ptr
         }
 
-        private fun free(handle: snd_seq_query_subscribe_t?) {
+        private fun free(handle: MemorySegment?) {
             if (handle != null)
-                Alsa.snd_seq_query_subscribe_free(handle)
+                alsa_seq_h.snd_seq_query_subscribe_free(handle)
         }
     }
 
@@ -27,29 +30,29 @@ class AlsaSubscriptionQuery(var handle: snd_seq_query_subscribe_t?, val freeFunc
     }
 
     var client: Int
-        get() = Alsa.snd_seq_query_subscribe_get_client (handle)
-        set(value) = Alsa.snd_seq_query_subscribe_set_client (handle, value)
+        get() = alsa_seq_h.snd_seq_query_subscribe_get_client (handle)
+        set(value) = alsa_seq_h.snd_seq_query_subscribe_set_client (handle, value)
 
      var port: Int
-        get() = Alsa.snd_seq_query_subscribe_get_port (handle)
-         set(value) = Alsa.snd_seq_query_subscribe_set_port (handle, value)
+        get() = alsa_seq_h.snd_seq_query_subscribe_get_port (handle)
+         set(value) = alsa_seq_h.snd_seq_query_subscribe_set_port (handle, value)
 
 
      var index: Int
-        get() = Alsa.snd_seq_query_subscribe_get_index (handle)
-         set(value) = Alsa.snd_seq_query_subscribe_set_index (handle, value)
+        get() = alsa_seq_h.snd_seq_query_subscribe_get_index (handle)
+         set(value) = alsa_seq_h.snd_seq_query_subscribe_set_index (handle, value)
 
      var type: Int
-        get() = Alsa.snd_seq_query_subscribe_get_type (handle)
-         set(value) = Alsa.snd_seq_query_subscribe_set_type (handle, value)
+        get() = alsa_seq_h.snd_seq_query_subscribe_get_type (handle)
+         set(value) = alsa_seq_h.snd_seq_query_subscribe_set_type (handle, value)
 
      val address : AlsaPortSubscription.Address
-         get() = AlsaPortSubscription.Address(Alsa.snd_seq_query_subscribe_get_addr (handle))
+         get() = AlsaPortSubscription.Address(alsa_seq_h.snd_seq_query_subscribe_get_addr (handle))
 
      val exclusive : Boolean
-         get() = Alsa.snd_seq_query_subscribe_get_exclusive (handle) != 0
+         get() = alsa_seq_h.snd_seq_query_subscribe_get_exclusive (handle) != 0
 
      val queue : Int
-        get() = Alsa.snd_seq_query_subscribe_get_queue (handle)
+        get() = alsa_seq_h.snd_seq_query_subscribe_get_queue (handle)
  }
 

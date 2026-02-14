@@ -1,3 +1,4 @@
+/*
 package dev.atsushieno.ktmidi
 
 import dev.atsushieno.rtmidi_javacpp.RtMidiCCallback
@@ -217,3 +218,4 @@ class RtMidiAccess : MidiAccess() {
         }
     }
 }
+*/

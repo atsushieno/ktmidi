@@ -1,39 +1,38 @@
 @file:Suppress("unused")
 
-package dev.atsushieno.alsakt
-
-import dev.atsushieno.alsa.javacpp.global.Alsa
-import dev.atsushieno.alsa.javacpp.snd_seq_client_info_t
-import org.bytedeco.javacpp.BytePointer
+import dev.atsushieno.alsakt.AlsaVersion
+import dev.atsushieno.panama.alsa.alsa_global_h
+import dev.atsushieno.panama.alsa.alsa_seq_h
+import dev.atsushieno.panama.alsa.alsa_seq_midi_event_h
+import java.lang.foreign.Arena
+import java.lang.foreign.MemorySegment
 
 class AlsaClientInfo : AutoCloseable {
     companion object {
-        private fun malloc(): snd_seq_client_info_t? {
-            val outHandle = snd_seq_client_info_t()
-            Alsa.snd_seq_client_info_malloc(outHandle)
+        private fun malloc(): MemorySegment {
+            val outHandle = Arena.ofShared().allocate(alsa_seq_h.snd_seq_client_info_sizeof())
+            alsa_seq_h.snd_seq_client_info_malloc(outHandle)
             return outHandle
         }
 
-        private fun free(handle: snd_seq_client_info_t?) {
+        private fun free(handle: MemorySegment?) {
             if (handle != null)
-                Alsa.snd_seq_client_info_free(handle)
+                alsa_seq_h.snd_seq_client_info_free(handle)
         }
 
     }
 
     constructor () : this (malloc (), { handle -> free(handle) })
 
-    constructor (handle: snd_seq_client_info_t?,  free: (snd_seq_client_info_t?) -> Unit) {
+    constructor (handle: MemorySegment?,  free: (MemorySegment?) -> Unit) {
         this.handle = handle
         this.freeFunc = free
     }
 
-    internal var handle: snd_seq_client_info_t?//Pointer<snd_seq_client_info_t>
-    private val freeFunc: (snd_seq_client_info_t?) -> Unit
+    internal var handle: MemorySegment?//Pointer<snd_seq_client_info_t>
+    private val freeFunc: (MemorySegment?) -> Unit
 
     override fun close () {
-        namePtr?.deallocate()
-        namePtr = null
         if (handle != null) {
             freeFunc(handle)
             handle = null
@@ -41,61 +40,60 @@ class AlsaClientInfo : AutoCloseable {
     }
 
     var client: Int
-        get() = Alsa.snd_seq_client_info_get_client (handle)
-        set(value) = Alsa.snd_seq_client_info_set_client (handle, value)
+        get() = alsa_seq_h.snd_seq_client_info_get_client (handle)
+        set(value) = alsa_seq_h.snd_seq_client_info_set_client (handle, value)
 
     val clientType: Int
-        get () = Alsa.snd_seq_client_info_get_type (handle)
+        get () = alsa_seq_h.snd_seq_client_info_get_type (handle)
 
-    private var namePtr: BytePointer? = null
+    private var namePtr = Arena.ofShared().allocate(256)
     var name: String
-        get() = Alsa.snd_seq_client_info_get_name (handle).string
+        get() = alsa_seq_h.snd_seq_client_info_get_name (handle).getString(0)
         set(value) {
-            namePtr?.deallocate()
-            namePtr = BytePointer(value)
-            Alsa.snd_seq_client_info_set_name(handle, namePtr)
+            namePtr.setString(0, value)
+            alsa_seq_h.snd_seq_client_info_set_name(handle, namePtr)
         }
 
     var broadcastFilter: Int
-        get() = Alsa.snd_seq_client_info_get_broadcast_filter (handle)
-        set(value) = Alsa.snd_seq_client_info_set_broadcast_filter (handle, value)
+        get() = alsa_seq_h.snd_seq_client_info_get_broadcast_filter (handle)
+        set(value) = alsa_seq_h.snd_seq_client_info_set_broadcast_filter (handle, value)
 
     var errorBounce: Int
-        get() = Alsa.snd_seq_client_info_get_error_bounce (handle)
-        set(value) = Alsa.snd_seq_client_info_set_error_bounce (handle, value)
+        get() = alsa_seq_h.snd_seq_client_info_get_error_bounce (handle)
+        set(value) = alsa_seq_h.snd_seq_client_info_set_error_bounce (handle, value)
 
     val card : Int
-        get() = Alsa.snd_seq_client_info_get_card (handle)
+        get() = alsa_seq_h.snd_seq_client_info_get_card (handle)
     val pid :Int
-        get() = Alsa.snd_seq_client_info_get_pid (handle)
+        get() = alsa_seq_h.snd_seq_client_info_get_pid (handle)
     val portCount: Int
-        get() = Alsa.snd_seq_client_info_get_num_ports (handle)
+        get() = alsa_seq_h.snd_seq_client_info_get_num_ports (handle)
     val eventLostCount : Int
-        get() = Alsa.snd_seq_client_info_get_event_lost (handle)
+        get() = alsa_seq_h.snd_seq_client_info_get_event_lost (handle)
 
     private val midiVersionAvailable =
         AlsaVersion.major >=1 &&
         AlsaVersion.minor >=2 &&
         AlsaVersion.revision >= 10
     var midiVersion : Int
-        get() = if (midiVersionAvailable) Alsa.snd_seq_client_info_get_midi_version(handle) else 0
+        get() = if (midiVersionAvailable) alsa_seq_h.snd_seq_client_info_get_midi_version(handle) else 0
         set(value) {
             if (midiVersionAvailable)
-                Alsa.snd_seq_client_info_set_midi_version(handle, value)
+                alsa_seq_h.snd_seq_client_info_set_midi_version(handle, value)
         }
 
     val umpConversion : Int
-        get() = Alsa.snd_seq_client_info_get_ump_conversion(handle)
+        get() = alsa_seq_h.snd_seq_client_info_get_ump_conversion(handle)
 
     var isUmpGrouplessEnabled : Boolean
-        get() = Alsa.snd_seq_client_info_get_ump_groupless_enabled(handle) != 0
-        set(value) = Alsa.snd_seq_client_info_set_ump_groupless_enabled(handle, if (value) 1 else 0)
+        get() = alsa_seq_h.snd_seq_client_info_get_ump_groupless_enabled(handle) != 0
+        set(value) = alsa_seq_h.snd_seq_client_info_set_ump_groupless_enabled(handle, if (value) 1 else 0)
 
-    fun clearEventFilter () = Alsa.snd_seq_client_info_event_filter_clear (handle)
-    fun addEventFilter ( eventType: Int) = Alsa.snd_seq_client_info_event_filter_add (handle, eventType)
-    fun deleteEventFilter ( eventType: Int) = Alsa.snd_seq_client_info_event_filter_del (handle, eventType)
-    fun isEventFiltered ( eventType: Int) = Alsa.snd_seq_client_info_event_filter_check (handle, eventType) > 0
-    fun isUmpGroupEnabled(group: Int) = Alsa.snd_seq_client_info_get_ump_group_enabled(handle, group) != 0
-    fun setUmpGroupEnabled(group: Int, enabled: Boolean) = Alsa.snd_seq_client_info_set_ump_group_enabled(handle, group, if (enabled) 1 else 0)
+    fun clearEventFilter () = alsa_seq_h.snd_seq_client_info_event_filter_clear (handle)
+    fun addEventFilter ( eventType: Int) = alsa_seq_h.snd_seq_client_info_event_filter_add (handle, eventType)
+    fun deleteEventFilter ( eventType: Int) = alsa_seq_h.snd_seq_client_info_event_filter_del (handle, eventType)
+    fun isEventFiltered ( eventType: Int) = alsa_seq_h.snd_seq_client_info_event_filter_check (handle, eventType) > 0
+    fun isUmpGroupEnabled(group: Int) = alsa_seq_h.snd_seq_client_info_get_ump_group_enabled(handle, group) != 0
+    fun setUmpGroupEnabled(group: Int, enabled: Boolean) = alsa_seq_h.snd_seq_client_info_set_ump_group_enabled(handle, group, if (enabled) 1 else 0)
 }
 

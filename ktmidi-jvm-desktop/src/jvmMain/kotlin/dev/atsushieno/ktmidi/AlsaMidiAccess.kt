@@ -1,5 +1,6 @@
 package dev.atsushieno.ktmidi
 
+import AlsaClientInfo
 import dev.atsushieno.alsakt.*
 
 internal fun Byte.toUnsigned() : Int = if (this < 0) this + 0x100 else this.toInt()
