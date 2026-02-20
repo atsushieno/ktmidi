@@ -3,6 +3,7 @@ package dev.atsushieno.ktmidi.citool.view
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -15,7 +16,7 @@ fun App() {
         AppModel.midiDeviceManager.setupVirtualPorts()
     }
     MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
-        Scaffold {
+        Scaffold(Modifier.statusBarsPadding()) {
             MainContent()
         }
     }
