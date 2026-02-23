@@ -32,6 +32,7 @@ object PropertyCommonHeaderKeys {
 
 object CommonRulesKnownMimeTypes {
     const val APPLICATION_JSON = "application/json"
+    const val APPLICATION_OCTET_STREAM = "application/octet-stream"
 }
 
 object PropertyExchangeStatus {
@@ -207,5 +208,5 @@ class PropertyResourceColumn {
     )
 }
 
-data class SubscriptionEntry(val resource: String, val muid: Int, val encoding: String?, val subscribeId: String)
+data class SubscriptionEntry(val resource: String, val resId: String?, val muid: Int, val encoding: String?, val subscribeId: String)
 

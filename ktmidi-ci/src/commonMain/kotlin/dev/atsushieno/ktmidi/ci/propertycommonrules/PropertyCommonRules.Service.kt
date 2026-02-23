@@ -12,41 +12,7 @@ private val defaultPropertyList = listOf(
     CommonRulesPropertyMetadata(PropertyResourceNames.JSON_SCHEMA).apply { originator = CommonRulesPropertyMetadata.Originator.SYSTEM }
 )
 
-
-fun CommonRulesPropertyMetadata.toJsonValue(): Json.JsonValue = Json.JsonValue(
-    sequence {
-        yield(Pair(Json.JsonValue(PropertyResourceFields.RESOURCE), Json.JsonValue(resource)))
-        if (!canGet)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_GET), if (canGet) Json.TrueValue else Json.FalseValue))
-        if (canSet != PropertySetAccess.NONE)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_SET), Json.JsonValue(canSet)))
-        if (canSubscribe)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_SUBSCRIBE), if (canSubscribe) Json.TrueValue else Json.FalseValue))
-        if (requireResId)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.REQUIRE_RES_ID), if (requireResId) Json.TrueValue else Json.FalseValue))
-        if (mediaTypes.size != 1 || mediaTypes[0] != CommonRulesKnownMimeTypes.APPLICATION_JSON)
-            yield(Pair(
-                Json.JsonValue(PropertyResourceFields.MEDIA_TYPE),
-                Json.JsonValue(mediaTypes.map { s -> Json.JsonValue(s) })
-            ))
-        if (encodings.size != 1 || encodings[0] != PropertyDataEncoding.ASCII)
-            yield(Pair(
-                Json.JsonValue(PropertyResourceFields.ENCODINGS),
-                Json.JsonValue(encodings.map { s -> Json.JsonValue(s) })
-            ))
-        if (schema != null)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.SCHEMA), Json.parse(schema!!)))
-        if (canPaginate)
-            yield(Pair(Json.JsonValue(PropertyResourceFields.CAN_PAGINATE), if (canPaginate) Json.TrueValue else Json.FalseValue))
-        if (columns.any())
-            yield(Pair(
-                Json.JsonValue(PropertyResourceFields.COLUMNS),
-                Json.JsonValue(columns.map { c -> c.toJsonValue() })
-            ))
-    }.toMap()
-)
-
-class CommonRulesPropertyService(private val device: MidiCIDevice)
+open class CommonRulesPropertyService(private val device: MidiCIDevice)
     : MidiCIServicePropertyRules {
     private val helper = CommonRulesPropertyHelper(device)
     private val logger by device::logger
@@ -75,15 +41,19 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     // MidiCIPropertyService implementation
     override val subscriptions = mutableListOf<SubscriptionEntry>()
+    override val subscruotionsUpdated = mutableListOf<(SubscriptionEntry, SubscriptionUpdateAction) -> Unit>()
 
-    override fun getPropertyIdForHeader(header: List<Byte>) = helper.getPropertyIdentifierInternal(header)
+    override fun getPropertyIdForHeader(header: List<Byte>) = helper.getHeaderFieldString(header, PropertyCommonHeaderKeys.RESOURCE) ?: "" // empty should not happen
+    override fun getResIdForHeader(header: List<Byte>) = helper.getHeaderFieldString(header, PropertyCommonHeaderKeys.RES_ID)
     override fun getHeaderFieldString(header: List<Byte>, field: String) = helper.getHeaderFieldString(header, field)
 
     override fun createUpdateNotificationHeader(propertyId: String, fields: Map<String, Any?>) =
         helper.createSubscribePropertyHeaderBytes(
             fields[PropertyCommonHeaderKeys.SUBSCRIBE_ID] as String,
             if (fields[PropertyCommonHeaderKeys.SET_PARTIAL] as Boolean)
-                MidiCISubscriptionCommand.PARTIAL else MidiCISubscriptionCommand.FULL
+                MidiCISubscriptionCommand.PARTIAL
+            else
+                MidiCISubscriptionCommand.FULL
         )
 
     override fun getMetadataList(): List<PropertyMetadata> {
@@ -100,7 +70,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
             return Result.failure(ex)
         }
 
-        val result = getPropertyData(jsonInquiry)
+        val result = getPropertyDataEncoded(jsonInquiry)
 
         val replyHeader = MidiCIConverter.encodeStringToASCII(Json.serialize(result.first)).toASCIIByteArray().toList()
         val replyBody = result.second
@@ -133,7 +103,7 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
         val result =
             if (jsonHeader.getObjectValue(PropertyCommonHeaderKeys.COMMAND)?.stringValue == MidiCISubscriptionCommand.END)
-                unsubscribe(getPropertyIdForHeader(msg.header), jsonHeader.getObjectValue(PropertyCommonHeaderKeys.SUBSCRIBE_ID)?.stringValue)
+                unsubscribe(getPropertyIdForHeader(msg.header), getResIdForHeader(msg.header), jsonHeader.getObjectValue(PropertyCommonHeaderKeys.SUBSCRIBE_ID)?.stringValue)
             else
                 subscribe(msg.sourceMUID, jsonHeader)
 
@@ -155,8 +125,8 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     override val propertyCatalogUpdated = mutableListOf<() -> Unit>()
 
-    override fun createShutdownSubscriptionHeader(propertyId: String): List<Byte> {
-        val sub = subscriptions.firstOrNull { it.resource == propertyId } ?: throw MidiCIException("Specified property $propertyId is not at subscribed state")
+    override fun createShutdownSubscriptionHeader(propertyId: String, resId: String?): List<Byte> {
+        val sub = subscriptions.firstOrNull { it.resource == propertyId && (resId.isNullOrBlank() || it.resId == resId) } ?: throw MidiCIException("Specified property $propertyId ${if (resId.isNullOrBlank()) "" else "(resId $resId) "}is not at subscribed state")
         val header = helper.createSubscribePropertyHeaderBytes(sub.subscribeId, MidiCISubscriptionCommand.END)
         subscriptions.remove(sub)
         return header
@@ -164,54 +134,20 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     // impl
 
-    val linkedResources = mutableMapOf<String, List<Byte>>()
-
-    private fun bytesToJsonArray(list: List<Byte>) = list.map { Json.JsonValue(it.toDouble()) }
-    private fun getDeviceInfoJson(): Json.JsonValue {
-        return Json.JsonValue(
-            mapOf(
-                Pair(
-                    Json.JsonValue(DeviceInfoPropertyNames.MANUFACTURER_ID),
-                    Json.JsonValue(bytesToJsonArray(deviceInfo.manufacturerIdBytes()))
-                ),
-                Pair(
-                    Json.JsonValue(DeviceInfoPropertyNames.FAMILY_ID),
-                    Json.JsonValue(bytesToJsonArray(deviceInfo.familyIdBytes()))
-                ),
-                Pair(
-                    Json.JsonValue(DeviceInfoPropertyNames.MODEL_ID),
-                    Json.JsonValue(bytesToJsonArray(deviceInfo.modelIdBytes()))
-                ),
-                Pair(
-                    Json.JsonValue(DeviceInfoPropertyNames.VERSION_ID),
-                    Json.JsonValue(bytesToJsonArray(deviceInfo.versionIdBytes()))
-                ),
-                Pair(Json.JsonValue(DeviceInfoPropertyNames.MANUFACTURER), Json.JsonValue(deviceInfo.manufacturer)),
-                Pair(Json.JsonValue(DeviceInfoPropertyNames.FAMILY), Json.JsonValue(deviceInfo.family)),
-                Pair(Json.JsonValue(DeviceInfoPropertyNames.MODEL), Json.JsonValue(deviceInfo.model)),
-                Pair(Json.JsonValue(DeviceInfoPropertyNames.VERSION), Json.JsonValue(deviceInfo.version)),
-            ) + if (deviceInfo.serialNumber != null) mapOf(
-                Pair(Json.JsonValue(DeviceInfoPropertyNames.SERIAL_NUMBER), Json.JsonValue(deviceInfo.serialNumber!!)),
-            ) else mapOf()
-        )
+    var propertyBinaryGetter: (propertyId: String, resId: String?) -> List<Byte>? = { propertyId, resId ->
+        values.firstOrNull { it.id == propertyId && (resId.isNullOrBlank() || it.resId == resId) }?.body
     }
 
-    private fun MidiCIChannel.toJson() = Json.JsonValue(mapOf(
-        Json.JsonValue(ChannelInfoPropertyNames.TITLE) to Json.JsonValue(title),
-        Json.JsonValue(ChannelInfoPropertyNames.CHANNEL) to Json.JsonValue(channel.toDouble()),
-        Json.JsonValue(ChannelInfoPropertyNames.PROGRAM_TITLE) to
-                if (programTitle == null) null else Json.JsonValue(programTitle),
-        Json.JsonValue(ChannelInfoPropertyNames.BANK_PC) to
-                if (bankPC.all { it.toInt() == 0 }) null else Json.JsonValue(bankPC.map { Json.JsonValue(it.toDouble()) }),
-        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_CHANNEL_START) to
-                if (clusterChannelStart <= 1) null else Json.JsonValue(clusterChannelStart.toDouble()),
-        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_LENGTH) to
-                if (clusterChannelStart <= 1) null else Json.JsonValue(clusterLength.toDouble()),
-        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_MIDI_MODE) to
-                if (clusterMidiMode.toInt() == 3) null else Json.JsonValue(clusterMidiMode.toDouble()),
-        Json.JsonValue(ChannelInfoPropertyNames.CLUSTER_TYPE) to
-                if (clusterType == null || clusterType == ClusterType.OTHER) null else Json.JsonValue(clusterType)
-    ).filterValues { it != null }.map { Pair(it.key, it.value!!) }.toMap())
+    var propertyBinarySetter: (propertyId: String, resId: String?, mediaType: String, body: List<Byte>) -> Boolean = { propertyId, resId, mediaType, body ->
+        val existing = values.firstOrNull { it.id == propertyId }
+        if (existing != null) {
+            existing.body = body
+            true
+        } else {
+            device.config.propertyValues.add(PropertyValue(propertyId, resId, mediaType, body))
+            true
+        }
+    }
 
     private fun getPropertyHeader(json: Json.JsonValue) =
         PropertyCommonRequestHeader(
@@ -242,16 +178,12 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     private fun getPropertyDataJson(header: PropertyCommonRequestHeader): Pair<Json.JsonValue, Json.JsonValue> {
         val body = when(header.resource) {
-            PropertyResourceNames.RESOURCE_LIST ->
-                Json.JsonValue(getMetadataList().map { (it as CommonRulesPropertyMetadata).toJsonValue() })
-            PropertyResourceNames.DEVICE_INFO ->
-                getDeviceInfoJson()
-            PropertyResourceNames.CHANNEL_LIST ->
-                if (channelList.channels.isEmpty()) null else Json.JsonValue(channelList.channels.map { it.toJson() })
-            PropertyResourceNames.JSON_SCHEMA ->
-                if (device.config.jsonSchemaString.isNotBlank()) Json.parse(device.config.jsonSchemaString) else null
+            PropertyResourceNames.RESOURCE_LIST -> FoundationalResources.toJsonValue(getMetadataList())
+            PropertyResourceNames.DEVICE_INFO -> FoundationalResources.toJsonValue(deviceInfo)
+            PropertyResourceNames.CHANNEL_LIST -> FoundationalResources.toJsonValue(channelList)
+            PropertyResourceNames.JSON_SCHEMA -> if (device.config.jsonSchemaString.isNotBlank()) Json.parse(device.config.jsonSchemaString) else null
             else -> {
-                val bytes = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body
+                val bytes = propertyBinaryGetter(header.resource, header.resId) ?: values.firstOrNull { it.id == header.resource }?.body
                     ?: throw PropertyExchangeException("Unknown property: ${header.resource} (resId: ${header.resId}")
                 if (bytes.any()) Json.parse(bytes.toByteArray().decodeToString()) else Json.EmptyObject
             }
@@ -270,16 +202,16 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
         return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, mutualEncoding = header.mutualEncoding, totalCount = totalCount)), paginatedBody ?: Json.EmptyObject)
     }
 
-    // It returns the *encoded* result.
-    private fun getPropertyData(headerJson: Json.JsonValue): Pair<Json.JsonValue, List<Byte>> {
+    private fun getPropertyDataEncoded(headerJson: Json.JsonValue): Pair<Json.JsonValue, List<Byte>> {
         val header = getPropertyHeader(headerJson)
-        if (header.mediaType == null || header.mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON) {
+        if ((header.mediaType == null || header.mediaType == CommonRulesKnownMimeTypes.APPLICATION_JSON) &&
+            (header.mutualEncoding == null || header.mutualEncoding == PropertyDataEncoding.ASCII)) {
             val ret = getPropertyDataJson(header)
             val body = MidiCIConverter.encodeStringToASCII(Json.serialize(ret.second)).toASCIIByteArray().toList()
             val encodedBody = encodeBody(body, header.mutualEncoding)
             return Pair(ret.first, encodedBody)
         } else {
-            val body = linkedResources[header.resId] ?: values.firstOrNull { it.id == header.resource }?.body
+            val body = propertyBinaryGetter(header.resource, header.resId) ?: values.firstOrNull { it.id == header.resource }?.body
                 ?: listOf()
             val encodedBody = encodeBody(body, header.mutualEncoding)
             val replyHeader = getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, mutualEncoding = header.mutualEncoding))
@@ -312,10 +244,11 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
                     existing.body = result.second.getSerializedBytes()
             }
         }
-        else if (existing != null)
-            existing.body = decodedBody
-        else
-            device.config.propertyValues.add(PropertyValue(header.resource, header.resId, header.mediaType ?: CommonRulesKnownMimeTypes.APPLICATION_JSON, decodedBody))
+        else {
+            val success = propertyBinarySetter(header.resource, header.resId, header.mediaType ?: CommonRulesKnownMimeTypes.APPLICATION_JSON, decodedBody)
+            if (!success)
+                return Result.failure(PropertyExchangeException("Failed to set property: ${header.resource}"))
+        }
         return Result.success(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK)))
     }
 
@@ -324,16 +257,20 @@ class CommonRulesPropertyService(private val device: MidiCIDevice)
 
     fun subscribe(subscriberMUID: Int, headerJson: Json.JsonValue) : Pair<Json.JsonValue, Json.JsonValue> {
         val header = getPropertyHeader(headerJson)
-        val subscription = SubscriptionEntry(header.resource, subscriberMUID, header.mutualEncoding, createNewSubscriptionId())
+        val subscription = SubscriptionEntry(header.resource, header.resId, subscriberMUID, header.mutualEncoding, createNewSubscriptionId())
         subscriptions.add(subscription)
+        subscruotionsUpdated.forEach { it(subscription, SubscriptionUpdateAction.Added) }
         // body is empty
         return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, subscribeId = subscription.subscribeId)), Json.JsonValue(mapOf()))
     }
 
-    fun unsubscribe(resource: String, subscribeId: String?) : Pair<Json.JsonValue, Json.JsonValue> {
+    fun unsubscribe(resource: String, resId: String?, subscribeId: String?) : Pair<Json.JsonValue, Json.JsonValue> {
         val existing = subscriptions.firstOrNull { subscribeId != null && it.subscribeId == subscribeId }
-            ?: subscriptions.firstOrNull { it.resource == resource }
-        subscriptions.remove(existing)
+            ?: subscriptions.firstOrNull { it.resource == resource && (resId.isNullOrBlank() || it.resId == resId) }
+        if (existing != null) {
+            subscriptions.remove(existing)
+            subscruotionsUpdated.forEach { it(existing, SubscriptionUpdateAction.Removed) }
+        }
         // body is empty
         return Pair(getReplyHeaderJson(PropertyCommonReplyHeader(PropertyExchangeStatus.OK, subscribeId = subscribeId)), Json.JsonValue(mapOf()))
     }

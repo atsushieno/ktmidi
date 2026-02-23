@@ -17,6 +17,47 @@ fun Midi2Music.write(stream: MutableList<Byte>) {
     stream.addAll(bytes)
 }
 
+fun serializeMidi2TrackAsSmf2Clip(track: Midi2Track, deltatimeSpec: UShort): List<Int> {
+    val ret = mutableListOf<Int>()
+
+    // "SMF2CLIP"
+    ret.add(0x534d4632)
+    ret.add(0x434c4950)
+    // DCTPQ, DCS(0) prepended
+    ret.add(UmpFactory.deltaClockstamp(0))
+    ret.add(UmpFactory.dctpq(deltatimeSpec))
+    // Start of Clip, DCS(0) prepended
+    ret.add(UmpFactory.deltaClockstamp(0))
+    ret.addAll(UmpFactory.startOfClip().toInts())
+
+    // contents
+    var dcPrepended = false
+    for (message in track.messages) {
+        if (message.isStartOfClip || message.isDCTPQ)
+            continue // We already emitted it, skipping anything invalid
+        if (message.isEndOfClip)
+            continue // we will emit it at the end, skipping anything invalid
+        if (message.isDeltaClockstamp) {
+            dcPrepended = true
+            ret.add(message.int1)
+            continue
+        }
+        if (!dcPrepended)
+            ret.add(0x00400000) // DCS(0)
+        dcPrepended = false
+        when (message.messageType) {
+            5, 0xD, 0xF -> ret.addAll(sequenceOf(message.int1, message.int2, message.int3, message.int4))
+            3, 4 -> ret.addAll(sequenceOf(message.int1, message.int2))
+            else -> ret.add(message.int1)
+        }
+    }
+
+    ret.add(UmpFactory.deltaClockstamp(0))
+    ret.addAll(UmpFactory.endOfClip().toInts())
+
+    return ret
+}
+
 internal class Midi2MusicWriter(val stream: MutableList<Byte>) {
     internal fun serializeMidi2MusicToInts(music: Midi2Music): List<Int> {
         val ret = mutableListOf<Int>()
@@ -27,42 +68,8 @@ internal class Midi2MusicWriter(val stream: MutableList<Byte>) {
         ret.add(music.deltaTimeSpec)
         ret.add(music.tracks.size)
 
-        for (track in music.tracks) {
-            // "SMF2CLIP"
-            ret.add(0x534d4632)
-            ret.add(0x434c4950)
-            // DCTPQ, DCS(0) prepended
-            ret.add(UmpFactory.deltaClockstamp(0))
-            ret.add(UmpFactory.dctpq(music.deltaTimeSpec.toUShort()))
-            // Start of Clip, DCS(0) prepended
-            ret.add(UmpFactory.deltaClockstamp(0))
-            ret.addAll(UmpFactory.startOfClip().toInts())
-
-            // contents
-            var dcPrepended = false
-            for (message in track.messages) {
-                if (message.isStartOfClip || message.isDCTPQ)
-                    continue // We already emitted it, skipping anything invalid
-                if (message.isEndOfClip)
-                    continue // we will emit it at the end, skipping anything invalid
-                if (message.isDeltaClockstamp) {
-                    dcPrepended = true
-                    ret.add(message.int1)
-                    continue
-                }
-                if (!dcPrepended)
-                    ret.add(0x00400000) // DCS(0)
-                dcPrepended = false
-                when (message.messageType) {
-                    5, 0xD, 0xF -> ret.addAll(sequenceOf(message.int1, message.int2, message.int3, message.int4))
-                    3, 4 -> ret.addAll(sequenceOf(message.int1, message.int2))
-                    else -> ret.add(message.int1)
-                }
-            }
-
-            ret.add(UmpFactory.deltaClockstamp(0))
-            ret.addAll(UmpFactory.endOfClip().toInts())
-        }
+        for (track in music.tracks)
+            ret.addAll(serializeMidi2TrackAsSmf2Clip(track, music.deltaTimeSpec.toUShort()))
 
         return ret
     }

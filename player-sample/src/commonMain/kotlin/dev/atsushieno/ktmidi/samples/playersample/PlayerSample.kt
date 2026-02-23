@@ -19,9 +19,10 @@ expect fun getFileExtension(file: String): String
 expect fun readFileContents(file: String): List<Byte>
 
 fun showUsage(api: String?, midiTransportProtocol: Int) {
-    println("USAGE: PlayerSample [-a:api] [-p:port] [-2] [-m:music-file]")
+    println("USAGE: PlayerSample [-a:api] [-p:port] [-u] [-2] [-m:music-file]")
     println()
-    println("-2 indicates that it specifies MIDI 2.0 protocol to the port")
+    println("-u indicates that it uses MIDI 2.0 UMP")
+    println("-2 indicates that it specifies MIDI 2.0 protocol to the port (UMP only)")
     println()
     println("Available ports for -p option:")
     getMidiAccessApi(api, midiTransportProtocol).outputs.forEach { println(" - ${it.id} : ${it.name}") }
@@ -29,7 +30,7 @@ fun showUsage(api: String?, midiTransportProtocol: Int) {
 
 suspend fun runMain(args: Array<String>) {
     val opts = parseCommandLineArgs(args)
-    val protocol = if (opts.ump) MidiTransportProtocol.UMP else MidiTransportProtocol.MIDI1
+    val protocol = if (opts.midi2) MidiTransportProtocol.UMP else MidiTransportProtocol.MIDI1
 
     if (args.contains("-?") || args.contains("-h") || args.contains("--help")) {
         showUsage(opts.api, protocol)
@@ -71,13 +72,24 @@ suspend fun runMain(args: Array<String>) {
             throw Exception("Should not reach here")
         }
     } else {
-        if (opts.midi2)
+        if (opts.ump)
             Midi2Player(Midi2Music().apply {
                 tracks.add(Midi2Track().apply {
-                    messages.add(Ump(UmpFactory.deltaClockstamp(192)))
-                    messages.add(Ump(UmpFactory.midi2NoteOn(0, 0, 0x40, 0, 0xF800, 0)))
-                    messages.add(Ump(UmpFactory.deltaClockstamp(192)))
-                    messages.add(Ump(UmpFactory.midi2NoteOff(0, 0, 0x40, 0, 0, 0)))
+                    if (opts.midi2) {
+                        messages.add(Ump(UmpFactory.midi2CC(0, 0, MidiCC.VOLUME, 0xF8000000)))
+                        messages.add(Ump(UmpFactory.midi2CC(0, 0, MidiCC.EXPRESSION, 0xF8000000)))
+                        messages.add(Ump(UmpFactory.deltaClockstamp(16)))
+                        messages.add(Ump(UmpFactory.midi2NoteOn(0, 0, 0x40, 0, 0xF800, 0)))
+                        messages.add(Ump(UmpFactory.deltaClockstamp(192)))
+                        messages.add(Ump(UmpFactory.midi2NoteOff(0, 0, 0x40, 0, 0, 0)))
+                    } else {
+                        messages.add(Ump(UmpFactory.midi1CC(0, 0, MidiCC.VOLUME.toByte(), 0x78)))
+                        messages.add(Ump(UmpFactory.midi1CC(0, 0, MidiCC.EXPRESSION.toByte(), 0x78)))
+                        messages.add(Ump(UmpFactory.deltaClockstamp(16)))
+                        messages.add(Ump(UmpFactory.midi1NoteOn(0, 0, 0x40, 0x78)))
+                        messages.add(Ump(UmpFactory.deltaClockstamp(192)))
+                        messages.add(Ump(UmpFactory.midi1NoteOff(0, 0, 0x40, 0)))
+                    }
                 })
             }, midiOutput)
         else
@@ -85,7 +97,7 @@ suspend fun runMain(args: Array<String>) {
                 tracks.add(Midi1Track().apply {
                     events.add(Midi1Event(0, Midi1SimpleMessage(MidiChannelStatus.CC, MidiCC.VOLUME, 0x78))) // volume 120
                     events.add(Midi1Event(0, Midi1SimpleMessage(MidiChannelStatus.CC, MidiCC.EXPRESSION, 0x78))) // expression 120
-                    events.add(Midi1Event(192, Midi1SimpleMessage(MidiChannelStatus.NOTE_ON, 0x40, 0x78)))
+                    events.add(Midi1Event(16, Midi1SimpleMessage(MidiChannelStatus.NOTE_ON, 0x40, 0x78)))
                     events.add(Midi1Event(192, Midi1SimpleMessage(MidiChannelStatus.NOTE_OFF, 0x40, 0)))
                 })
             }, midiOutput)

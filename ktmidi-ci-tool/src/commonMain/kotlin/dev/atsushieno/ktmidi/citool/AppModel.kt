@@ -1,10 +1,11 @@
 package dev.atsushieno.ktmidi.citool
 
 import dev.atsushieno.ktmidi.ci.LogEntry
+import dev.atsushieno.ktmidi.ci.Logger
 import dev.atsushieno.ktmidi.ci.MessageDirection
 import dev.atsushieno.ktmidi.toUtf8ByteArray
 import getPlatform
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -15,6 +16,7 @@ import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonObject
 import kotlin.random.Random
+import kotlin.time.ExperimentalTime
 
 private var appInitialized = false
 fun initializeAppModel(context: Any?) {
@@ -28,8 +30,11 @@ lateinit var AppModel: CIToolRepository
 
 class CIToolRepository {
 
+    val logger = Logger().also { it.logEventReceived.add { msg, direction -> log(msg, direction) }}
+
     private val logs = mutableListOf<LogEntry>()
 
+    @OptIn(ExperimentalTime::class)
     fun log(msg: Any, direction: MessageDirection, explicitTimestamp: LocalDateTime? = null) {
         val time = explicitTimestamp ?: Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
         val entry = LogEntry(time, direction, msg)

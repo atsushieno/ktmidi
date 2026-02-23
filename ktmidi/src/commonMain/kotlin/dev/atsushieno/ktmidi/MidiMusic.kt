@@ -136,7 +136,7 @@ class MidiEvent // MIDI 1.0 only
                     yield(MidiEvent(0xF0, 0, 0, bytes, i, size))
                     i += size
                 } else {
-                    if (end < i + fixedDataSize(bytes[i]))
+                    if (end <= i + fixedDataSize(bytes[i]))
                         throw Midi1Exception("Received data was incomplete to build MIDI status message for '${bytes[i]}' status.")
                     val z = fixedDataSize(bytes[i])
                     yield(

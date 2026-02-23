@@ -7,44 +7,41 @@ buildscript {
 }
 
 plugins {
-    id("application")
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.gradleJavacppPlatform) // required to resolve *-javacpp-platform appropriately
 }
 
-tasks.getByName("run", JavaExec::class).standardInput = System.`in`
-
-application.mainClass = "DriverKt"
+tasks.withType<JavaExec> {
+    standardInput = System.`in`
+}
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(22)
     jvm {
-        withJava()
         testRuns["test"].executionTask.configure {
             useJUnit()
         }
         java {
             sourceCompatibility = JavaVersion.VERSION_17
-            targetCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_22
         }
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         mainRun {
             mainClass = "DriverKt"
         }
     }
-    /* TODO
-    js(BOTH) {
+    js {
         browser {
             testTask {
                 useKarma {
                     useChromeHeadless()
-                    webpackConfig.cssSupport.enabled = true
                 }
             }
         }
         nodejs {
+            binaries.executable()
         }
-    }*/
+    }
     val hostOs = System.getProperty("os.name")
     val isArm64 = System.getProperty("os.arch") == "aarch64"
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -62,6 +59,7 @@ kotlin {
         binaries {
             executable {
                 entryPoint = "main"
+                runTask?.standardInput = System.`in`
             }
         }
     }
@@ -87,7 +85,6 @@ kotlin {
             dependencies {
                 implementation(project(":ktmidi-jvm-desktop"))
                 api(libs.rtmidi.javacpp.platform)
-                api(libs.libremidi.javacpp.platform)
             }
         }
         val jvmTest by getting {

@@ -3,16 +3,14 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.gradleJavacppPlatform) // required to resolve rtmidi-javacpp-platform appropriately
 }
 
 kotlin {
-    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "ktmidi-ci-tool"
         browser {
             commonWebpackConfig {
                 outputFileName = "ktmidi-ci-tool.js"
@@ -23,17 +21,11 @@ kotlin {
     }
 
     androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
-        }
     }
     
     jvm("desktop")
     
     listOf(
-        iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach { iosTarget ->
@@ -47,7 +39,7 @@ kotlin {
         val desktopMain by getting
 
         androidMain.dependencies {
-            implementation(libs.compose.ui.tooling.preview)
+            implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.mpfilepicker)
         }
@@ -57,6 +49,7 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
+            implementation(compose.components.uiToolingPreview)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
             //implementation(libs.ktor.io)
@@ -67,9 +60,8 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(project(":ktmidi-jvm-desktop"))
             implementation(libs.mpfilepicker)
-            // without this, jnirtmidi.so and jnilibremidi.so will not be found at runtime.
-            api(libs.rtmidi.javacpp.platform)
-            api(libs.libremidi.javacpp.platform)
+            // without this, jnirtmidi.so will not be found at runtime.
+            //api(libs.rtmidi.javacpp.platform)
             implementation(libs.kotlinx.coroutines.swing)
         }
 
@@ -79,9 +71,13 @@ kotlin {
                 implementation(libs.mpfilepicker)
             }
         }
-        val iosX64Main by getting { dependsOn(iosMain) }
         val iosArm64Main by getting { dependsOn(iosMain) }
         val iosSimulatorArm64Main by getting { dependsOn(iosMain) }
+        val wasmJsMain by getting {
+            dependencies {
+                implementation(libs.kotlinx.browser)
+            }
+        }
     }
 }
 
@@ -115,7 +111,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
     dependencies {
-        debugImplementation(libs.compose.ui.tooling)
+        debugImplementation(compose.uiTooling)
     }
 }
 
@@ -129,8 +125,4 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
-}
-
-compose.experimental {
-    web.application {}
 }

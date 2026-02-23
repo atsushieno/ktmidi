@@ -1,0 +1,110 @@
+name: build dist
+
+on:
+  push:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: setup apt packages on Linux
+        if: matrix.os == 'ubuntu-24.04'
+        run: |
+          sudo apt-get update
+          echo y | sudo apt-get install doxygen cmake ninja-build libasound2-dev libjack-jackd2-0
+      - name: set up JDK 22
+        uses: actions/setup-java@v4
+        with:
+          java-version: 22
+          distribution: temurin
+
+      - name: build RtMidi for Kotlin/Native
+        run: ./build-rtmidi.sh
+
+      # only on Linux
+      # not that they are NOT only for NON-releases as the signing cycles for .aab could be different from library releases
+      - name: Bump version
+        uses: chkfung/android-version-actions@v1.2.3
+        if: ${{ contains(matrix.os, 'ubuntu-24.04') }}
+        with:
+          gradlePath: ktmidi-ci-tool/build.gradle.kts
+          versionCode: ${{github.run_number}}
+      
+      # only for NON-releases on macos-14
+      - name: macos-14 lightweight build with Gradle for libs and apps
+        if: ${{ !startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-14') }}
+        run: ./gradlew --warning-mode all publishToMavenLocal iosArm64Binaries
+      # only for releases on macos-14
+      - name: macos-14 lightweight publish with Gradle for libs and apps
+        if: ${{ startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'macos-14') }}
+        run: ./gradlew --no-daemon --warning-mode all iosArm64Binaries packageDmg publishMacosArm64PublicationToMavenCentralRepository PublishIosArm64PublicationToMavenCentralRepository PublishIosSimulatorArm64PublicationToMavenCentralRepository
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY_CONTENTS }}
+      # only for NON-releases on Linux
+      - name: linux build with Gradle
+        if: ${{ !startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'ubuntu-24.04') }}
+        run: ./gradlew --warning-mode all build bundle
+      # only for releases on Linux
+      - name: publish
+        if: ${{ startsWith(github.ref, 'refs/tags/') && contains(matrix.os, 'ubuntu-24.04') }}
+        run: ./gradlew --warning-mode=all bundle publishToMavenCentral dokkaHtml
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY_CONTENTS }}
+      # only on Linux
+      # not that they are NOT only for NON-releases as the signing cycles for .aab could be different from library releases
+      - name: Sign app APK/AAB
+        uses: r0adkll/sign-android-release@v1
+        if: ${{ contains(matrix.os, 'ubuntu-24.04') }}
+        with:
+          releaseDirectory: ktmidi-ci-tool/build/outputs/bundle/release
+          signingKeyBase64: ${{ secrets.AAB_SIGNING_KEY_BASE64 }}
+          alias: ${{ secrets.AAB_SIGNING_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.AAB_SIGNING_KEY_STORE_PASSWORD }}
+
+      - name: upload build failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-failure-logs-${{ matrix.os }}
+          path: |
+            ktmidi/build/reports/
+            ktmidi-jvm-desktop/build/reports/
+            ktmidi/*.log
+            ktmidi-ci/*.log
+            ktmidi-native-ext/*.log
+            ktmidi-jvm-desktop/*.log
+      - name: upload artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ktmidi-artifacts-${{ matrix.os }}
+          path: |
+            ktmidi/build/libs/*.jar
+            ktmidi/build/outputs/aar/*.aar
+            ktmidi-ci/build/libs/*.jar
+            ktmidi-ci/build/outputs/aar/*.aar
+            ktmidi-native-ext/build/bin
+            ktmidi-jvm-desktop/build/libs/*.jar
+            ktmidi-ci-tool/build/bin/iosArm64
+            ktmidi-ci-tool/build/compose/binaries/main/dmg
+            ktmidi-ci-tool/build/outputs/apk
+            ktmidi-ci-tool/build/outputs/bundle

@@ -3,9 +3,6 @@ package dev.atsushieno.ktmidi.citool.view
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -121,7 +118,9 @@ fun PropertyMetadataEditor(def: CommonRulesPropertyMetadata,
                         TextField(titleText, { s: String -> titleText = s; it.title = s }, readOnly = readOnly)
                         if (!readOnly) {
                             Button(onClick = { columns.removeAt(index) }) {
-                                Image(Icons.Default.Delete, "Delete")
+                                // FIXME: they are gone around Compose Multiplatform 1.9.0
+                                //Image(Icons.Default.Delete, "Delete")
+                                Text("Delete")
                             }
                         }
                     }
@@ -148,7 +147,9 @@ fun PropertyMetadataEditor(def: CommonRulesPropertyMetadata,
                     Button(onClick = {
                         columns.add(PropertyResourceColumn())
                     }) {
-                        Image(Icons.Default.Add, "Add")
+                        // FIXME: they are gone around Compose Multiplatform 1.9.0
+                        //Image(Icons.Default.Add, "Add")
+                        Text("Add")
                     }
                 }
             }

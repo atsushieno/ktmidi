@@ -61,16 +61,16 @@ fun ClientConnection(vm: ConnectionViewModel) {
 
         Row {
             ClientPropertyList(vm)
-            val selectedProperty by remember { vm.selectedProperty }
-            val sp = selectedProperty
+            val sp = vm.selectedProperty.value
+            val sr = vm.selectedResId.value
             if (sp != null)
                 ClientPropertyDetails(vm, sp,
-                    refreshValueClicked = { encoding, paginateOffset, paginateLimit -> vm.refreshPropertyValue(sp, encoding, paginateOffset, paginateLimit) },
+                    refreshValueClicked = { encoding, paginateOffset, paginateLimit -> vm.refreshPropertyValue(sp, sr, encoding, paginateOffset, paginateLimit) },
                     subscribeClicked = { newState, encoding ->
                         if (newState)
-                            vm.subscribeProperty(sp, encoding)
+                            vm.subscribeProperty(sp, sr, encoding)
                         else
-                            vm.unsubscribeProperty(sp)
+                            vm.unsubscribeProperty(sp, sr)
                     },
                     commitChangeClicked = { id, resId, bytes, encoding, isPartial -> vm.sendSetPropertyDataRequest(id, resId, bytes, encoding, isPartial) }
                 )
@@ -245,7 +245,8 @@ fun ClientPropertyList(vm: ConnectionViewModel) {
         Snapshot.withMutableSnapshot {
             properties.forEach {
                 PropertyListEntry(it, vm.selectedProperty.value == it) {
-                    propertyId -> vm.selectProperty(propertyId)
+                    // FIXME: at this state we have no idea how to retrieve resId related stuff
+                    propertyId -> vm.selectProperty(propertyId, resId = null)
                 }
             }
         }

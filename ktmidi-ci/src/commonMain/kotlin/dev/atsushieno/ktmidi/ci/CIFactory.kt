@@ -330,7 +330,7 @@ object CIFactory {
 
         val chunks = data.chunked(maxDataLengthInPacket)
         return chunks.mapIndexed { index, packetData ->
-            midiCIPropertyPacketCommon(dst, subId, sourceMUID, destinationMUID, requestId, header,
+            midiCIPropertyPacketCommon(dst, subId, sourceMUID, destinationMUID, requestId, if (index > 0) listOf() else header,
                 chunks.size.toShort(), (index + 1).toShort(), packetData)
         }
     }

@@ -2,7 +2,6 @@ package dev.atsushieno.ktmidi.ci
 
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyService
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
-import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
 
 /**
  * This class provides Profile Configuration *hosting* features primarily to end-user app developers,
@@ -27,8 +26,8 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
 
     // update property value. It involves notifications to subscribers.
     fun setPropertyValue(propertyId: String, resId: String?, data: List<Byte>, isPartial: Boolean) {
-        properties.values.first { it.id == propertyId && (resId == null || it.resId == resId) }.body = data
-        notifyPropertyUpdatesToSubscribers(propertyId, data, isPartial)
+        properties.values.first { it.id == propertyId && (resId.isNullOrBlank() || it.resId == resId) }.body = data
+        notifyPropertyUpdatesToSubscribers(propertyId, resId, data, isPartial)
     }
 
     fun updateCommonRulesDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
@@ -49,6 +48,14 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
             p.jsonSchemaString = stringValue
     }
 
+    var propertyBinaryGetter: (propertyId: String, resId: String?) -> List<Byte>?
+        get() = (propertyService as? CommonRulesPropertyService)?.propertyBinaryGetter ?: { _, _ -> null }
+        set(value) { (propertyService as? CommonRulesPropertyService)?.propertyBinaryGetter = value }
+
+    var propertyBinarySetter: (propertyId: String, resId: String?, mediaType: String, body: List<Byte>) -> Boolean
+        get() = (propertyService as? CommonRulesPropertyService)?.propertyBinarySetter ?: { _, _, _, _ -> false }
+        set(value) { (propertyService as? CommonRulesPropertyService)?.propertyBinarySetter = value }
+
     // These members were moved from `PropertyExchangeResponder` and might be still unsorted.
 
     private val muid by device::muid
@@ -57,17 +64,17 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
 
     internal val propertyService: MidiCIServicePropertyRules by lazy { CommonRulesPropertyService(device) }
     val properties by lazy { ServiceObservablePropertyList(config.propertyValues, propertyService) }
-    val subscriptions: List<SubscriptionEntry> by propertyService::subscriptions
+    val subscriptions by lazy { ObservablePropertySubscriptionList(propertyService) }
 
-    var notifyPropertyUpdatesToSubscribers: (propertyId: String, data: List<Byte>, isPartial: Boolean) -> Unit = { propertyId, data, isPartial ->
-        createPropertyNotification(propertyId, data, isPartial).forEach { msg ->
+    var notifyPropertyUpdatesToSubscribers: (propertyId: String, resId: String?, data: List<Byte>, isPartial: Boolean) -> Unit = { propertyId, resId, data, isPartial ->
+        createPropertyNotification(propertyId, resId, data, isPartial).forEach { msg ->
             notifyPropertyUpdatesToSubscribers(msg)
         }
     }
-    private fun createPropertyNotification(propertyId: String, data: List<Byte>, isPartial: Boolean): Sequence<Message.SubscribeProperty> = sequence {
+    private fun createPropertyNotification(propertyId: String, resId: String?, data: List<Byte>, isPartial: Boolean): Sequence<Message.SubscribeProperty> = sequence {
         var lastEncoding: String? = null
         var lastEncodedData = data
-        subscriptions.filter { it.resource == propertyId }.forEach {
+        subscriptions.items.filter { it.resource == propertyId && (resId.isNullOrBlank() || it.resId == resId) }.forEach {
             val encodedData = if (it.encoding == lastEncoding) lastEncodedData else if (it.encoding == null) data else propertyService.encodeBody(data, it.encoding)
             // do not invoke encodeBody() many times.
             if (it.encoding != lastEncoding && it.encoding != null) {
@@ -85,28 +92,29 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
 
     private fun notifyPropertyUpdatesToSubscribers(msg: Message.SubscribeProperty) = messenger.send(msg)
 
-    fun shutdownSubscription(destinationMUID: Int, propertyId: String) {
+    fun shutdownSubscription(destinationMUID: Int, propertyId: String, resId: String?) {
         messenger.send(createShutdownSubscriptionMessage(
-            destinationMUID, propertyId, device.config.group, device.messenger.requestIdSerial++))
+            destinationMUID, propertyId, resId, device.config.group, device.messenger.requestIdSerial++))
     }
 
     // should be invoked when the host is being terminated
     fun terminateSubscriptionsToAllSubsctibers(group: Byte) {
         propertyService.subscriptions.forEach {
             messenger.send(createShutdownSubscriptionMessage(
-                it.muid, it.resource, group, device.messenger.requestIdSerial++))
+                it.muid, it.resource, it.resId, group, device.messenger.requestIdSerial++))
         }
     }
 
     private fun createShutdownSubscriptionMessage(
         destinationMUID: Int,
         propertyId: String,
+        resId: String?,
         group: Byte,
         requestId: Byte
     ): Message.SubscribeProperty {
         val msg = Message.SubscribeProperty(Message.Common(muid, destinationMUID, MidiCIConstants.ADDRESS_FUNCTION_BLOCK, group),
             requestId,
-            propertyService.createShutdownSubscriptionHeader(propertyId), listOf()
+            propertyService.createShutdownSubscriptionHeader(propertyId, resId), listOf()
         )
         return msg
     }
@@ -125,8 +133,7 @@ class PropertyHostFacade(private val device: MidiCIDevice) {
     fun processSetPropertyData(msg: Message.SetPropertyData) {
         val reply = propertyService.setPropertyData(msg)
         if (reply.isSuccess) {
-            val propertyId = propertyService.getPropertyIdForHeader(msg.header)
-            properties.updateValue(propertyId, msg.header, msg.body)
+            properties.updateValue(msg.header, msg.body)
             messenger.send(reply.getOrNull()!!)
         }
         else

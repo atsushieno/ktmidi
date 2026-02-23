@@ -3,6 +3,7 @@ package dev.atsushieno.ktmidi.ci
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesKnownMimeTypes
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyMetadata
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyCommonHeaderKeys
+import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
 import kotlinx.serialization.Serializable
 
 /**
@@ -33,9 +34,8 @@ abstract class ObservablePropertyList(protected val internalValues: MutableList<
 
     abstract fun getMetadataList(): List<PropertyMetadata>?
 
-    fun getProperty(propertyId: String): List<Byte>? = getPropertyValue(propertyId)?.body
-    fun getPropertyValue(propertyId: String): PropertyValue? =
-        internalValues.firstOrNull { it.id == propertyId }
+    fun getPropertyValue(propertyId: String, resId: String?): PropertyValue? =
+        internalValues.firstOrNull { it.id == propertyId && (resId.isNullOrBlank() || it.resId == resId) }
 
     val valueUpdated = mutableListOf<(propertyValue: PropertyValue) -> Unit>()
     val propertiesCatalogUpdated = mutableListOf<() -> Unit>()
@@ -46,6 +46,7 @@ abstract class ObservablePropertyList(protected val internalValues: MutableList<
             val newEntries = mutableListOf<PropertyValue>()
             val list = getMetadataList()
             list?.forEach { entry ->
+                // FIXME: should we deal with resId here?
                 val existing = internalValues.firstOrNull { it.id == entry.propertyId }
                 if (existing != null)
                     newEntries.add(existing)
@@ -148,8 +149,9 @@ class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private 
     }
 
     // The `header` and `body` are from SetPropertyData
-    fun updateValue(propertyId: String, header: List<Byte>, body: List<Byte>) {
+    fun updateValue(header: List<Byte>, body: List<Byte>) {
         // FIXME: unnecessary Common Rules for PE exposure
+        val propertyId = propertyService.getPropertyIdForHeader(header)
         val resId = propertyService.getHeaderFieldString(header, PropertyCommonHeaderKeys.RES_ID)
         val mediaType = propertyService.getHeaderFieldString(header, PropertyCommonHeaderKeys.MEDIA_TYPE) ?: CommonRulesKnownMimeTypes.APPLICATION_JSON
         val decodedBody = propertyService.decodeBody(header, body)
@@ -164,4 +166,10 @@ class ServiceObservablePropertyList(values: MutableList<PropertyValue>, private 
             PropertyValue(it.propertyId, null, it.mediaTypes?.firstOrNull() ?: "", listOf())
         } ?: listOf())
     }
+}
+
+class ObservablePropertySubscriptionList(private val propertyService: MidiCIServicePropertyRules) {
+    val items: List<SubscriptionEntry> by propertyService::subscriptions
+
+    val subscriptionsUpdated by propertyService::subscruotionsUpdated
 }

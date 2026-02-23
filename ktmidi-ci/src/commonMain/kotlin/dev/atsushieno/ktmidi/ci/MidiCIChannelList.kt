@@ -40,18 +40,28 @@ data class MidiCIChannel(
     // Note that ChannelList property specification expects 1-256, not 0.255
     val channel: Int,
     val programTitle: String? = null,
-    val bankMSB: Byte = 0,
-    val bankLSB: Byte = 0,
-    val program: Byte = 0,
+    val bankMSB: Byte? = null,
+    val bankLSB: Byte? = null,
+    val program: Byte? = null,
     // Note that ChannelList property specification expects 1-256, not 0.255
-    val clusterChannelStart: Int = 1,
-    val clusterLength: Int = 1,
+    val clusterChannelStart: Int? = null,
+    val clusterLength: Int? = null,
     val isOmniOn: Boolean = true,
     val isPolyMode: Boolean = true,
-    val clusterType: String? = ClusterType.OTHER
+    val clusterType: String? = ClusterType.OTHER,
+    val links: List<MidiCIChannelLink> = listOf(),
+    val channelClusterId: Int? = null,
 ) {
     // value range is 1-4, while it is 0-3 in code.
     val clusterMidiMode: Byte = ((if (isOmniOn) 1 else 0) + (if (isPolyMode) 2 else 0) + 1).toByte()
 
     val bankPC = arrayOf(bankMSB, bankLSB, program)
 }
+
+@Serializable
+data class MidiCIChannelLink(
+    val resource: String,
+    val resId: String? = null,
+    val title: String? = null,
+    val role: String? = null
+)

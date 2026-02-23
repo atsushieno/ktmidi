@@ -14,14 +14,14 @@ enum class ConnectionChange {
  */
 class MidiCIDevice(val muid: Int, val config: MidiCIDeviceConfiguration,
                    sendCIOutput: (group: Byte, data: List<Byte>) -> Unit,
-                   sendMidiMessageReport: (group: Byte, protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit
+                   sendMidiMessageReport: (group: Byte, protocol: MidiMessageReportProtocol, data: List<Byte>) -> Unit,
+                   val logger: Logger = Logger()
 ) {
     val deviceInfo: MidiCIDeviceInfo
         get() = config.deviceInfo
 
     val unknownCIMessageReceived = mutableListOf<(data: List<Byte>) -> Unit>()
     val messageReceived = mutableListOf<(msg: Message) -> Unit>()
-    val logger = Logger()
 
     val connections = mutableMapOf<Int, ClientConnection>()
     val connectionsChanged = mutableListOf<(change: ConnectionChange, connection: ClientConnection) -> Unit>()

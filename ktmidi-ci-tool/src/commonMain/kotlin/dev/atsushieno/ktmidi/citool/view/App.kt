@@ -3,11 +3,7 @@ package dev.atsushieno.ktmidi.citool.view
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -20,7 +16,7 @@ fun App() {
         AppModel.midiDeviceManager.setupVirtualPorts()
     }
     MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
-        Scaffold {
+        Scaffold(Modifier.statusBarsPadding()) {
             MainContent()
         }
     }
@@ -39,14 +35,15 @@ fun MainContent() {
                     Tab(text = { Text(title) },
                         selected = tabIndex == index,
                         onClick = { tabIndex = index },
-                        icon = {
+                        // FIXME: they are gone around Compose Multiplatform 1.9.0
+                        /*icon = {
                             when (index) {
                                 0 -> Icon(imageVector = Icons.Default.ArrowForward, contentDescription = "Go to Initiator Screen")
                                 1 -> Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Go to Responder Screen")
                                 2 -> Icon(imageVector = Icons.Default.List, contentDescription = "Go to Log Screen")
                                 3 -> Icon(imageVector = Icons.Default.Settings, contentDescription = "Go to Settings Screen")
                             }
-                        }
+                        }*/
                     )
                 }
             }

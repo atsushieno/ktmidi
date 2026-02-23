@@ -4,7 +4,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import dev.atsushieno.ktmidi.ci.*
 import dev.atsushieno.ktmidi.ci.profilecommonrules.DefaultControlChangesProfile
+import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesPropertyMetadata
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceNames
+import dev.atsushieno.ktmidi.ci.propertycommonrules.SubscriptionEntry
+import kotlin.random.Random
 
 class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDeviceConfiguration,
                     private val ciOutputSender: (group: Byte, ciBytes: List<Byte>) -> Unit,
@@ -32,13 +35,10 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
                     MessageDirection.Out
                 )
                 midiMessageReportOutputSender(group, data)
-            }
+            },
+            logger = parent.owner.logger
         ).apply {
             // initiator
-            logger.logEventReceived.add { msg, direction ->
-                parent.owner.log(msg, direction)
-            }
-
             connectionsChanged.add { change, conn ->
                 val cml = this@CIDeviceModel.connections
                 when (change) {
@@ -122,16 +122,15 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
 
     // Local property exchange
     val properties = mutableStateListOf<PropertyValue>().apply { addAll(device.propertyHost.properties.values)}
-
-    fun addLocalProperty(property: PropertyMetadata) = device.propertyHost.addProperty(property)
+    val subscriptions = mutableStateListOf<SubscriptionEntry>()
 
     fun removeLocalProperty(propertyId: String) = device.propertyHost.removeProperty(propertyId)
 
     fun updatePropertyMetadata(oldPropertyId: String, property: PropertyMetadata) =
         device.propertyHost.updatePropertyMetadata(oldPropertyId, property)
 
-    fun shutdownSubscription(destinationMUID: Int, resource: String) {
-        device.propertyHost.shutdownSubscription(destinationMUID, resource)
+    fun shutdownSubscription(destinationMUID: Int, resource: String, resId: String?) {
+        device.propertyHost.shutdownSubscription(destinationMUID, resource, resId)
     }
 
     fun addTestProfileItems() {
@@ -150,8 +149,8 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
         // FIXME: if resId is specified, this property value updating does not make sense.
         // It might be partial update, in that case we have to retrieve
         // the partial application result from MidiCIPropertyService processing.
-        properties.first { it.id == propertyId }.body =
-            localProperties.getPropertyValue(propertyId)?.body ?: listOf()
+        properties.first { it.id == propertyId && (resId.isNullOrBlank() || it.resId == resId) }.body =
+            localProperties.getPropertyValue(propertyId, resId)?.body ?: listOf()
     }
 
     fun updateDeviceInfo(deviceInfo: MidiCIDeviceInfo) {
@@ -160,6 +159,12 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
 
     fun updateJsonSchemaString(value: String) {
         device.config.jsonSchemaString = value
+    }
+
+    fun createNewProperty(): PropertyMetadata {
+        val property = CommonRulesPropertyMetadata().apply { resource = "X-${Random.nextInt(9999)}" }
+        device.propertyHost.addProperty(property)
+        return property
     }
 
     val localProperties by device.propertyHost::properties
@@ -199,6 +204,13 @@ class CIDeviceModel(val parent: CIDeviceManager, val muid: Int, config: MidiCIDe
                 properties.removeAt(index)
                 properties.add(index, entry)
             }
+        }
+
+        device.propertyHost.subscriptions.subscriptionsUpdated.add { entry, action ->
+            if (action == SubscriptionUpdateAction.Added)
+                subscriptions.add(entry)
+            else
+                subscriptions.remove(entry)
         }
 
         device.connectionsChanged.add { change, conn ->

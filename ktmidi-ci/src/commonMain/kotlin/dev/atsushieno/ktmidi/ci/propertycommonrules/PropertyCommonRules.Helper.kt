@@ -9,31 +9,6 @@ import dev.atsushieno.ktmidi.ci.toASCIIByteArray
 internal class CommonRulesPropertyHelper(device: MidiCIDevice) {
     val logger by device::logger
 
-    fun getPropertyIdentifierInternal(header: List<Byte>): String {
-        val json = try {
-            Json.parse(MidiCIConverter.decodeASCIIToString(header.toByteArray().decodeToString()))
-        } catch (ex: JsonParserException) {
-            logger.logError(ex.message ?: "Failed to parse property header JSON")
-            return ""
-        }
-        val resId =
-            json.token.map.firstNotNullOfOrNull {
-                if (it.key.stringValue == PropertyCommonHeaderKeys.RES_ID)
-                    it.value.stringValue
-                else null
-            }
-        val resource =
-            json.token.map.firstNotNullOfOrNull {
-                if (it.key.stringValue == PropertyCommonHeaderKeys.RESOURCE)
-                    it.value.stringValue
-                else null
-            }
-        val result = resId ?: resource ?: ""
-        if (result.isEmpty())
-            logger.logError("The property header JSON does not indicate property ID via `resource` or `resId` field")
-        return result
-    }
-
     private fun getResourceListRequestJson() = createRequestHeader(PropertyResourceNames.RESOURCE_LIST, mapOf())
 
     fun getResourceListRequestBytes(): List<Byte> {
