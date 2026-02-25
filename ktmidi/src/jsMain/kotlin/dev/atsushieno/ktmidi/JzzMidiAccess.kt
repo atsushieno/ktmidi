@@ -84,7 +84,7 @@ internal class JzzMidiInput(private val impl: dynamic, details: MidiPortDetails,
         repeat(midi.length) {
             data[it] = midi[it]
         }
-        val timestampInNanoseconds = Date.now() * 1000
+        val timestampInNanoseconds = Date.now() * 1000000
         this.listener?.onEventReceived(data, 0, midi.length as Int, timestampInNanoseconds.toLong())
     }
 
