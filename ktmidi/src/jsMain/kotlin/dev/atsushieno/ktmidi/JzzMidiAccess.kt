@@ -1,5 +1,7 @@
 package dev.atsushieno.ktmidi
 
+import kotlin.js.Date
+
 private external fun require(module: String): dynamic
 
 // FIXME: we should also create JzzMidi2Access which is based on "JZZ.UMP" ...
@@ -78,7 +80,12 @@ internal class JzzMidiInput(private val impl: dynamic, details: MidiPortDetails,
     }
 
     private val outFunc : dynamic = { midi : dynamic ->
-        this.listener?.onEventReceived(midi as ByteArray, 0, midi.length as Int, 0)
+        val data = ByteArray(midi.length)
+        repeat(midi.length) {
+            data[it] = midi[it]
+        }
+        val timestampInNanoseconds = Date.now() * 1000000
+        this.listener?.onEventReceived(data, 0, midi.length as Int, timestampInNanoseconds.toLong())
     }
 
     init {
