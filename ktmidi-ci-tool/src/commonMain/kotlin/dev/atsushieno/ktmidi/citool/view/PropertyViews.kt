@@ -16,6 +16,7 @@ import dev.atsushieno.ktmidi.ci.json.Json
 import dev.atsushieno.ktmidi.ci.propertycommonrules.CommonRulesKnownMimeTypes
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertyResourceColumn
 import dev.atsushieno.ktmidi.ci.propertycommonrules.PropertySetAccess
+import dev.atsushieno.ktmidi.citool.ViewHelper
 import getPlatform
 
 @Composable
@@ -405,7 +406,7 @@ fun PropertyValueUploadButton(
             Button(onClick = { showFilePicker = !showFilePicker }) {
                 Text("Set value by file (choose)")
             }
-            getPlatform().BinaryFilePicker(showFilePicker) { file ->
+            ViewHelper.BinaryFilePicker { file ->
                 showFilePicker = false
                 if (file != null) {
                     val bytes = getPlatform().loadFileContent(file).toList()

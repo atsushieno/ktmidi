@@ -1,5 +1,3 @@
-import androidx.compose.runtime.Composable
-import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -36,10 +34,6 @@ class JVMPlatform : Platform {
             Files.createDirectory(toolDir)
         return ret
     }
-
-    @Composable
-    override fun BinaryFilePicker(show: Boolean, fileChosen: (String?) -> Unit) =
-        FilePicker(show = show) { fileChosen(it?.path) }
 }
 
 actual fun getPlatform(): Platform = JVMPlatform()

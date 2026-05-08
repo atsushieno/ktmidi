@@ -1,5 +1,10 @@
 package dev.atsushieno.ktmidi.citool
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.dialogs.openFilePicker
+import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,6 +26,15 @@ object ViewHelper {
         } catch(ex: Exception) {
             ex.printStackTrace() // try to give full information, not wrapped by javacpp_Exception (C++, that hides everything)
             throw ex
+        }
+    }
+
+    @Composable
+    fun BinaryFilePicker(fileChosen: (String?) -> Unit) {
+        LaunchedEffect(fileChosen.hashCode()) {
+            val file = FileKit.openFilePicker()
+            if (file != null)
+                fileChosen(file.path)
         }
     }
 }

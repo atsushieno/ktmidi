@@ -1,4 +1,7 @@
+@file:OptIn(ExperimentalWasmDsl::class)
+
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -39,19 +42,19 @@ kotlin {
         val desktopMain by getting
 
         androidMain.dependencies {
-            implementation(compose.preview)
+            implementation(libs.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
-            implementation(libs.mpfilepicker)
         }
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.runtime)
+            implementation(libs.foundation)
+            implementation(libs.material3)
+            implementation(libs.ui)
+            implementation(libs.components.resources)
+            implementation(libs.ui.tooling.preview)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.filekit.dialogs.compose)
             //implementation(libs.ktor.io)
             implementation(project(":ktmidi"))
             implementation(project(":ktmidi-ci"))
@@ -59,7 +62,6 @@ kotlin {
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(project(":ktmidi-jvm-desktop"))
-            implementation(libs.mpfilepicker)
             // without this, jnirtmidi.so will not be found at runtime.
             //api(libs.rtmidi.javacpp.platform)
             implementation(libs.kotlinx.coroutines.swing)
@@ -68,7 +70,6 @@ kotlin {
         val iosMain by creating {
             dependsOn(commonMain.get())
             dependencies {
-                implementation(libs.mpfilepicker)
             }
         }
         val iosArm64Main by getting { dependsOn(iosMain) }
@@ -76,6 +77,7 @@ kotlin {
         val wasmJsMain by getting {
             dependencies {
                 implementation(libs.kotlinx.browser)
+                implementation(libs.filekit.dialogs.compose)
             }
         }
     }
@@ -107,8 +109,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     dependencies {
         debugImplementation(compose.uiTooling)
